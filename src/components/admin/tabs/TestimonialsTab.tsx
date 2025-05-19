@@ -44,6 +44,34 @@ const TestimonialsTab = () => {
   useEffect(() => {
     fetchTestimonials();
     
+    // Ensure bucket exists when component mounts
+    const ensureBucketExists = async () => {
+      try {
+        const { data, error } = await supabase.storage.getBucket('testimonials');
+        
+        if (error && error.message.includes('bucket not found')) {
+          const { error: createError } = await supabase.storage.createBucket('testimonials', {
+            public: true,
+            fileSizeLimit: 10485760, // 10MB
+            allowedMimeTypes: ['image/png', 'image/jpeg', 'image/jpg', 'image/webp']
+          });
+          
+          if (createError) {
+            console.error('Error creating testimonials bucket:', createError);
+            toast.error('Erro ao criar bucket de armazenamento para depoimentos');
+          } else {
+            console.log('Testimonials bucket created successfully');
+          }
+        } else if (error) {
+          console.error('Error checking testimonials bucket:', error);
+        }
+      } catch (err) {
+        console.error('Unexpected error checking bucket:', err);
+      }
+    };
+    
+    ensureBucketExists();
+    
     const channel = supabase
       .channel('public:testimonials')
       .on(
@@ -118,6 +146,25 @@ const TestimonialsTab = () => {
     
     try {
       setIsSubmitting(true);
+      
+      // First check if bucket exists
+      if (uploadImage) {
+        const { data: bucketData, error: bucketError } = await supabase.storage.getBucket('testimonials');
+        
+        if (bucketError && bucketError.message.includes('bucket not found')) {
+          const { error: createError } = await supabase.storage.createBucket('testimonials', {
+            public: true,
+            fileSizeLimit: 10485760,
+            allowedMimeTypes: ['image/png', 'image/jpeg', 'image/jpg', 'image/webp']
+          });
+          
+          if (createError) {
+            throw new Error(`Erro ao criar bucket de armazenamento: ${createError.message}`);
+          }
+        } else if (bucketError) {
+          throw new Error(`Erro ao verificar bucket de armazenamento: ${bucketError.message}`);
+        }
+      }
       
       let imageUrl = null;
       

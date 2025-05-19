@@ -34,6 +34,34 @@ const GalleryTab = () => {
   useEffect(() => {
     fetchGalleryImages();
     
+    // Ensure bucket exists when component mounts
+    const ensureBucketExists = async () => {
+      try {
+        const { data, error } = await supabase.storage.getBucket('gallery');
+        
+        if (error && error.message.includes('bucket not found')) {
+          const { error: createError } = await supabase.storage.createBucket('gallery', {
+            public: true,
+            fileSizeLimit: 10485760, // 10MB
+            allowedMimeTypes: ['image/png', 'image/jpeg', 'image/jpg', 'image/webp']
+          });
+          
+          if (createError) {
+            console.error('Error creating gallery bucket:', createError);
+            toast.error('Erro ao criar bucket de armazenamento');
+          } else {
+            console.log('Gallery bucket created successfully');
+          }
+        } else if (error) {
+          console.error('Error checking gallery bucket:', error);
+        }
+      } catch (err) {
+        console.error('Unexpected error checking bucket:', err);
+      }
+    };
+    
+    ensureBucketExists();
+    
     const channel = supabase
       .channel('public:gallery')
       .on(
@@ -133,6 +161,23 @@ const GalleryTab = () => {
       setIsUploading(true);
       setUploadProgress(0);
       
+      // First check if bucket exists
+      const { data: bucketData, error: bucketError } = await supabase.storage.getBucket('gallery');
+      
+      if (bucketError && bucketError.message.includes('bucket not found')) {
+        const { error: createError } = await supabase.storage.createBucket('gallery', {
+          public: true,
+          fileSizeLimit: 10485760,
+          allowedMimeTypes: ['image/png', 'image/jpeg', 'image/jpg', 'image/webp']
+        });
+        
+        if (createError) {
+          throw new Error(`Erro ao criar bucket de armazenamento: ${createError.message}`);
+        }
+      } else if (bucketError) {
+        throw new Error(`Erro ao verificar bucket de armazenamento: ${bucketError.message}`);
+      }
+      
       let successCount = 0;
       const totalFiles = uploadFiles.length;
       
@@ -149,6 +194,7 @@ const GalleryTab = () => {
         
         if (uploadError) {
           console.error(`Error uploading file ${i+1}:`, uploadError);
+          toast.error(`Erro ao fazer upload do arquivo ${i+1}: ${uploadError.message}`);
           continue;  // Skip to next file on error
         }
         
@@ -176,6 +222,7 @@ const GalleryTab = () => {
         
         if (insertError) {
           console.error(`Error creating gallery entry ${i+1}:`, insertError);
+          toast.error(`Erro ao registrar imagem ${i+1} no banco de dados: ${insertError.message}`);
           continue;  // Skip to next file on error
         }
         
