@@ -1,5 +1,6 @@
 
 import { Instagram } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const Footer = () => {
   return (
@@ -45,6 +46,15 @@ const Footer = () => {
                 WhatsApp: (24) 99268-9947
               </a>
             </address>
+            
+            <div className="mt-2">
+              <Link 
+                to="/admin" 
+                className="text-xs text-gray-600 hover:text-gold transition-colors"
+              >
+                Área Administrativa
+              </Link>
+            </div>
           </div>
         </div>
       </div>
