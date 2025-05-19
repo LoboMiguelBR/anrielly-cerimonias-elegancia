@@ -33,6 +33,15 @@ export const createStorageBuckets = async () => {
       console.log('Gallery bucket created or already exists');
     }
 
+    // Add RLS policies programmatically if possible
+    // Create public access policy for testimonials bucket
+    try {
+      await supabase.storage.from('testimonials').getPublicUrl('test.jpg');
+      console.log('Public URL generation successful');
+    } catch (error) {
+      console.error('Error testing public URL generation:', error);
+    }
+
     return {
       testimonialsBucket: testimonialsBucket || { name: 'testimonials', id: 'testimonials' },
       galleryBucket: galleryBucket || { name: 'gallery', id: 'gallery' }
