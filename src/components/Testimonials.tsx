@@ -22,6 +22,7 @@ const Testimonials = () => {
   const sectionRef = useRef<HTMLElement>(null);
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -54,7 +55,15 @@ const Testimonials = () => {
           fetchTestimonials();
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          console.log('Subscribed to testimonials changes');
+        }
+        if (status === 'CHANNEL_ERROR') {
+          console.error('Failed to subscribe to testimonials changes');
+          toast.error('Falha ao monitorar alterações em depoimentos.');
+        }
+      });
     
     return () => {
       if (sectionRef.current) {
@@ -67,22 +76,31 @@ const Testimonials = () => {
   const fetchTestimonials = async () => {
     try {
       setIsLoading(true);
+      setError(null);
+      
       const { data, error } = await supabase
         .from('testimonials')
         .select('*')
         .order('order_index');
 
-      if (error) throw error;
+      if (error) {
+        throw error;
+      }
       
       setTestimonials(data || []);
-    } catch (error) {
+      console.log('Fetched testimonials:', data);
+    } catch (error: any) {
       console.error('Error fetching testimonials:', error);
+      setError(error.message || 'Erro ao carregar depoimentos');
+      toast.error('Erro ao carregar depoimentos', {
+        description: error.message
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Fallback to static testimonials if none in the database
+  // Fallback to static testimonials if none in the database or if there's an error
   const staticTestimonials = [
     {
       id: '1',
@@ -116,6 +134,18 @@ const Testimonials = () => {
         
         {isLoading ? (
           <div className="py-10 text-center">Carregando depoimentos...</div>
+        ) : error ? (
+          <div className="py-10 text-center text-red-500">
+            {error}
+            <div className="mt-4">
+              <button 
+                onClick={() => fetchTestimonials()}
+                className="px-4 py-2 bg-gold/80 text-white rounded-md hover:bg-gold transition-colors"
+              >
+                Tentar novamente
+              </button>
+            </div>
+          </div>
         ) : (
           <div className="mt-10 px-4 animate-on-scroll">
             <Carousel className="w-full max-w-4xl mx-auto">
