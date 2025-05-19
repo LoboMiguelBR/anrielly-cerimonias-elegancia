@@ -1,5 +1,6 @@
 
 import { MapPin } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const ServiceArea = () => {
   return (
@@ -13,6 +14,13 @@ const ServiceArea = () => {
           <p className="text-gray-700 text-center">
             Atendimento em Volta Redonda e Região Sul Fluminense
           </p>
+          
+          {/* Link para área administrativa */}
+          <div className="mt-16 text-center text-sm text-gray-400">
+            <Link to="/admin" className="hover:text-gold transition-colors">
+              Área Administrativa
+            </Link>
+          </div>
         </div>
       </div>
     </section>

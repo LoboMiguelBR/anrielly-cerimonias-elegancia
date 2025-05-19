@@ -10,8 +10,10 @@ const ContactForm = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    phone: '', // Novo campo para telefone
     eventType: '',
     date: '',
+    eventLocation: '', // Novo campo para local do evento
     message: ''
   });
 
@@ -57,8 +59,10 @@ const ContactForm = () => {
     setFormData({
       name: '',
       email: '',
+      phone: '',
       eventType: '',
       date: '',
+      eventLocation: '',
       message: ''
     });
   };
@@ -85,48 +89,80 @@ const ContactForm = () => {
                 />
               </div>
               
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="mb-4">
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                  <input 
+                    type="email" 
+                    id="email" 
+                    name="email" 
+                    value={formData.email} 
+                    onChange={handleChange} 
+                    required 
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-gold"
+                    placeholder="seu.email@exemplo.com"
+                  />
+                </div>
+                
+                <div className="mb-4">
+                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">Telefone</label>
+                  <input 
+                    type="tel" 
+                    id="phone" 
+                    name="phone" 
+                    value={formData.phone} 
+                    onChange={handleChange} 
+                    required 
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-gold"
+                    placeholder="(XX) XXXXX-XXXX"
+                  />
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="mb-4">
+                  <label htmlFor="eventType" className="block text-sm font-medium text-gray-700 mb-1">Tipo de Evento</label>
+                  <select 
+                    id="eventType" 
+                    name="eventType" 
+                    value={formData.eventType} 
+                    onChange={handleChange} 
+                    required 
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-gold"
+                  >
+                    <option value="">Selecione o tipo de evento</option>
+                    <option value="casamento">Casamento</option>
+                    <option value="15anos">Festa de 15 anos</option>
+                    <option value="corporativo">Evento corporativo</option>
+                    <option value="formatura">Formatura</option>
+                    <option value="outro">Outro</option>
+                  </select>
+                </div>
+                
+                <div className="mb-4">
+                  <label htmlFor="date" className="block text-sm font-medium text-gray-700 mb-1">Data do Evento</label>
+                  <input 
+                    type="date" 
+                    id="date" 
+                    name="date" 
+                    value={formData.date} 
+                    onChange={handleChange} 
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-gold"
+                  />
+                </div>
+              </div>
+
               <div className="mb-4">
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <label htmlFor="eventLocation" className="block text-sm font-medium text-gray-700 mb-1">Local do Evento</label>
                 <input 
-                  type="email" 
-                  id="email" 
-                  name="email" 
-                  value={formData.email} 
+                  type="text" 
+                  id="eventLocation" 
+                  name="eventLocation" 
+                  value={formData.eventLocation} 
                   onChange={handleChange} 
                   required 
                   className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-gold"
-                  placeholder="seu.email@exemplo.com"
-                />
-              </div>
-              
-              <div className="mb-4">
-                <label htmlFor="eventType" className="block text-sm font-medium text-gray-700 mb-1">Tipo de Evento</label>
-                <select 
-                  id="eventType" 
-                  name="eventType" 
-                  value={formData.eventType} 
-                  onChange={handleChange} 
-                  required 
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-gold"
-                >
-                  <option value="">Selecione o tipo de evento</option>
-                  <option value="casamento">Casamento</option>
-                  <option value="15anos">Festa de 15 anos</option>
-                  <option value="corporativo">Evento corporativo</option>
-                  <option value="formatura">Formatura</option>
-                  <option value="outro">Outro</option>
-                </select>
-              </div>
-              
-              <div className="mb-4">
-                <label htmlFor="date" className="block text-sm font-medium text-gray-700 mb-1">Data do Evento</label>
-                <input 
-                  type="date" 
-                  id="date" 
-                  name="date" 
-                  value={formData.date} 
-                  onChange={handleChange} 
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-gold"
+                  placeholder="Cidade e local do evento"
                 />
               </div>
               
