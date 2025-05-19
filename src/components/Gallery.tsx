@@ -1,10 +1,21 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+
+interface GalleryImage {
+  id: string;
+  title: string;
+  description: string | null;
+  image_url: string;
+}
 
 const Gallery = () => {
   const sectionRef = useRef<HTMLElement>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [images, setImages] = useState<GalleryImage[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -21,14 +32,53 @@ const Gallery = () => {
       observer.observe(sectionRef.current);
     }
     
+    fetchGalleryImages();
+    
+    // Set up realtime subscription
+    const channel = supabase
+      .channel('public:gallery')
+      .on(
+        'postgres_changes',
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'gallery' 
+        },
+        () => {
+          fetchGalleryImages();
+        }
+      )
+      .subscribe();
+    
     return () => {
       if (sectionRef.current) {
         observer.unobserve(sectionRef.current);
       }
+      supabase.removeChannel(channel);
     };
   }, []);
 
-  const images = [
+  const fetchGalleryImages = async () => {
+    try {
+      setIsLoading(true);
+      const { data, error } = await supabase
+        .from('gallery')
+        .select('*')
+        .order('order_index');
+
+      if (error) throw error;
+      
+      setImages(data || []);
+    } catch (error) {
+      console.error('Error fetching gallery images:', error);
+      toast.error('Não foi possível carregar a galeria de imagens');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Fallback to static images if no images in database
+  const staticImages = [
     "/lovable-uploads/c8bfe776-c594-4d05-bc65-9472d76d5323.png",
     "/lovable-uploads/ea42111a-a240-43c5-84f8-067b63793694.png",
     "/lovable-uploads/e722dd38-54b1-498a-adeb-7a5a126035fd.png",
@@ -39,34 +89,57 @@ const Gallery = () => {
     "/lovable-uploads/322b9c8a-c27a-42c2-bbfd-b8fbcfd2c449.png"
   ];
 
+  const displayImages = images.length > 0 
+    ? images.map(img => ({ 
+        id: img.id, 
+        url: img.image_url, 
+        title: img.title, 
+        description: img.description 
+      }))
+    : staticImages.map((url, i) => ({ 
+        id: `static-${i}`, 
+        url, 
+        title: `Imagem ${i+1}`, 
+        description: null 
+      }));
+
   return (
     <section id="galeria" className="bg-white" ref={sectionRef}>
       <div className="container mx-auto px-4">
         <h2 className="section-title animate-on-scroll">Galeria</h2>
         
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {images.map((image, index) => (
-            <div 
-              key={index} 
-              className="aspect-square overflow-hidden rounded-lg shadow-md animate-on-scroll"
-              style={{ animationDelay: `${index * 100}ms` }}
-              onClick={() => setSelectedImage(image)}
-            >
-              <div className="relative h-full group cursor-pointer">
-                <img 
-                  src={image} 
-                  alt={`Galeria Anrielly Gomes - Imagem ${index + 1}`} 
-                  className="w-full h-full object-cover hover-zoom"
-                />
-                <div className="absolute inset-0 bg-gold/0 group-hover:bg-gold/20 transition-all duration-300 flex items-center justify-center">
-                  <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <span className="sr-only">Ver ampliado</span>
+        {isLoading ? (
+          <div className="py-20 text-center">Carregando galeria...</div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {displayImages.map((image, index) => (
+              <div 
+                key={image.id} 
+                className="aspect-square overflow-hidden rounded-lg shadow-md animate-on-scroll"
+                style={{ animationDelay: `${index * 100}ms` }}
+                onClick={() => setSelectedImage(image.url)}
+              >
+                <div className="relative h-full group cursor-pointer">
+                  <img 
+                    src={image.url} 
+                    alt={image.title || `Galeria Anrielly Gomes - Imagem ${index + 1}`} 
+                    className="w-full h-full object-cover hover-zoom"
+                  />
+                  <div className="absolute inset-0 bg-gold/0 group-hover:bg-gold/20 transition-all duration-300 flex items-center justify-center">
+                    <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <span className="sr-only">Ver ampliado</span>
+                    </div>
                   </div>
+                  {image.description && (
+                    <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white p-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <p className="text-sm truncate">{image.description}</p>
+                    </div>
+                  )}
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
 
         <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
           <DialogContent className="max-w-4xl p-1 bg-transparent border-none">
