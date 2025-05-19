@@ -2,18 +2,20 @@
 import { useState, FormEvent, useEffect, useRef } from 'react';
 import { Phone, Instagram, Mail } from 'lucide-react';
 import { useToast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const ContactForm = () => {
   const { toast } = useToast();
   const sectionRef = useRef<HTMLElement>(null);
   
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    phone: '', // Novo campo para telefone
+    phone: '',
     eventType: '',
     date: '',
-    eventLocation: '', // Novo campo para local do evento
+    eventLocation: '',
     message: ''
   });
 
@@ -47,24 +49,51 @@ const ContactForm = () => {
     }));
   };
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    console.log('Form data submitted:', formData);
+    setLoading(true);
     
-    toast({
-      title: "Solicitação enviada!",
-      description: "Entraremos em contato em breve para um orçamento personalizado.",
-    });
-    
-    setFormData({
-      name: '',
-      email: '',
-      phone: '',
-      eventType: '',
-      date: '',
-      eventLocation: '',
-      message: ''
-    });
+    try {
+      // Insert form data to Supabase quote_requests table
+      const { error } = await supabase
+        .from('quote_requests')
+        .insert({
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          event_type: formData.eventType,
+          event_date: formData.date || null,
+          event_location: formData.eventLocation,
+          message: formData.message || null
+        });
+        
+      if (error) throw error;
+      
+      toast({
+        title: "Solicitação enviada!",
+        description: "Entraremos em contato em breve para um orçamento personalizado.",
+      });
+      
+      // Clear form after successful submission
+      setFormData({
+        name: '',
+        email: '',
+        phone: '',
+        eventType: '',
+        date: '',
+        eventLocation: '',
+        message: ''
+      });
+    } catch (error: any) {
+      console.error('Error submitting form:', error);
+      toast({
+        title: "Erro ao enviar o formulário",
+        description: "Por favor, tente novamente mais tarde.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -181,9 +210,10 @@ const ContactForm = () => {
               
               <button 
                 type="submit" 
+                disabled={loading}
                 className="w-full btn btn-primary"
               >
-                Quero fazer um orçamento
+                {loading ? "Enviando..." : "Quero fazer um orçamento"}
               </button>
             </form>
           </div>

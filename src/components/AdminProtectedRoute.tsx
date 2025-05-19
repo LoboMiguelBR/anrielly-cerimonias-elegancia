@@ -1,6 +1,7 @@
 
 import { ReactNode, useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
+import { supabase } from "@/integrations/supabase/client";
 
 interface AdminProtectedRouteProps {
   children: ReactNode;
@@ -10,13 +11,20 @@ const AdminProtectedRoute = ({ children }: AdminProtectedRouteProps) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   
   useEffect(() => {
-    // Verificar se o usuário está autenticado
-    const adminUser = localStorage.getItem('adminUser');
-    // Lista de usuários permitidos
-    const allowedUsers = ['anrielly@yahoo.com.br', 'miguel.d.s.lobo@gmail.com'];
+    const checkAuth = async () => {
+      const { data } = await supabase.auth.getSession();
+      setIsAuthenticated(!!data.session);
+    };
     
-    // Verificar se o usuário está na lista de permitidos
-    setIsAuthenticated(!!adminUser && allowedUsers.includes(adminUser));
+    checkAuth();
+    
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      setIsAuthenticated(!!session);
+    });
+    
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
   }, []);
 
   // Mostra loading enquanto verifica autenticação

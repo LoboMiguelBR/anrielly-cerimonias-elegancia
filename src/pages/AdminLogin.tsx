@@ -3,6 +3,7 @@ import { useState, FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from "@/components/ui/use-toast";
 import { Input } from "@/components/ui/input";
+import { supabase } from "@/integrations/supabase/client";
 
 const AdminLogin = () => {
   const [email, setEmail] = useState('');
@@ -11,38 +12,37 @@ const AdminLogin = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Dados de usuário para simulação (posteriormente usaremos Supabase)
-  const validUsers = [
-    { email: 'anrielly@yahoo.com.br', password: 'admin123' },
-    { email: 'miguel.d.s.lobo@gmail.com', password: 'admin123' }
-  ];
-
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
-    // Simular verificação de login (posteriormente substituiremos pelo Supabase)
-    const isValidUser = validUsers.some(
-      user => user.email === email && user.password === password
-    );
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
 
-    setTimeout(() => {
-      if (isValidUser) {
+      if (error) {
+        throw error;
+      }
+
+      if (data.user) {
         localStorage.setItem('adminUser', email);
         toast({
           title: "Login bem-sucedido",
           description: "Bem-vindo ao painel administrativo",
         });
         navigate('/admin/dashboard');
-      } else {
-        toast({
-          title: "Erro de autenticação",
-          description: "Email ou senha incorretos",
-          variant: "destructive",
-        });
       }
+    } catch (error: any) {
+      toast({
+        title: "Erro de autenticação",
+        description: error.message || "Email ou senha incorretos",
+        variant: "destructive",
+      });
+    } finally {
       setLoading(false);
-    }, 1000); // Simulação de delay de rede
+    }
   };
 
   return (

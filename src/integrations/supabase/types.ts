@@ -9,7 +9,179 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      gallery: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string
+          order_index: number | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url: string
+          order_index?: number | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string
+          order_index?: number | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      proposals: {
+        Row: {
+          client_email: string
+          client_name: string
+          client_phone: string
+          created_at: string
+          event_date: string | null
+          event_location: string
+          event_type: string
+          id: string
+          notes: string | null
+          payment_terms: string
+          pdf_url: string | null
+          quote_request_id: string | null
+          services: Json
+          status: string | null
+          total_price: number
+          updated_at: string
+          validity_date: string
+        }
+        Insert: {
+          client_email: string
+          client_name: string
+          client_phone: string
+          created_at?: string
+          event_date?: string | null
+          event_location: string
+          event_type: string
+          id?: string
+          notes?: string | null
+          payment_terms: string
+          pdf_url?: string | null
+          quote_request_id?: string | null
+          services?: Json
+          status?: string | null
+          total_price: number
+          updated_at?: string
+          validity_date: string
+        }
+        Update: {
+          client_email?: string
+          client_name?: string
+          client_phone?: string
+          created_at?: string
+          event_date?: string | null
+          event_location?: string
+          event_type?: string
+          id?: string
+          notes?: string | null
+          payment_terms?: string
+          pdf_url?: string | null
+          quote_request_id?: string | null
+          services?: Json
+          status?: string | null
+          total_price?: number
+          updated_at?: string
+          validity_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "proposals_quote_request_id_fkey"
+            columns: ["quote_request_id"]
+            isOneToOne: false
+            referencedRelation: "quote_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quote_requests: {
+        Row: {
+          created_at: string
+          email: string
+          event_date: string | null
+          event_location: string
+          event_type: string
+          id: string
+          message: string | null
+          name: string
+          phone: string
+          status: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          event_date?: string | null
+          event_location: string
+          event_type: string
+          id?: string
+          message?: string | null
+          name: string
+          phone: string
+          status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          event_date?: string | null
+          event_location?: string
+          event_type?: string
+          id?: string
+          message?: string | null
+          name?: string
+          phone?: string
+          status?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      testimonials: {
+        Row: {
+          created_at: string
+          id: string
+          image_url: string | null
+          name: string
+          order_index: number | null
+          quote: string
+          role: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          name: string
+          order_index?: number | null
+          quote: string
+          role: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          name?: string
+          order_index?: number | null
+          quote?: string
+          role?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
