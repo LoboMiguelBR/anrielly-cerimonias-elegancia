@@ -6,20 +6,22 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from 'sonner';
-import { Trash2, Upload, Plus, Pencil, X } from 'lucide-react';
+import { Trash2, Upload, Plus, Pencil, X, Image as ImageIcon } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { Progress } from '@/components/ui/progress';
 
 const GalleryTab = () => {
   const [galleryImages, setGalleryImages] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   
   // Upload dialog state
   const [showUploadDialog, setShowUploadDialog] = useState(false);
-  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploadFiles, setUploadFiles] = useState<File[]>([]);
   const [imageTitle, setImageTitle] = useState('');
   const [imageDescription, setImageDescription] = useState('');
-  const [previewUrl, setPreviewUrl] = useState('');
+  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   
   // Edit dialog state
   const [showEditDialog, setShowEditDialog] = useState(false);
@@ -73,76 +75,136 @@ const GalleryTab = () => {
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) {
-      setUploadFile(null);
-      setPreviewUrl('');
+    const files = e.target.files;
+    if (!files || files.length === 0) {
+      setUploadFiles([]);
+      setPreviewUrls([]);
       return;
     }
     
-    setUploadFile(file);
-    setImageTitle(file.name.split('.')[0]);
+    // Convert FileList to array and set state
+    const fileArray = Array.from(files);
+    setUploadFiles(fileArray);
     
-    // Create preview URL
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setPreviewUrl(reader.result as string);
-    };
-    reader.readAsDataURL(file);
+    // Set default title based on the first file
+    if (fileArray.length === 1) {
+      setImageTitle(fileArray[0].name.split('.')[0]);
+    } else {
+      setImageTitle(`Imagens (${fileArray.length})`);
+    }
+    
+    // Create preview URLs for all files
+    const newPreviewUrls: string[] = [];
+    
+    fileArray.forEach(file => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        newPreviewUrls.push(reader.result as string);
+        setPreviewUrls([...newPreviewUrls]);
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const removeFilePreview = (index: number) => {
+    const newFiles = [...uploadFiles];
+    const newPreviewUrls = [...previewUrls];
+    
+    newFiles.splice(index, 1);
+    newPreviewUrls.splice(index, 1);
+    
+    setUploadFiles(newFiles);
+    setPreviewUrls(newPreviewUrls);
+    
+    if (newFiles.length === 0) {
+      setImageTitle('');
+    } else if (newFiles.length === 1) {
+      setImageTitle(newFiles[0].name.split('.')[0]);
+    }
   };
 
   const handleUpload = async () => {
-    if (!uploadFile || !imageTitle) {
-      toast.error('Selecione um arquivo e forneça um título');
+    if (uploadFiles.length === 0 || !imageTitle) {
+      toast.error('Selecione pelo menos um arquivo e forneça um título');
       return;
     }
     
     try {
       setIsUploading(true);
+      setUploadProgress(0);
       
-      // 1. Upload image to Supabase Storage
-      const fileExt = uploadFile.name.split('.').pop();
-      const fileName = `${Date.now()}.${fileExt}`;
+      let successCount = 0;
+      const totalFiles = uploadFiles.length;
       
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('gallery')
-        .upload(fileName, uploadFile);
+      // Process each file sequentially
+      for (let i = 0; i < uploadFiles.length; i++) {
+        const file = uploadFiles[i];
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Date.now()}_${i}.${fileExt}`;
+        
+        // 1. Upload image to Supabase Storage
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('gallery')
+          .upload(fileName, file);
+        
+        if (uploadError) {
+          console.error(`Error uploading file ${i+1}:`, uploadError);
+          continue;  // Skip to next file on error
+        }
+        
+        // 2. Get public URL
+        const { data: publicUrlData } = supabase.storage
+          .from('gallery')
+          .getPublicUrl(fileName);
+        
+        const publicUrl = publicUrlData.publicUrl;
+        
+        // 3. Create record in gallery table
+        // For multiple files, add numbering to title if not custom per file
+        const itemTitle = totalFiles > 1 
+          ? `${imageTitle} (${i+1}/${totalFiles})` 
+          : imageTitle;
+          
+        const { error: insertError } = await supabase
+          .from('gallery')
+          .insert({
+            title: itemTitle,
+            description: imageDescription || null,
+            image_url: publicUrl,
+            order_index: galleryImages.length + i
+          });
+        
+        if (insertError) {
+          console.error(`Error creating gallery entry ${i+1}:`, insertError);
+          continue;  // Skip to next file on error
+        }
+        
+        successCount++;
+        setUploadProgress(Math.round((i + 1) / totalFiles * 100));
+      }
       
-      if (uploadError) throw uploadError;
+      if (successCount === 0) {
+        toast.error('Não foi possível fazer o upload das imagens');
+      } else if (successCount < totalFiles) {
+        toast.warning(`Upload parcial: ${successCount} de ${totalFiles} imagens foram adicionadas`);
+      } else {
+        toast.success(`${totalFiles} ${totalFiles === 1 ? 'imagem adicionada' : 'imagens adicionadas'} com sucesso!`);
+      }
       
-      // 2. Get public URL
-      const { data: publicUrlData } = supabase.storage
-        .from('gallery')
-        .getPublicUrl(fileName);
-      
-      const publicUrl = publicUrlData.publicUrl;
-      
-      // 3. Create record in gallery table
-      const { error: insertError } = await supabase
-        .from('gallery')
-        .insert({
-          title: imageTitle,
-          description: imageDescription || null,
-          image_url: publicUrl,
-          order_index: galleryImages.length
-        });
-      
-      if (insertError) throw insertError;
-      
-      toast.success('Imagem adicionada com sucesso!');
       setShowUploadDialog(false);
       
       // Reset form
-      setUploadFile(null);
+      setUploadFiles([]);
       setImageTitle('');
       setImageDescription('');
-      setPreviewUrl('');
+      setPreviewUrls([]);
       
     } catch (error: any) {
-      console.error('Error uploading image:', error);
+      console.error('Error uploading images:', error);
       toast.error(`Erro ao fazer upload: ${error.message}`);
     } finally {
       setIsUploading(false);
+      setUploadProgress(0);
     }
   };
 
@@ -232,7 +294,7 @@ const GalleryTab = () => {
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-semibold">Gerenciar Galeria de Fotos</h2>
         <Button onClick={() => setShowUploadDialog(true)}>
-          <Plus className="mr-2" size={16} /> Adicionar Imagem
+          <Plus className="mr-2" size={16} /> Adicionar Imagens
         </Button>
       </div>
       
@@ -292,30 +354,30 @@ const GalleryTab = () => {
       <Dialog open={showUploadDialog} onOpenChange={setShowUploadDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Adicionar Nova Imagem</DialogTitle>
+            <DialogTitle>Adicionar Novas Imagens</DialogTitle>
           </DialogHeader>
           
           <div className="grid gap-4">
-            {previewUrl && (
-              <div className="relative mx-auto w-40 h-40">
-                <img 
-                  src={previewUrl} 
-                  alt="Preview" 
-                  className="w-full h-full object-cover rounded-md"
-                />
-                <button
-                  onClick={() => {
-                    setUploadFile(null);
-                    setPreviewUrl('');
-                  }}
-                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1"
-                >
-                  <X size={14} />
-                </button>
+            {previewUrls.length > 0 ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-60 overflow-y-auto p-2">
+                {previewUrls.map((url, index) => (
+                  <div key={index} className="relative w-full aspect-square">
+                    <img 
+                      src={url} 
+                      alt={`Preview ${index + 1}`} 
+                      className="w-full h-full object-cover rounded-md"
+                    />
+                    <button
+                      onClick={() => removeFilePreview(index)}
+                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1"
+                      type="button"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                ))}
               </div>
-            )}
-            
-            {!previewUrl && (
+            ) : (
               <div className="flex items-center justify-center w-full">
                 <label htmlFor="upload-image" className="flex flex-col items-center justify-center w-full h-40 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
                   <div className="flex flex-col items-center justify-center pt-5 pb-6">
@@ -324,6 +386,7 @@ const GalleryTab = () => {
                       <span className="font-semibold">Clique para fazer upload</span>
                     </p>
                     <p className="text-xs text-gray-500">PNG, JPG ou WEBP (máx. 10MB)</p>
+                    <p className="text-xs text-gray-500 mt-1">Selecione várias imagens segurando Ctrl/Cmd</p>
                   </div>
                   <input
                     id="upload-image"
@@ -331,18 +394,26 @@ const GalleryTab = () => {
                     accept="image/*"
                     className="hidden"
                     onChange={handleFileChange}
+                    multiple
                   />
                 </label>
               </div>
             )}
 
+            {isUploading && (
+              <div className="my-2">
+                <Progress value={uploadProgress} />
+                <p className="text-xs text-center mt-1">Upload: {uploadProgress}%</p>
+              </div>
+            )}
+
             <div className="grid gap-2">
-              <Label htmlFor="title">Título da Imagem</Label>
+              <Label htmlFor="title">Título das Imagens</Label>
               <Input
                 id="title"
                 value={imageTitle}
                 onChange={(e) => setImageTitle(e.target.value)}
-                placeholder="Título para a imagem"
+                placeholder="Título para as imagens"
               />
             </div>
             
@@ -362,14 +433,15 @@ const GalleryTab = () => {
             <Button 
               variant="outline" 
               onClick={() => setShowUploadDialog(false)}
+              disabled={isUploading}
             >
               Cancelar
             </Button>
             <Button 
               onClick={handleUpload} 
-              disabled={isUploading || !uploadFile}
+              disabled={isUploading || uploadFiles.length === 0}
             >
-              {isUploading ? "Enviando..." : "Adicionar Imagem"}
+              {isUploading ? `Enviando (${uploadProgress}%)...` : `Adicionar ${uploadFiles.length > 1 ? `${uploadFiles.length} Imagens` : 'Imagem'}`}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -417,6 +489,7 @@ const GalleryTab = () => {
             <Button 
               variant="outline" 
               onClick={() => setShowEditDialog(false)}
+              disabled={isUploading}
             >
               Cancelar
             </Button>
