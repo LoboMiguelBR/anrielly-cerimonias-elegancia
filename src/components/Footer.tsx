@@ -34,6 +34,17 @@ const Footer = () => {
             <p className="text-sm text-gray-500">
               &copy; {new Date().getFullYear()} Anrielly Gomes - Mestre de Cerimônia. Todos os direitos reservados.
             </p>
+            
+            <address className="text-sm text-gray-400 mt-2 not-italic">
+              <a 
+                href="https://wa.me/5524992689947" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="hover:text-gold transition-colors"
+              >
+                WhatsApp: (24) 99268-9947
+              </a>
+            </address>
           </div>
         </div>
       </div>

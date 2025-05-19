@@ -8,6 +8,12 @@ import Differentials from '@/components/Differentials';
 import Gallery from '@/components/Gallery';
 import ContactForm from '@/components/ContactForm';
 import Footer from '@/components/Footer';
+import Timeline from '@/components/Timeline';
+import SpecialRituals from '@/components/SpecialRituals';
+import Testimonials from '@/components/Testimonials';
+import Experience from '@/components/Experience';
+import ServiceArea from '@/components/ServiceArea';
+import FinalCTA from '@/components/FinalCTA';
 
 const Index = () => {
   useEffect(() => {
@@ -42,9 +48,15 @@ const Index = () => {
       <main>
         <Hero />
         <About />
+        <Experience />
         <Services />
+        <Timeline />
         <Differentials />
+        <SpecialRituals />
         <Gallery />
+        <Testimonials />
+        <ServiceArea />
+        <FinalCTA />
         <ContactForm />
       </main>
       <Footer />

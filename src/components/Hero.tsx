@@ -28,12 +28,22 @@ const Hero = () => {
         <p className="font-playfair text-xl md:text-2xl mb-8 italic text-gray-700">
           Cerimônias com emoção, elegância e significado.
         </p>
-        <a 
-          href="#contato" 
-          className="btn btn-primary"
-        >
-          Solicitar Orçamento
-        </a>
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <a 
+            href="#contato" 
+            className="btn btn-primary"
+          >
+            Solicitar Orçamento
+          </a>
+          <a 
+            href="https://wa.me/5524992689947" 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="bg-[#25D366] text-white px-6 py-3 rounded-full hover:bg-[#128C7E] transition-colors inline-flex items-center justify-center"
+          >
+            Fale no WhatsApp
+          </a>
+        </div>
       </div>
     </section>
   );
