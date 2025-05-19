@@ -12,12 +12,23 @@ const AdminProtectedRoute = ({ children }: AdminProtectedRouteProps) => {
   useEffect(() => {
     // Verificar se o usuário está autenticado
     const adminUser = localStorage.getItem('adminUser');
-    setIsAuthenticated(!!adminUser);
+    // Lista de usuários permitidos
+    const allowedUsers = ['anrielly@yahoo.com.br', 'miguel.d.s.lobo@gmail.com'];
+    
+    // Verificar se o usuário está na lista de permitidos
+    setIsAuthenticated(!!adminUser && allowedUsers.includes(adminUser));
   }, []);
 
   // Mostra loading enquanto verifica autenticação
   if (isAuthenticated === null) {
-    return <div className="flex items-center justify-center min-h-screen">Carregando...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold mx-auto mb-4"></div>
+          <p>Carregando...</p>
+        </div>
+      </div>
+    );
   }
   
   // Redireciona para login se não estiver autenticado

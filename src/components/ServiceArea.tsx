@@ -15,7 +15,7 @@ const ServiceArea = () => {
             Atendimento em Volta Redonda e Região Sul Fluminense
           </p>
           
-          {/* Link para área administrativa */}
+          {/* Link discreto para área administrativa */}
           <div className="mt-16 text-center text-sm text-gray-400">
             <Link to="/admin" className="hover:text-gold transition-colors">
               Área Administrativa

@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useToast } from "@/components/ui/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Gallery, Camera, MessageCircle, FileText, Home, LogOut } from 'lucide-react';
+import { Image, Camera, MessageCircle, FileText, Home, LogOut } from 'lucide-react';
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -13,8 +13,8 @@ const AdminDashboard = () => {
   
   // Dados simulados (posteriormente virão do Supabase)
   const quoteRequests = [
-    { id: 1, name: 'Maria Silva', date: '2025-08-15', eventType: 'casamento', phone: '(24) 99999-0000', status: 'novo' },
-    { id: 2, name: 'João Santos', date: '2025-07-22', eventType: 'corporativo', phone: '(24) 98888-1111', status: 'novo' }
+    { id: 1, name: 'Maria Silva', date: '2025-08-15', eventType: 'casamento', phone: '(24) 99999-0000', status: 'novo', email: 'maria@example.com', eventLocation: 'Volta Redonda, RJ' },
+    { id: 2, name: 'João Santos', date: '2025-07-22', eventType: 'corporativo', phone: '(24) 98888-1111', status: 'novo', email: 'joao@example.com', eventLocation: 'Barra Mansa, RJ' }
   ];
   
   const handleLogout = () => {
@@ -49,7 +49,7 @@ const AdminDashboard = () => {
               <Home className="w-4 h-4 mr-2" /> Dashboard
             </TabsTrigger>
             <TabsTrigger value="gallery" className="flex items-center">
-              <Gallery className="w-4 h-4 mr-2" /> Galeria
+              <Image className="w-4 h-4 mr-2" /> Galeria
             </TabsTrigger>
             <TabsTrigger value="testimonials" className="flex items-center">
               <MessageCircle className="w-4 h-4 mr-2" /> Depoimentos
@@ -89,6 +89,7 @@ const AdminDashboard = () => {
                       <th className="p-3 text-left">Data do Evento</th>
                       <th className="p-3 text-left">Tipo</th>
                       <th className="p-3 text-left">Contato</th>
+                      <th className="p-3 text-left">Local</th>
                       <th className="p-3 text-left">Status</th>
                     </tr>
                   </thead>
@@ -99,6 +100,7 @@ const AdminDashboard = () => {
                         <td className="p-3">{new Date(request.date).toLocaleDateString('pt-BR')}</td>
                         <td className="p-3">{request.eventType}</td>
                         <td className="p-3">{request.phone}</td>
+                        <td className="p-3">{request.eventLocation}</td>
                         <td className="p-3">
                           <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
                             {request.status}
@@ -168,14 +170,93 @@ const AdminDashboard = () => {
           
           <TabsContent value="proposals" className="p-6 bg-white rounded-lg shadow-sm">
             <h2 className="text-xl font-semibold mb-4">Gerador de Propostas</h2>
-            <p className="text-gray-500 mb-8">Esta seção será implementada para gerar propostas em PDF personalizadas a partir dos dados de orçamento.</p>
+            <p className="text-gray-500 mb-8">Crie propostas personalizadas para enviar aos clientes.</p>
             
-            <div className="bg-lavender/10 p-6 rounded-lg">
-              <h3 className="font-medium mb-4">Template de Proposta</h3>
-              <p className="text-gray-600 mb-4">Esta funcionalidade será desenvolvida com react-pdf ou jsPDF para geração de documentos PDF personalizados com os dados do cliente e do evento.</p>
+            <div className="bg-white border rounded-lg p-6">
+              <h3 className="font-medium mb-6 text-lg">Nova Proposta</h3>
               
-              <div className="mt-4">
-                <Button>Visualizar Template</Button>
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Cliente</label>
+                    <select className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-gold">
+                      <option value="">Selecione um cliente</option>
+                      {quoteRequests.map(request => (
+                        <option key={request.id} value={request.id}>
+                          {request.name} - {request.eventType}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Data da Proposta</label>
+                    <input 
+                      type="date" 
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-gold"
+                      defaultValue={new Date().toISOString().split('T')[0]}
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Serviços Incluídos</label>
+                  <div className="space-y-2">
+                    {['Reuniões de planejamento', 'Visita técnica', 'Coordenação dos fornecedores', 'Condução da cerimônia', 'Coordenação da recepção'].map((service, index) => (
+                      <div key={index} className="flex items-center">
+                        <input 
+                          type="checkbox" 
+                          id={`service-${index}`} 
+                          className="mr-2"
+                          defaultChecked
+                        />
+                        <label htmlFor={`service-${index}`}>{service}</label>
+                      </div>
+                    ))}
+                    <div className="mt-2">
+                      <input 
+                        type="text" 
+                        placeholder="Adicionar serviço personalizado" 
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-gold"
+                      />
+                    </div>
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Valor Total</label>
+                  <div className="flex items-center">
+                    <span className="bg-gray-100 px-3 py-2 border border-r-0 border-gray-300 rounded-l-md">R$</span>
+                    <input 
+                      type="text" 
+                      placeholder="0,00"
+                      className="flex-1 px-4 py-2 border border-gray-300 rounded-r-md focus:outline-none focus:border-gold"
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Condições de Pagamento</label>
+                  <textarea 
+                    rows={3}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-gold"
+                    defaultValue="50% de sinal na assinatura do contrato, 50% restantes até 5 dias antes do evento."
+                  ></textarea>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Observações Adicionais</label>
+                  <textarea 
+                    rows={3}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-gold"
+                    placeholder="Informações adicionais para a proposta..."
+                  ></textarea>
+                </div>
+                
+                <div className="flex justify-end gap-4">
+                  <Button variant="outline">Pré-visualizar</Button>
+                  <Button>Gerar PDF</Button>
+                </div>
               </div>
             </div>
           </TabsContent>
