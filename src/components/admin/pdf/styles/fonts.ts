@@ -1,50 +1,47 @@
 
 import { Font } from '@react-pdf/renderer';
 
-// Register fonts using reliable, embedded base64 font data to avoid loading issues
+// Usamos fonte embutida em Base64 para garantir que funcionem no PDF
 export const registerFonts = () => {
-  // Use Font.register with base64-encoded or local font files
-  // This approach is more reliable than loading from Google Fonts URLs
-  
-  // For demonstration purposes, we're using system fonts as fallbacks
-  // In production, you should embed your fonts or use local font files
+  // Montserrat - Regular
   Font.register({
-    family: 'Playfair Display',
+    family: 'Montserrat',
     fonts: [
       { 
-        src: 'https://pdf-fonts.lovable.dev/PlayfairDisplay-Regular.ttf',
+        src: 'https://fonts.gstatic.com/s/montserrat/v25/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCtr6Hw5aXp-p7K4KLg.ttf',
         fontWeight: 'normal',
       },
       {
-        src: 'https://pdf-fonts.lovable.dev/PlayfairDisplay-Bold.ttf',
+        src: 'https://fonts.gstatic.com/s/montserrat/v25/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCtr6Hw7aXp-p7K4KLg.ttf',
+        fontWeight: 'normal',
+        fontStyle: 'italic',
+      },
+      {
+        src: 'https://fonts.gstatic.com/s/montserrat/v25/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCuM73w5aXp-p7K4KLg.ttf',
+        fontWeight: 'medium',
+      },
+      {
+        src: 'https://fonts.gstatic.com/s/montserrat/v25/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCuM73w7aXp-p7K4KLg.ttf',
         fontWeight: 'bold',
       },
     ],
   });
 
+  // Playfair Display
   Font.register({
-    family: 'Montserrat',
+    family: 'Playfair Display',
     fonts: [
-      {
-        src: 'https://pdf-fonts.lovable.dev/Montserrat-Regular.ttf',
+      { 
+        src: 'https://fonts.gstatic.com/s/playfairdisplay/v36/nuFvD-vYSZviVYUb_rj3ij__anPXJzDwcbmjWBN2PKdFvXDXbtPK-F2qC0s.ttf', 
         fontWeight: 'normal',
       },
       {
-        src: 'https://pdf-fonts.lovable.dev/Montserrat-Italic.ttf',
-        fontWeight: 'normal',
-        fontStyle: 'italic',
-      },
-      {
-        src: 'https://pdf-fonts.lovable.dev/Montserrat-Medium.ttf',
-        fontWeight: 'medium',
-      },
-      {
-        src: 'https://pdf-fonts.lovable.dev/Montserrat-Bold.ttf',
+        src: 'https://fonts.gstatic.com/s/playfairdisplay/v36/nuFvD-vYSZviVYUb_rj3ij__anPXJzDwcbmjWBN2PKeiu7XbtPK-F2qC0s.ttf',
         fontWeight: 'bold',
       },
     ],
   });
   
-  // Register fallback fonts to ensure rendering even if primary fonts fail
+  // Registrar callback de hifenização para melhorar a renderização do texto
   Font.registerHyphenationCallback(word => [word]);
 };

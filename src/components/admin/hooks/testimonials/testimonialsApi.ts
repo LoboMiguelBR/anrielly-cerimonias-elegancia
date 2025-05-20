@@ -1,21 +1,27 @@
-
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { Testimonial } from './types';
 
-// No longer try to create the bucket - just check if it exists
+// Verificar se o bucket existe sem tentar criá-lo
 export const ensureTestimonialsBucketExists = async (): Promise<boolean> => {
   try {
-    const { data, error } = await supabase.storage.getBucket('testimonials');
+    // Utilizamos a função correta para listar buckets e verificar se o bucket 'testimonials' existe
+    const { data: buckets, error } = await supabase.storage.listBuckets();
     
     if (error) {
-      console.error('Error checking testimonials bucket:', error);
+      console.error('Erro ao verificar buckets:', error);
       return false;
     }
     
-    return true;
+    const testimonialsBucketExists = buckets.some(bucket => bucket.name === 'testimonials');
+    
+    if (!testimonialsBucketExists) {
+      console.warn('O bucket "testimonials" não existe');
+    }
+    
+    return testimonialsBucketExists;
   } catch (err) {
-    console.error('Unexpected error checking bucket:', err);
+    console.error('Erro inesperado ao verificar bucket:', err);
     return false;
   }
 };
@@ -32,7 +38,7 @@ export const fetchAllTestimonials = async (): Promise<Testimonial[]> => {
     
     return data || [];
   } catch (error) {
-    console.error('Error fetching testimonials:', error);
+    console.error('Erro ao carregar depoimentos:', error);
     toast.error('Erro ao carregar depoimentos');
     return [];
   }

@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { ProposalData } from './proposal';
 import { Service } from './proposal/types';
+import { toast } from 'sonner';
 
 export const useProposalList = () => {
   const [proposals, setProposals] = useState<ProposalData[]>([]);
@@ -20,7 +21,11 @@ export const useProposalList = () => {
         .select('*')
         .order('created_at', { ascending: false });
         
-      if (error) throw error;
+      if (error) {
+        console.error('Erro ao buscar propostas:', error);
+        toast.error('Erro ao carregar propostas');
+        throw error;
+      }
       
       if (data) {
         // Fix type conversion and ensure all fields are properly set
@@ -29,33 +34,42 @@ export const useProposalList = () => {
           let parsedServices: Service[] = [];
           
           try {
-            if (Array.isArray(item.services)) {
-              parsedServices = item.services.map((service: any) => ({
-                name: service.name || '',
-                included: !!service.included
-              }));
+            // Verificamos se services é um array e se cada item tem as propriedades necessárias
+            if (item.services && typeof item.services === 'object') {
+              if (Array.isArray(item.services)) {
+                parsedServices = item.services.map((service: any) => ({
+                  name: service.name || '',
+                  included: service.included === undefined ? true : !!service.included
+                }));
+              } else {
+                // Caso services não seja um array mas ainda seja um objeto
+                console.warn('services não é um array:', item.services);
+                parsedServices = [];
+              }
+            } else {
+              // Fallback para um array vazio se services não for um objeto ou array
+              console.warn('services não é um objeto ou está vazio:', item.services);
+              parsedServices = [];
             }
           } catch (err) {
-            console.error('Error parsing services:', err);
+            console.error('Erro ao analisar services:', err, item.services);
             parsedServices = [];
           }
             
           return {
-            ...item,
-            // Preserve all fields from the database
             id: item.id,
-            client_name: item.client_name,
-            client_email: item.client_email,
-            client_phone: item.client_phone,
-            event_type: item.event_type,
+            client_name: item.client_name || 'Cliente sem nome',
+            client_email: item.client_email || '',
+            client_phone: item.client_phone || '',
+            event_type: item.event_type || 'Evento',
             event_date: item.event_date,
-            event_location: item.event_location,
+            event_location: item.event_location || '',
             services: parsedServices,
-            total_price: Number(item.total_price),
-            payment_terms: item.payment_terms,
+            total_price: Number(item.total_price) || 0,
+            payment_terms: item.payment_terms || '',
             notes: item.notes,
             quote_request_id: item.quote_request_id,
-            validity_date: item.validity_date,
+            validity_date: item.validity_date || new Date().toISOString().split('T')[0],
             created_at: item.created_at,
           } as ProposalData;
         });

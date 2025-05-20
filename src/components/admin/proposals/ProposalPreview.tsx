@@ -75,9 +75,10 @@ const ProposalPreview: React.FC<ProposalPreviewProps> = ({ proposal, onBack }) =
               className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-gold/80 text-white hover:bg-gold h-9 px-3 py-2"
             >
               {({ loading, error }) => {
+                if (loading) return "Preparando PDF...";
+                
                 if (error) {
-                  // Handle error properly
-                  setTimeout(() => setPdfError(error.message), 0);
+                  console.error("Erro ao preparar PDF:", error);
                   return (
                     <span className="flex items-center">
                       <AlertTriangle className="w-4 h-4 mr-2 text-red-500" /> Erro
@@ -85,11 +86,11 @@ const ProposalPreview: React.FC<ProposalPreviewProps> = ({ proposal, onBack }) =
                   );
                 }
                 
-                return loading ? 
-                  "Preparando PDF..." : 
+                return (
                   <span className="flex items-center">
                     <Download className="w-4 h-4 mr-2" /> Baixar PDF
                   </span>
+                );
               }}
             </PDFDownloadLink>
           ) : (
