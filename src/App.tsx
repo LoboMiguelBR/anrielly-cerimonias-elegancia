@@ -6,20 +6,12 @@ import AdminLogin from './pages/AdminLogin';
 import NotFound from './pages/NotFound';
 import AdminProtectedRoute from './components/AdminProtectedRoute';
 import { Toaster } from 'sonner';
-import { GalleryProvider } from './components/gallery/GalleryContext';
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route 
-          path="/" 
-          element={
-            <GalleryProvider>
-              <Index />
-            </GalleryProvider>
-          } 
-        />
+        <Route path="/" element={<Index />} />
         <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
         <Route path="/admin/dashboard" element={<AdminProtectedRoute element={<AdminDashboard />} />} />
         <Route path="/admin/login" element={<AdminLogin />} />
