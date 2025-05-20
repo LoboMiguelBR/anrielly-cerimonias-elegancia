@@ -18,10 +18,13 @@ const GalleryGrid: React.FC<GalleryGridProps> = ({
   onRetry,
   onImageClick
 }) => {
+
+  console.log('[GalleryGrid] isLoading:', isLoading, 'error:', error, 'displayImages:', displayImages);
+
   if (isLoading) {
     return (
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {[...Array(8)].map((_, i) => (
+        {Array.from({ length: 8 }, (_, i) => (
           <div key={`skeleton-${i}`} className="aspect-square">
             <Skeleton className="h-full w-full" />
           </div>
@@ -32,7 +35,7 @@ const GalleryGrid: React.FC<GalleryGridProps> = ({
 
   if (error) {
     return (
-      <div className="py-10 text-center text-red-500">
+      <div className="py-10 text-center text-red-500" aria-live="assertive">
         {error}
         <div className="mt-4">
           <button 
@@ -48,7 +51,7 @@ const GalleryGrid: React.FC<GalleryGridProps> = ({
 
   if (displayImages.length === 0) {
     return (
-      <div className="py-10 text-center text-gray-500">
+      <div className="py-10 text-center text-gray-500" aria-live="polite">
         Nenhuma imagem disponível no momento.
       </div>
     );
