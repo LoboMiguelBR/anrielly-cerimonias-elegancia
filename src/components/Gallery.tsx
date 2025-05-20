@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useCallback } from 'react';
 import GalleryGrid from './gallery/GalleryGrid';
 import GalleryModal from './gallery/GalleryModal';
 import { useGalleryContext } from './gallery/GalleryContext';
@@ -39,9 +39,15 @@ const Gallery: React.FC = () => {
     };
   }, []);
 
-  const handleImageClick = (url: string, title: string, description: string | null) => {
-    setSelectedImage(url, title, description);
-  };
+  const handleImageClick = useCallback(
+    (url: string, title: string, description: string | null) => {
+      setSelectedImage(url, title, description);
+    },
+    [setSelectedImage]
+  );
+
+  console.log('[Gallery] displayImages:', displayImages);
+  console.log('[Gallery] isLoading:', isLoading, 'error:', error);
 
   return (
     <section id="galeria" className="bg-white" ref={sectionRef}>
