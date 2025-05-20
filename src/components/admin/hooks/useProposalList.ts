@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { ProposalData } from './proposal';
+import { Service } from './proposal/types';
 
 export const useProposalList = () => {
   const [proposals, setProposals] = useState<ProposalData[]>([]);
@@ -24,10 +25,20 @@ export const useProposalList = () => {
       if (data) {
         // Fix type conversion and ensure all fields are properly set
         const typedProposals = data.map(item => {
-          // Ensure services is an array
-          const services = Array.isArray(item.services) 
-            ? item.services 
-            : [];
+          // Ensure services is an array of Service objects with name and included properties
+          let parsedServices: Service[] = [];
+          
+          try {
+            if (Array.isArray(item.services)) {
+              parsedServices = item.services.map((service: any) => ({
+                name: service.name || '',
+                included: !!service.included
+              }));
+            }
+          } catch (err) {
+            console.error('Error parsing services:', err);
+            parsedServices = [];
+          }
             
           return {
             ...item,
@@ -39,7 +50,7 @@ export const useProposalList = () => {
             event_type: item.event_type,
             event_date: item.event_date,
             event_location: item.event_location,
-            services: services,
+            services: parsedServices,
             total_price: Number(item.total_price),
             payment_terms: item.payment_terms,
             notes: item.notes,
