@@ -41,7 +41,7 @@ const handleLogout = async () => {
 
     navigate('/');
   }
-};
+}
 
   return (
     <header className="bg-white shadow-sm">
