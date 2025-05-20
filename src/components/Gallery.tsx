@@ -5,7 +5,7 @@ import { useGalleryContext } from './gallery/GalleryContext';
 
 const Gallery: React.FC = () => {
   const sectionRef = useRef<HTMLElement>(null);
-  
+
   const { 
     selectedImage, 
     selectedImageTitle, 
@@ -18,6 +18,9 @@ const Gallery: React.FC = () => {
   } = useGalleryContext();
 
   useEffect(() => {
+    const section = sectionRef.current;
+    if (!section) return;
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -28,15 +31,9 @@ const Gallery: React.FC = () => {
       { threshold: 0.1 }
     );
 
-    if (sectionRef.current) {
-      observer.observe(sectionRef.current);
-    }
+    observer.observe(section);
 
-    return () => {
-      if (sectionRef.current) {
-        observer.unobserve(sectionRef.current);
-      }
-    };
+    return () => observer.disconnect();
   }, []);
 
   const handleImageClick = useCallback(
@@ -55,7 +52,7 @@ const Gallery: React.FC = () => {
         <h2 className="section-title animate-on-scroll text-3xl font-semibold text-center mb-8">
           Galeria
         </h2>
-        
+
         <GalleryGrid 
           isLoading={isLoading}
           error={error}
@@ -65,7 +62,7 @@ const Gallery: React.FC = () => {
         />
 
         <GalleryModal 
-          isOpen={!!selectedImage} 
+          isOpen={Boolean(selectedImage)} 
           onClose={() => setSelectedImage(null, '', null)}
           imageUrl={selectedImage}
           imageTitle={selectedImageTitle}
