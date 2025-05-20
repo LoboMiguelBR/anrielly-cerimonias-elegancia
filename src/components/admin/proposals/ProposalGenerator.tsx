@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useProposalForm } from '../hooks/useProposalForm';
 import ClientSelection from './ClientSelection';
 import ServicesSection from './ServicesSection';
@@ -7,6 +7,7 @@ import PriceSection from './PriceSection';
 import NotesSection from './NotesSection';
 import ValidityDateSection from './ValidityDateSection';
 import ActionButtons from './ActionButtons';
+import ProposalPreview from './ProposalPreview';
 import { ProposalData } from '../pdf/types';
 
 interface ProposalGeneratorProps {
@@ -27,6 +28,8 @@ const ProposalGenerator: React.FC<ProposalGeneratorProps> = ({
   quoteRequests,
   quoteIdFromUrl
 }) => {
+  const [showPreview, setShowPreview] = useState(false);
+  
   const {
     selectedQuote,
     isLoading,
@@ -103,6 +106,7 @@ const ProposalGenerator: React.FC<ProposalGeneratorProps> = ({
       };
       
       setProposal(proposalForPDF);
+      setShowPreview(true);
       
     } catch (error: any) {
       console.error('Erro ao gerar PDF:', error);
@@ -110,6 +114,10 @@ const ProposalGenerator: React.FC<ProposalGeneratorProps> = ({
       setGeneratingPDF(false);
     }
   };
+
+  if (showPreview && proposal) {
+    return <ProposalPreview proposal={proposal} onBack={() => setShowPreview(false)} />;
+  }
 
   return (
     <div className="bg-white border rounded-lg p-6">

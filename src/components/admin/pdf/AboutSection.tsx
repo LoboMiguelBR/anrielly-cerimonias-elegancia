@@ -16,7 +16,7 @@ const AboutSection: React.FC = () => {
         Minha missão é conduzir seu momento especial com profissionalismo e sensibilidade, 
         criando memórias inesquecíveis para você e seus convidados.
       </Text>
-      <Text style={[styles.text, {fontStyle: 'italic', color: '#7E69AB', marginTop: 10}]}>
+      <Text style={[styles.text, {color: '#7E69AB', marginTop: 10}]}>
         "Cada cerimônia é única como a história de cada casal."
       </Text>
     </View>

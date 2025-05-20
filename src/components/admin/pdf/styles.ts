@@ -22,6 +22,13 @@ Font.register({
 
 Font.register({
   family: 'Montserrat',
+  src: 'https://fonts.gstatic.com/s/montserrat/v25/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCtr6Hw5aXp8qA.ttf',
+  fontWeight: 'normal',
+  fontStyle: 'italic',
+});
+
+Font.register({
+  family: 'Montserrat',
   src: 'https://fonts.gstatic.com/s/montserrat/v25/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCtZ6Ew-Y3tcoqK5.ttf',
   fontWeight: 'medium',
 });
