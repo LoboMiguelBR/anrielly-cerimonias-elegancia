@@ -1,5 +1,6 @@
+
 import React from 'react';
-import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer';
+import { Document, Page, Text, View, StyleSheet, Image, Font } from '@react-pdf/renderer';
 import { formatCurrency } from '@/lib/utils';
 import { ProposalData } from './hooks/useProposalForm';
 
@@ -7,16 +8,48 @@ interface ProposalProps {
   proposal: ProposalData;
 }
 
+// Register fonts
+Font.register({
+  family: 'Playfair Display',
+  src: 'https://fonts.gstatic.com/s/playfairdisplay/v30/nuFvD-vYSZviVYUb_rj3ij__anPXJzDwcbmjWBN2PKdFvUDQZNLo_U2r.ttf',
+  fontWeight: 'normal',
+});
+
+Font.register({
+  family: 'Playfair Display',
+  src: 'https://fonts.gstatic.com/s/playfairdisplay/v30/nuFvD-vYSZviVYUb_rj3ij__anPXJzDwcbmjWBN2PKeiukDQZNLo_U2r.ttf',
+  fontWeight: 'bold',
+});
+
+Font.register({
+  family: 'Montserrat',
+  src: 'https://fonts.gstatic.com/s/montserrat/v25/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCtr6Ew-Y3tcoqK5.ttf',
+  fontWeight: 'normal',
+});
+
+Font.register({
+  family: 'Montserrat',
+  src: 'https://fonts.gstatic.com/s/montserrat/v25/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCtZ6Ew-Y3tcoqK5.ttf',
+  fontWeight: 'medium',
+});
+
+Font.register({
+  family: 'Montserrat',
+  src: 'https://fonts.gstatic.com/s/montserrat/v25/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCuM70w-Y3tcoqK5.ttf',
+  fontWeight: 'bold',
+});
+
 // Estilos para o PDF
 const styles = StyleSheet.create({
   page: {
-    padding: 50,
-    fontFamily: 'Helvetica',
+    padding: 40,
+    fontFamily: 'Montserrat',
+    color: '#333',
   },
   header: {
     marginBottom: 20,
-    borderBottom: '1px solid #ccc',
-    paddingBottom: 10,
+    borderBottom: '2px solid #D4AF37',
+    paddingBottom: 15,
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -26,59 +59,87 @@ const styles = StyleSheet.create({
     width: 120,
     marginBottom: 10,
   },
+  headerRight: {
+    textAlign: 'right',
+    fontSize: 10,
+  },
   title: {
+    fontFamily: 'Playfair Display',
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 20,
-    color: '#333',
+    color: '#1A1F2C',
+    textAlign: 'center',
+  },
+  subtitle: {
+    fontFamily: 'Playfair Display',
+    fontSize: 16,
+    marginBottom: 5,
+    color: '#7E69AB',
     textAlign: 'center',
   },
   section: {
-    marginBottom: 15,
+    marginBottom: 20,
   },
   sectionTitle: {
     fontSize: 14,
+    fontFamily: 'Playfair Display',
     fontWeight: 'bold',
-    marginBottom: 8,
+    marginBottom: 10,
     padding: 5,
-    backgroundColor: '#f3f4f6',
+    backgroundColor: '#E6E6FA',
+    borderLeft: '4px solid #9b87f5',
   },
   clientInfo: {
     marginBottom: 20,
+    padding: 10,
+    backgroundColor: '#f8f8f8',
+    borderRadius: 5,
   },
   textBold: {
     fontWeight: 'bold',
   },
   text: {
-    fontSize: 12,
+    fontSize: 11,
     marginBottom: 5,
     lineHeight: 1.5,
   },
   serviceItem: {
-    marginBottom: 5,
-    fontSize: 12,
+    marginBottom: 8,
+    fontSize: 11,
     flexDirection: 'row',
   },
   dot: {
     marginRight: 5,
+    color: '#9b87f5',
   },
   priceSection: {
     marginTop: 20,
-    padding: 10,
+    padding: 15,
     backgroundColor: '#f3f4f6',
+    borderRadius: 5,
+    borderTop: '2px solid #D4AF37',
   },
   totalPrice: {
     fontSize: 16,
     fontWeight: 'bold',
     marginBottom: 10,
+    color: '#7E69AB',
   },
   footer: {
-    marginTop: 40,
-    borderTop: '1px solid #ccc',
-    paddingTop: 10,
-    fontSize: 10,
+    position: 'absolute',
+    bottom: 30,
+    left: 0,
+    right: 0,
     textAlign: 'center',
+    paddingTop: 10,
+    borderTop: '1px solid #ccc',
+    fontSize: 9,
     color: '#666',
+  },
+  divider: {
+    borderBottom: '1px solid #E6E6FA',
+    marginVertical: 10,
   },
   signature: {
     marginTop: 50,
@@ -88,6 +149,13 @@ const styles = StyleSheet.create({
     paddingTop: 5,
     textAlign: 'center',
     fontSize: 10,
+  },
+  pageNumber: {
+    position: 'absolute',
+    bottom: 30,
+    right: 40,
+    fontSize: 9,
+    color: '#666',
   },
 });
 
@@ -106,17 +174,26 @@ const ProposalPDF = ({ proposal }: ProposalProps) => {
     <Document>
       <Page size="A4" style={styles.page}>
         <View style={styles.header}>
-          {/* Aqui você pode adicionar uma Logo quando disponível */}
-          {/* <Image style={styles.logo} src="/logo.png" /> */}
-          <Text style={{ fontSize: 20, fontWeight: 'bold' }}>Proposta de Serviço</Text>
-          <Text style={{ fontSize: 12 }}>Data: {createdDate}</Text>
+          <View>
+            <Text style={{ fontFamily: 'Playfair Display', fontSize: 18, color: '#7E69AB' }}>Ritual de Amor</Text>
+            <Text style={{ fontSize: 10, color: '#777' }}>Celebrante de Casamentos</Text>
+          </View>
+          <View style={styles.headerRight}>
+            <Text>Proposta #{proposal.id.substring(0, 8)}</Text>
+            <Text>Data: {createdDate}</Text>
+          </View>
         </View>
 
         <View style={styles.section}>
           <Text style={styles.title}>
-            Proposta para {proposal.event_type}
+            Proposta de Serviço
+          </Text>
+          <Text style={styles.subtitle}>
+            {proposal.event_type}
           </Text>
         </View>
+
+        <View style={styles.divider} />
 
         <View style={styles.clientInfo}>
           <Text style={styles.sectionTitle}>Informações do Cliente</Text>
@@ -159,14 +236,18 @@ const ProposalPDF = ({ proposal }: ProposalProps) => {
 
         <View style={styles.footer}>
           <Text>Esta proposta é válida até {validUntil}</Text>
-          <Text style={{ marginTop: 5 }}>
-            Proposta #{proposal.id.substring(0, 8)}
-          </Text>
+          <Text style={{ marginTop: 5 }}>Ritual de Amor - Celebrante de Casamentos | contato@ritualeamor.com.br</Text>
         </View>
 
         <View style={styles.signature}>
           <Text>Assinatura do Cliente</Text>
         </View>
+        
+        <Text 
+          style={styles.pageNumber} 
+          render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`} 
+          fixed 
+        />
       </Page>
     </Document>
   );

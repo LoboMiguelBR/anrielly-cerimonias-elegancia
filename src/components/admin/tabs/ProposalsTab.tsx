@@ -20,14 +20,18 @@ interface ProposalsTabProps {
 
 const ProposalsTab = ({ quoteRequests, quoteIdFromUrl }: ProposalsTabProps) => {
   return (
-    <div className="p-6 bg-white rounded-lg shadow-sm">
-      <h2 className="text-xl font-semibold mb-4">Gerador de Propostas</h2>
-      <p className="text-gray-500 mb-8">Crie propostas personalizadas para enviar aos clientes.</p>
-      
-      <ProposalGenerator 
-        quoteRequests={quoteRequests} 
-        quoteIdFromUrl={quoteIdFromUrl} 
-      />
+    <div className="space-y-6">
+      <div className="p-6 bg-white rounded-lg shadow-sm border-l-4 border-l-purple-200">
+        <h2 className="text-2xl font-playfair font-semibold mb-2">Gerador de Propostas</h2>
+        <p className="text-gray-500 mb-6">
+          Crie propostas personalizadas com o visual da sua marca para enviar aos clientes.
+        </p>
+        
+        <ProposalGenerator 
+          quoteRequests={quoteRequests} 
+          quoteIdFromUrl={quoteIdFromUrl} 
+        />
+      </div>
     </div>
   );
 };
