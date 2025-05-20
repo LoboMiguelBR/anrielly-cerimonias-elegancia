@@ -56,8 +56,13 @@ const ProposalGenerator: React.FC<ProposalGeneratorProps> = ({
     deleteProposal
   } = useProposalForm(initialProposalId, quoteIdFromUrl);
 
+  // Log para depurar o fluxo
+  console.log("ProposalGenerator rendering, formData:", formData);
+  console.log("showPreview:", showPreview, "proposal:", proposal);
+
   const handleGeneratePDF = async () => {
     try {
+      console.log("Generating PDF, formData:", formData);
       setGeneratingPDF(true);
       
       // First save the proposal in the database
@@ -67,23 +72,27 @@ const ProposalGenerator: React.FC<ProposalGeneratorProps> = ({
         throw new Error('Não foi possível salvar a proposta');
       }
       
+      console.log("Proposal saved with ID:", proposalId);
+      
       // Create complete proposal object for the PDF
       const proposalForPDF: ProposalData = {
         id: proposalId,
-        client_name: formData.client_name,
-        client_email: formData.client_email,
-        client_phone: formData.client_phone,
-        event_type: formData.event_type,
+        client_name: formData.client_name || "Cliente",
+        client_email: formData.client_email || "",
+        client_phone: formData.client_phone || "",
+        event_type: formData.event_type || "Evento",
         event_date: formData.event_date,
-        event_location: formData.event_location,
+        event_location: formData.event_location || "",
         services: formData.services.filter(s => s.included),
         total_price: parseFloat(formData.total_price) || 0,
-        payment_terms: formData.payment_terms,
+        payment_terms: formData.payment_terms || "",
         notes: formData.notes || null,
         validity_date: formData.validity_date,
         created_at: new Date().toISOString(),
         quote_request_id: formData.quote_request_id
       };
+      
+      console.log("Created proposalForPDF:", proposalForPDF);
       
       setProposal(proposalForPDF);
       setShowPreview(true);
@@ -112,6 +121,7 @@ const ProposalGenerator: React.FC<ProposalGeneratorProps> = ({
   }
 
   if (showPreview && proposal) {
+    console.log("Showing preview for proposal:", proposal);
     return <ProposalPreview proposal={proposal} onBack={handleBackFromPreview} />;
   }
 

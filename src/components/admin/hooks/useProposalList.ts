@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { ProposalData } from './proposal';
@@ -42,12 +41,10 @@ export const useProposalList = () => {
                   included: service.included === undefined ? true : !!service.included
                 }));
               } else {
-                // Caso services não seja um array mas ainda seja um objeto
                 console.warn('services não é um array:', item.services);
                 parsedServices = [];
               }
             } else {
-              // Fallback para um array vazio se services não for um objeto ou array
               console.warn('services não é um objeto ou está vazio:', item.services);
               parsedServices = [];
             }
@@ -58,7 +55,7 @@ export const useProposalList = () => {
             
           return {
             id: item.id,
-            client_name: item.client_name || 'Cliente sem nome',
+            client_name: item.client_name || 'Cliente não identificado', // Alterado de "Cliente sem nome" para algo mais amigável
             client_email: item.client_email || '',
             client_phone: item.client_phone || '',
             event_type: item.event_type || 'Evento',

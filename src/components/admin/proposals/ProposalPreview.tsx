@@ -1,12 +1,11 @@
 
 import React, { useState, useEffect } from 'react';
-import { PDFViewer } from '@react-pdf/renderer';
+import { PDFViewer, PDFDownloadLink } from '@react-pdf/renderer';
 import ProposalPDF from '../ProposalPDF';
 import { ProposalData } from '../pdf/types';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ChevronLeft, Download, Eye, Mail, AlertTriangle } from 'lucide-react';
-import { PDFDownloadLink } from '@react-pdf/renderer';
 import { toast } from 'sonner';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 
@@ -19,21 +18,29 @@ const ProposalPreview: React.FC<ProposalPreviewProps> = ({ proposal, onBack }) =
   const [activeTab, setActiveTab] = useState<string>("preview");
   const [pdfError, setPdfError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [renderKey, setRenderKey] = useState<number>(0); // Usado para forçar re-render do PDF
+  
+  console.log("Rendering ProposalPreview with proposal:", proposal);
   
   useEffect(() => {
     // Reset error state when proposal changes
     setPdfError(null);
     setIsLoading(true);
     
-    // Simulate loading complete
+    // Forçar re-render do componente para garantir que o PDF seja carregado
+    setRenderKey(prev => prev + 1);
+    
+    // Simulate loading complete após um tempo
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 1500);
+      console.log("PDF loading timeout complete");
+    }, 2000);
     
     return () => clearTimeout(timer);
   }, [proposal]);
   
   if (!proposal) {
+    console.log("No proposal data available");
     return (
       <div className="p-6 bg-white rounded-lg shadow-sm">
         <div className="flex justify-between items-center mb-4">
@@ -49,9 +56,18 @@ const ProposalPreview: React.FC<ProposalPreviewProps> = ({ proposal, onBack }) =
     );
   }
 
+  // Verifica se todos os campos necessários da proposta estão preenchidos
+  const proposalIsComplete = proposal && 
+                           proposal.client_name && 
+                           proposal.event_type && 
+                           proposal.services.length > 0;
+
+  console.log("Proposal is complete:", proposalIsComplete);
+
   const handlePdfError = (error: Error) => {
     console.error('Erro ao gerar PDF:', error);
     setPdfError(`Erro ao carregar o PDF: ${error.message}`);
+    setIsLoading(false);
   };
 
   const handleEmailProposal = () => {
@@ -59,45 +75,48 @@ const ProposalPreview: React.FC<ProposalPreviewProps> = ({ proposal, onBack }) =
     toast.info("Funcionalidade de envio por email será implementada em breve");
   };
 
+  // Criar o nome do arquivo baseado no nome do cliente
+  const getPdfFilename = () => {
+    const cleanName = proposal.client_name.replace(/[^\w\s]/gi, '').replace(/\s+/g, '_').toLowerCase();
+    return `proposta_${cleanName}.pdf`;
+  };
+
   return (
-    <div className="bg-white border rounded-lg">
+    <div className="bg-white border rounded-lg" key={renderKey}>
       <div className="flex justify-between items-center p-4 border-b">
-        <h3 className="text-lg font-medium">Proposta para {proposal.client_name}</h3>
+        <h3 className="text-lg font-medium">
+          Proposta para {proposal.client_name || "Cliente"}
+        </h3>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={onBack}>
             <ChevronLeft className="w-4 h-4 mr-1" /> Voltar
           </Button>
           
-          {!pdfError ? (
-            <PDFDownloadLink
-              document={<ProposalPDF proposal={proposal} />}
-              fileName={`proposta_${proposal.client_name.replace(/\s+/g, '_').toLowerCase()}.pdf`}
-              className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-gold/80 text-white hover:bg-gold h-9 px-3 py-2"
-            >
-              {({ loading, error }) => {
-                if (loading) return "Preparando PDF...";
-                
-                if (error) {
-                  console.error("Erro ao preparar PDF:", error);
-                  return (
-                    <span className="flex items-center">
-                      <AlertTriangle className="w-4 h-4 mr-2 text-red-500" /> Erro
-                    </span>
-                  );
-                }
-                
+          {/* Sempre mostramos o botão de download, mesmo se houver erro no preview */}
+          <PDFDownloadLink
+            document={<ProposalPDF proposal={proposal} />}
+            fileName={getPdfFilename()}
+            className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-gold/80 text-white hover:bg-gold h-9 px-3 py-2"
+          >
+            {({ loading, error }) => {
+              if (loading) return "Preparando PDF...";
+              
+              if (error) {
+                console.error("Erro ao preparar PDF:", error);
                 return (
                   <span className="flex items-center">
-                    <Download className="w-4 h-4 mr-2" /> Baixar PDF
+                    <AlertTriangle className="w-4 h-4 mr-2 text-red-500" /> Erro
                   </span>
                 );
-              }}
-            </PDFDownloadLink>
-          ) : (
-            <Button variant="destructive" disabled>
-              <AlertTriangle className="w-4 h-4 mr-2" /> Erro no PDF
-            </Button>
-          )}
+              }
+              
+              return (
+                <span className="flex items-center">
+                  <Download className="w-4 h-4 mr-2" /> Baixar PDF
+                </span>
+              );
+            }}
+          </PDFDownloadLink>
           
           <Button 
             variant="outline"
@@ -146,13 +165,40 @@ const ProposalPreview: React.FC<ProposalPreviewProps> = ({ proposal, onBack }) =
             </div>
           ) : (
             <div className="h-[800px]">
-              <PDFViewer 
-                width="100%" 
-                height="100%" 
-                className="border"
-              >
-                <ProposalPDF proposal={proposal} />
-              </PDFViewer>
+              {proposalIsComplete ? (
+                <PDFViewer 
+                  width="100%" 
+                  height="100%" 
+                  className="border"
+                  showToolbar={true}
+                >
+                  <ProposalPDF proposal={proposal} />
+                </PDFViewer>
+              ) : (
+                <div className="flex items-center justify-center h-full bg-white p-8 text-center">
+                  <div>
+                    <AlertTriangle className="h-12 w-12 text-amber-500 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium mb-2">Dados insuficientes para gerar o PDF</h3>
+                    <p className="text-gray-600 mb-4">
+                      Alguns campos obrigatórios não foram preenchidos. Verifique se você preencheu:
+                    </p>
+                    <ul className="text-left text-sm list-disc pl-8 mb-4">
+                      <li className={proposal.client_name ? "text-green-600" : "text-red-600"}>
+                        Nome do cliente
+                      </li>
+                      <li className={proposal.event_type ? "text-green-600" : "text-red-600"}>
+                        Tipo de evento
+                      </li>
+                      <li className={proposal.services.length > 0 ? "text-green-600" : "text-red-600"}>
+                        Serviços incluídos
+                      </li>
+                    </ul>
+                    <Button variant="outline" size="sm" onClick={onBack}>
+                      <ChevronLeft className="w-4 h-4 mr-2" /> Voltar para edição
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </TabsContent>
