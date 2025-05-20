@@ -18,15 +18,17 @@ const GalleryImage: React.FC<GalleryImageProps> = ({
 }) => {
   const processedUrl = normalizeImageUrl(url);
 
+  console.log('[GalleryImage] Renderizando imagem:', { url, title, index });
+
   return (
     <div 
       className="aspect-square overflow-hidden rounded-lg shadow-md animate-on-scroll"
       style={{ animationDelay: `${index * 100}ms` }}
       onClick={onClick}
       tabIndex={0}
-      onKeyDown={(e) => { if (e.key === 'Enter') onClick(); }}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onClick(); }}
       role="button"
-      aria-label={`Ver imagem ampliada: ${title || `Imagem ${index + 1}`}`}
+      aria-label={`Ver imagem ampliada: ${title || `Imagem ${index + 1}`}${description ? ` - ${description}` : ''}`}
     >
       <div className="relative h-full group cursor-pointer">
         <img 
@@ -34,6 +36,7 @@ const GalleryImage: React.FC<GalleryImageProps> = ({
           alt={title || `Galeria Anrielly Gomes - Imagem ${index + 1}`} 
           className="w-full h-full object-cover hover-zoom"
           loading="lazy"
+          draggable={false}
           onError={(e) => {
             console.error(`[GalleryImage] Falha ao carregar imagem: ${processedUrl}, URL original: ${url}`);
             (e.target as HTMLImageElement).src = '/placeholder.svg';
