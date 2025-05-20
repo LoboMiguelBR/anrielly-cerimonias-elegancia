@@ -1,16 +1,21 @@
 
-import { useRef, useState, useEffect } from 'react';
-import { useGalleryImages } from './gallery/useGalleryImages';
+import { useRef, useEffect } from 'react';
 import GalleryGrid from './gallery/GalleryGrid';
 import GalleryModal from './gallery/GalleryModal';
+import { useGalleryContext } from './gallery/GalleryContext';
 
 const Gallery = () => {
   const sectionRef = useRef<HTMLElement>(null);
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [selectedImageTitle, setSelectedImageTitle] = useState<string>('');
-  const [selectedImageDescription, setSelectedImageDescription] = useState<string | null>(null);
-  
-  const { images, isLoading, error, fetchGalleryImages, staticImages } = useGalleryImages();
+  const { 
+    selectedImage, 
+    selectedImageTitle, 
+    selectedImageDescription, 
+    setSelectedImage, 
+    displayImages, 
+    isLoading, 
+    error, 
+    fetchGalleryImages 
+  } = useGalleryContext();
 
   // Apply animation when section becomes visible
   useEffect(() => {
@@ -35,25 +40,8 @@ const Gallery = () => {
     };
   }, []);
 
-  // Convert database images or use static fallback
-  const displayImages = images.length > 0 
-    ? images.map(img => ({ 
-        id: img.id, 
-        url: img.image_url, 
-        title: img.title, 
-        description: img.description 
-      }))
-    : staticImages.map((url, i) => ({ 
-        id: `static-${i}`, 
-        url, 
-        title: `Imagem ${i+1}`, 
-        description: null 
-      }));
-
   const handleImageClick = (url: string, title: string, description: string | null) => {
-    setSelectedImage(url);
-    setSelectedImageTitle(title);
-    setSelectedImageDescription(description);
+    setSelectedImage(url, title, description);
   };
 
   return (
@@ -71,7 +59,7 @@ const Gallery = () => {
 
         <GalleryModal 
           isOpen={!!selectedImage} 
-          onClose={() => setSelectedImage(null)}
+          onClose={() => setSelectedImage(null, '', null)}
           imageUrl={selectedImage}
           imageTitle={selectedImageTitle}
           imageDescription={selectedImageDescription}
