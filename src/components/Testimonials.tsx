@@ -92,16 +92,16 @@ const Testimonials = () => {
       const processedTestimonials = (data || []).map(testimonial => {
         if (testimonial.image_url) {
           const normalizedUrl = normalizeImageUrl(testimonial.image_url);
-          console.log(`Testimonial ${testimonial.id}: Original URL: ${testimonial.image_url} -> Normalized: ${normalizedUrl}`);
+          console.log(`[Testimonials] Processando depoimento ${testimonial.id}: URL original: ${testimonial.image_url} -> Normalizada: ${normalizedUrl}`);
           return { ...testimonial, image_url: normalizedUrl };
         }
         return testimonial;
       });
       
       setTestimonials(processedTestimonials);
-      console.log('Fetched testimonials:', processedTestimonials);
+      console.log('[Testimonials] Depoimentos carregados:', processedTestimonials.length);
     } catch (error: any) {
-      console.error('Error fetching testimonials:', error);
+      console.error('[Testimonials] Erro ao carregar depoimentos:', error);
       setError(error.message || 'Erro ao carregar depoimentos');
       toast.error('Erro ao carregar depoimentos', {
         description: error.message
@@ -161,30 +161,36 @@ const Testimonials = () => {
           <div className="mt-10 px-4 animate-on-scroll">
             <Carousel className="w-full max-w-4xl mx-auto">
               <CarouselContent>
-                {displayTestimonials.map((testimonial, index) => (
-                  <CarouselItem key={testimonial.id} className="md:basis-1/1">
-                    <div className="bg-white p-6 rounded-lg shadow-md flex flex-col items-center">
-                      <div className="mb-6">
-                        <img 
-                          src={normalizeImageUrl(testimonial.image_url)} 
-                          alt={testimonial.name} 
-                          className="w-20 h-20 rounded-full object-cover border-2 border-gold/30"
-                          onError={(e) => {
-                            // Fallback to placeholder if image fails to load
-                            (e.target as HTMLImageElement).src = '/placeholder.svg';
-                          }}
-                        />
+                {displayTestimonials.map((testimonial, index) => {
+                  // Processar a URL da imagem apenas uma vez
+                  const imageUrl = normalizeImageUrl(testimonial.image_url);
+                  
+                  return (
+                    <CarouselItem key={testimonial.id} className="md:basis-1/1">
+                      <div className="bg-white p-6 rounded-lg shadow-md flex flex-col items-center">
+                        <div className="mb-6">
+                          <img 
+                            src={imageUrl} 
+                            alt={testimonial.name} 
+                            className="w-20 h-20 rounded-full object-cover border-2 border-gold/30"
+                            onError={(e) => {
+                              console.error(`[Testimonials] Falha ao carregar imagem de depoimento: ${imageUrl}`);
+                              // Fallback to placeholder if image fails to load
+                              (e.target as HTMLImageElement).src = '/placeholder.svg';
+                            }}
+                          />
+                        </div>
+                        <blockquote className="text-center mb-4 font-playfair italic text-gray-700">
+                          "{testimonial.quote}"
+                        </blockquote>
+                        <div className="text-center">
+                          <p className="font-semibold">{testimonial.name}</p>
+                          <p className="text-sm text-gray-500">{testimonial.role}</p>
+                        </div>
                       </div>
-                      <blockquote className="text-center mb-4 font-playfair italic text-gray-700">
-                        "{testimonial.quote}"
-                      </blockquote>
-                      <div className="text-center">
-                        <p className="font-semibold">{testimonial.name}</p>
-                        <p className="text-sm text-gray-500">{testimonial.role}</p>
-                      </div>
-                    </div>
-                  </CarouselItem>
-                ))}
+                    </CarouselItem>
+                  );
+                })}
               </CarouselContent>
               <div className="flex justify-center gap-2 mt-4">
                 <CarouselPrevious className="relative static transform-none translate-y-0 mx-4" />

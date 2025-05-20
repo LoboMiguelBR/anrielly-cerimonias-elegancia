@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -22,28 +23,28 @@ export const useGalleryImages = () => {
       if (error) throw error;
       
       if (data && data.length > 0) {
-        console.log('Gallery images fetched successfully:', data.length, 'images');
+        console.log('[useGalleryImages] Imagens da galeria carregadas com sucesso:', data.length, 'imagens');
         
-        // Use the centralzied normalizeImageUrl function
+        // Use the centralized normalizeImageUrl function
         const validatedImages = data.map(img => {
           if (!img.image_url) {
-            console.warn('Image without URL found:', img.id);
-            return img;
+            console.warn('[useGalleryImages] Imagem sem URL encontrada:', img.id);
+            return { ...img, image_url: '/placeholder.svg' };
           }
           
           const normalizedUrl = normalizeImageUrl(img.image_url);
-          console.log(`Image ${img.id}: Original URL: ${img.image_url} -> Normalized: ${normalizedUrl}`);
+          console.log(`[useGalleryImages] Imagem ${img.id}: URL original: ${img.image_url} -> Normalizada: ${normalizedUrl}`);
           
           return { ...img, image_url: normalizedUrl };
         });
         
         setImages(validatedImages);
       } else {
-        console.log('No gallery images found in the database, using fallback static images');
+        console.log('[useGalleryImages] Nenhuma imagem encontrada no banco de dados, usando imagens estáticas');
         setImages([]);
       }
     } catch (error: any) {
-      console.error('Error fetching gallery images:', error);
+      console.error('[useGalleryImages] Erro ao carregar imagens da galeria:', error);
       setError(error.message || 'Erro ao carregar imagens da galeria');
       toast.error('Não foi possível carregar a galeria de imagens', {
         description: error.message
@@ -67,10 +68,15 @@ export const useGalleryImages = () => {
           table: 'gallery' 
         },
         () => {
+          console.log('[useGalleryImages] Mudanças detectadas na galeria, recarregando...');
           fetchGalleryImages();
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          console.log('[useGalleryImages] Inscrição para mudanças na galeria ativa');
+        }
+      });
     
     return () => {
       supabase.removeChannel(channel);

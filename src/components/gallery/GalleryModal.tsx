@@ -37,7 +37,7 @@ const GalleryModal: React.FC<GalleryModalProps> = ({
             alt={imageTitle || 'Imagem ampliada'} 
             className="w-full h-auto rounded-lg"
             onError={(e) => {
-              console.error(`Failed to load enlarged image: ${processedUrl}`);
+              console.error(`[GalleryModal] Falha ao carregar imagem ampliada: ${processedUrl}, URL original: ${imageUrl}`);
               (e.target as HTMLImageElement).src = '/placeholder.svg';
             }}
           />

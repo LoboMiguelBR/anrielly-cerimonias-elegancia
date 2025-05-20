@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { normalizeImageUrl } from '@/utils/imageUtils';
 
@@ -16,7 +17,7 @@ const GalleryImage: React.FC<GalleryImageProps> = ({
   index, 
   onClick 
 }) => {
-  // Use the centralized normalizeImageUrl function
+  // Use the centralized normalizeImageUrl function only once
   const processedUrl = normalizeImageUrl(url);
 
   return (
@@ -31,7 +32,7 @@ const GalleryImage: React.FC<GalleryImageProps> = ({
           alt={title || `Galeria Anrielly Gomes - Imagem ${index + 1}`} 
           className="w-full h-full object-cover hover-zoom"
           onError={(e) => {
-            console.error(`Failed to load image: ${processedUrl}`);
+            console.error(`[GalleryImage] Falha ao carregar imagem: ${processedUrl}, URL original: ${url}`);
             // Fallback to placeholder if image fails to load
             (e.target as HTMLImageElement).src = '/placeholder.svg';
           }}

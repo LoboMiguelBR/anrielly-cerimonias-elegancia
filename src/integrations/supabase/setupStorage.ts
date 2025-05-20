@@ -1,3 +1,4 @@
+
 import { supabase } from './client';
 
 export const createStorageBuckets = async () => {
@@ -18,8 +19,9 @@ export const createStorageBuckets = async () => {
   }
 
   try {
+    // Teste de geração de URL pública para verificar o formato
     const { data } = supabase.storage.from('gallery').getPublicUrl('test.jpg');
-    console.log('Public URL de teste:', data.publicUrl);
+    console.log('Public URL de teste para referência:', data.publicUrl);
   } catch (error) {
     console.error('Erro ao gerar URL pública:', error);
   }
