@@ -16,6 +16,8 @@ const Testimonials = () => {
     imageUrl: testimonial.image_url
   }));
 
+  console.log('[Testimonials] Renderizando componente com', mappedTestimonials.length, 'depoimentos');
+
   return (
     <section id="depoimentos" className="bg-white py-16" ref={sectionRef}>
       <div className="container mx-auto px-4">
@@ -43,7 +45,14 @@ const Testimonials = () => {
             </div>
           </div>
         ) : mappedTestimonials.length > 0 ? (
-          <EnhancedTestimonialCarousel testimonials={mappedTestimonials} />
+          <>
+            <EnhancedTestimonialCarousel testimonials={mappedTestimonials} />
+            <div className="text-center mt-10">
+              <p className="text-gray-500 italic">
+                Conheça a experiência de nossos clientes
+              </p>
+            </div>
+          </>
         ) : (
           <div className="py-10 text-center text-gray-500">
             Nenhum depoimento encontrado.
