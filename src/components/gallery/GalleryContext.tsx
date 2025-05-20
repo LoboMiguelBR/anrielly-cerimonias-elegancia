@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, ReactNode, useMemo, useCallback } from 'react';
 import { useGalleryImages } from './useGalleryImages';
 import { DisplayImage } from './types';
 
@@ -19,23 +19,25 @@ export const GalleryProvider = ({ children }: { children: ReactNode }) => {
   const [selectedImage, setSelectedImageState] = useState<string | null>(null);
   const [selectedImageTitle, setSelectedImageTitle] = useState<string>('');
   const [selectedImageDescription, setSelectedImageDescription] = useState<string | null>(null);
-  
+
   const { images, isLoading, error, fetchGalleryImages } = useGalleryImages();
 
-  const displayImages = images
-    .filter(img => !!img.image_url)  // segurança
-    .map(img => ({ 
-      id: img.id, 
-      url: img.image_url, 
-      title: img.title, 
-      description: img.description 
-    }));
+  const displayImages = useMemo(() => (
+    images
+      .filter(img => !!img.image_url) // segurança
+      .map(img => ({
+        id: img.id,
+        url: img.image_url,
+        title: img.title,
+        description: img.description
+      }))
+  ), [images]);
 
-  const setSelectedImage = (url: string | null, title: string, description: string | null) => {
+  const setSelectedImage = useCallback((url: string | null, title: string, description: string | null) => {
     setSelectedImageState(url);
     setSelectedImageTitle(title);
     setSelectedImageDescription(description);
-  };
+  }, []);
 
   console.log('[GalleryProvider] displayImages:', displayImages);
   console.log('[GalleryProvider] isLoading:', isLoading, 'error:', error);
@@ -50,7 +52,7 @@ export const GalleryProvider = ({ children }: { children: ReactNode }) => {
         displayImages,
         isLoading,
         error,
-        fetchGalleryImages,
+        fetchGalleryImages
       }}
     >
       {children}
@@ -60,7 +62,7 @@ export const GalleryProvider = ({ children }: { children: ReactNode }) => {
 
 export const useGalleryContext = (): GalleryContextType => {
   const context = useContext(GalleryContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error('useGalleryContext must be used within a GalleryProvider');
   }
   return context;
