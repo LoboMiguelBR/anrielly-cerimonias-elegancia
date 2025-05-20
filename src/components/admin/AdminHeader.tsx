@@ -9,42 +9,39 @@ const AdminHeader = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   
-  const handleLogout = async () => {
-    try {
-      // First, check if we have an active session
-      const { data: sessionData } = await supabase.auth.getSession();
-      
-      // Always clear local storage for safety
-      localStorage.removeItem('adminUser');
-      
-      // Only attempt to sign out if there's an active session
-      if (sessionData?.session) {
-        await supabase.auth.signOut();
-      }
-      
-      toast({
-        title: "Logout realizado",
-        description: "Você saiu do painel administrativo",
-      });
-      
-      // Navigate to home page after logout
-      navigate('/');
-    } catch (error) {
-      console.error("Erro ao fazer logout:", error);
-      
-      // Even if the Supabase logout fails, clear local storage and redirect
-      localStorage.removeItem('adminUser');
-      
-      toast({
-        title: "Aviso de logout",
-        description: "Sessão encerrada, mas ocorreu um erro no servidor",
-        variant: "default",
-      });
-      
-      // Still navigate away even if there was an error
-      navigate('/');
-    }
-  };
+Versão corrigida e robusta do handleLogout:
+ts
+Copiar
+Editar
+const handleLogout = async () => {
+  try {
+    await supabase.auth.signOut();
+
+    // Limpa qualquer dado persistente local
+    localStorage.clear();
+    sessionStorage.clear();
+
+    toast({
+      title: "Logout realizado",
+      description: "Você saiu do painel administrativo",
+    });
+
+    navigate('/');
+  } catch (error) {
+    console.error("Erro ao fazer logout:", error);
+
+    // Limpa de qualquer forma
+    localStorage.clear();
+    sessionStorage.clear();
+
+    toast({
+      title: "Aviso de logout",
+      description: "Sessão encerrada, mas ocorreu um erro no servidor",
+    });
+
+    navigate('/');
+  }
+};
 
   return (
     <header className="bg-white shadow-sm">
