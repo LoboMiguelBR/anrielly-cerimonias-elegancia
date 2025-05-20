@@ -12,10 +12,13 @@ interface CoverPageProps {
 }
 
 const CoverPage: React.FC<CoverPageProps> = ({ clientName, eventType, eventDate, totalPrice }) => {
+  // Use a placeholder image URL if loading from public directory fails
+  const logoUrl = "https://via.placeholder.com/200x200/7E69AB/FFFFFF?text=AG";
+  
   return (
     <View style={styles.coverPage}>
       <Image 
-        src="/lovable-uploads/99442f1a-9c10-4e95-a063-bd0bda0a998c.png"
+        src={logoUrl}
         style={styles.coverPageImage}
       />
       
