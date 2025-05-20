@@ -3,27 +3,12 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { Testimonial } from './types';
 
-// Ensure testimonials bucket exists
+// No longer try to create the bucket - just check if it exists
 export const ensureTestimonialsBucketExists = async (): Promise<boolean> => {
   try {
     const { data, error } = await supabase.storage.getBucket('testimonials');
     
-    if (error && error.message.includes('bucket not found')) {
-      const { error: createError } = await supabase.storage.createBucket('testimonials', {
-        public: true,
-        fileSizeLimit: 10485760, // 10MB
-        allowedMimeTypes: ['image/png', 'image/jpeg', 'image/jpg', 'image/webp']
-      });
-      
-      if (createError) {
-        console.error('Error creating testimonials bucket:', createError);
-        toast.error('Erro ao criar bucket de armazenamento para depoimentos');
-        return false;
-      } 
-      
-      console.log('Testimonials bucket created successfully');
-      return true;
-    } else if (error) {
+    if (error) {
       console.error('Error checking testimonials bucket:', error);
       return false;
     }
@@ -64,11 +49,11 @@ export const addTestimonial = async (
   }
   
   try {
-    // Check and create bucket if needed
+    // Check bucket but don't try to create it
     if (uploadImage) {
       const bucketExists = await ensureTestimonialsBucketExists();
       if (!bucketExists) {
-        throw new Error('Erro ao verificar bucket de armazenamento');
+        console.warn('Testimonials bucket may not exist or user lacks permission to check');
       }
     }
     
@@ -81,7 +66,10 @@ export const addTestimonial = async (
       
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('testimonials')
-        .upload(fileName, uploadImage);
+        .upload(fileName, uploadImage, {
+          cacheControl: '3600',
+          upsert: false
+        });
       
       if (uploadError) throw uploadError;
       
@@ -151,7 +139,10 @@ export const updateTestimonial = async (
       
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('testimonials')
-        .upload(fileName, uploadImage);
+        .upload(fileName, uploadImage, {
+          cacheControl: '3600',
+          upsert: false
+        });
       
       if (uploadError) throw uploadError;
       

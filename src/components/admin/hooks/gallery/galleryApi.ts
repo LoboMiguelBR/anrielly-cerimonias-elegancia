@@ -112,7 +112,10 @@ export const uploadGalleryImages = async (
       // 1. Upload image to Supabase Storage
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('gallery')
-        .upload(fileName, file);
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
       
       if (uploadError) {
         console.error(`Error uploading file ${i+1}:`, uploadError);

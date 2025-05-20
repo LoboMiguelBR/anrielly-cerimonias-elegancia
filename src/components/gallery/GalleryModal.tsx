@@ -8,13 +8,15 @@ interface GalleryModalProps {
   onClose: () => void;
   imageUrl: string | null;
   imageTitle: string;
+  imageDescription?: string | null;
 }
 
 const GalleryModal: React.FC<GalleryModalProps> = ({ 
   isOpen, 
   onClose, 
   imageUrl, 
-  imageTitle 
+  imageTitle,
+  imageDescription 
 }) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -22,15 +24,22 @@ const GalleryModal: React.FC<GalleryModalProps> = ({
         <DialogTitle className="sr-only">
           <VisuallyHidden>{imageTitle || 'Imagem ampliada'}</VisuallyHidden>
         </DialogTitle>
-        <img 
-          src={imageUrl || ''} 
-          alt={imageTitle || 'Imagem ampliada'} 
-          className="w-full h-auto rounded-lg"
-          onError={(e) => {
-            console.error(`Failed to load enlarged image: ${imageUrl}`);
-            (e.target as HTMLImageElement).src = '/placeholder.svg';
-          }}
-        />
+        <div className="relative">
+          <img 
+            src={imageUrl || ''} 
+            alt={imageTitle || 'Imagem ampliada'} 
+            className="w-full h-auto rounded-lg"
+            onError={(e) => {
+              console.error(`Failed to load enlarged image: ${imageUrl}`);
+              (e.target as HTMLImageElement).src = '/placeholder.svg';
+            }}
+          />
+          {imageDescription && (
+            <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-white p-4 rounded-b-lg">
+              <p className="text-sm md:text-base">{imageDescription}</p>
+            </div>
+          )}
+        </div>
       </DialogContent>
     </Dialog>
   );

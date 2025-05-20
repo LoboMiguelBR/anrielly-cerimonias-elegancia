@@ -8,6 +8,7 @@ const Gallery = () => {
   const sectionRef = useRef<HTMLElement>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [selectedImageTitle, setSelectedImageTitle] = useState<string>('');
+  const [selectedImageDescription, setSelectedImageDescription] = useState<string | null>(null);
   
   const { images, isLoading, error, fetchGalleryImages, staticImages } = useGalleryImages();
 
@@ -49,9 +50,10 @@ const Gallery = () => {
         description: null 
       }));
 
-  const handleImageClick = (url: string, title: string) => {
+  const handleImageClick = (url: string, title: string, description: string | null) => {
     setSelectedImage(url);
     setSelectedImageTitle(title);
+    setSelectedImageDescription(description);
   };
 
   return (
@@ -72,6 +74,7 @@ const Gallery = () => {
           onClose={() => setSelectedImage(null)}
           imageUrl={selectedImage}
           imageTitle={selectedImageTitle}
+          imageDescription={selectedImageDescription}
         />
       </div>
     </section>
