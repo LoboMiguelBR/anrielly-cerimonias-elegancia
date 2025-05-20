@@ -4,10 +4,10 @@ import { Navigate } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
 
 interface AdminProtectedRouteProps {
-  children: ReactNode;
+  element: ReactNode;
 }
 
-const AdminProtectedRoute = ({ children }: AdminProtectedRouteProps) => {
+const AdminProtectedRoute = ({ element }: AdminProtectedRouteProps) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   
   useEffect(() => {
@@ -41,11 +41,11 @@ const AdminProtectedRoute = ({ children }: AdminProtectedRouteProps) => {
   
   // Redireciona para login se não estiver autenticado
   if (!isAuthenticated) {
-    return <Navigate to="/admin" replace />;
+    return <Navigate to="/admin/login" replace />;
   }
 
-  // Renderiza os componentes filhos se estiver autenticado
-  return <>{children}</>;
+  // Renderiza o elemento se estiver autenticado
+  return <>{element}</>;
 };
 
 export default AdminProtectedRoute;
