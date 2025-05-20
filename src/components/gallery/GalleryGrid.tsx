@@ -23,7 +23,7 @@ const GalleryGrid: React.FC<GalleryGridProps> = ({
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" aria-busy="true">
         {Array.from({ length: 8 }, (_, i) => (
           <div key={`skeleton-${i}`} className="aspect-square">
             <Skeleton className="h-full w-full" />
@@ -35,12 +35,13 @@ const GalleryGrid: React.FC<GalleryGridProps> = ({
 
   if (error) {
     return (
-      <div className="py-10 text-center text-red-500" aria-live="assertive">
-        {error}
+      <div className="py-10 text-center text-red-500" role="alert">
+        <p>{error}</p>
         <div className="mt-4">
           <button 
             onClick={onRetry}
             className="px-4 py-2 bg-gold/80 text-white rounded-md hover:bg-gold transition-colors"
+            aria-label="Tentar recarregar galeria"
           >
             Tentar novamente
           </button>
@@ -51,7 +52,7 @@ const GalleryGrid: React.FC<GalleryGridProps> = ({
 
   if (displayImages.length === 0) {
     return (
-      <div className="py-10 text-center text-gray-500" aria-live="polite">
+      <div className="py-10 text-center text-gray-500">
         Nenhuma imagem disponível no momento.
       </div>
     );
@@ -59,18 +60,16 @@ const GalleryGrid: React.FC<GalleryGridProps> = ({
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-      {displayImages
-        .filter(image => !!image.url)
-        .map((image, index) => (
-          <GalleryImage
-            key={image.id}
-            url={image.url}
-            title={image.title}
-            description={image.description}
-            index={index}
-            onClick={() => onImageClick(image.url, image.title, image.description)}
-          />
-        ))}
+      {displayImages.map((image, index) => (
+        <GalleryImage
+          key={image.id}
+          url={image.url}
+          title={image.title}
+          description={image.description}
+          index={index}
+          onClick={() => onImageClick(image.url, image.title, image.description)}
+        />
+      ))}
     </div>
   );
 };
