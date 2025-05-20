@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode, useMemo, useCallback } from 'react';
+import { createContext, useContext, useState, ReactNode } from 'react';
 import { useGalleryImages } from './useGalleryImages';
 import { DisplayImage } from './types';
 
@@ -22,39 +22,30 @@ export const GalleryProvider = ({ children }: { children: ReactNode }) => {
 
   const { images, isLoading, error, fetchGalleryImages } = useGalleryImages();
 
-  const displayImages = useMemo(() => (
-    images
-      .filter(img => !!img.image_url) // segurança
-      .map(img => ({
-        id: img.id,
-        url: img.image_url,
-        title: img.title,
-        description: img.description
-      }))
-  ), [images]);
+  const displayImages = images.map(img => ({
+    id: img.id,
+    url: img.image_url,
+    title: img.title,
+    description: img.description
+  }));
 
-  const setSelectedImage = useCallback((url: string | null, title: string, description: string | null) => {
+  const setSelectedImage = (url: string | null, title: string, description: string | null) => {
     setSelectedImageState(url);
     setSelectedImageTitle(title);
     setSelectedImageDescription(description);
-  }, []);
-
-  console.log('[GalleryProvider] displayImages:', displayImages);
-  console.log('[GalleryProvider] isLoading:', isLoading, 'error:', error);
+  };
 
   return (
-    <GalleryContext.Provider
-      value={{
-        selectedImage,
-        selectedImageTitle,
-        selectedImageDescription,
-        setSelectedImage,
-        displayImages,
-        isLoading,
-        error,
-        fetchGalleryImages
-      }}
-    >
+    <GalleryContext.Provider value={{
+      selectedImage,
+      selectedImageTitle,
+      selectedImageDescription,
+      setSelectedImage,
+      displayImages,
+      isLoading,
+      error,
+      fetchGalleryImages
+    }}>
       {children}
     </GalleryContext.Provider>
   );
