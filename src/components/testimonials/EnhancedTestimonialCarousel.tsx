@@ -1,5 +1,5 @@
 
-import { FC, useState } from 'react';
+import { FC, useState, useEffect, useCallback } from 'react';
 import {
   Carousel,
   CarouselContent,
@@ -27,16 +27,23 @@ const EnhancedTestimonialCarousel: FC<EnhancedTestimonialCarouselProps> = ({ tes
     }
   };
 
-  const handleScroll = () => {
+  const handleScroll = useCallback(() => {
     if (!emblaApi) return;
     const currentIndex = emblaApi.selectedScrollSnap();
     setActiveIndex(currentIndex);
-  };
+  }, [emblaApi]);
 
-  // Update active index when carousel moves
-  if (emblaApi && !emblaApi.listeners().scroll.includes(handleScroll)) {
-    emblaApi.on('scroll', handleScroll);
-  }
+  // Set up scroll event listener when emblaApi is available
+  useEffect(() => {
+    if (!emblaApi) return;
+    
+    emblaApi.on('select', handleScroll);
+    handleScroll(); // Initial call to set the active index
+    
+    return () => {
+      emblaApi.off('select', handleScroll);
+    };
+  }, [emblaApi, handleScroll]);
 
   return (
     <div className="mt-10 px-4 animate-on-scroll" aria-label="Carrossel de depoimentos">
