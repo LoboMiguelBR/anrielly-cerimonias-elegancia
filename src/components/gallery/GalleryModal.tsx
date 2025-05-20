@@ -20,6 +20,8 @@ const GalleryModal: React.FC<GalleryModalProps> = ({
 }) => {
   const processedUrl = normalizeImageUrl(imageUrl);
 
+  console.log('[GalleryModal] isOpen:', isOpen, 'imageUrl:', imageUrl, 'imageTitle:', imageTitle);
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl p-1 bg-transparent border-none">
@@ -32,9 +34,10 @@ const GalleryModal: React.FC<GalleryModalProps> = ({
         <div className="relative">
           <img 
             src={processedUrl} 
-            alt={imageTitle || 'Imagem ampliada'} 
+            alt={`${imageTitle || 'Imagem ampliada'}${imageDescription ? ` - ${imageDescription}` : ''}`} 
             className="w-full h-auto rounded-lg"
             loading="lazy"
+            draggable={false}
             onError={(e) => {
               console.error(`[GalleryModal] Falha ao carregar imagem: ${processedUrl}, URL original: ${imageUrl}`);
               (e.target as HTMLImageElement).src = '/placeholder.svg';
