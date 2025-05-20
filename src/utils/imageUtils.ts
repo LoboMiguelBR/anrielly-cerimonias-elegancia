@@ -4,46 +4,53 @@
  */
 
 /**
- * Normalizes a URL to fix duplicate path segments, handles both absolute URLs and relative paths
- * @param url The URL to normalize
- * @returns The normalized URL or empty string if url is null/undefined
+ * Normaliza uma URL para corrigir segmentos de caminho duplicados, lida com URLs absolutas e caminhos relativos
+ * @param url A URL para normalizar
+ * @returns A URL normalizada ou string vazia se url for null/undefined
  */
 export const normalizeImageUrl = (url: string | null | undefined): string => {
-  // Return early for null/undefined URLs
+  // Retorna vazio para URLs nulas/indefinidas
   if (!url) {
-    console.log('[normalizeImageUrl] Received empty URL');
+    console.log('[normalizeImageUrl] URL vazia recebida');
     return '';
   }
 
-  console.log('[normalizeImageUrl] Original URL:', url);
+  console.log('[normalizeImageUrl] URL original:', url);
   
-  try {
-    // Fix common issue with duplicate path segments regardless of URL type
-    // e.g., /v1/object/public/v1/object/public/ -> /v1/object/public/
-    const fixedPathUrl = url.replace(/(\/v1\/object\/public\/)+/g, '/v1/object/public/');
-    
-    // Check if it's a relative path (starts with /)
-    if (url.startsWith('/')) {
-      console.log('[normalizeImageUrl] Handling relative path:', fixedPathUrl);
-      return fixedPathUrl;
-    }
-    
-    // For absolute URLs, try to parse to validate
-    new URL(fixedPathUrl);
-    console.log('[normalizeImageUrl] Normalized absolute URL:', fixedPathUrl);
-    return fixedPathUrl;
-  } catch (error) {
-    // If URL parsing failed but it's not a relative path, log error and return original
-    console.error('[normalizeImageUrl] Invalid URL format:', url, error);
-    
-    // If URL contains '/v1/object/public/' path segment, still try to fix duplicates
-    if (url.includes('/v1/object/public/')) {
-      const fixedUrl = url.replace(/(\/v1\/object\/public\/)+/g, '/v1/object/public/');
-      console.log('[normalizeImageUrl] URL parsing failed, but path fixed:', fixedUrl);
-      return fixedUrl;
-    }
-    
-    // Return the original URL if we can't process it
+  // Trata caminhos relativos (começando com /)
+  if (url.startsWith('/')) {
+    console.log('[normalizeImageUrl] Processando caminho relativo:', url);
+    // Para caminhos relativos, apenas retornamos o caminho original
+    // Não é necessário fazer mais validações
     return url;
   }
+  
+  // Trata URLs absolutas (começando com http:// ou https://)
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    try {
+      // Corrige problema comum com segmentos de caminho duplicados
+      // ex: /v1/object/public/v1/object/public/ -> /v1/object/public/
+      const fixedPathUrl = url.replace(/(\/v1\/object\/public\/)+/g, '/v1/object/public/');
+      
+      // Tenta validar a URL absoluta
+      new URL(fixedPathUrl);
+      console.log('[normalizeImageUrl] URL absoluta normalizada:', fixedPathUrl);
+      return fixedPathUrl;
+    } catch (error) {
+      // Se a análise da URL falhou, tenta corrigir URLs do Supabase
+      if (url.includes('/v1/object/public/')) {
+        const fixedUrl = url.replace(/(\/v1\/object\/public\/)+/g, '/v1/object/public/');
+        console.log('[normalizeImageUrl] Análise da URL falhou, mas caminho corrigido:', fixedUrl);
+        return fixedUrl;
+      }
+      
+      // Para URLs absolutas inválidas, registra o erro e retorna original
+      console.error('[normalizeImageUrl] Formato de URL inválido:', url, error);
+      return url;
+    }
+  }
+  
+  // Para todos os outros formatos (nem relativo nem absoluto), retorna o original
+  console.log('[normalizeImageUrl] Formato de URL não reconhecido, retornando original:', url);
+  return url;
 };
