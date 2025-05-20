@@ -6,11 +6,10 @@ import { normalizeImageUrl } from '@/utils/imageUtils';
 
 export const useGalleryImages = () => {
   const [images, setImages] = useState<GalleryImage[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchGalleryImages = async () => {
-    console.log('[useGalleryImages] Executando fetchGalleryImages...');
     try {
       setIsLoading(true);
       setError(null);
@@ -22,19 +21,13 @@ export const useGalleryImages = () => {
 
       if (error) throw error;
 
-      if (data?.length) {
-        console.log('[useGalleryImages] Imagens carregadas:', data.length);
-        const validatedImages = data.map((img) => ({
-          ...img,
-          image_url: img.image_url ? normalizeImageUrl(img.image_url) : '/placeholder.svg',
-        }));
-        setImages(validatedImages);
-      } else {
-        console.log('[useGalleryImages] Nenhuma imagem encontrada.');
-        setImages([]);
-      }
+      const validatedImages = (data || []).map((img) => ({
+        ...img,
+        image_url: img.image_url ? normalizeImageUrl(img.image_url) : '/placeholder.svg'
+      }));
+
+      setImages(validatedImages);
     } catch (error: any) {
-      console.error('[useGalleryImages] Erro ao carregar imagens:', error);
       setError(error.message || 'Erro ao carregar imagens.');
       toast.error('Erro ao carregar imagens', { description: error.message });
     } finally {
@@ -43,33 +36,17 @@ export const useGalleryImages = () => {
   };
 
   useEffect(() => {
-    console.log('[useGalleryImages] Inicializando fetch e subscrição...');
     fetchGalleryImages();
 
     const channel = supabase
       .channel('public:gallery')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'gallery' },
-        () => {
-          console.log('[useGalleryImages] Alteração detectada, recarregando...');
-          fetchGalleryImages();
-        }
-      )
-      .subscribe((status) => {
-        console.log(`[useGalleryImages] Subscrição status: ${status}`);
-      });
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'gallery' }, fetchGalleryImages)
+      .subscribe();
 
     return () => {
-      console.log('[useGalleryImages] Limpando subscrição de realtime...');
       supabase.removeChannel(channel);
     };
-  }, []); // Executa apenas na montagem
+  }, []);
 
-  return {
-    images,
-    isLoading,
-    error,
-    fetchGalleryImages,
-  };
+  return { images, isLoading, error, fetchGalleryImages };
 };
