@@ -52,12 +52,14 @@ const ProposalPreview: React.FC<ProposalPreviewProps> = ({ proposal, onBack }) =
             client_email: '',
             client_phone: '',
             event_type: 'Evento',
+            event_date: null,
             event_location: 'A definir',
             services: [],
             total_price: 0,
             payment_terms: '',
             notes: null,
-            validity_date: new Date().toISOString()
+            validity_date: new Date().toISOString(),
+            quote_request_id: null
           }} onBack={onBack} />
         </div>
         <div className="p-12 text-center">
