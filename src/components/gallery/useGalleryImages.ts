@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { GalleryImage } from './types';
@@ -6,15 +6,11 @@ import { normalizeImageUrl } from '@/utils/imageUtils';
 
 export const useGalleryImages = () => {
   const [images, setImages] = useState<GalleryImage[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-
-  // Proteção contra execução duplicada em ambientes de dev (React.StrictMode)
-  const isInitialized = useRef(false);
 
   const fetchGalleryImages = async () => {
     console.log('[useGalleryImages] Executando fetchGalleryImages...');
-    console.log('[useGalleryImages] supabase client:', supabase);
 
     try {
       setIsLoading(true);
@@ -27,15 +23,13 @@ export const useGalleryImages = () => {
 
       if (error) throw error;
 
-      if (data && data.length > 0) {
+      if (data?.length) {
         console.log('[useGalleryImages] Imagens carregadas:', data.length);
 
-        const validatedImages = data.map((img) => {
-          const normalizedUrl = img.image_url
-            ? normalizeImageUrl(img.image_url)
-            : '/placeholder.svg';
-          return { ...img, image_url: normalizedUrl };
-        });
+        const validatedImages = data.map((img) => ({
+          ...img,
+          image_url: img.image_url ? normalizeImageUrl(img.image_url) : '/placeholder.svg',
+        }));
 
         setImages(validatedImages);
       } else {
@@ -52,41 +46,25 @@ export const useGalleryImages = () => {
   };
 
   useEffect(() => {
-    if (isInitialized.current) {
-      console.log('[useGalleryImages] Já inicializado, pulando...');
-      return;
-    }
-    isInitialized.current = true;
+    console.log('[useGalleryImages] Inicializando...');
 
-    console.log('[useGalleryImages] Inicializando fetch com segurança...');
-
-    const timeout = setTimeout(() => {
-      fetchGalleryImages();
-    }, 100);  // Pequeno atraso para garantir que supabase client está pronto.
+    fetchGalleryImages();
 
     const channel = supabase
       .channel('public:gallery')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'gallery' },
-        () => {
-          console.log('[useGalleryImages] Alteração detectada na galeria, recarregando...');
-          fetchGalleryImages();
-        }
-      )
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'gallery' }, () => {
+        console.log('[useGalleryImages] Alteração detectada, recarregando...');
+        fetchGalleryImages();
+      })
       .subscribe((status) => {
-        console.log(`[useGalleryImages] Estado da subscrição: ${status}`);
-        if (status === 'SUBSCRIBED') {
-          console.log('[useGalleryImages] Subscrito para alterações na galeria');
-        }
+        console.log(`[useGalleryImages] Subscrição status: ${status}`);
       });
 
     return () => {
-      clearTimeout(timeout);
-      console.log('[useGalleryImages] Limpando subscrição de realtime...');
+      console.log('[useGalleryImages] Limpando subscrição...');
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, []);  // ✅ Executa apenas uma vez.
 
   return {
     images,
