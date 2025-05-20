@@ -16,6 +16,11 @@ const GalleryImage: React.FC<GalleryImageProps> = ({
   index, 
   onClick 
 }) => {
+  if (!url) {
+    console.warn('[GalleryImage] URL inválida recebida, não renderizando:', { url, title, index });
+    return null;
+  }
+
   const processedUrl = normalizeImageUrl(url);
 
   console.log('[GalleryImage] Renderizando imagem:', { url, title, index });
@@ -33,7 +38,7 @@ const GalleryImage: React.FC<GalleryImageProps> = ({
       <div className="relative h-full group cursor-pointer">
         <img 
           src={processedUrl} 
-          alt={title || `Galeria Anrielly Gomes - Imagem ${index + 1}`} 
+          alt={`${title || `Galeria Anrielly Gomes - Imagem ${index + 1}`}${description ? ` - ${description}` : ''}`} 
           className="w-full h-full object-cover hover-zoom"
           loading="lazy"
           draggable={false}
