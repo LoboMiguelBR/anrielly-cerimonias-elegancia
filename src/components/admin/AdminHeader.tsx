@@ -11,26 +11,38 @@ const AdminHeader = () => {
   
   const handleLogout = async () => {
     try {
-      // Properly sign out from Supabase
-      await supabase.auth.signOut();
+      // First, check if we have an active session
+      const { data: sessionData } = await supabase.auth.getSession();
       
-      // Also remove local storage item for additional safety
+      // Always clear local storage for safety
       localStorage.removeItem('adminUser');
+      
+      // Only attempt to sign out if there's an active session
+      if (sessionData?.session) {
+        await supabase.auth.signOut();
+      }
       
       toast({
         title: "Logout realizado",
         description: "Você saiu do painel administrativo",
       });
       
-      // Navigate to home page after successful logout
+      // Navigate to home page after logout
       navigate('/');
     } catch (error) {
       console.error("Erro ao fazer logout:", error);
+      
+      // Even if the Supabase logout fails, clear local storage and redirect
+      localStorage.removeItem('adminUser');
+      
       toast({
-        title: "Erro no logout",
-        description: "Ocorreu um erro ao tentar sair do painel",
-        variant: "destructive",
+        title: "Aviso de logout",
+        description: "Sessão encerrada, mas ocorreu um erro no servidor",
+        variant: "default",
       });
+      
+      // Still navigate away even if there was an error
+      navigate('/');
     }
   };
 
