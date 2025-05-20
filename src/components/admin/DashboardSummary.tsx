@@ -5,11 +5,12 @@ interface DashboardSummaryProps {
   quoteRequestsCount: number;
   proposalsCount: number;
   galleryCount: number;
+  testimonialsCount: number;
 }
 
-const DashboardSummary = ({ quoteRequestsCount, proposalsCount, galleryCount }: DashboardSummaryProps) => {
+const DashboardSummary = ({ quoteRequestsCount, proposalsCount, galleryCount, testimonialsCount }: DashboardSummaryProps) => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
       <div className="bg-lavender/10 rounded-lg p-6 text-center">
         <p className="text-gray-600">Orçamentos Pendentes</p>
         <p className="text-3xl font-semibold">{quoteRequestsCount}</p>
@@ -21,6 +22,10 @@ const DashboardSummary = ({ quoteRequestsCount, proposalsCount, galleryCount }: 
       <div className="bg-lavender/10 rounded-lg p-6 text-center">
         <p className="text-gray-600">Fotos na Galeria</p>
         <p className="text-3xl font-semibold">{galleryCount}</p>
+      </div>
+      <div className="bg-lavender/10 rounded-lg p-6 text-center">
+        <p className="text-gray-600">Depoimentos</p>
+        <p className="text-3xl font-semibold">{testimonialsCount}</p>
       </div>
     </div>
   );

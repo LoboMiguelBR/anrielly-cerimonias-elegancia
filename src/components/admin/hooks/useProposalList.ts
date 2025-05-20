@@ -21,13 +21,36 @@ export const useProposalList = () => {
         
       if (error) throw error;
       
-      // Convert data to the correct type using type assertion
-      const typedProposals = data.map(item => ({
-        ...item,
-        services: (item.services as unknown) as Array<{name: string, included: boolean}>
-      })) as ProposalData[];
-      
-      setProposals(typedProposals);
+      if (data) {
+        // Fix type conversion and ensure all fields are properly set
+        const typedProposals = data.map(item => {
+          // Ensure services is an array
+          const services = Array.isArray(item.services) 
+            ? item.services 
+            : [];
+            
+          return {
+            ...item,
+            // Preserve all fields from the database
+            id: item.id,
+            client_name: item.client_name,
+            client_email: item.client_email,
+            client_phone: item.client_phone,
+            event_type: item.event_type,
+            event_date: item.event_date,
+            event_location: item.event_location,
+            services: services,
+            total_price: Number(item.total_price),
+            payment_terms: item.payment_terms,
+            notes: item.notes,
+            quote_request_id: item.quote_request_id,
+            validity_date: item.validity_date,
+            created_at: item.created_at,
+          } as ProposalData;
+        });
+        
+        setProposals(typedProposals);
+      }
     } catch (error) {
       console.error('Erro ao buscar propostas:', error);
     } finally {
