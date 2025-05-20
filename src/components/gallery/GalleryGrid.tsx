@@ -2,21 +2,14 @@
 import React from 'react';
 import { Skeleton } from "@/components/ui/skeleton";
 import GalleryImage from './GalleryImage';
-import { GalleryImage as GalleryImageType } from './types';
-
-interface DisplayImage {
-  id: string;
-  url: string;
-  title: string;
-  description: string | null;
-}
+import { DisplayImage } from './types';
 
 interface GalleryGridProps {
   isLoading: boolean;
   error: string | null;
   displayImages: DisplayImage[];
   onRetry: () => void;
-  onImageClick: (url: string, title: string) => void;
+  onImageClick: (url: string, title: string, description: string | null) => void;
 }
 
 const GalleryGrid: React.FC<GalleryGridProps> = ({
@@ -63,7 +56,7 @@ const GalleryGrid: React.FC<GalleryGridProps> = ({
           title={image.title}
           description={image.description}
           index={index}
-          onClick={() => onImageClick(image.url, image.title)}
+          onClick={() => onImageClick(image.url, image.title, image.description)}
         />
       ))}
     </div>
