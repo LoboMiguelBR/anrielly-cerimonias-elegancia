@@ -1,27 +1,27 @@
 
 import { Font } from '@react-pdf/renderer';
 
-// Usamos fontes diretamente do Google Fonts para garantir que funcionem no PDF
+// Registrar fontes diretamente como arquivos estáticos em vez de URLs do Google Fonts
 export const registerFonts = () => {
-  // Montserrat - Regular
+  // Montserrat
   Font.register({
     family: 'Montserrat',
     fonts: [
       { 
-        src: 'https://fonts.googleapis.com/css?family=Montserrat&display=swap',
+        src: 'https://fonts.gstatic.com/s/montserrat/v25/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCtr6Hw5aXp-p7K4KLg.woff2',
         fontWeight: 'normal',
       },
       {
-        src: 'https://fonts.googleapis.com/css?family=Montserrat:italic&display=swap',
+        src: 'https://fonts.gstatic.com/s/montserrat/v25/JTUFjIg1_i6t8kCHKm459Wx7xQYXK0vOoz6jq6R9WXZ0poK5.woff2',
         fontWeight: 'normal',
         fontStyle: 'italic',
       },
       {
-        src: 'https://fonts.googleapis.com/css?family=Montserrat:500&display=swap',
+        src: 'https://fonts.gstatic.com/s/montserrat/v25/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCtZ6Hw5aXp-p7K4KLg.woff2',
         fontWeight: 'medium',
       },
       {
-        src: 'https://fonts.googleapis.com/css?family=Montserrat:700&display=swap',
+        src: 'https://fonts.gstatic.com/s/montserrat/v25/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCuM73w5aXp-p7K4KLg.woff2',
         fontWeight: 'bold',
       },
     ],
@@ -32,20 +32,20 @@ export const registerFonts = () => {
     family: 'Playfair Display',
     fonts: [
       { 
-        src: 'https://fonts.googleapis.com/css?family=Playfair+Display&display=swap', 
+        src: 'https://fonts.gstatic.com/s/playfairdisplay/v36/nuFvD-vYSZviVYUb_rj3ij__anPXJzDwcbmjWBN2PKdFvXDZbtXK-F2qC0s.woff2',
         fontWeight: 'normal',
       },
       {
-        src: 'https://fonts.googleapis.com/css?family=Playfair+Display:700&display=swap',
+        src: 'https://fonts.gstatic.com/s/playfairdisplay/v36/nuFvD-vYSZviVYUb_rj3ij__anPXJzDwcbmjWBN2PKeiu82b8g.woff2',
         fontWeight: 'bold',
       },
     ],
   });
   
-  // Fontes fallback para garantir que o PDF será gerado mesmo sem acesso às fontes externas
+  // Registrar fontes de fallback que são garantidas de funcionar
   Font.register({
     family: 'Fallback',
-    src: 'https://fonts.googleapis.com/css?family=Open+Sans&display=swap',
+    src: 'https://fonts.gstatic.com/s/opensans/v34/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTS-muw.woff2',
   });
   
   // Registrar callback de hifenização para melhorar a renderização do texto

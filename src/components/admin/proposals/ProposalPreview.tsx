@@ -62,7 +62,7 @@ const ProposalPreview: React.FC<ProposalPreviewProps> = ({ proposal, onBack }) =
                            proposal.event_type && 
                            proposal.services.length > 0;
 
-  console.log("Proposal is complete:", proposalIsComplete);
+  console.log("Proposal is complete:", proposalIsComplete, "Client name:", proposal.client_name);
 
   const handlePdfError = (error: Error) => {
     console.error('Erro ao gerar PDF:', error);
@@ -77,7 +77,8 @@ const ProposalPreview: React.FC<ProposalPreviewProps> = ({ proposal, onBack }) =
 
   // Criar o nome do arquivo baseado no nome do cliente
   const getPdfFilename = () => {
-    const cleanName = proposal.client_name.replace(/[^\w\s]/gi, '').replace(/\s+/g, '_').toLowerCase();
+    const clientName = proposal.client_name || "cliente";
+    const cleanName = clientName.replace(/[^\w\s]/gi, '').replace(/\s+/g, '_').toLowerCase();
     return `proposta_${cleanName}.pdf`;
   };
 
@@ -184,13 +185,13 @@ const ProposalPreview: React.FC<ProposalPreviewProps> = ({ proposal, onBack }) =
                     </p>
                     <ul className="text-left text-sm list-disc pl-8 mb-4">
                       <li className={proposal.client_name ? "text-green-600" : "text-red-600"}>
-                        Nome do cliente
+                        Nome do cliente: {proposal.client_name || "Não preenchido"}
                       </li>
                       <li className={proposal.event_type ? "text-green-600" : "text-red-600"}>
-                        Tipo de evento
+                        Tipo de evento: {proposal.event_type || "Não preenchido"}
                       </li>
                       <li className={proposal.services.length > 0 ? "text-green-600" : "text-red-600"}>
-                        Serviços incluídos
+                        Serviços incluídos: {proposal.services.length > 0 ? `${proposal.services.length} serviço(s)` : "Nenhum serviço selecionado"}
                       </li>
                     </ul>
                     <Button variant="outline" size="sm" onClick={onBack}>
