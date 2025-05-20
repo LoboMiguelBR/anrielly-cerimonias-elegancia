@@ -11,7 +11,12 @@ import {
   ServicesSection,
   PricingSection,
   NotesSection,
-  PDFFooter
+  PDFFooter,
+  AboutSection,
+  TestimonialsSection,
+  DifferentialsSection,
+  QRCodeSection,
+  CoverPage
 } from './pdf';
 
 interface ProposalProps {
@@ -31,6 +36,17 @@ const ProposalPDF = ({ proposal }: ProposalProps) => {
 
   return (
     <Document>
+      {/* Cover Page */}
+      <Page size="A4" style={styles.page}>
+        <CoverPage 
+          clientName={proposal.client_name}
+          eventType={proposal.event_type}
+          eventDate={formattedDate}
+          totalPrice={proposal.total_price}
+        />
+      </Page>
+
+      {/* Main Content Page */}
       <Page size="A4" style={styles.page}>
         <PDFHeader 
           proposalId={proposal.id} 
@@ -48,8 +64,20 @@ const ProposalPDF = ({ proposal }: ProposalProps) => {
           eventDate={formattedDate}
           eventLocation={proposal.event_location}
         />
+        
+        <AboutSection />
+      </Page>
 
+      {/* Services and Pricing Page */}
+      <Page size="A4" style={styles.page}>
+        <PDFHeader 
+          proposalId={proposal.id} 
+          createdDate={createdDate} 
+        />
+        
         <ServicesSection services={proposal.services} />
+        
+        <DifferentialsSection />
 
         <PricingSection 
           totalPrice={proposal.total_price}
@@ -57,7 +85,23 @@ const ProposalPDF = ({ proposal }: ProposalProps) => {
         />
 
         <NotesSection notes={proposal.notes} />
+      </Page>
 
+      {/* Testimonials and Signature Page */}
+      <Page size="A4" style={styles.page}>
+        <PDFHeader 
+          proposalId={proposal.id} 
+          createdDate={createdDate} 
+        />
+        
+        <TestimonialsSection />
+        
+        <QRCodeSection url="https://www.anriellygomes.com.br" />
+        
+        <View style={styles.signature}>
+          <Text>Assinatura do Cliente</Text>
+        </View>
+        
         <PDFFooter validUntil={validUntil} />
       </Page>
     </Document>

@@ -12,13 +12,12 @@ const PDFFooter: React.FC<PDFFooterProps> = ({ validUntil }) => {
     <>
       <View style={styles.footer}>
         <Text>Esta proposta é válida até {validUntil}</Text>
-        <Text style={{ marginTop: 5 }}>
-          Anrielly Gomes - Mestre de Cerimonia | anrielly@yahoo.com.br
-        </Text>
-      </View>
-
-      <View style={styles.signature}>
-        <Text>Assinatura do Cliente</Text>
+        
+        <View style={styles.contactInfoFooter}>
+          <Text>Anrielly Gomes - Mestre de Cerimonia</Text>
+          <Text style={{ marginTop: 3 }}>anrielly@yahoo.com.br | +55 (24) 98888-8888</Text>
+          <Text style={{ marginTop: 3 }}>www.anriellygomes.com.br</Text>
+        </View>
       </View>
       
       <Text 

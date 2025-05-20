@@ -47,7 +47,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
         className="bg-purple-200 hover:bg-purple-300 text-primary-foreground"
       >
         {generatingPDF ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <FileText className="w-4 h-4 mr-2" />}
-        Visualizar PDF
+        Visualizar Proposta
       </Button>
       
       {proposal && (
@@ -67,7 +67,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
                 Erro ao gerar PDF
               </span> :
               <span className="flex items-center">
-                <Download className="w-4 h-4 mr-2" /> Baixar PDF
+                <Download className="w-4 h-4 mr-2" /> Baixar Proposta Completa
               </span>
             )}
           </PDFDownloadLink>
