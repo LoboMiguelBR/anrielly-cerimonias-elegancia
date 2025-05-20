@@ -2,7 +2,6 @@
 import { useRef } from 'react';
 import TestimonialCarousel from './testimonials/TestimonialCarousel';
 import useTestimonialsData from './testimonials/useTestimonialsData';
-import getStaticTestimonials from './testimonials/StaticTestimonials';
 import { Button } from "@/components/ui/button";
 
 const Testimonials = () => {
@@ -17,9 +16,6 @@ const Testimonials = () => {
     quote: testimonial.quote,
     imageUrl: testimonial.image_url
   }));
-
-  // Fallback to static testimonials if none in the database or if there's an error
-  const displayTestimonials = mappedTestimonials.length > 0 ? mappedTestimonials : getStaticTestimonials();
 
   return (
     <section id="depoimentos" className="bg-white py-16" ref={sectionRef}>
@@ -40,8 +36,12 @@ const Testimonials = () => {
               </Button>
             </div>
           </div>
+        ) : mappedTestimonials.length > 0 ? (
+          <TestimonialCarousel testimonials={mappedTestimonials} />
         ) : (
-          <TestimonialCarousel testimonials={displayTestimonials} />
+          <div className="py-10 text-center text-gray-500">
+            Nenhum depoimento encontrado.
+          </div>
         )}
       </div>
     </section>

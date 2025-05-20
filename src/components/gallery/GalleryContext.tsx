@@ -21,22 +21,15 @@ export const GalleryProvider = ({ children }: { children: ReactNode }) => {
   const [selectedImageTitle, setSelectedImageTitle] = useState<string>('');
   const [selectedImageDescription, setSelectedImageDescription] = useState<string | null>(null);
   
-  const { images, isLoading, error, fetchGalleryImages, staticImages } = useGalleryImages();
+  const { images, isLoading, error, fetchGalleryImages } = useGalleryImages();
 
-  // Convert database images or use static fallback
-  const displayImages = images.length > 0 
-    ? images.map(img => ({ 
-        id: img.id, 
-        url: img.image_url, 
-        title: img.title, 
-        description: img.description 
-      }))
-    : staticImages.map((url, i) => ({ 
-        id: `static-${i}`, 
-        url, 
-        title: `Imagem ${i+1}`, 
-        description: null 
-      }));
+  // Convert database images - no longer using static fallback
+  const displayImages = images.map(img => ({ 
+    id: img.id, 
+    url: img.image_url, 
+    title: img.title, 
+    description: img.description 
+  }));
 
   const setSelectedImage = (url: string | null, title: string, description: string | null) => {
     setSelectedImageState(url);

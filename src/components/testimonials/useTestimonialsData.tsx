@@ -31,7 +31,12 @@ export const useTestimonialsData = () => {
       }
       
       console.log('[Testimonials] Depoimentos carregados:', data?.length);
-      setTestimonials(data || []);
+      
+      if (data && data.length > 0) {
+        setTestimonials(data || []);
+      } else {
+        setError('Nenhum depoimento encontrado. Por favor, adicione depoimentos.');
+      }
     } catch (error: any) {
       console.error('[Testimonials] Erro ao carregar depoimentos:', error);
       setError(error.message || 'Erro ao carregar depoimentos');
