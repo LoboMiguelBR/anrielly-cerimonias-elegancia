@@ -18,6 +18,9 @@ const GalleryModal: React.FC<GalleryModalProps> = ({
   imageTitle,
   imageDescription 
 }) => {
+
+  if (!isOpen || !imageUrl) return null;
+
   const processedUrl = normalizeImageUrl(imageUrl);
 
   console.log('[GalleryModal] isOpen:', isOpen, 'imageUrl:', imageUrl, 'imageTitle:', imageTitle);
