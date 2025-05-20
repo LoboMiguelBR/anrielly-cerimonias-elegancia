@@ -22,6 +22,8 @@ export const useTestimonialsData = () => {
       setIsLoading(true);
       setError(null);
       
+      console.log('[useTestimonialsData] Buscando depoimentos do banco...');
+      
       const { data, error } = await supabase
         .from('testimonials')
         .select('*')
@@ -31,34 +33,39 @@ export const useTestimonialsData = () => {
         throw error;
       }
       
-      console.log('[Testimonials] Depoimentos carregados:', data?.length);
+      console.log('[useTestimonialsData] Depoimentos carregados:', data?.length);
       
       if (data && data.length > 0) {
         setTestimonials(data || []);
+        console.log('[useTestimonialsData] Usando depoimentos do banco:', data);
       } else {
         // Fallback para depoimentos estáticos quando não há dados no banco
-        console.log('[Testimonials] Usando depoimentos estáticos de fallback');
-        setTestimonials(getStaticTestimonials().map(item => ({
+        console.log('[useTestimonialsData] Usando depoimentos estáticos de fallback');
+        const staticData = getStaticTestimonials().map(item => ({
           id: item.id,
           name: item.name,
           role: item.role,
           quote: item.quote,
           image_url: item.imageUrl
-        })));
+        }));
+        console.log('[useTestimonialsData] Dados estáticos:', staticData);
+        setTestimonials(staticData);
       }
     } catch (error: any) {
-      console.error('[Testimonials] Erro ao carregar depoimentos:', error);
+      console.error('[useTestimonialsData] Erro ao carregar depoimentos:', error);
       setError(error.message || 'Erro ao carregar depoimentos');
       
       // Fallback para depoimentos estáticos em caso de erro
-      console.log('[Testimonials] Usando depoimentos estáticos devido a erro');
-      setTestimonials(getStaticTestimonials().map(item => ({
+      console.log('[useTestimonialsData] Usando depoimentos estáticos devido a erro');
+      const staticData = getStaticTestimonials().map(item => ({
         id: item.id,
         name: item.name,
         role: item.role,
         quote: item.quote,
         image_url: item.imageUrl
-      })));
+      }));
+      console.log('[useTestimonialsData] Dados estáticos de fallback:', staticData);
+      setTestimonials(staticData);
       
       toast.error('Erro ao carregar depoimentos', {
         description: error.message
@@ -69,9 +76,10 @@ export const useTestimonialsData = () => {
   };
 
   useEffect(() => {
+    console.log('[useTestimonialsData] Inicializando hook');
     fetchTestimonials();
     
-    // Set up realtime subscription
+    // Set up realtime subscription with better error handling
     const channel = supabase
       .channel('public:testimonials')
       .on(
@@ -81,21 +89,23 @@ export const useTestimonialsData = () => {
           schema: 'public', 
           table: 'testimonials' 
         },
-        () => {
+        (payload) => {
+          console.log('[useTestimonialsData] Recebeu alteração em tempo real:', payload);
           fetchTestimonials();
         }
       )
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') {
-          console.log('Subscribed to testimonials changes');
+          console.log('[useTestimonialsData] Inscrito com sucesso para alterações em tempo real');
         }
         if (status === 'CHANNEL_ERROR') {
-          console.error('Failed to subscribe to testimonials changes');
+          console.error('[useTestimonialsData] Falha ao monitorar alterações em tempo real');
           toast.error('Falha ao monitorar alterações em depoimentos.');
         }
       });
     
     return () => {
+      console.log('[useTestimonialsData] Limpando inscrição em tempo real');
       supabase.removeChannel(channel);
     };
   }, []);

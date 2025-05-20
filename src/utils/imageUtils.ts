@@ -26,23 +26,29 @@ export const normalizeImageUrl = (url: string | null | undefined): string => {
   // Se for URL absoluta
   if (url.startsWith('http://') || url.startsWith('https://')) {
     try {
-      // Normaliza múltiplas ocorrências de path duplicado
-      let fixed = url;
-      
-      // Corrige duplicações específicas do Supabase Storage
-      fixed = fixed.replace(/(\/v1\/object\/public\/)+/g, '/v1/object/public/');
-      
-      // Evita barras duplas no caminho (exceto no protocolo)
-      const urlParts = fixed.split('://');
-      if (urlParts.length > 1) {
-        const protocol = urlParts[0];
-        let path = urlParts[1];
-        path = path.replace(/\/{2,}/g, '/');
-        fixed = `${protocol}://${path}`;
-      }
+      // Garantir que a URL do Supabase esteja formatada corretamente
+      if (url.includes('supabase')) {
+        // Corrige duplicações específicas do Supabase Storage
+        let fixed = url;
+        
+        // Corrige duplicações específicas do Supabase Storage
+        fixed = fixed.replace(/(\/v1\/object\/public\/)+/g, '/v1/object/public/');
+        
+        // Evita barras duplas no caminho (exceto no protocolo)
+        const urlParts = fixed.split('://');
+        if (urlParts.length > 1) {
+          const protocol = urlParts[0];
+          let path = urlParts[1];
+          path = path.replace(/\/{2,}/g, '/');
+          fixed = `${protocol}://${path}`;
+        }
 
-      console.log('[normalizeImageUrl] URL normalizada:', fixed);
-      return fixed;
+        console.log('[normalizeImageUrl] URL do Supabase normalizada:', fixed);
+        return fixed;
+      }
+      
+      console.log('[normalizeImageUrl] URL absoluta retornada como está:', url);
+      return url;
     } catch (err) {
       console.error('[normalizeImageUrl] Erro ao processar URL:', url, err);
       return '/placeholder.svg';

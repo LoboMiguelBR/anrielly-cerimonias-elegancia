@@ -26,6 +26,9 @@ const staticTestimonials: TestimonialItemProps[] = [
   }
 ];
 
-export const getStaticTestimonials = (): TestimonialItemProps[] => staticTestimonials;
+export const getStaticTestimonials = (): TestimonialItemProps[] => {
+  console.log('[StaticTestimonials] Retornando depoimentos estáticos', staticTestimonials.length);
+  return staticTestimonials;
+};
 
 export default getStaticTestimonials;

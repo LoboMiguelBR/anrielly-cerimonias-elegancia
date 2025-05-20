@@ -17,6 +17,7 @@ const Testimonials = () => {
   }));
 
   console.log('[Testimonials] Renderizando componente com', mappedTestimonials.length, 'depoimentos');
+  console.log('[Testimonials] Estado:', { isLoading, hasError: !!error, testimonialCount: mappedTestimonials.length });
 
   return (
     <section id="depoimentos" className="bg-white py-16" ref={sectionRef}>
@@ -46,7 +47,9 @@ const Testimonials = () => {
           </div>
         ) : mappedTestimonials.length > 0 ? (
           <>
-            <EnhancedTestimonialCarousel testimonials={mappedTestimonials} />
+            <div className="mx-auto">
+              <EnhancedTestimonialCarousel testimonials={mappedTestimonials} />
+            </div>
             <div className="text-center mt-10">
               <p className="text-gray-500 italic">
                 Conheça a experiência de nossos clientes
