@@ -1,5 +1,5 @@
 
-import { Service } from '../hooks/proposal';
+import { Service } from '../hooks/proposal/types';
 
 // Re-export the ProposalData type if it's needed in other files
 export interface ProposalData {
