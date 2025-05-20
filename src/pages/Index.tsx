@@ -1,4 +1,3 @@
-
 import { useEffect } from 'react';
 import Header from '@/components/Header';
 import Hero from '@/components/Hero';
@@ -17,7 +16,6 @@ import FinalCTA from '@/components/FinalCTA';
 
 const Index = () => {
   useEffect(() => {
-    // Observer for animation on scroll
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -30,22 +28,18 @@ const Index = () => {
       { threshold: 0.1 }
     );
 
-    // Observe all elements with animate-on-scroll class
-    document.querySelectorAll('.animate-on-scroll').forEach((element) => {
-      observer.observe(element);
-    });
+    const elements = document.querySelectorAll('.animate-on-scroll');
+    elements.forEach((el) => observer.observe(el));
 
     return () => {
-      document.querySelectorAll('.animate-on-scroll').forEach((element) => {
-        observer.unobserve(element);
-      });
+      elements.forEach((el) => observer.unobserve(el));
     };
   }, []);
 
   return (
     <div className="bg-white min-h-screen">
       <Header />
-      <main>
+      <main id="main-content">
         <Hero />
         <About />
         <Experience />
@@ -60,7 +54,7 @@ const Index = () => {
         <ContactForm />
       </main>
       <Footer />
-      
+
       {/* WhatsApp floating button */}
       <a
         href="https://wa.me/5524992689947"
