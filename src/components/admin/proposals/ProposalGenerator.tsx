@@ -1,17 +1,13 @@
 
 import React, { useEffect } from 'react';
-import { useProposalForm, ProposalData } from '../hooks/useProposalForm';
+import { useProposalForm } from '../hooks/useProposalForm';
 import ClientSelection from './ClientSelection';
 import ServicesSection from './ServicesSection';
 import PriceSection from './PriceSection';
 import NotesSection from './NotesSection';
 import ValidityDateSection from './ValidityDateSection';
 import ActionButtons from './ActionButtons';
-
-// Define the expected structure for the PDF proposal data - making it match ProposalData
-interface ProposalPDFData extends ProposalData {
-  // All required fields are already in ProposalData now
-}
+import { ProposalData } from '../pdf/types';
 
 interface ProposalGeneratorProps {
   quoteRequests: Array<{
