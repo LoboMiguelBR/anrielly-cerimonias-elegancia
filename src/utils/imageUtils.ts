@@ -9,48 +9,39 @@
  * @returns A URL normalizada ou string vazia se url for null/undefined
  */
 export const normalizeImageUrl = (url: string | null | undefined): string => {
-  // Retorna vazio para URLs nulas/indefinidas
   if (!url) {
-    console.log('[normalizeImageUrl] URL vazia recebida');
+    console.warn('[normalizeImageUrl] URL vazia recebida');
     return '';
   }
 
   console.log('[normalizeImageUrl] URL original:', url);
-  
-  // Trata caminhos relativos (começando com /)
+
+  // Se for caminho relativo
   if (url.startsWith('/')) {
-    console.log('[normalizeImageUrl] Processando caminho relativo:', url);
-    // Para caminhos relativos, apenas retornamos o caminho original
-    // Não é necessário fazer mais validações
+    console.log('[normalizeImageUrl] Caminho relativo detectado');
     return url;
   }
-  
-  // Trata URLs absolutas (começando com http:// ou https://)
+
+  // Se for URL absoluta
   if (url.startsWith('http://') || url.startsWith('https://')) {
     try {
-      // Corrige problema comum com segmentos de caminho duplicados
-      // ex: /v1/object/public/v1/object/public/ -> /v1/object/public/
-      const fixedPathUrl = url.replace(/(\/v1\/object\/public\/)+/g, '/v1/object/public/');
+      // Normaliza múltiplas ocorrências de path duplicado
+      let fixed = url.replace(/(\/v1\/object\/public\/)+/g, '/v1/object/public/');
       
-      // Tenta validar a URL absoluta
-      new URL(fixedPathUrl);
-      console.log('[normalizeImageUrl] URL absoluta normalizada:', fixedPathUrl);
-      return fixedPathUrl;
-    } catch (error) {
-      // Se a análise da URL falhou, tenta corrigir URLs do Supabase
-      if (url.includes('/v1/object/public/')) {
-        const fixedUrl = url.replace(/(\/v1\/object\/public\/)+/g, '/v1/object/public/');
-        console.log('[normalizeImageUrl] Análise da URL falhou, mas caminho corrigido:', fixedUrl);
-        return fixedUrl;
-      }
-      
-      // Para URLs absolutas inválidas, registra o erro e retorna original
-      console.error('[normalizeImageUrl] Formato de URL inválido:', url, error);
-      return url;
+      // Evita barras duplas
+      fixed = fixed.replace(/\/{2,}/g, '/');
+
+      // Validação básica (opcional)
+      const parsed = new URL(fixed);
+      console.log('[normalizeImageUrl] URL normalizada:', parsed.href);
+      return parsed.href;
+    } catch (err) {
+      console.error('[normalizeImageUrl] URL inválida após normalização:', url, err);
+      return '';
     }
   }
-  
-  // Para todos os outros formatos (nem relativo nem absoluto), retorna o original
-  console.log('[normalizeImageUrl] Formato de URL não reconhecido, retornando original:', url);
+
+  // Formato não reconhecido
+  console.warn('[normalizeImageUrl] Formato de URL não reconhecido, retornando original:', url);
   return url;
 };
