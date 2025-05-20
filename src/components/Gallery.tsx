@@ -1,11 +1,11 @@
-
-import { useRef, useEffect } from 'react';
+import React, { useRef, useEffect } from 'react';
 import GalleryGrid from './gallery/GalleryGrid';
 import GalleryModal from './gallery/GalleryModal';
 import { useGalleryContext } from './gallery/GalleryContext';
 
-const Gallery = () => {
+const Gallery: React.FC = () => {
   const sectionRef = useRef<HTMLElement>(null);
+  
   const { 
     selectedImage, 
     selectedImageTitle, 
@@ -17,7 +17,6 @@ const Gallery = () => {
     fetchGalleryImages 
   } = useGalleryContext();
 
-  // Apply animation when section becomes visible
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -28,11 +27,11 @@ const Gallery = () => {
       },
       { threshold: 0.1 }
     );
-    
+
     if (sectionRef.current) {
       observer.observe(sectionRef.current);
     }
-    
+
     return () => {
       if (sectionRef.current) {
         observer.unobserve(sectionRef.current);
@@ -46,8 +45,10 @@ const Gallery = () => {
 
   return (
     <section id="galeria" className="bg-white" ref={sectionRef}>
-      <div className="container mx-auto px-4">
-        <h2 className="section-title animate-on-scroll">Galeria</h2>
+      <div className="container mx-auto px-4 py-12">
+        <h2 className="section-title animate-on-scroll text-3xl font-semibold text-center mb-8">
+          Galeria
+        </h2>
         
         <GalleryGrid 
           isLoading={isLoading}
