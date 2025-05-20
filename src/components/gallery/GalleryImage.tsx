@@ -16,7 +16,6 @@ const GalleryImage: React.FC<GalleryImageProps> = ({
   index, 
   onClick 
 }) => {
-  // Use the centralized normalizeImageUrl function only once
   const processedUrl = normalizeImageUrl(url);
 
   return (
@@ -24,17 +23,17 @@ const GalleryImage: React.FC<GalleryImageProps> = ({
       className="aspect-square overflow-hidden rounded-lg shadow-md animate-on-scroll"
       style={{ animationDelay: `${index * 100}ms` }}
       onClick={onClick}
-      tabIndex={0}  // Acessibilidade: foco via teclado
-      onKeyDown={(e) => { if (e.key === 'Enter') onClick(); }}  // Acessibilidade: ativação via Enter
-      role="button"  // Acessibilidade: informa que é interativo
-      aria-label={`Ver imagem ampliada: ${title || `Imagem ${index + 1}`}`}  // Acessibilidade
+      tabIndex={0}
+      onKeyDown={(e) => { if (e.key === 'Enter') onClick(); }}
+      role="button"
+      aria-label={`Ver imagem ampliada: ${title || `Imagem ${index + 1}`}`}
     >
       <div className="relative h-full group cursor-pointer">
         <img 
           src={processedUrl} 
           alt={title || `Galeria Anrielly Gomes - Imagem ${index + 1}`} 
           className="w-full h-full object-cover hover-zoom"
-          loading="lazy"  // Performance: carregamento sob demanda
+          loading="lazy"
           onError={(e) => {
             console.error(`[GalleryImage] Falha ao carregar imagem: ${processedUrl}, URL original: ${url}`);
             (e.target as HTMLImageElement).src = '/placeholder.svg';
