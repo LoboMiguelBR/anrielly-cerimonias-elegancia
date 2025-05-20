@@ -2,7 +2,7 @@
 import { StyleSheet } from '@react-pdf/renderer';
 
 // Export feature-specific styles for the PDF
-export const featureStyles = {
+export const featureStyles = StyleSheet.create({
   // QR Code styles
   qrCodeContainer: {
     display: 'flex',
@@ -80,4 +80,4 @@ export const featureStyles = {
     fontSize: 9,
     fontWeight: 'bold',
   }
-};
+});

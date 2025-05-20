@@ -11,10 +11,10 @@ import { featureStyles } from './features';
 registerFonts();
 
 // Export the combined styles
-export const styles = StyleSheet.create({
+export const styles = {
   ...layoutStyles,
   ...typographyStyles,
   ...coverPageStyles,
   ...sectionStyles,
   ...featureStyles,
-});
+};
