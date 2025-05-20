@@ -23,10 +23,10 @@ interface ProposalsListProps {
     event_date?: string;
     event_location?: string;
   }>;
-  selectedQuoteId?: string | null;
+  quoteIdFromUrl?: string | null;
 }
 
-const ProposalsList: React.FC<ProposalsListProps> = ({ quoteRequests, selectedQuoteId }) => {
+const ProposalsList: React.FC<ProposalsListProps> = ({ quoteRequests, quoteIdFromUrl }) => {
   const [proposals, setProposals] = useState<ProposalData[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [selectedProposal, setSelectedProposal] = useState<ProposalData | null>(null);
@@ -44,7 +44,13 @@ const ProposalsList: React.FC<ProposalsListProps> = ({ quoteRequests, selectedQu
         
       if (error) throw error;
       
-      setProposals(data || []);
+      // Convert data to the correct type using type assertion
+      const typedProposals = data.map(item => ({
+        ...item,
+        services: (item.services as unknown) as Array<{name: string, included: boolean}>
+      })) as ProposalData[];
+      
+      setProposals(typedProposals);
     } catch (error) {
       console.error('Erro ao buscar propostas:', error);
     } finally {
@@ -200,7 +206,7 @@ const ProposalsList: React.FC<ProposalsListProps> = ({ quoteRequests, selectedQu
           
           <ProposalGenerator 
             quoteRequests={quoteRequests}
-            quoteIdFromUrl={selectedQuoteId}
+            quoteIdFromUrl={quoteIdFromUrl}
             initialProposalId={selectedProposal?.id}
             onClose={() => setShowAddEditDialog(false)}
           />

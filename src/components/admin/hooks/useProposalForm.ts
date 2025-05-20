@@ -110,6 +110,9 @@ export const useProposalForm = (initialProposalId?: string, selectedQuoteId?: st
       
       if (data) {
         // Convert the data to the format expected by the form
+        // Use type assertion to properly cast services from Json to Service[]
+        const typedServices = (data.services as unknown) as Service[];
+        
         setFormData({
           client_name: data.client_name,
           client_email: data.client_email,
@@ -118,7 +121,7 @@ export const useProposalForm = (initialProposalId?: string, selectedQuoteId?: st
           event_date: data.event_date,
           event_location: data.event_location,
           validity_date: data.validity_date,
-          services: data.services as Service[],
+          services: typedServices,
           customService: "",
           total_price: data.total_price.toString(),
           payment_terms: data.payment_terms,
