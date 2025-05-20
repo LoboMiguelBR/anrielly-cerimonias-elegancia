@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { Json } from '@/integrations/supabase/types';
 
 interface Service {
   name: string;
@@ -109,7 +110,7 @@ export const useProposalForm = (selectedQuoteId?: string | null) => {
     try {
       setIsSaving(true);
       
-      // Filtrar apenas os serviços incluídos
+      // Filter only included services
       const includedServices = formData.services.filter(service => service.included);
       
       const proposalData = {
@@ -119,7 +120,7 @@ export const useProposalForm = (selectedQuoteId?: string | null) => {
         event_type: formData.event_type,
         event_date: formData.event_date,
         event_location: formData.event_location,
-        services: includedServices,
+        services: includedServices as unknown as Json, // Type cast to satisfy Supabase's Json type
         total_price: parseFloat(formData.total_price) || 0,
         payment_terms: formData.payment_terms,
         notes: formData.notes || null,
@@ -135,7 +136,7 @@ export const useProposalForm = (selectedQuoteId?: string | null) => {
       
       if (error) throw error;
       
-      // Atualizar o status do orçamento para "proposta"
+      // Update quote request status
       if (formData.quote_request_id) {
         const { error: quoteError } = await supabase
           .from('quote_requests')

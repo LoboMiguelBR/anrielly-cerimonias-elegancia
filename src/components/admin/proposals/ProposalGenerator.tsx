@@ -1,12 +1,30 @@
 
 import React, { useEffect } from 'react';
-import { useProposalForm } from '../hooks/useProposalForm';
+import { useProposalForm, ProposalData } from '../hooks/useProposalForm';
 import ClientSelection from './ClientSelection';
 import ServicesSection from './ServicesSection';
 import PriceSection from './PriceSection';
 import NotesSection from './NotesSection';
 import ValidityDateSection from './ValidityDateSection';
 import ActionButtons from './ActionButtons';
+
+// Define the expected structure for the PDF proposal data
+interface ProposalPDFData {
+  id: string;
+  client_name: string;
+  client_email: string;
+  client_phone: string;
+  event_type: string;
+  event_date: string | null;
+  event_location: string;
+  services: Array<{ name: string; included: boolean }>;
+  total_price: number;
+  payment_terms: string;
+  notes: string | null;
+  validity_date: string;
+  created_at: string;
+  quote_request_id: string | null;
+}
 
 interface ProposalGeneratorProps {
   quoteRequests: Array<{
@@ -76,15 +94,15 @@ const ProposalGenerator: React.FC<ProposalGeneratorProps> = ({
     try {
       setGeneratingPDF(true);
       
-      // Primeiro salvamos a proposta no banco de dados
+      // First save the proposal in the database
       const proposalId = await saveProposal();
       
       if (!proposalId) {
         throw new Error('Não foi possível salvar a proposta');
       }
       
-      // Criamos o objeto de proposta completo para o PDF
-      const proposalForPDF = {
+      // Create complete proposal object for the PDF
+      const proposalForPDF: ProposalPDFData = {
         id: proposalId,
         client_name: formData.client_name,
         client_email: formData.client_email,
@@ -97,17 +115,14 @@ const ProposalGenerator: React.FC<ProposalGeneratorProps> = ({
         payment_terms: formData.payment_terms,
         notes: formData.notes || null,
         validity_date: formData.validity_date,
-        created_at: new Date().toISOString()
+        created_at: new Date().toISOString(),
+        quote_request_id: formData.quote_request_id
       };
       
-      setProposal(proposalForPDF);
-      
-      // Notificamos o usuário que o PDF está pronto para download
-      // toast.success("PDF gerado com sucesso! Clique para baixar.");
+      setProposal(proposalForPDF as ProposalData);
       
     } catch (error: any) {
       console.error('Erro ao gerar PDF:', error);
-      // toast.error(`Erro ao gerar PDF: ${error.message}`);
     } finally {
       setGeneratingPDF(false);
     }
