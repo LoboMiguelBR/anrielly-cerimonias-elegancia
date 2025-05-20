@@ -1,10 +1,7 @@
-
 import { MapPin } from 'lucide-react';
 import { Link } from 'react-router-dom';
-
 const ServiceArea = () => {
-  return (
-    <section id="area-atuacao" className="bg-white py-10">
+  return <section id="area-atuacao" className="bg-white py-10">
       <div className="container mx-auto px-4">
         <div className="flex flex-col items-center animate-on-scroll">
           <div className="mb-4 text-gold">
@@ -16,15 +13,9 @@ const ServiceArea = () => {
           </p>
           
           {/* Link discreto para área administrativa */}
-          <div className="mt-16 text-center text-sm text-gray-400">
-            <Link to="/admin" className="hover:text-gold transition-colors">
-              Área Administrativa
-            </Link>
-          </div>
+          
         </div>
       </div>
-    </section>
-  );
+    </section>;
 };
-
 export default ServiceArea;
