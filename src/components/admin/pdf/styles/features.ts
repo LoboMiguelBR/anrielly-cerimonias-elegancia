@@ -1,41 +1,83 @@
 
 import { StyleSheet } from '@react-pdf/renderer';
 
-// Styles for specific features
-export const featureStyles = StyleSheet.create({
+// Export feature-specific styles for the PDF
+export const featureStyles = {
+  // QR Code styles
+  qrCodeContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    marginTop: 20,
+    marginBottom: 20,
+  },
+  qrCodeBox: {
+    width: 80,
+    height: 80,
+    border: '1px solid #000',
+    padding: 5,
+    backgroundColor: '#fff',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  qrCode: {
+    width: 70,
+    height: 70,
+  },
+  qrCodeText: {
+    fontSize: 10,
+    marginTop: 10,
+    textAlign: 'center',
+    color: '#333',
+  },
+  qrCodeUrl: {
+    fontSize: 8,
+    marginTop: 5,
+    color: '#666',
+  },
+  
+  // Differentials section styles
   differentialsSection: {
+    marginTop: 20,
     marginBottom: 20,
   },
   differentialItem: {
     flexDirection: 'row',
     marginBottom: 8,
-    alignItems: 'flex-start',
+    alignItems: 'center',
   },
   differentialNumber: {
-    backgroundColor: '#D4AF37',
+    width: 22,
+    height: 22,
+    borderRadius: '50%',
+    backgroundColor: '#7E69AB',
     color: 'white',
-    width: 18,
-    height: 18,
-    borderRadius: 9,
+    fontSize: 12,
     textAlign: 'center',
-    fontSize: 10,
+    lineHeight: 1.4,
     marginRight: 8,
-    fontWeight: 'bold',
-    lineHeight: 1.8,
+    paddingTop: 2,
   },
   differentialText: {
     flex: 1,
-    fontSize: 11,
+    fontSize: 10,
   },
-  qrCodeContainer: {
-    alignItems: 'center',
-    marginTop: 20,
-    marginBottom: 10,
+  
+  // Testimonial styles
+  testimonialSection: {
+    marginTop: 12,
+    marginBottom: 12,
+    paddingLeft: 16,
+    borderLeft: '2px solid #7E69AB',
   },
-  qrCodeText: {
+  testimonialQuote: {
+    fontSize: 10,
+    fontStyle: 'italic',
+    marginBottom: 6,
+  },
+  testimonialAuthor: {
     fontSize: 9,
-    marginTop: 5,
-    textAlign: 'center',
-    color: '#666',
-  },
-});
+    fontWeight: 'bold',
+  }
+};
