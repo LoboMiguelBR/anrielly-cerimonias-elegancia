@@ -59,16 +59,18 @@ const GalleryGrid: React.FC<GalleryGridProps> = ({
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-      {displayImages.map((image, index) => (
-        <GalleryImage
-          key={image.id}
-          url={image.url}
-          title={image.title}
-          description={image.description}
-          index={index}
-          onClick={() => onImageClick(image.url, image.title, image.description)}
-        />
-      ))}
+      {displayImages
+        .filter(image => !!image.url)
+        .map((image, index) => (
+          <GalleryImage
+            key={image.id}
+            url={image.url}
+            title={image.title}
+            description={image.description}
+            index={index}
+            onClick={() => onImageClick(image.url, image.title, image.description)}
+          />
+        ))}
     </div>
   );
 };
