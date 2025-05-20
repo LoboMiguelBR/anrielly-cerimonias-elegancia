@@ -22,18 +22,23 @@ export const GalleryProvider = ({ children }: { children: ReactNode }) => {
   
   const { images, isLoading, error, fetchGalleryImages } = useGalleryImages();
 
-  const displayImages = images.map(img => ({ 
-    id: img.id, 
-    url: img.image_url, 
-    title: img.title, 
-    description: img.description 
-  }));
+  const displayImages = images
+    .filter(img => !!img.image_url)  // segurança
+    .map(img => ({ 
+      id: img.id, 
+      url: img.image_url, 
+      title: img.title, 
+      description: img.description 
+    }));
 
   const setSelectedImage = (url: string | null, title: string, description: string | null) => {
     setSelectedImageState(url);
     setSelectedImageTitle(title);
     setSelectedImageDescription(description);
   };
+
+  console.log('[GalleryProvider] displayImages:', displayImages);
+  console.log('[GalleryProvider] isLoading:', isLoading, 'error:', error);
 
   return (
     <GalleryContext.Provider
