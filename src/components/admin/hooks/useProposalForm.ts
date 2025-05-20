@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -36,8 +35,9 @@ export interface QuoteRequest {
   event_location?: string;
 }
 
+// Updated to ensure id is required to match ProposalPDFData
 export interface ProposalData {
-  id?: string;
+  id: string; // Changed from optional to required
   client_name: string;
   client_email: string;
   client_phone: string;
@@ -54,6 +54,7 @@ export interface ProposalData {
 }
 
 export const useProposalForm = (selectedQuoteId?: string | null) => {
+  // ... keep existing code (state initialization)
   const [selectedQuote, setSelectedQuote] = useState<string>(selectedQuoteId || "");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isSaving, setIsSaving] = useState<boolean>(false);
@@ -82,6 +83,7 @@ export const useProposalForm = (selectedQuoteId?: string | null) => {
     quote_request_id: null
   });
 
+  // ... keep existing code (handler functions)
   const handleQuoteSelect = (quoteId: string) => {
     setSelectedQuote(quoteId);
   };
@@ -159,6 +161,7 @@ export const useProposalForm = (selectedQuoteId?: string | null) => {
     }
   };
 
+  // ... keep existing code (return statement)
   return {
     selectedQuote,
     isLoading,

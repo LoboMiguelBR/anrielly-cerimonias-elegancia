@@ -5,22 +5,7 @@ import { Loader2, FileText } from 'lucide-react';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import { Download } from 'lucide-react';
 import ProposalPDF from '@/components/admin/ProposalPDF';
-
-interface ProposalPDFData {
-  id: string;
-  client_name: string;
-  client_email: string;
-  client_phone: string;
-  event_type: string;
-  event_date: string | null;
-  event_location: string;
-  services: Array<{ name: string; included: boolean }>;
-  total_price: number;
-  payment_terms: string;
-  notes: string | null;
-  validity_date: string;
-  created_at: string;
-}
+import { ProposalData } from '../hooks/useProposalForm';
 
 interface ActionButtonsProps {
   isSaving: boolean;
@@ -28,7 +13,7 @@ interface ActionButtonsProps {
   selectedQuote: string;
   onSave: () => Promise<string | null>;
   onGeneratePDF: () => Promise<void>;
-  proposal: ProposalPDFData | null;
+  proposal: ProposalData | null;
 }
 
 const ActionButtons: React.FC<ActionButtonsProps> = ({

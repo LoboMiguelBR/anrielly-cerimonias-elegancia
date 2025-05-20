@@ -1,29 +1,10 @@
-
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer';
 import { formatCurrency } from '@/lib/utils';
-
-interface Service {
-  name: string;
-  included: boolean;
-}
+import { ProposalData } from './hooks/useProposalForm';
 
 interface ProposalProps {
-  proposal: {
-    id: string;
-    client_name: string;
-    client_email: string;
-    client_phone: string;
-    event_type: string;
-    event_date: string | null;
-    event_location: string;
-    services: Service[];
-    total_price: number;
-    payment_terms: string;
-    notes: string | null;
-    validity_date: string;
-    created_at: string;
-  }
+  proposal: ProposalData;
 }
 
 // Estilos para o PDF
@@ -115,7 +96,10 @@ const ProposalPDF = ({ proposal }: ProposalProps) => {
     ? new Date(proposal.event_date).toLocaleDateString('pt-BR')
     : 'A definir';
 
-  const createdDate = new Date(proposal.created_at).toLocaleDateString('pt-BR');
+  const createdDate = proposal.created_at 
+    ? new Date(proposal.created_at).toLocaleDateString('pt-BR')
+    : new Date().toLocaleDateString('pt-BR');
+  
   const validUntil = new Date(proposal.validity_date).toLocaleDateString('pt-BR');
 
   return (

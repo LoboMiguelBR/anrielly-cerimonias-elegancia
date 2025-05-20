@@ -8,22 +8,9 @@ import NotesSection from './NotesSection';
 import ValidityDateSection from './ValidityDateSection';
 import ActionButtons from './ActionButtons';
 
-// Define the expected structure for the PDF proposal data
-interface ProposalPDFData {
-  id: string;
-  client_name: string;
-  client_email: string;
-  client_phone: string;
-  event_type: string;
-  event_date: string | null;
-  event_location: string;
-  services: Array<{ name: string; included: boolean }>;
-  total_price: number;
-  payment_terms: string;
-  notes: string | null;
-  validity_date: string;
-  created_at: string;
-  quote_request_id: string | null;
+// Define the expected structure for the PDF proposal data - making it match ProposalData
+interface ProposalPDFData extends ProposalData {
+  // All required fields are already in ProposalData now
 }
 
 interface ProposalGeneratorProps {
@@ -102,7 +89,7 @@ const ProposalGenerator: React.FC<ProposalGeneratorProps> = ({
       }
       
       // Create complete proposal object for the PDF
-      const proposalForPDF: ProposalPDFData = {
+      const proposalForPDF: ProposalData = {
         id: proposalId,
         client_name: formData.client_name,
         client_email: formData.client_email,
@@ -119,7 +106,7 @@ const ProposalGenerator: React.FC<ProposalGeneratorProps> = ({
         quote_request_id: formData.quote_request_id
       };
       
-      setProposal(proposalForPDF as ProposalData);
+      setProposal(proposalForPDF);
       
     } catch (error: any) {
       console.error('Erro ao gerar PDF:', error);
