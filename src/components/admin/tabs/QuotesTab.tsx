@@ -1,9 +1,8 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useQuoteRequests } from '@/hooks/useQuoteRequests';
-import { Loader2, CheckCircle, Clock, FileText } from 'lucide-react';
+import { Loader2, CheckCircle, Clock, FileText, Download } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -28,6 +27,8 @@ import {
 } from "@/components/ui/select";
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { PDFDownloadLink } from '@react-pdf/renderer';
+import ProposalPDF from '@/components/admin/ProposalPDF';
 
 const statusColors = {
   aguardando: "bg-gray-100 text-gray-800",
@@ -51,6 +52,8 @@ interface QuoteDetailProps {
 const QuoteDetail = ({ quoteRequest, open, onClose, onStatusChange }: QuoteDetailProps) => {
   const [status, setStatus] = useState(quoteRequest?.status || 'aguardando');
   const [isUpdating, setIsUpdating] = useState(false);
+  const [proposal, setProposal] = useState<any>(null);
+  const [loadingProposal, setLoadingProposal] = useState(false);
   const navigate = useNavigate();
 
   const handleStatusChange = async (newStatus: string) => {
@@ -73,6 +76,46 @@ const QuoteDetail = ({ quoteRequest, open, onClose, onStatusChange }: QuoteDetai
     navigate(`/admin/dashboard?tab=proposals&quoteId=${quoteRequest.id}`);
     onClose();
   };
+
+  const fetchProposal = async () => {
+    if (!quoteRequest) return;
+    
+    try {
+      setLoadingProposal(true);
+      const { data, error } = await supabase
+        .from('proposals')
+        .select('*')
+        .eq('quote_request_id', quoteRequest.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+        
+      if (error) {
+        throw error;
+      }
+      
+      if (data) {
+        // Convert services from JSON to array
+        const formattedProposal = {
+          ...data,
+          services: Array.isArray(data.services) ? data.services : []
+        };
+        setProposal(formattedProposal);
+      }
+      
+    } catch (error: any) {
+      console.error('Erro ao buscar proposta:', error);
+    } finally {
+      setLoadingProposal(false);
+    }
+  };
+  
+  // Fetch proposal when the detail panel opens
+  React.useEffect(() => {
+    if (open && quoteRequest && quoteRequest.status === 'proposta') {
+      fetchProposal();
+    }
+  }, [open, quoteRequest]);
 
   if (!quoteRequest) return null;
 
@@ -150,13 +193,67 @@ const QuoteDetail = ({ quoteRequest, open, onClose, onStatusChange }: QuoteDetai
             </Select>
           </div>
 
-          <div className="pt-4 border-t">
-            <Button 
-              onClick={handleCreateProposal} 
-              className="w-full"
-            >
-              Criar Proposta
-            </Button>
+          <div className="pt-4 border-t space-y-3">
+            {quoteRequest.status === 'proposta' && proposal ? (
+              <>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-gray-700">
+                    Proposta disponível
+                  </span>
+                  {proposal ? (
+                    <PDFDownloadLink
+                      document={<ProposalPDF proposal={proposal} />}
+                      fileName={`proposta_${proposal.client_name.replace(/\s+/g, '_').toLowerCase()}.pdf`}
+                      className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-gold/80 text-white hover:bg-gold h-9 px-3 py-2"
+                    >
+                      {({ loading, error }) => (
+                        loading ? 
+                        <span className="flex items-center">
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" /> 
+                          Carregando...
+                        </span> : 
+                        error ? 
+                        <span className="flex items-center">
+                          Erro ao gerar PDF
+                        </span> :
+                        <span className="flex items-center">
+                          <Download className="w-4 h-4 mr-2" /> 
+                          Baixar Proposta
+                        </span>
+                      )}
+                    </PDFDownloadLink>
+                  ) : (
+                    loadingProposal ? (
+                      <Button size="sm" disabled>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Carregando...
+                      </Button>
+                    ) : null
+                  )}
+                </div>
+                <Button 
+                  onClick={handleCreateProposal} 
+                  className="w-full"
+                  variant="outline"
+                >
+                  Editar Proposta
+                </Button>
+              </>
+            ) : (
+              <Button 
+                onClick={handleCreateProposal} 
+                className="w-full"
+              >
+                {quoteRequest.status === 'proposta' && loadingProposal ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Carregando proposta...
+                  </>
+                ) : (
+                  'Criar Proposta'
+                )}
+              </Button>
+            )}
           </div>
         </div>
       </SheetContent>
