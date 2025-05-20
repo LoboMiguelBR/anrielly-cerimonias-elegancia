@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useState, ReactNode } from 'react';
 import { useGalleryImages } from './useGalleryImages';
 import { DisplayImage } from './types';
@@ -23,7 +22,6 @@ export const GalleryProvider = ({ children }: { children: ReactNode }) => {
   
   const { images, isLoading, error, fetchGalleryImages } = useGalleryImages();
 
-  // Convert database images - no longer using static fallback
   const displayImages = images.map(img => ({ 
     id: img.id, 
     url: img.image_url, 
