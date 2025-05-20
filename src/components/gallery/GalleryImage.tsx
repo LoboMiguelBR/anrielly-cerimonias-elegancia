@@ -16,6 +16,16 @@ const GalleryImage: React.FC<GalleryImageProps> = ({
   index, 
   onClick 
 }) => {
+  // Fix URL if it contains duplicate paths
+  const fixImageUrl = (url: string): string => {
+    if (url.includes('/v1/object/public/v1/object/public/')) {
+      return url.replace('/v1/object/public/v1/object/public/', '/v1/object/public/');
+    }
+    return url;
+  };
+  
+  const processedUrl = fixImageUrl(url);
+
   return (
     <div 
       className="aspect-square overflow-hidden rounded-lg shadow-md animate-on-scroll"
@@ -24,11 +34,11 @@ const GalleryImage: React.FC<GalleryImageProps> = ({
     >
       <div className="relative h-full group cursor-pointer">
         <img 
-          src={url} 
+          src={processedUrl} 
           alt={title || `Galeria Anrielly Gomes - Imagem ${index + 1}`} 
           className="w-full h-full object-cover hover-zoom"
           onError={(e) => {
-            console.error(`Failed to load image: ${url}`);
+            console.error(`Failed to load image: ${processedUrl}`);
             // Fallback to placeholder if image fails to load
             (e.target as HTMLImageElement).src = '/placeholder.svg';
           }}

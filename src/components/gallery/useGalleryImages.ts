@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -33,38 +32,26 @@ export const useGalleryImages = () => {
           
           let fixedUrl = img.image_url;
           
-          // Fix duplicate URLs
-          if (img.image_url.includes('/v1/object/public/v1/object/public/')) {
-            fixedUrl = img.image_url.replace('/v1/object/public/v1/object/public/', '/v1/object/public/');
-            console.log('Fixed duplicate path in URL:', fixedUrl);
-          }
-          
-          // If the URL is from Supabase Storage, regenerate the public URL
-          if (fixedUrl.includes('storage.googleapis.com') || fixedUrl.includes('supabase.co/storage')) {
-            try {
-              // Extract bucket and file path
-              const url = new URL(fixedUrl);
-              const pathParts = url.pathname.split('/');
-              // Find bucket and file name
-              const bucketIndex = pathParts.findIndex(part => part === 'object' || part === 'storage');
+          // Fix duplicate URL paths more aggressively
+          if (fixedUrl.includes('/v1/object/public/')) {
+            // Extract the bucket and filename parts
+            const urlParts = fixedUrl.split('/v1/object/public/');
+            if (urlParts.length > 1) {
+              // Get the base URL and the last part (which should be bucket/filename)
+              const baseUrl = urlParts[0];
+              let pathPart = urlParts[urlParts.length - 1];
               
-              if (bucketIndex !== -1 && pathParts.length > bucketIndex + 2) {
-                const bucket = pathParts[bucketIndex + 1];
-                const filePath = pathParts.slice(bucketIndex + 2).join('/');
-                
-                console.log(`Regenerating URL for bucket: ${bucket}, path: ${filePath}`);
-                
-                const { data: publicUrlData } = supabase.storage
-                  .from(bucket)
-                  .getPublicUrl(filePath);
-                
-                if (publicUrlData?.publicUrl) {
-                  console.log(`Regenerated URL: ${publicUrlData.publicUrl}`);
-                  return { ...img, image_url: publicUrlData.publicUrl };
-                }
+              // If there are multiple occurrences, keep only the last part
+              if (pathPart.includes('/')) {
+                const pathParts = pathPart.split('/');
+                const bucket = pathParts[0];
+                const fileName = pathParts[pathParts.length - 1];
+                pathPart = `${bucket}/${fileName}`;
               }
-            } catch (urlError) {
-              console.error('Error fixing image URL:', urlError);
+              
+              // Reconstruct the URL properly
+              fixedUrl = `${baseUrl}/v1/object/public/${pathPart}`;
+              console.log('Fixed URL:', fixedUrl);
             }
           }
           
