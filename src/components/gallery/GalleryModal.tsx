@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
@@ -19,7 +18,6 @@ const GalleryModal: React.FC<GalleryModalProps> = ({
   imageTitle,
   imageDescription 
 }) => {
-  // Use the centralized normalizeImageUrl function
   const processedUrl = normalizeImageUrl(imageUrl);
 
   return (
@@ -36,8 +34,9 @@ const GalleryModal: React.FC<GalleryModalProps> = ({
             src={processedUrl} 
             alt={imageTitle || 'Imagem ampliada'} 
             className="w-full h-auto rounded-lg"
+            loading="lazy"
             onError={(e) => {
-              console.error(`[GalleryModal] Falha ao carregar imagem ampliada: ${processedUrl}, URL original: ${imageUrl}`);
+              console.error(`[GalleryModal] Falha ao carregar imagem: ${processedUrl}, URL original: ${imageUrl}`);
               (e.target as HTMLImageElement).src = '/placeholder.svg';
             }}
           />
