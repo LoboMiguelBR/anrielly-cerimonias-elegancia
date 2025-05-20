@@ -175,7 +175,7 @@ const ProposalPDF = ({ proposal }: ProposalProps) => {
       <Page size="A4" style={styles.page}>
         <View style={styles.header}>
           <View>
-            <Text style={{ fontFamily: 'Playfair Display', fontSize: 18, color: '#7E69AB' }}>Ritual de Amor</Text>
+            <Text style={{ fontFamily: 'Playfair Display', fontSize: 18, color: '#7E69AB' }}>Anrielly Gomes - Mestre de Cerimonia</Text>
             <Text style={{ fontSize: 10, color: '#777' }}>Celebrante de Casamentos</Text>
           </View>
           <View style={styles.headerRight}>
@@ -236,7 +236,7 @@ const ProposalPDF = ({ proposal }: ProposalProps) => {
 
         <View style={styles.footer}>
           <Text>Esta proposta é válida até {validUntil}</Text>
-          <Text style={{ marginTop: 5 }}>Ritual de Amor - Celebrante de Casamentos | contato@ritualeamor.com.br</Text>
+          <Text style={{ marginTop: 5 }}>Anrielly Gomes - Mestre de Cerimonia | anrielly@yahoo.com.br</Text>
         </View>
 
         <View style={styles.signature}>
