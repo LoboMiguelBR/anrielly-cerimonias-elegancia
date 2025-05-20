@@ -19,6 +19,18 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState(tabFromUrl || "dashboard");
   const { data: quoteRequests } = useQuoteRequests();
 
+  // Format quote requests for the dashboard
+  const formattedQuoteRequests = quoteRequests?.map(request => ({
+    id: request.id,
+    name: request.name,
+    date: request.event_date || '',
+    eventType: request.event_type,
+    phone: request.phone,
+    status: request.status,
+    email: request.email,
+    eventLocation: request.event_location
+  })) || [];
+
   // Update URL when tab changes
   useEffect(() => {
     const newParams = new URLSearchParams(searchParams);
@@ -55,7 +67,7 @@ const AdminDashboard = () => {
           </TabsList>
           
           <TabsContent value="dashboard">
-            <DashboardTab quoteRequests={quoteRequests || []} />
+            <DashboardTab quoteRequests={formattedQuoteRequests} />
           </TabsContent>
           
           <TabsContent value="gallery">
