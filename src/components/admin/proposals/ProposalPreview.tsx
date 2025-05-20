@@ -60,6 +60,7 @@ const ProposalPreview: React.FC<ProposalPreviewProps> = ({ proposal, onBack }) =
   const proposalIsComplete = proposal && 
                            proposal.client_name && 
                            proposal.event_type && 
+                           Array.isArray(proposal.services) &&
                            proposal.services.length > 0;
 
   console.log("Proposal is complete:", proposalIsComplete, "Client name:", proposal.client_name);
@@ -79,7 +80,8 @@ const ProposalPreview: React.FC<ProposalPreviewProps> = ({ proposal, onBack }) =
   const getPdfFilename = () => {
     const clientName = proposal.client_name || "cliente";
     const cleanName = clientName.replace(/[^\w\s]/gi, '').replace(/\s+/g, '_').toLowerCase();
-    return `proposta_${cleanName}.pdf`;
+    const timestamp = new Date().toISOString().split('T')[0];
+    return `proposta_${cleanName}_${timestamp}.pdf`;
   };
 
   return (
@@ -100,13 +102,21 @@ const ProposalPreview: React.FC<ProposalPreviewProps> = ({ proposal, onBack }) =
             className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-gold/80 text-white hover:bg-gold h-9 px-3 py-2"
           >
             {({ loading, error }) => {
-              if (loading) return "Preparando PDF...";
+              if (loading) return (
+                <span className="flex items-center">
+                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Preparando PDF...
+                </span>
+              );
               
               if (error) {
                 console.error("Erro ao preparar PDF:", error);
                 return (
                   <span className="flex items-center">
-                    <AlertTriangle className="w-4 h-4 mr-2 text-red-500" /> Erro
+                    <AlertTriangle className="w-4 h-4 mr-2 text-red-500" /> Tentar de novo
                   </span>
                 );
               }
@@ -162,6 +172,7 @@ const ProposalPreview: React.FC<ProposalPreviewProps> = ({ proposal, onBack }) =
               <div className="text-center">
                 <div className="animate-spin h-8 w-8 border-2 border-purple-500 border-t-transparent rounded-full mx-auto mb-4"></div>
                 <p className="text-gray-600">Carregando visualização da proposta...</p>
+                <p className="text-gray-400 text-sm mt-2">Isso pode levar alguns instantes...</p>
               </div>
             </div>
           ) : (
@@ -172,6 +183,7 @@ const ProposalPreview: React.FC<ProposalPreviewProps> = ({ proposal, onBack }) =
                   height="100%" 
                   className="border"
                   showToolbar={true}
+                  onError={handlePdfError}
                 >
                   <ProposalPDF proposal={proposal} />
                 </PDFViewer>
@@ -190,8 +202,8 @@ const ProposalPreview: React.FC<ProposalPreviewProps> = ({ proposal, onBack }) =
                       <li className={proposal.event_type ? "text-green-600" : "text-red-600"}>
                         Tipo de evento: {proposal.event_type || "Não preenchido"}
                       </li>
-                      <li className={proposal.services.length > 0 ? "text-green-600" : "text-red-600"}>
-                        Serviços incluídos: {proposal.services.length > 0 ? `${proposal.services.length} serviço(s)` : "Nenhum serviço selecionado"}
+                      <li className={proposal.services && proposal.services.length > 0 ? "text-green-600" : "text-red-600"}>
+                        Serviços incluídos: {proposal.services && proposal.services.length > 0 ? `${proposal.services.length} serviço(s)` : "Nenhum serviço selecionado"}
                       </li>
                     </ul>
                     <Button variant="outline" size="sm" onClick={onBack}>

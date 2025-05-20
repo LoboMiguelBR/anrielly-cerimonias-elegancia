@@ -23,47 +23,67 @@ interface ProposalProps {
   proposal: ProposalData;
 }
 
-const ProposalPDF = ({ proposal }: ProposalProps) => {
-  // Format date strings for better display
-  const formattedDate = proposal.event_date 
-    ? new Date(proposal.event_date).toLocaleDateString('pt-BR')
+const ProposalPDF: React.FC<ProposalProps> = ({ proposal }) => {
+  // Ensure we have valid data with fallbacks
+  const safeProposal = {
+    ...proposal,
+    client_name: proposal.client_name || "Cliente",
+    client_email: proposal.client_email || "",
+    client_phone: proposal.client_phone || "",
+    event_type: proposal.event_type || "Evento",
+    event_location: proposal.event_location || "A definir",
+    services: Array.isArray(proposal.services) ? proposal.services : [],
+    total_price: proposal.total_price || 0,
+    payment_terms: proposal.payment_terms || "",
+    notes: proposal.notes || "",
+    validity_date: proposal.validity_date || new Date().toISOString(),
+  };
+  
+  // Format date strings for better display with fallbacks
+  const formattedDate = safeProposal.event_date 
+    ? new Date(safeProposal.event_date).toLocaleDateString('pt-BR')
     : 'A definir';
 
-  const createdDate = proposal.created_at 
-    ? new Date(proposal.created_at).toLocaleDateString('pt-BR')
+  const createdDate = safeProposal.created_at 
+    ? new Date(safeProposal.created_at).toLocaleDateString('pt-BR')
     : new Date().toLocaleDateString('pt-BR');
   
-  const validUntil = new Date(proposal.validity_date).toLocaleDateString('pt-BR');
+  const validUntil = safeProposal.validity_date 
+    ? new Date(safeProposal.validity_date).toLocaleDateString('pt-BR')
+    : new Date().toLocaleDateString('pt-BR');
+    
+  // Website URL with fallback
+  const websiteUrl = "https://www.anriellygomes.com.br";
 
   return (
     <Document>
       {/* Cover Page */}
       <Page size="A4" style={styles.page}>
         <CoverPage 
-          clientName={proposal.client_name}
-          eventType={proposal.event_type}
+          clientName={safeProposal.client_name}
+          eventType={safeProposal.event_type}
           eventDate={formattedDate}
-          totalPrice={proposal.total_price}
+          totalPrice={safeProposal.total_price}
         />
       </Page>
 
       {/* Main Content Page */}
       <Page size="A4" style={styles.page}>
         <PDFHeader 
-          proposalId={proposal.id} 
+          proposalId={safeProposal.id} 
           createdDate={createdDate} 
         />
 
-        <PDFTitle eventType={proposal.event_type} />
+        <PDFTitle eventType={safeProposal.event_type} />
 
         <View style={styles.divider} />
 
-        <ClientInfoSection client={proposal} />
+        <ClientInfoSection client={safeProposal} />
 
         <EventDetailsSection 
-          eventType={proposal.event_type}
+          eventType={safeProposal.event_type}
           eventDate={formattedDate}
-          eventLocation={proposal.event_location}
+          eventLocation={safeProposal.event_location}
         />
         
         <AboutSection />
@@ -72,32 +92,32 @@ const ProposalPDF = ({ proposal }: ProposalProps) => {
       {/* Services and Pricing Page */}
       <Page size="A4" style={styles.page}>
         <PDFHeader 
-          proposalId={proposal.id} 
+          proposalId={safeProposal.id} 
           createdDate={createdDate} 
         />
         
-        <ServicesSection services={proposal.services} />
+        <ServicesSection services={safeProposal.services} />
         
         <DifferentialsSection />
 
         <PricingSection 
-          totalPrice={proposal.total_price}
-          paymentTerms={proposal.payment_terms}
+          totalPrice={safeProposal.total_price}
+          paymentTerms={safeProposal.payment_terms}
         />
 
-        <NotesSection notes={proposal.notes} />
+        <NotesSection notes={safeProposal.notes} />
       </Page>
 
       {/* Testimonials and Signature Page */}
       <Page size="A4" style={styles.page}>
         <PDFHeader 
-          proposalId={proposal.id} 
+          proposalId={safeProposal.id} 
           createdDate={createdDate} 
         />
         
         <TestimonialsSection />
         
-        <QRCodeSection url="https://www.anriellygomes.com.br" />
+        <QRCodeSection url={websiteUrl} />
         
         <View style={styles.signature}>
           <Text>Assinatura do Cliente</Text>
