@@ -2,6 +2,7 @@
 import React from 'react';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
+import { normalizeImageUrl } from '@/utils/imageUtils';
 
 interface GalleryModalProps {
   isOpen: boolean;
@@ -18,17 +19,8 @@ const GalleryModal: React.FC<GalleryModalProps> = ({
   imageTitle,
   imageDescription 
 }) => {
-  // Fix URL if it contains duplicate paths
-  const fixImageUrl = (url: string | null): string => {
-    if (!url) return '';
-    
-    if (url.includes('/v1/object/public/v1/object/public/')) {
-      return url.replace('/v1/object/public/v1/object/public/', '/v1/object/public/');
-    }
-    return url;
-  };
-  
-  const processedUrl = fixImageUrl(imageUrl);
+  // Use the centralized normalizeImageUrl function
+  const processedUrl = normalizeImageUrl(imageUrl);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>

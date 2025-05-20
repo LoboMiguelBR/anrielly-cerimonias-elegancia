@@ -1,5 +1,5 @@
-
 import React from 'react';
+import { normalizeImageUrl } from '@/utils/imageUtils';
 
 interface GalleryImageProps {
   url: string;
@@ -16,15 +16,8 @@ const GalleryImage: React.FC<GalleryImageProps> = ({
   index, 
   onClick 
 }) => {
-  // Fix URL if it contains duplicate paths
-  const fixImageUrl = (url: string): string => {
-    if (url.includes('/v1/object/public/v1/object/public/')) {
-      return url.replace('/v1/object/public/v1/object/public/', '/v1/object/public/');
-    }
-    return url;
-  };
-  
-  const processedUrl = fixImageUrl(url);
+  // Use the centralized normalizeImageUrl function
+  const processedUrl = normalizeImageUrl(url);
 
   return (
     <div 

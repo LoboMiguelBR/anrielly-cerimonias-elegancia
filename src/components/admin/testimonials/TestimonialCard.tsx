@@ -2,6 +2,7 @@
 import { Pencil, Trash2 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Testimonial } from '../hooks/useTestimonials';
+import { normalizeImageUrl } from '@/utils/imageUtils';
 
 interface TestimonialCardProps {
   testimonial: Testimonial;
@@ -15,7 +16,7 @@ const TestimonialCard = ({ testimonial, onEdit, onDelete }: TestimonialCardProps
       <div className="flex items-center gap-4 mb-3">
         {testimonial.image_url ? (
           <img 
-            src={testimonial.image_url} 
+            src={normalizeImageUrl(testimonial.image_url)} 
             alt={testimonial.name} 
             className="w-16 h-16 rounded-full object-cover border-2 border-gold/30"
             onError={(e) => {

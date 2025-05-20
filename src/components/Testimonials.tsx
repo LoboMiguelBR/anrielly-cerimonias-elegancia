@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/carousel";
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { normalizeImageUrl } from '@/utils/imageUtils';
 
 interface Testimonial {
   id: string;
@@ -87,8 +88,18 @@ const Testimonials = () => {
         throw error;
       }
       
-      setTestimonials(data || []);
-      console.log('Fetched testimonials:', data);
+      // Process and normalize image URLs
+      const processedTestimonials = (data || []).map(testimonial => {
+        if (testimonial.image_url) {
+          const normalizedUrl = normalizeImageUrl(testimonial.image_url);
+          console.log(`Testimonial ${testimonial.id}: Original URL: ${testimonial.image_url} -> Normalized: ${normalizedUrl}`);
+          return { ...testimonial, image_url: normalizedUrl };
+        }
+        return testimonial;
+      });
+      
+      setTestimonials(processedTestimonials);
+      console.log('Fetched testimonials:', processedTestimonials);
     } catch (error: any) {
       console.error('Error fetching testimonials:', error);
       setError(error.message || 'Erro ao carregar depoimentos');
@@ -155,7 +166,7 @@ const Testimonials = () => {
                     <div className="bg-white p-6 rounded-lg shadow-md flex flex-col items-center">
                       <div className="mb-6">
                         <img 
-                          src={testimonial.image_url || '/placeholder.svg'} 
+                          src={normalizeImageUrl(testimonial.image_url)} 
                           alt={testimonial.name} 
                           className="w-20 h-20 rounded-full object-cover border-2 border-gold/30"
                           onError={(e) => {

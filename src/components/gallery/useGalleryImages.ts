@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { GalleryImage } from './types';
+import { normalizeImageUrl } from '@/utils/imageUtils';
 
 export const useGalleryImages = () => {
   const [images, setImages] = useState<GalleryImage[]>([]);
@@ -23,39 +24,17 @@ export const useGalleryImages = () => {
       if (data && data.length > 0) {
         console.log('Gallery images fetched successfully:', data.length, 'images');
         
-        // Fix image URLs to avoid the 'v1/object/public/v1/object/public' pattern
+        // Use the centralzied normalizeImageUrl function
         const validatedImages = data.map(img => {
           if (!img.image_url) {
             console.warn('Image without URL found:', img.id);
             return img;
           }
           
-          let fixedUrl = img.image_url;
+          const normalizedUrl = normalizeImageUrl(img.image_url);
+          console.log(`Image ${img.id}: Original URL: ${img.image_url} -> Normalized: ${normalizedUrl}`);
           
-          // Fix duplicate URL paths more aggressively
-          if (fixedUrl.includes('/v1/object/public/')) {
-            // Extract the bucket and filename parts
-            const urlParts = fixedUrl.split('/v1/object/public/');
-            if (urlParts.length > 1) {
-              // Get the base URL and the last part (which should be bucket/filename)
-              const baseUrl = urlParts[0];
-              let pathPart = urlParts[urlParts.length - 1];
-              
-              // If there are multiple occurrences, keep only the last part
-              if (pathPart.includes('/')) {
-                const pathParts = pathPart.split('/');
-                const bucket = pathParts[0];
-                const fileName = pathParts[pathParts.length - 1];
-                pathPart = `${bucket}/${fileName}`;
-              }
-              
-              // Reconstruct the URL properly
-              fixedUrl = `${baseUrl}/v1/object/public/${pathPart}`;
-              console.log('Fixed URL:', fixedUrl);
-            }
-          }
-          
-          return { ...img, image_url: fixedUrl };
+          return { ...img, image_url: normalizedUrl };
         });
         
         setImages(validatedImages);
