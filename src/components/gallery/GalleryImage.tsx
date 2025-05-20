@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { normalizeImageUrl } from '@/utils/imageUtils';
 
@@ -25,15 +24,19 @@ const GalleryImage: React.FC<GalleryImageProps> = ({
       className="aspect-square overflow-hidden rounded-lg shadow-md animate-on-scroll"
       style={{ animationDelay: `${index * 100}ms` }}
       onClick={onClick}
+      tabIndex={0}  // Acessibilidade: foco via teclado
+      onKeyDown={(e) => { if (e.key === 'Enter') onClick(); }}  // Acessibilidade: ativação via Enter
+      role="button"  // Acessibilidade: informa que é interativo
+      aria-label={`Ver imagem ampliada: ${title || `Imagem ${index + 1}`}`}  // Acessibilidade
     >
       <div className="relative h-full group cursor-pointer">
         <img 
           src={processedUrl} 
           alt={title || `Galeria Anrielly Gomes - Imagem ${index + 1}`} 
           className="w-full h-full object-cover hover-zoom"
+          loading="lazy"  // Performance: carregamento sob demanda
           onError={(e) => {
             console.error(`[GalleryImage] Falha ao carregar imagem: ${processedUrl}, URL original: ${url}`);
-            // Fallback to placeholder if image fails to load
             (e.target as HTMLImageElement).src = '/placeholder.svg';
           }}
         />
