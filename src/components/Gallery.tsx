@@ -1,8 +1,9 @@
 
 import { useEffect, useRef, useState } from 'react';
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 
 interface GalleryImage {
   id: string;
@@ -14,6 +15,7 @@ interface GalleryImage {
 const Gallery = () => {
   const sectionRef = useRef<HTMLElement>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedImageTitle, setSelectedImageTitle] = useState<string>('');
   const [images, setImages] = useState<GalleryImage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -74,45 +76,53 @@ const Gallery = () => {
       if (data && data.length > 0) {
         console.log('Gallery images fetched successfully:', data.length, 'images');
         
-        // Validate image URLs
-        const validatedImages = await Promise.all(
-          data.map(async (img) => {
-            if (!img.image_url) {
-              console.warn('Image without URL found:', img.id);
-              return img;
-            }
-            
-            // Get a fresh public URL from Supabase if the URL is from Supabase storage
-            if (img.image_url.includes('storage.googleapis.com') || img.image_url.includes('supabase.co/storage')) {
-              try {
-                // Extract the bucket and file path from the URL
-                const url = new URL(img.image_url);
-                const pathParts = url.pathname.split('/');
-                const bucketIndex = pathParts.findIndex(part => part === 'object' || part === 'storage');
-                
-                if (bucketIndex !== -1 && pathParts.length > bucketIndex + 2) {
-                  const bucket = pathParts[bucketIndex + 1];
-                  const filePath = pathParts.slice(bucketIndex + 2).join('/');
-                  
-                  console.log(`Regenerating public URL for image ${img.id}, bucket: ${bucket}, path: ${filePath}`);
-                  
-                  const { data: publicUrlData } = supabase.storage
-                    .from(bucket)
-                    .getPublicUrl(filePath);
-                  
-                  if (publicUrlData?.publicUrl) {
-                    console.log(`New public URL generated: ${publicUrlData.publicUrl}`);
-                    return { ...img, image_url: publicUrlData.publicUrl };
-                  }
-                }
-              } catch (urlError) {
-                console.error('Error parsing/regenerating image URL:', urlError);
-              }
-            }
-            
+        // Corrige URLs das imagens para evitar o padrão 'v1/object/public/v1/object/public'
+        // que aparece nos erros
+        const validatedImages = data.map(img => {
+          if (!img.image_url) {
+            console.warn('Image without URL found:', img.id);
             return img;
-          })
-        );
+          }
+          
+          let fixedUrl = img.image_url;
+          
+          // Corrige URLs duplicadas
+          if (img.image_url.includes('/v1/object/public/v1/object/public/')) {
+            fixedUrl = img.image_url.replace('/v1/object/public/v1/object/public/', '/v1/object/public/');
+            console.log('Fixed duplicate path in URL:', fixedUrl);
+          }
+          
+          // Se a URL for do Supabase Storage, regenera a URL pública
+          if (fixedUrl.includes('storage.googleapis.com') || fixedUrl.includes('supabase.co/storage')) {
+            try {
+              // Extrai o bucket e o caminho do arquivo
+              const url = new URL(fixedUrl);
+              const pathParts = url.pathname.split('/');
+              // Encontra o bucket e o nome do arquivo
+              const bucketIndex = pathParts.findIndex(part => part === 'object' || part === 'storage');
+              
+              if (bucketIndex !== -1 && pathParts.length > bucketIndex + 2) {
+                const bucket = pathParts[bucketIndex + 1];
+                const filePath = pathParts.slice(bucketIndex + 2).join('/');
+                
+                console.log(`Regenerating URL for bucket: ${bucket}, path: ${filePath}`);
+                
+                const { data: publicUrlData } = supabase.storage
+                  .from(bucket)
+                  .getPublicUrl(filePath);
+                
+                if (publicUrlData?.publicUrl) {
+                  console.log(`Regenerated URL: ${publicUrlData.publicUrl}`);
+                  return { ...img, image_url: publicUrlData.publicUrl };
+                }
+              }
+            } catch (urlError) {
+              console.error('Error fixing image URL:', urlError);
+            }
+          }
+          
+          return { ...img, image_url: fixedUrl };
+        });
         
         setImages(validatedImages);
       } else {
@@ -128,16 +138,6 @@ const Gallery = () => {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  // Test if an image URL is valid/accessible
-  const testImageUrl = (url: string) => {
-    return new Promise<boolean>((resolve) => {
-      const img = new Image();
-      img.onload = () => resolve(true);
-      img.onerror = () => resolve(false);
-      img.src = url;
-    });
   };
 
   // Fallback to static images if no images in database
@@ -166,6 +166,11 @@ const Gallery = () => {
         description: null 
       }));
 
+  const handleImageClick = (url: string, title: string) => {
+    setSelectedImage(url);
+    setSelectedImageTitle(title);
+  };
+
   return (
     <section id="galeria" className="bg-white" ref={sectionRef}>
       <div className="container mx-auto px-4">
@@ -192,7 +197,7 @@ const Gallery = () => {
                 key={image.id} 
                 className="aspect-square overflow-hidden rounded-lg shadow-md animate-on-scroll"
                 style={{ animationDelay: `${index * 100}ms` }}
-                onClick={() => setSelectedImage(image.url)}
+                onClick={() => handleImageClick(image.url, image.title)}
               >
                 <div className="relative h-full group cursor-pointer">
                   <img 
@@ -223,9 +228,12 @@ const Gallery = () => {
 
         <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
           <DialogContent className="max-w-4xl p-1 bg-transparent border-none">
+            <DialogTitle className="sr-only">
+              {selectedImageTitle || 'Imagem ampliada'}
+            </DialogTitle>
             <img 
               src={selectedImage || ''} 
-              alt="Imagem ampliada" 
+              alt={selectedImageTitle || 'Imagem ampliada'} 
               className="w-full h-auto rounded-lg"
               onError={(e) => {
                 console.error(`Failed to load enlarged image: ${selectedImage}`);
