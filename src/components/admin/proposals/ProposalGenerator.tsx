@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { useProposalForm } from '../hooks/useProposalForm';
+import { useProposalForm } from '../hooks/proposal';
 import ClientSelection from './ClientSelection';
 import ServicesSection from './ServicesSection';
 import PriceSection from './PriceSection';
@@ -8,7 +7,7 @@ import NotesSection from './NotesSection';
 import ValidityDateSection from './ValidityDateSection';
 import ActionButtons from './ActionButtons';
 import ProposalPreview from './ProposalPreview';
-import { ProposalData } from '../pdf/types';
+import { ProposalData } from '../hooks/proposal';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 

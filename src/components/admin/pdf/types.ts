@@ -1,13 +1,7 @@
 
-export interface Service {
-  name: string;
-  included: boolean;
-}
+import { Service } from '../hooks/proposal';
 
-export interface ProposalPDFProps {
-  proposal: ProposalData;
-}
-
+// Re-export the ProposalData type if it's needed in other files
 export interface ProposalData {
   id: string;
   client_name: string;
