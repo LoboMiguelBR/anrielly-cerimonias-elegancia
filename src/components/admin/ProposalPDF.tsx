@@ -24,6 +24,7 @@ interface ProposalProps {
 }
 
 const ProposalPDF = ({ proposal }: ProposalProps) => {
+  // Format date strings for better display
   const formattedDate = proposal.event_date 
     ? new Date(proposal.event_date).toLocaleDateString('pt-BR')
     : 'A definir';
