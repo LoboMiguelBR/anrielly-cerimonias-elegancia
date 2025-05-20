@@ -1,4 +1,3 @@
-
 export interface GalleryImage {
   id: string;
   title: string;
