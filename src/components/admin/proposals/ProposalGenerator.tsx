@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useProposalForm } from '../hooks/useProposalForm';
 import ClientSelection from './ClientSelection';
 import ServicesSection from './ServicesSection';
@@ -9,6 +9,8 @@ import ValidityDateSection from './ValidityDateSection';
 import ActionButtons from './ActionButtons';
 import ProposalPreview from './ProposalPreview';
 import { ProposalData } from '../pdf/types';
+import { Button } from '@/components/ui/button';
+import { Loader2 } from 'lucide-react';
 
 interface ProposalGeneratorProps {
   quoteRequests: Array<{
@@ -22,11 +24,15 @@ interface ProposalGeneratorProps {
     event_location?: string;
   }>;
   quoteIdFromUrl?: string | null;
+  initialProposalId?: string;
+  onClose?: () => void;
 }
 
 const ProposalGenerator: React.FC<ProposalGeneratorProps> = ({ 
   quoteRequests,
-  quoteIdFromUrl
+  quoteIdFromUrl,
+  initialProposalId,
+  onClose
 }) => {
   const [showPreview, setShowPreview] = useState(false);
   
@@ -34,47 +40,22 @@ const ProposalGenerator: React.FC<ProposalGeneratorProps> = ({
     selectedQuote,
     isLoading,
     isSaving,
+    isDeleting,
     generatingPDF,
     proposal,
     formData,
+    isEditMode,
     setSelectedQuote,
     setGeneratingPDF,
     setProposal,
     setFormData,
     handleQuoteSelect,
+    handleFormChange,
     handleServiceChange,
     handleCustomServiceAdd,
-    saveProposal
-  } = useProposalForm(quoteIdFromUrl);
-
-  // Fill form with selected quote details
-  useEffect(() => {
-    if (quoteIdFromUrl) {
-      const selectedRequest = quoteRequests.find(quote => quote.id === quoteIdFromUrl);
-      if (selectedRequest) {
-        setSelectedQuote(selectedRequest.id);
-      }
-    }
-  }, [quoteIdFromUrl, quoteRequests, setSelectedQuote]);
-
-  // Update form when a quote is selected
-  useEffect(() => {
-    if (selectedQuote) {
-      const selectedRequest = quoteRequests.find(quote => quote.id === selectedQuote);
-      if (selectedRequest) {
-        setFormData(prev => ({
-          ...prev,
-          client_name: selectedRequest.name || "",
-          client_email: selectedRequest.email || "",
-          client_phone: selectedRequest.phone || "",
-          event_type: selectedRequest.event_type || selectedRequest.eventType || "",
-          event_date: selectedRequest.event_date || null,
-          event_location: selectedRequest.event_location || "",
-          quote_request_id: selectedRequest.id
-        }));
-      }
-    }
-  }, [selectedQuote, quoteRequests, setFormData]);
+    saveProposal,
+    deleteProposal
+  } = useProposalForm(initialProposalId, quoteIdFromUrl);
 
   const handleGeneratePDF = async () => {
     try {
@@ -115,52 +96,77 @@ const ProposalGenerator: React.FC<ProposalGeneratorProps> = ({
     }
   };
 
+  const handleBackFromPreview = () => {
+    setShowPreview(false);
+    if (onClose) {
+      onClose();
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="p-12 text-center">
+        <Loader2 className="w-8 h-8 animate-spin mx-auto text-purple-500" />
+        <p className="mt-2 text-gray-500">Carregando dados da proposta...</p>
+      </div>
+    );
+  }
+
   if (showPreview && proposal) {
-    return <ProposalPreview proposal={proposal} onBack={() => setShowPreview(false)} />;
+    return <ProposalPreview proposal={proposal} onBack={handleBackFromPreview} />;
   }
 
   return (
-    <div className="bg-white border rounded-lg p-6">
-      <h3 className="font-medium mb-6 text-lg">Nova Proposta</h3>
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <ClientSelection 
+          quoteRequests={quoteRequests}
+          selectedQuote={selectedQuote}
+          handleQuoteSelect={handleQuoteSelect}
+          isLoading={isLoading}
+          disabled={isEditMode}
+        />
+        
+        <ValidityDateSection 
+          validityDate={formData.validity_date}
+          handleValidityDateChange={(value) => handleFormChange('validity_date', value)}
+          isLoading={isLoading}
+        />
+      </div>
       
-      <div className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <ClientSelection 
-            quoteRequests={quoteRequests}
-            selectedQuote={selectedQuote}
-            handleQuoteSelect={handleQuoteSelect}
-            isLoading={isLoading}
-          />
-          
-          <ValidityDateSection 
-            validityDate={formData.validity_date}
-            handleValidityDateChange={(value) => setFormData({...formData, validity_date: value})}
-            isLoading={isLoading}
-          />
-        </div>
-        
-        <ServicesSection 
-          services={formData.services}
-          customService={formData.customService}
-          handleServiceChange={handleServiceChange}
-          handleCustomServiceChange={(value) => setFormData({...formData, customService: value})}
-          handleCustomServiceAdd={handleCustomServiceAdd}
-          isLoading={isLoading}
-        />
-        
-        <PriceSection 
-          totalPrice={formData.total_price}
-          paymentTerms={formData.payment_terms}
-          handlePriceChange={(value) => setFormData({...formData, total_price: value})}
-          handlePaymentTermsChange={(value) => setFormData({...formData, payment_terms: value})}
-          isLoading={isLoading}
-        />
-        
-        <NotesSection 
-          notes={formData.notes}
-          handleNotesChange={(value) => setFormData({...formData, notes: value})}
-          isLoading={isLoading}
-        />
+      <ServicesSection 
+        services={formData.services}
+        customService={formData.customService}
+        handleServiceChange={handleServiceChange}
+        handleCustomServiceChange={(value) => handleFormChange('customService', value)}
+        handleCustomServiceAdd={handleCustomServiceAdd}
+        isLoading={isLoading}
+      />
+      
+      <PriceSection 
+        totalPrice={formData.total_price}
+        paymentTerms={formData.payment_terms}
+        handlePriceChange={(value) => handleFormChange('total_price', value)}
+        handlePaymentTermsChange={(value) => handleFormChange('payment_terms', value)}
+        isLoading={isLoading}
+      />
+      
+      <NotesSection 
+        notes={formData.notes}
+        handleNotesChange={(value) => handleFormChange('notes', value)}
+        isLoading={isLoading}
+      />
+      
+      <div className="flex flex-wrap gap-3 justify-end mt-6">
+        {onClose && (
+          <Button 
+            variant="ghost" 
+            onClick={onClose}
+            disabled={isSaving || generatingPDF || isDeleting}
+          >
+            Cancelar
+          </Button>
+        )}
         
         <ActionButtons 
           isSaving={isSaving}
@@ -169,6 +175,7 @@ const ProposalGenerator: React.FC<ProposalGeneratorProps> = ({
           onSave={saveProposal}
           onGeneratePDF={handleGeneratePDF}
           proposal={proposal}
+          isEditMode={isEditMode}
         />
       </div>
     </div>

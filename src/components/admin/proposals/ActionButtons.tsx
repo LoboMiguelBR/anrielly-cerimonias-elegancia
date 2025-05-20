@@ -11,6 +11,7 @@ interface ActionButtonsProps {
   onSave: () => Promise<string | null>;
   onGeneratePDF: () => Promise<void>;
   proposal: ProposalData | null;
+  isEditMode?: boolean;
 }
 
 const ActionButtons: React.FC<ActionButtonsProps> = ({
@@ -19,10 +20,11 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
   selectedQuote,
   onSave,
   onGeneratePDF,
-  proposal
+  proposal,
+  isEditMode = false
 }) => {
   return (
-    <div className="flex flex-wrap gap-3 justify-end mt-6">
+    <>
       <Button 
         variant="outline" 
         onClick={onSave} 
@@ -30,7 +32,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
         className="flex items-center"
       >
         {isSaving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
-        Salvar Proposta
+        {isEditMode ? 'Atualizar Proposta' : 'Salvar Proposta'}
       </Button>
       
       <Button 
@@ -41,7 +43,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
         {generatingPDF ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <FileText className="w-4 h-4 mr-2" />}
         Visualizar Proposta
       </Button>
-    </div>
+    </>
   );
 };
 

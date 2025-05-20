@@ -8,7 +8,8 @@ interface QRCodeSectionProps {
 }
 
 const QRCodeSection: React.FC<QRCodeSectionProps> = ({ url }) => {
-  // Using a data URI QR code directly in the src to avoid Buffer issues
+  // Usando uma URL externa para gerar o QR code em tempo de renderização
+  // Evita problemas com Buffer no navegador
   const qrCode = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(url)}&format=png`;
   
   return (

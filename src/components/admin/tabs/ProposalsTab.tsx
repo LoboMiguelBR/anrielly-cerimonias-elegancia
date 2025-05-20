@@ -1,6 +1,6 @@
 
 import React from 'react';
-import ProposalGenerator from '../proposals/ProposalGenerator';
+import ProposalsList from '../proposals/ProposalsList';
 
 interface QuoteRequest {
   id: string;
@@ -22,12 +22,12 @@ const ProposalsTab = ({ quoteRequests, quoteIdFromUrl }: ProposalsTabProps) => {
   return (
     <div className="space-y-6">
       <div className="p-6 bg-white rounded-lg shadow-sm border-l-4 border-l-purple-200">
-        <h2 className="text-2xl font-playfair font-semibold mb-2">Gerador de Propostas</h2>
+        <h2 className="text-2xl font-playfair font-semibold mb-2">Gerenciamento de Propostas</h2>
         <p className="text-gray-500 mb-6">
-          Crie propostas personalizadas com o visual da sua marca para enviar aos clientes.
+          Crie, edite e envie propostas personalizadas com o visual da sua marca para seus clientes.
         </p>
         
-        <ProposalGenerator 
+        <ProposalsList 
           quoteRequests={quoteRequests} 
           quoteIdFromUrl={quoteIdFromUrl} 
         />
