@@ -2,7 +2,7 @@
 import { Service } from '../hooks/proposal/types';
 
 // Re-export the Service type
-export { Service };
+export type { Service };
 
 // Re-export the ProposalData type if it's needed in other files
 export interface ProposalData {
