@@ -11,7 +11,6 @@ export const useGalleryImages = () => {
 
   const fetchGalleryImages = async () => {
     console.log('[useGalleryImages] Executando fetchGalleryImages...');
-
     try {
       setIsLoading(true);
       setError(null);
@@ -25,12 +24,10 @@ export const useGalleryImages = () => {
 
       if (data?.length) {
         console.log('[useGalleryImages] Imagens carregadas:', data.length);
-
         const validatedImages = data.map((img) => ({
           ...img,
           image_url: img.image_url ? normalizeImageUrl(img.image_url) : '/placeholder.svg',
         }));
-
         setImages(validatedImages);
       } else {
         console.log('[useGalleryImages] Nenhuma imagem encontrada.');
@@ -46,25 +43,28 @@ export const useGalleryImages = () => {
   };
 
   useEffect(() => {
-    console.log('[useGalleryImages] Inicializando...');
-
+    console.log('[useGalleryImages] Inicializando fetch e subscrição...');
     fetchGalleryImages();
 
     const channel = supabase
       .channel('public:gallery')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'gallery' }, () => {
-        console.log('[useGalleryImages] Alteração detectada, recarregando...');
-        fetchGalleryImages();
-      })
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'gallery' },
+        () => {
+          console.log('[useGalleryImages] Alteração detectada, recarregando...');
+          fetchGalleryImages();
+        }
+      )
       .subscribe((status) => {
         console.log(`[useGalleryImages] Subscrição status: ${status}`);
       });
 
     return () => {
-      console.log('[useGalleryImages] Limpando subscrição...');
+      console.log('[useGalleryImages] Limpando subscrição de realtime...');
       supabase.removeChannel(channel);
     };
-  }, []);  // ✅ Executa apenas uma vez.
+  }, []); // Executa apenas na montagem
 
   return {
     images,
