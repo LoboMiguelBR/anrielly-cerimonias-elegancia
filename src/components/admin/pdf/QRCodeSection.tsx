@@ -18,12 +18,11 @@ const QRCodeSection: React.FC<QRCodeSectionProps> = ({ url }) => {
   return (
     <View style={styles.qrCodeContainer}>
       <View style={{ width: 80, height: 80, border: '1px solid #000', padding: 5, backgroundColor: '#fff' }}>
-        {/* Using a try-catch pattern within the Image component since errors will render fallback */}
+        {/* Using Image component from react-pdf/renderer - note: it doesn't support onError prop */}
         <Image 
           src={qrCodeUrl} 
           style={{ width: 70, height: 70 }}
           cache={false}
-          onError={() => console.error("Error loading QR code image")} // Log error but continue rendering
         />
       </View>
       <Text style={styles.qrCodeText}>Escaneie para visitar nosso site e ver mais trabalhos</Text>
