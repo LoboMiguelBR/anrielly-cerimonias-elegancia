@@ -1,4 +1,3 @@
-
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Home, LogOut } from 'lucide-react';
@@ -8,40 +7,36 @@ import { supabase } from "@/integrations/supabase/client";
 const AdminHeader = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  
-Versão corrigida e robusta do handleLogout:
-ts
-Copiar
-Editar
-const handleLogout = async () => {
-  try {
-    await supabase.auth.signOut();
 
-    // Limpa qualquer dado persistente local
-    localStorage.clear();
-    sessionStorage.clear();
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
 
-    toast({
-      title: "Logout realizado",
-      description: "Você saiu do painel administrativo",
-    });
+      // Limpa qualquer dado persistente local
+      localStorage.clear();
+      sessionStorage.clear();
 
-    navigate('/');
-  } catch (error) {
-    console.error("Erro ao fazer logout:", error);
+      toast({
+        title: "Logout realizado",
+        description: "Você saiu do painel administrativo",
+      });
 
-    // Limpa de qualquer forma
-    localStorage.clear();
-    sessionStorage.clear();
+      navigate('/');
+    } catch (error) {
+      console.error("Erro ao fazer logout:", error);
 
-    toast({
-      title: "Aviso de logout",
-      description: "Sessão encerrada, mas ocorreu um erro no servidor",
-    });
+      // Limpa de qualquer forma
+      localStorage.clear();
+      sessionStorage.clear();
 
-    navigate('/');
-  }
-}
+      toast({
+        title: "Aviso de logout",
+        description: "Sessão encerrada, mas ocorreu um erro no servidor",
+      });
+
+      navigate('/');
+    }
+  };
 
   return (
     <header className="bg-white shadow-sm">
