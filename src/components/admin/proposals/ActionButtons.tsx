@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2, FileText, Download, Save, Mail } from 'lucide-react';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import ProposalPDF from '@/components/admin/ProposalPDF';
-import { ProposalData } from '../hooks/useProposalForm';
+import { ProposalData } from '@/components/admin/pdf/types';
 import { toast } from 'sonner';
 
 interface ActionButtonsProps {
