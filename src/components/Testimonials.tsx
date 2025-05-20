@@ -1,6 +1,7 @@
+
 import { useRef } from 'react';
-import TestimonialCarousel from './testimonials/TestimonialCarousel';
 import useTestimonialsData from './testimonials/useTestimonialsData';
+import EnhancedTestimonialCarousel from './testimonials/EnhancedTestimonialCarousel';
 import { Button } from "@/components/ui/button";
 
 const Testimonials = () => {
@@ -15,9 +16,6 @@ const Testimonials = () => {
     imageUrl: testimonial.image_url
   }));
 
-  console.log('[Testimonials] Depoimentos carregados:', mappedTestimonials.length);
-  console.log('[Testimonials] isLoading:', isLoading, 'error:', error);
-
   return (
     <section id="depoimentos" className="bg-white py-16" ref={sectionRef}>
       <div className="container mx-auto px-4">
@@ -27,7 +25,9 @@ const Testimonials = () => {
         
         {isLoading ? (
           <div className="py-10 text-center" aria-busy="true">
-            Carregando depoimentos...
+            <div className="animate-pulse">
+              <div className="h-32 bg-gray-200 rounded-lg max-w-md mx-auto"></div>
+            </div>
           </div>
         ) : error ? (
           <div className="py-10 text-center text-red-500" role="alert">
@@ -43,7 +43,7 @@ const Testimonials = () => {
             </div>
           </div>
         ) : mappedTestimonials.length > 0 ? (
-          <TestimonialCarousel testimonials={mappedTestimonials} />
+          <EnhancedTestimonialCarousel testimonials={mappedTestimonials} />
         ) : (
           <div className="py-10 text-center text-gray-500">
             Nenhum depoimento encontrado.
