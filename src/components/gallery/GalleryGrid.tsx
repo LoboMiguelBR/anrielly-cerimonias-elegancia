@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Skeleton } from "@/components/ui/skeleton";
 import GalleryImage from './GalleryImage';
@@ -43,6 +42,14 @@ const GalleryGrid: React.FC<GalleryGridProps> = ({
             Tentar novamente
           </button>
         </div>
+      </div>
+    );
+  }
+
+  if (displayImages.length === 0) {
+    return (
+      <div className="py-10 text-center text-gray-500">
+        Nenhuma imagem disponível no momento.
       </div>
     );
   }
