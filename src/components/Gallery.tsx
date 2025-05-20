@@ -16,6 +16,7 @@ const Gallery = () => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [images, setImages] = useState<GalleryImage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -61,6 +62,8 @@ const Gallery = () => {
   const fetchGalleryImages = async () => {
     try {
       setIsLoading(true);
+      setError(null);
+      
       const { data, error } = await supabase
         .from('gallery')
         .select('*')
@@ -68,13 +71,73 @@ const Gallery = () => {
 
       if (error) throw error;
       
-      setImages(data || []);
-    } catch (error) {
+      if (data && data.length > 0) {
+        console.log('Gallery images fetched successfully:', data.length, 'images');
+        
+        // Validate image URLs
+        const validatedImages = await Promise.all(
+          data.map(async (img) => {
+            if (!img.image_url) {
+              console.warn('Image without URL found:', img.id);
+              return img;
+            }
+            
+            // Get a fresh public URL from Supabase if the URL is from Supabase storage
+            if (img.image_url.includes('storage.googleapis.com') || img.image_url.includes('supabase.co/storage')) {
+              try {
+                // Extract the bucket and file path from the URL
+                const url = new URL(img.image_url);
+                const pathParts = url.pathname.split('/');
+                const bucketIndex = pathParts.findIndex(part => part === 'object' || part === 'storage');
+                
+                if (bucketIndex !== -1 && pathParts.length > bucketIndex + 2) {
+                  const bucket = pathParts[bucketIndex + 1];
+                  const filePath = pathParts.slice(bucketIndex + 2).join('/');
+                  
+                  console.log(`Regenerating public URL for image ${img.id}, bucket: ${bucket}, path: ${filePath}`);
+                  
+                  const { data: publicUrlData } = supabase.storage
+                    .from(bucket)
+                    .getPublicUrl(filePath);
+                  
+                  if (publicUrlData?.publicUrl) {
+                    console.log(`New public URL generated: ${publicUrlData.publicUrl}`);
+                    return { ...img, image_url: publicUrlData.publicUrl };
+                  }
+                }
+              } catch (urlError) {
+                console.error('Error parsing/regenerating image URL:', urlError);
+              }
+            }
+            
+            return img;
+          })
+        );
+        
+        setImages(validatedImages);
+      } else {
+        console.log('No gallery images found in the database, using fallback static images');
+        setImages([]);
+      }
+    } catch (error: any) {
       console.error('Error fetching gallery images:', error);
-      toast.error('Não foi possível carregar a galeria de imagens');
+      setError(error.message || 'Erro ao carregar imagens da galeria');
+      toast.error('Não foi possível carregar a galeria de imagens', {
+        description: error.message
+      });
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Test if an image URL is valid/accessible
+  const testImageUrl = (url: string) => {
+    return new Promise<boolean>((resolve) => {
+      const img = new Image();
+      img.onload = () => resolve(true);
+      img.onerror = () => resolve(false);
+      img.src = url;
+    });
   };
 
   // Fallback to static images if no images in database
@@ -110,6 +173,18 @@ const Gallery = () => {
         
         {isLoading ? (
           <div className="py-20 text-center">Carregando galeria...</div>
+        ) : error ? (
+          <div className="py-10 text-center text-red-500">
+            {error}
+            <div className="mt-4">
+              <button 
+                onClick={() => fetchGalleryImages()}
+                className="px-4 py-2 bg-gold/80 text-white rounded-md hover:bg-gold transition-colors"
+              >
+                Tentar novamente
+              </button>
+            </div>
+          </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {displayImages.map((image, index) => (
@@ -124,6 +199,11 @@ const Gallery = () => {
                     src={image.url} 
                     alt={image.title || `Galeria Anrielly Gomes - Imagem ${index + 1}`} 
                     className="w-full h-full object-cover hover-zoom"
+                    onError={(e) => {
+                      console.error(`Failed to load image: ${image.url}`);
+                      // Fallback to placeholder if image fails to load
+                      (e.target as HTMLImageElement).src = '/placeholder.svg';
+                    }}
                   />
                   <div className="absolute inset-0 bg-gold/0 group-hover:bg-gold/20 transition-all duration-300 flex items-center justify-center">
                     <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -147,6 +227,10 @@ const Gallery = () => {
               src={selectedImage || ''} 
               alt="Imagem ampliada" 
               className="w-full h-auto rounded-lg"
+              onError={(e) => {
+                console.error(`Failed to load enlarged image: ${selectedImage}`);
+                (e.target as HTMLImageElement).src = '/placeholder.svg';
+              }}
             />
           </DialogContent>
         </Dialog>
