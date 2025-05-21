@@ -1,8 +1,7 @@
-
 import { useState, useEffect } from 'react';
 import { ProposalFormData, ProposalData } from './types';
 import { defaultFormData } from './constants';
-import { fetchProposal, saveProposalToDb, deleteProposalFromDb, sendProposalByEmail, savePdfUrl } from './proposalApi';
+import { fetchProposal, saveProposal, deleteProposal, sendProposalByEmail, savePdfUrl } from './proposalApi';
 import { ProposalTemplateData } from '../../proposals/templates/shared/types';
 import { defaultTemplate } from '../../proposals/templates/shared/templateService';
 
@@ -132,7 +131,7 @@ export function useProposalForm(initialProposalId?: string, selectedQuoteId?: st
     setProposal(null);
   };
 
-  const saveProposal = async (): Promise<string | null> => {
+  const saveProposalHandler = async (): Promise<string | null> => {
     setIsSaving(true);
     
     // Add template ID to the form data
@@ -141,7 +140,7 @@ export function useProposalForm(initialProposalId?: string, selectedQuoteId?: st
       template_id: selectedTemplate.id !== 'default' ? selectedTemplate.id : undefined
     };
     
-    const savedId = await saveProposalToDb(dataWithTemplate, isEditMode ? proposalId : undefined);
+    const savedId = await saveProposal(dataWithTemplate);
     
     if (savedId && !isEditMode) {
       setProposalId(savedId);
@@ -152,11 +151,11 @@ export function useProposalForm(initialProposalId?: string, selectedQuoteId?: st
     return savedId;
   };
 
-  const deleteProposal = async (): Promise<boolean> => {
+  const deleteProposalHandler = async (): Promise<boolean> => {
     if (!proposalId) return false;
     
     setIsDeleting(true);
-    const success = await deleteProposalFromDb(proposalId);
+    const success = await deleteProposal(proposalId);
     
     if (success) {
       resetForm();
@@ -166,7 +165,7 @@ export function useProposalForm(initialProposalId?: string, selectedQuoteId?: st
     return success;
   };
 
-  const sendProposalEmail = async (): Promise<boolean> => {
+  const sendProposalEmailHandler = async (): Promise<boolean> => {
     if (!proposal) return false;
     
     setIsSending(true);
@@ -212,9 +211,9 @@ export function useProposalForm(initialProposalId?: string, selectedQuoteId?: st
     handleFormChange,
     handleServiceChange,
     handleCustomServiceAdd,
-    saveProposal,
-    deleteProposal,
-    sendProposalEmail,
+    saveProposal: saveProposalHandler,
+    deleteProposal: deleteProposalHandler,
+    sendProposalEmail: sendProposalEmailHandler,
     saveProposalPdfUrl,
     resetForm,
     setProposalId

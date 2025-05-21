@@ -1,6 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { ProposalData, Service } from './types';
+import { Json } from '@/integrations/supabase/types';
 
 // Fetch a specific proposal
 export const fetchProposal = async (id: string): Promise<ProposalData | null> => {
@@ -22,7 +23,8 @@ export const fetchProposal = async (id: string): Promise<ProposalData | null> =>
       event_type: data.event_type,
       event_date: data.event_date,
       event_location: data.event_location,
-      services: data.services as Service[],
+      // Add explicit type casting for services
+      services: (data.services as unknown) as Service[],
       total_price: data.total_price,
       payment_terms: data.payment_terms,
       notes: data.notes,
@@ -49,7 +51,8 @@ export const saveProposal = async (proposal: Omit<ProposalData, 'id' | 'created_
       event_type: proposal.event_type,
       event_date: proposal.event_date,
       event_location: proposal.event_location,
-      services: proposal.services,
+      // Cast the services to Json to satisfy TypeScript
+      services: proposal.services as unknown as Json,
       total_price: proposal.total_price,
       payment_terms: proposal.payment_terms,
       notes: proposal.notes,
@@ -133,5 +136,33 @@ export const generateProposalPDF = async (proposalId: string, pdfBlob: Blob): Pr
   } catch (error) {
     console.error('Error generating proposal PDF:', error);
     return null;
+  }
+};
+
+// Send a proposal by email - Stub function, will be implemented later
+export const sendProposalByEmail = async (proposal: ProposalData): Promise<boolean> => {
+  try {
+    console.log('Sending proposal by email:', proposal.id, 'to', proposal.client_email);
+    // Implementation would go here - for now just return success
+    return true;
+  } catch (error) {
+    console.error('Error sending proposal by email:', error);
+    return false;
+  }
+};
+
+// Save the PDF URL to the proposal
+export const savePdfUrl = async (proposalId: string, pdfUrl: string): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from('proposals')
+      .update({ pdf_url: pdfUrl })
+      .eq('id', proposalId);
+      
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.error('Error saving PDF URL:', error);
+    return false;
   }
 };
