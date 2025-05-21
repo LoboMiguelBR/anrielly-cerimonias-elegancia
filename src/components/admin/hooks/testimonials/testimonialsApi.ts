@@ -37,7 +37,11 @@ export const fetchAllTestimonials = async (): Promise<Testimonial[]> => {
       
     if (error) throw error;
     
-    return data || [];
+    // Cast the status field to the correct type
+    return (data || []).map(item => ({
+      ...item,
+      status: item.status as 'pending' | 'approved' | 'rejected'
+    })) as Testimonial[];
   } catch (error) {
     console.error('Erro ao carregar depoimentos:', error);
     toast.error('Erro ao carregar depoimentos');

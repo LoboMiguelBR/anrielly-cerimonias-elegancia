@@ -38,7 +38,13 @@ export const useTestimonialsData = () => {
       console.log('[useTestimonialsData] Depoimentos aprovados carregados:', data?.length);
       
       if (data && data.length > 0) {
-        setTestimonials(data || []);
+        // Cast the status field to the correct type
+        const typedData = data.map(item => ({
+          ...item,
+          status: item.status as 'pending' | 'approved' | 'rejected'
+        })) as Testimonial[];
+        
+        setTestimonials(typedData);
         console.log('[useTestimonialsData] Usando depoimentos aprovados do banco:', data);
       } else {
         // Fallback para depoimentos estáticos quando não há dados aprovados no banco
