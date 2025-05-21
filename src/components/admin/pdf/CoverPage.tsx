@@ -35,9 +35,6 @@ const CoverPage: React.FC<CoverPageProps> = ({
   // Supabase image URL for logo
   const logoUrl = "https://oampddkpuybkbwqggrty.supabase.co/storage/v1/object/public/public-assets/LogoAG.png";
   
-  // Create a fallback for the background image (won't show in the PDF but prevents errors)
-  const backgroundImageUrl = ""; // We'll handle this differently with a low opacity background
-  
   const styles = StyleSheet.create({
     page: {
       flexDirection: 'column',
@@ -51,7 +48,7 @@ const CoverPage: React.FC<CoverPageProps> = ({
       left: 0,
       right: 0,
       bottom: 0,
-      opacity: 0.05 // Very low opacity as fallback
+      opacity: 0.05
     },
     container: {
       position: 'relative', 
@@ -59,7 +56,7 @@ const CoverPage: React.FC<CoverPageProps> = ({
       flexDirection: 'column',
       justifyContent: 'center',
       alignItems: 'center',
-      height: '100%', // This is fine as it's a special case in react-pdf
+      height: '100%',
       padding: 30,
       zIndex: 10
     },
@@ -69,20 +66,20 @@ const CoverPage: React.FC<CoverPageProps> = ({
       marginBottom: 20,
       color: colors.primary,
       textAlign: 'center',
-      fontFamily: 'Times-Roman' // Changed from Times-Roman
+      fontFamily: 'Times-Roman'
     },
     subheader: {
       fontSize: 24,
       marginBottom: 10,
       color: colors.secondary,
       textAlign: 'center',
-      fontFamily: 'Times-Roman' // Changed from Times-Roman
+      fontFamily: 'Times-Roman'
     },
     clientInfo: {
       marginTop: 60,
       marginBottom: 40,
       padding: 20,
-      width: 400, // Fixed width instead of percentage
+      width: 400,
       borderWidth: 1,
       borderColor: colors.secondary,
       borderStyle: 'solid',
@@ -96,14 +93,14 @@ const CoverPage: React.FC<CoverPageProps> = ({
     },
     label: {
       fontWeight: 'bold',
-      width: 120, // Fixed width instead of percentage
+      width: 120,
       color: colors.primary,
-      fontFamily: 'Helvetica-Bold' // Added specific font
+      fontFamily: 'Helvetica'
     },
     value: {
-      width: 180, // Fixed width instead of percentage
+      width: 180,
       color: colors.text,
-      fontFamily: 'Helvetica' // Added fontFamily
+      fontFamily: 'Helvetica'
     },
     price: {
       fontSize: 18,
@@ -111,7 +108,7 @@ const CoverPage: React.FC<CoverPageProps> = ({
       marginTop: 10,
       fontWeight: 'bold',
       textAlign: 'center',
-      fontFamily: 'Helvetica-Bold' // Added specific font
+      fontFamily: 'Helvetica'
     },
     logo: {
       width: 150,
@@ -127,7 +124,7 @@ const CoverPage: React.FC<CoverPageProps> = ({
       textAlign: 'center',
       color: colors.text,
       fontSize: 10,
-      fontFamily: 'Helvetica' // Added fontFamily
+      fontFamily: 'Helvetica'
     }
   });
 

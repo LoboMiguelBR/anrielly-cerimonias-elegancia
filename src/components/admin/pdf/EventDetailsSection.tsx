@@ -12,15 +12,54 @@ const EventDetailsSection: React.FC<EventDetailsSectionProps> = ({
 }) => {
   return (
     <View style={styles.section}>
-      <Text style={{...styles.sectionTitle, color: colors.primary}}>Detalhes do Evento</Text>
-      <Text style={{...styles.text, color: colors.text}}>
-        <Text style={{...styles.textBold, color: colors.primary}}>Tipo de Evento:</Text> {eventType}
+      <Text style={{
+        ...styles.sectionTitle, 
+        color: colors.primary,
+        fontFamily: 'Times-Roman'
+      }}>
+        Detalhes do Evento
       </Text>
-      <Text style={{...styles.text, color: colors.text}}>
-        <Text style={{...styles.textBold, color: colors.primary}}>Data:</Text> {eventDate}
+      <Text style={{
+        ...styles.text, 
+        color: colors.text,
+        fontFamily: 'Helvetica'
+      }}>
+        <Text style={{
+          ...styles.textBold, 
+          color: colors.primary,
+          fontFamily: 'Helvetica',
+          fontWeight: 'bold'
+        }}>
+          Tipo de Evento:
+        </Text> {eventType}
       </Text>
-      <Text style={{...styles.text, color: colors.text}}>
-        <Text style={{...styles.textBold, color: colors.primary}}>Local:</Text> {eventLocation}
+      <Text style={{
+        ...styles.text, 
+        color: colors.text,
+        fontFamily: 'Helvetica'
+      }}>
+        <Text style={{
+          ...styles.textBold, 
+          color: colors.primary,
+          fontFamily: 'Helvetica',
+          fontWeight: 'bold'
+        }}>
+          Data:
+        </Text> {eventDate}
+      </Text>
+      <Text style={{
+        ...styles.text, 
+        color: colors.text,
+        fontFamily: 'Helvetica'
+      }}>
+        <Text style={{
+          ...styles.textBold, 
+          color: colors.primary,
+          fontFamily: 'Helvetica',
+          fontWeight: 'bold'
+        }}>
+          Local:
+        </Text> {eventLocation}
       </Text>
     </View>
   );

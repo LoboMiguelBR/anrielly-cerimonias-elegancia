@@ -14,14 +14,13 @@ export const coverPageStyles = StyleSheet.create({
   coverPageImage: {
     width: 200,
     height: 200,
-    borderRadius: 100, // Changed from '100%' to numeric value
+    borderRadius: 100, // Numeric value instead of percentage
     marginBottom: 40,
     borderWidth: 4,
     borderColor: '#D4AF37',
     borderStyle: 'solid',
   },
   coverPageTitle: {
-    fontFamily: 'Times-Roman', // Changed from Playfair Display
     fontSize: 30,
     fontWeight: 'bold',
     marginBottom: 15,
@@ -29,14 +28,12 @@ export const coverPageStyles = StyleSheet.create({
     textAlign: 'center',
   },
   coverPageSubtitle: {
-    fontFamily: 'Helvetica', // Changed from Montserrat
     fontSize: 18,
     marginBottom: 40,
     color: '#666',
     textAlign: 'center',
   },
   coverPageClientName: {
-    fontFamily: 'Times-Roman', // Changed from Playfair Display
     fontSize: 20,
     marginTop: 30,
     color: '#D4AF37',

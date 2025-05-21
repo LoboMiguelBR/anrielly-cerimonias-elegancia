@@ -14,7 +14,13 @@ const DifferentialsSection: React.FC<GenericSectionProps> = ({ colors }) => {
 
   return (
     <View style={styles.differentialsSection}>
-      <Text style={{...styles.sectionTitle, color: colors.primary}}>Diferenciais</Text>
+      <Text style={{
+        ...styles.sectionTitle, 
+        color: colors.primary,
+        fontFamily: 'Times-Roman'
+      }}>
+        Diferenciais
+      </Text>
       
       {differentials.map((differential, index) => (
         <View key={index} style={styles.differentialItem}>
@@ -25,7 +31,11 @@ const DifferentialsSection: React.FC<GenericSectionProps> = ({ colors }) => {
           }}>
             {index+1}
           </Text>
-          <Text style={{...styles.differentialText, color: colors.text, fontFamily: 'Helvetica'}}>
+          <Text style={{
+            ...styles.differentialText, 
+            color: colors.text, 
+            fontFamily: 'Helvetica'
+          }}>
             {differential}
           </Text>
         </View>

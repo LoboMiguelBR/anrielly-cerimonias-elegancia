@@ -8,16 +8,24 @@ const PDFHeader: React.FC<PDFHeaderProps> = ({ proposalId, createdDate, colors }
   return (
     <View style={styles.header}>
       <View>
-        <Text style={{ fontFamily: 'Playfair Display', fontSize: 18, color: colors.primary }}>
+        <Text style={{ 
+          fontSize: 18, 
+          color: colors.primary,
+          fontFamily: 'Times-Roman'
+        }}>
           Anrielly Gomes - Mestre de Cerimonia
         </Text>
-        <Text style={{ fontSize: 10, color: colors.text }}>
+        <Text style={{ 
+          fontSize: 10, 
+          color: colors.text,
+          fontFamily: 'Helvetica' 
+        }}>
           Celebrante de Casamentos
         </Text>
       </View>
       <View style={styles.headerRight}>
-        <Text>Proposta #{proposalId.substring(0, 8)}</Text>
-        <Text>Data: {createdDate}</Text>
+        <Text style={{ fontFamily: 'Helvetica' }}>Proposta #{proposalId.substring(0, 8)}</Text>
+        <Text style={{ fontFamily: 'Helvetica' }}>Data: {createdDate}</Text>
       </View>
     </View>
   );

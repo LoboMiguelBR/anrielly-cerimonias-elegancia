@@ -17,7 +17,6 @@ export const sectionStyles = StyleSheet.create({
   dot: {
     marginRight: 5,
     color: '#9b87f5',
-    fontFamily: 'Helvetica', // Added fontFamily
   },
   priceSection: {
     marginTop: 20,
@@ -33,7 +32,6 @@ export const sectionStyles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 10,
     color: '#7E69AB',
-    fontFamily: 'Helvetica-Bold', // Added fontFamily
   },
   aboutSection: {
     padding: 10,
@@ -54,12 +52,10 @@ export const sectionStyles = StyleSheet.create({
     fontStyle: 'italic',
     fontSize: 11,
     marginBottom: 5,
-    fontFamily: 'Helvetica-Oblique', // Changed to supported font style
   },
   testimonialAuthor: {
     fontWeight: 'bold',
     fontSize: 10,
     textAlign: 'right',
-    fontFamily: 'Helvetica-Bold', // Added fontFamily
   },
 });

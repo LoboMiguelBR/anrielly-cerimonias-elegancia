@@ -11,17 +11,43 @@ const PDFFooter: React.FC<PDFFooterProps> = ({ validUntil, colors }) => {
         ...styles.footer,
         borderTopColor: colors.text,
       }}>
-        <Text style={{color: colors.text, fontFamily: 'Helvetica'}}>Esta proposta é válida até {validUntil}</Text>
+        <Text style={{
+          color: colors.text, 
+          fontFamily: 'Helvetica'
+        }}>
+          Esta proposta é válida até {validUntil}
+        </Text>
         
         <View style={styles.contactInfoFooter}>
-          <Text style={{color: colors.text, fontFamily: 'Helvetica'}}>Anrielly Gomes - Mestre de Cerimonia</Text>
-          <Text style={{ marginTop: 3, color: colors.text, fontFamily: 'Helvetica' }}>anrielly@yahoo.com.br | +55 (24) 98888-8888</Text>
-          <Text style={{ marginTop: 3, color: colors.text, fontFamily: 'Helvetica' }}>www.anriellygomes.com.br</Text>
+          <Text style={{
+            color: colors.text, 
+            fontFamily: 'Helvetica'
+          }}>
+            Anrielly Gomes - Mestre de Cerimonia
+          </Text>
+          <Text style={{ 
+            marginTop: 3, 
+            color: colors.text, 
+            fontFamily: 'Helvetica' 
+          }}>
+            anrielly@yahoo.com.br | +55 (24) 98888-8888
+          </Text>
+          <Text style={{ 
+            marginTop: 3, 
+            color: colors.text, 
+            fontFamily: 'Helvetica' 
+          }}>
+            www.anriellygomes.com.br
+          </Text>
         </View>
       </View>
       
       <Text 
-        style={{...styles.pageNumber, color: colors.text}} 
+        style={{
+          ...styles.pageNumber, 
+          color: colors.text,
+          fontFamily: 'Helvetica'
+        }} 
         render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`} 
         fixed 
       />

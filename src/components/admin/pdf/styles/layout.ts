@@ -5,7 +5,6 @@ import { StyleSheet } from '@react-pdf/renderer';
 export const layoutStyles = StyleSheet.create({
   page: {
     padding: 40,
-    fontFamily: 'Helvetica', // Changed from Montserrat
     color: '#333',
   },
   header: {
@@ -26,7 +25,6 @@ export const layoutStyles = StyleSheet.create({
   headerRight: {
     textAlign: 'right',
     fontSize: 10,
-    fontFamily: 'Helvetica', // Added fontFamily
   },
   section: {
     marginBottom: 20,
@@ -49,7 +47,6 @@ export const layoutStyles = StyleSheet.create({
     borderTopStyle: 'solid',
     fontSize: 9,
     color: '#666',
-    fontFamily: 'Helvetica', // Added fontFamily
   },
   pageNumber: {
     position: 'absolute',
@@ -57,13 +54,11 @@ export const layoutStyles = StyleSheet.create({
     right: 40,
     fontSize: 9,
     color: '#666',
-    fontFamily: 'Helvetica', // Added fontFamily
   },
   contactInfoFooter: {
     fontSize: 9,
     marginTop: 10,
     textAlign: 'center',
     color: '#333',
-    fontFamily: 'Helvetica', // Added fontFamily
   },
 });

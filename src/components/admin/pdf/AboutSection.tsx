@@ -7,17 +7,37 @@ import { GenericSectionProps } from './types';
 const AboutSection: React.FC<GenericSectionProps> = ({ colors }) => {
   return (
     <View style={styles.aboutSection}>
-      <Text style={{...styles.sectionTitle, color: colors.primary}}>Sobre Anrielly Gomes</Text>
-      <Text style={{...styles.text, color: colors.text}}>
+      <Text style={{
+        ...styles.sectionTitle, 
+        color: colors.primary,
+        fontFamily: 'Times-Roman'
+      }}>
+        Sobre Anrielly Gomes
+      </Text>
+      <Text style={{
+        ...styles.text, 
+        color: colors.text,
+        fontFamily: 'Helvetica'
+      }}>
         Sou Anrielly Gomes, apaixonada por transformar cerimônias em momentos únicos. 
         Com mais de 20 anos de experiência e uma trajetória em oratória e eventos, 
         levo emoção e leveza a cada celebração.
       </Text>
-      <Text style={{...styles.text, color: colors.text}}>
+      <Text style={{
+        ...styles.text, 
+        color: colors.text,
+        fontFamily: 'Helvetica'
+      }}>
         Minha missão é conduzir seu momento especial com profissionalismo e sensibilidade, 
         criando memórias inesquecíveis para você e seus convidados.
       </Text>
-      <Text style={{...styles.text, color: colors.accent, marginTop: 10}}>
+      <Text style={{
+        ...styles.text, 
+        color: colors.accent, 
+        marginTop: 10,
+        fontFamily: 'Helvetica',
+        fontStyle: 'italic'
+      }}>
         "Cada cerimônia é única como a história de cada casal."
       </Text>
     </View>

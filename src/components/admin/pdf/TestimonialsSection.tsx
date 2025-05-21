@@ -7,17 +7,33 @@ import { GenericSectionProps } from './types';
 const TestimonialsSection: React.FC<GenericSectionProps> = ({ colors }) => {
   return (
     <View style={styles.section}>
-      <Text style={{...styles.sectionTitle, color: colors.primary}}>O que nossos clientes dizem</Text>
+      <Text style={{
+        ...styles.sectionTitle, 
+        color: colors.primary,
+        fontFamily: 'Times-Roman'
+      }}>
+        O que nossos clientes dizem
+      </Text>
       <View style={{
         ...styles.testimonialSection,
         borderLeftColor: colors.accent,
         borderLeftStyle: 'solid',
         borderLeftWidth: 2
       }}>
-        <Text style={{...styles.testimonialQuote, color: colors.text, fontFamily: 'Helvetica-Oblique'}}>
+        <Text style={{
+          ...styles.testimonialQuote, 
+          color: colors.text, 
+          fontFamily: 'Helvetica',
+          fontStyle: 'italic'
+        }}>
           "A Anrielly trouxe magia para nossa cerimônia. Cada palavra foi escolhida com carinho e emocionou a todos os presentes."
         </Text>
-        <Text style={{...styles.testimonialAuthor, color: colors.secondary, fontFamily: 'Helvetica-Bold'}}>
+        <Text style={{
+          ...styles.testimonialAuthor, 
+          color: colors.secondary, 
+          fontFamily: 'Helvetica',
+          fontWeight: 'bold'
+        }}>
           Mariana e Pedro, Casamento em Volta Redonda
         </Text>
       </View>
@@ -27,10 +43,20 @@ const TestimonialsSection: React.FC<GenericSectionProps> = ({ colors }) => {
         borderLeftStyle: 'solid',
         borderLeftWidth: 2
       }}>
-        <Text style={{...styles.testimonialQuote, color: colors.text, fontFamily: 'Helvetica-Oblique'}}>
+        <Text style={{
+          ...styles.testimonialQuote, 
+          color: colors.text, 
+          fontFamily: 'Helvetica',
+          fontStyle: 'italic'
+        }}>
           "Profissionalismo impecável. A Anrielly conseguiu captar nossa história e transformá-la em uma narrativa emocionante."
         </Text>
-        <Text style={{...styles.testimonialAuthor, color: colors.secondary, fontFamily: 'Helvetica-Bold'}}>
+        <Text style={{
+          ...styles.testimonialAuthor, 
+          color: colors.secondary, 
+          fontFamily: 'Helvetica',
+          fontWeight: 'bold'
+        }}>
           Família Silva, Bodas de Prata
         </Text>
       </View>

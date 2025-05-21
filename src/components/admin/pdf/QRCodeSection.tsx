@@ -25,15 +25,29 @@ const QRCodeSection: React.FC<QRCodeSectionProps> = ({ url, colors }) => {
   const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodedUrl}&format=png`;
   
   return (
-    <View style={{...styles.qrCodeContainer, borderColor: colors.accent}}>
-      <View style={{...styles.qrCodeBox, borderColor: colors.accent}}>
+    <View style={{
+      ...styles.qrCodeContainer, 
+      borderColor: colors.accent
+    }}>
+      <View style={{
+        ...styles.qrCodeBox, 
+        borderColor: colors.accent
+      }}>
         {/* The Image component from react-pdf/renderer will attempt to load the QR code */}
         <Image src={qrCodeUrl} style={styles.qrCode} />
       </View>
-      <Text style={{...styles.qrCodeText, color: colors.primary, fontFamily: 'Helvetica'}}>
+      <Text style={{
+        ...styles.qrCodeText, 
+        color: colors.primary,
+        fontFamily: 'Helvetica'
+      }}>
         Escaneie para visitar nosso site e ver mais trabalhos
       </Text>
-      <Text style={{...styles.qrCodeUrl, color: colors.text, fontFamily: 'Helvetica'}}>
+      <Text style={{
+        ...styles.qrCodeUrl, 
+        color: colors.text,
+        fontFamily: 'Helvetica'
+      }}>
         {url}
       </Text>
     </View>

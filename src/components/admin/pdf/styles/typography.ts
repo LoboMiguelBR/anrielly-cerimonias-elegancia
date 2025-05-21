@@ -4,7 +4,6 @@ import { StyleSheet } from '@react-pdf/renderer';
 // Typography styles
 export const typographyStyles = StyleSheet.create({
   title: {
-    fontFamily: 'Times-Roman', // Changed from Playfair Display
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 20,
@@ -12,7 +11,6 @@ export const typographyStyles = StyleSheet.create({
     textAlign: 'center',
   },
   subtitle: {
-    fontFamily: 'Times-Roman', // Changed from Playfair Display
     fontSize: 16,
     marginBottom: 5,
     color: '#7E69AB',
@@ -20,7 +18,6 @@ export const typographyStyles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 14,
-    fontFamily: 'Times-Roman', // Changed from Playfair Display
     fontWeight: 'bold',
     marginBottom: 10,
     padding: 5,
@@ -33,22 +30,19 @@ export const typographyStyles = StyleSheet.create({
     fontSize: 11,
     marginBottom: 5,
     lineHeight: 1.5,
-    fontFamily: 'Helvetica', // Added fontFamily
   },
   textBold: {
     fontWeight: 'bold',
-    fontFamily: 'Helvetica-Bold', // Added fontFamily
   },
   signature: {
     marginTop: 50,
     borderTopWidth: 1,
     borderTopColor: '#999',
     borderTopStyle: 'solid',
-    width: 250, // Changed from 60% to fixed width
+    width: 250,
     marginHorizontal: 'auto',
     paddingTop: 5,
     textAlign: 'center',
     fontSize: 10,
-    fontFamily: 'Helvetica', // Added fontFamily
   },
 });

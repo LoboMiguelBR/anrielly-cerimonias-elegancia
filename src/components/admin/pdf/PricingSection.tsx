@@ -8,13 +8,35 @@ import { PricingSectionProps } from './types';
 const PricingSection: React.FC<PricingSectionProps> = ({ totalPrice, paymentTerms, colors }) => {
   return (
     <View style={styles.priceSection}>
-      <Text style={{...styles.totalPrice, color: colors.primary}}>
+      <Text style={{
+        ...styles.totalPrice, 
+        color: colors.primary,
+        fontFamily: 'Helvetica',
+        fontWeight: 'bold'
+      }}>
         Valor Total: R$ {formatCurrency(totalPrice)}
       </Text>
-      <Text style={{...styles.text, color: colors.text}}>
-        <Text style={{...styles.textBold, color: colors.primary}}>Condições de Pagamento:</Text>
+      <Text style={{
+        ...styles.text, 
+        color: colors.text,
+        fontFamily: 'Helvetica'
+      }}>
+        <Text style={{
+          ...styles.textBold, 
+          color: colors.primary,
+          fontFamily: 'Helvetica',
+          fontWeight: 'bold'
+        }}>
+          Condições de Pagamento:
+        </Text>
       </Text>
-      <Text style={{...styles.text, color: colors.text}}>{paymentTerms}</Text>
+      <Text style={{
+        ...styles.text, 
+        color: colors.text,
+        fontFamily: 'Helvetica'
+      }}>
+        {paymentTerms}
+      </Text>
     </View>
   );
 };

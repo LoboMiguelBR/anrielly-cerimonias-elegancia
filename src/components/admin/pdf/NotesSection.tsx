@@ -9,8 +9,20 @@ const NotesSection: React.FC<NotesSectionProps> = ({ notes, colors }) => {
   
   return (
     <View style={styles.section}>
-      <Text style={{...styles.sectionTitle, color: colors.primary}}>Observações</Text>
-      <Text style={{...styles.text, color: colors.text}}>{notes}</Text>
+      <Text style={{
+        ...styles.sectionTitle, 
+        color: colors.primary,
+        fontFamily: 'Times-Roman'
+      }}>
+        Observações
+      </Text>
+      <Text style={{
+        ...styles.text, 
+        color: colors.text,
+        fontFamily: 'Helvetica'
+      }}>
+        {notes}
+      </Text>
     </View>
   );
 };
