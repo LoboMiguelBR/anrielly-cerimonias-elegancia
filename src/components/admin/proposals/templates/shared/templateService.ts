@@ -36,19 +36,52 @@ export async function fetchTemplates(): Promise<ProposalTemplateData[]> {
     // Map the database structure to our type
     const templates = data.map((template) => {
       try {
-        const content = typeof template.content === 'string' 
-          ? JSON.parse(template.content) 
-          : template.content;
+        // FIX: Handle content properly based on its actual type
+        let parsedContent;
+        
+        if (typeof template.content === 'string') {
+          try {
+            // Attempt to parse as JSON if it looks like JSON (starts with { or [)
+            if ((template.content.trim().startsWith('{') || template.content.trim().startsWith('['))) {
+              parsedContent = JSON.parse(template.content);
+            } else {
+              // Not JSON, use as is (probably markdown or text)
+              console.log('Template content is not JSON, using as text:', template.content.substring(0, 30) + '...');
+              parsedContent = {
+                colors: defaultTemplate.colors,
+                fonts: defaultTemplate.fonts,
+                showQrCode: true,
+                showTestimonials: true,
+                showDifferentials: true,
+                showAboutSection: true,
+                textContent: template.content // Store as text content
+              };
+            }
+          } catch (parseError) {
+            console.warn('Failed to parse template content, using default:', parseError);
+            parsedContent = {
+              colors: defaultTemplate.colors,
+              fonts: defaultTemplate.fonts,
+              showQrCode: true,
+              showTestimonials: true,
+              showDifferentials: true,
+              showAboutSection: true
+            };
+          }
+        } else {
+          // Content is already an object
+          parsedContent = template.content;
+        }
           
         return {
           id: template.id,
           name: template.name,
-          ...content,
+          ...parsedContent,
           created_at: template.created_at,
           updated_at: template.updated_at
         };
       } catch (e) {
-        console.error('Failed to parse template content:', e);
+        console.error('Failed to process template:', e);
         return null;
       }
     }).filter(Boolean) as ProposalTemplateData[];

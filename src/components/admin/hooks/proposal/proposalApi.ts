@@ -44,6 +44,7 @@ export const fetchProposal = async (id: string): Promise<ProposalData | null> =>
 // Create or update a proposal
 export const saveProposal = async (proposal: Omit<ProposalData, 'id' | 'created_at'> & { id?: string }): Promise<string | null> => {
   try {
+    // FIX: Handle empty template_id properly (convert to null)
     const newProposal = {
       client_name: proposal.client_name,
       client_email: proposal.client_email,
@@ -58,7 +59,8 @@ export const saveProposal = async (proposal: Omit<ProposalData, 'id' | 'created_
       notes: proposal.notes,
       quote_request_id: proposal.quote_request_id,
       validity_date: proposal.validity_date,
-      template_id: proposal.template_id || '',
+      // FIX: Convert empty string to null for UUID column
+      template_id: proposal.template_id && proposal.template_id !== '' && proposal.template_id !== 'default' ? proposal.template_id : null,
       status: proposal.status || 'draft',
     };
 

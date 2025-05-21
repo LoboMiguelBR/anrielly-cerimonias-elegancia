@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { ProposalFormData, ProposalData, QuoteRequest } from './types';
 import { defaultFormData } from './constants';
@@ -161,22 +160,37 @@ export function useProposalForm(
   const saveProposalHandler = async (): Promise<string | null> => {
     setIsSaving(true);
     
-    // Convert string values to appropriate types and format for the API
-    const proposalData = {
-      ...formData,
-      total_price: parseFloat(formData.total_price) || 0, // Convert string to number
-      template_id: selectedTemplate.id !== 'default' ? selectedTemplate.id : undefined
-    };
-    
-    const savedId = await saveProposal(proposalData);
-    
-    if (savedId && !isEditMode) {
-      setProposalId(savedId);
-      setIsEditMode(true);
+    try {
+      // Convert string values to appropriate types and format for the API
+      const proposalData = {
+        ...formData,
+        total_price: parseFloat(formData.total_price) || 0, // Convert string to number
+        // FIX: Properly handle template_id to avoid empty string for UUID field
+        template_id: selectedTemplate.id && selectedTemplate.id !== 'default' ? selectedTemplate.id : null
+      };
+      
+      const savedId = await saveProposal(proposalData);
+      
+      if (!savedId) {
+        toast.error('Não foi possível salvar a proposta');
+        throw new Error('Não foi possível salvar a proposta');
+      }
+      
+      console.log("Proposal saved with ID:", savedId);
+      
+      if (!isEditMode) {
+        setProposalId(savedId);
+        setIsEditMode(true);
+      }
+      
+      return savedId;
+    } catch (error: any) {
+      console.error('Error saving proposal:', error);
+      toast.error(`Erro ao salvar proposta: ${error.message}`);
+      return null;
+    } finally {
+      setIsSaving(false);
     }
-    
-    setIsSaving(false);
-    return savedId;
   };
 
   const deleteProposalHandler = async (): Promise<boolean> => {

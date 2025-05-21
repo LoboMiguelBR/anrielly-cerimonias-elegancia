@@ -71,6 +71,22 @@ const ProposalGenerator: React.FC<ProposalGeneratorProps> = ({
 
   const handleGeneratePDF = async () => {
     try {
+      // FIX: Validate required data before attempting to save
+      if (!formData.client_name || !formData.client_name.trim()) {
+        toast.error("Nome do cliente é obrigatório");
+        return;
+      }
+
+      if (!formData.services || formData.services.filter(s => s.included).length === 0) {
+        toast.error("Selecione pelo menos um serviço");
+        return;
+      }
+
+      if (!formData.total_price || parseFloat(formData.total_price) <= 0) {
+        toast.error("Valor total deve ser maior que zero");
+        return;
+      }
+      
       console.log("Generating PDF, formData:", formData);
       setGeneratingPDF(true);
       
@@ -99,7 +115,8 @@ const ProposalGenerator: React.FC<ProposalGeneratorProps> = ({
         validity_date: formData.validity_date,
         created_at: new Date().toISOString(),
         quote_request_id: formData.quote_request_id,
-        template_id: selectedTemplate.id !== 'default' ? selectedTemplate.id : undefined
+        // FIX: Properly handle template_id to avoid empty string
+        template_id: selectedTemplate.id !== 'default' ? selectedTemplate.id : null
       };
       
       console.log("Created proposalForPDF:", proposalForPDF);
