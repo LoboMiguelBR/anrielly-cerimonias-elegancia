@@ -63,7 +63,7 @@ const ProposalPDF: React.FC<ProposalProps> = ({ proposal, template = defaultTemp
     ...styles,
     coverPage: {
       ...styles.coverPage,
-      background: template.colors.background,
+      backgroundColor: template.colors.background,
     },
     title: {
       ...styles.title,
@@ -110,7 +110,10 @@ const ProposalPDF: React.FC<ProposalProps> = ({ proposal, template = defaultTemp
           colors={template.colors}
         />
 
-        <View style={{...customStyles.divider, backgroundColor: template.colors.primary}} />
+        <View style={{
+          ...customStyles.divider, 
+          borderBottomColor: template.colors.primary,
+        }} />
 
         <ClientInfoSection 
           client={safeProposal} 
@@ -177,7 +180,11 @@ const ProposalPDF: React.FC<ProposalProps> = ({ proposal, template = defaultTemp
           />
         )}
         
-        <View style={{...customStyles.signature, borderColor: template.colors.primary}}>
+        <View style={{
+          ...customStyles.signature, 
+          borderTopColor: template.colors.primary,
+          width: 250, // Fixed width instead of percentage
+        }}>
           <Text style={{...customStyles.text, color: template.colors.text}}>Assinatura do Cliente</Text>
         </View>
         

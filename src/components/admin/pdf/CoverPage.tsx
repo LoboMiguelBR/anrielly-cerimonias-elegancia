@@ -53,7 +53,7 @@ const CoverPage: React.FC<CoverPageProps> = ({
       flexDirection: 'column',
       justifyContent: 'center',
       alignItems: 'center',
-      height: '100%',
+      height: '100%', // This is fine as it's a special case in react-pdf
       padding: 30,
       zIndex: 10
     },
@@ -76,8 +76,7 @@ const CoverPage: React.FC<CoverPageProps> = ({
       marginTop: 60,
       marginBottom: 40,
       padding: 20,
-      width: '100%',
-      maxWidth: 400,
+      width: 400, // Fixed width instead of percentage
       borderWidth: 1,
       borderColor: colors.secondary,
       borderRadius: 4,
@@ -90,11 +89,11 @@ const CoverPage: React.FC<CoverPageProps> = ({
     },
     label: {
       fontWeight: 'bold',
-      width: '40%',
+      width: 120, // Fixed width instead of percentage
       color: colors.primary,
     },
     value: {
-      width: '60%',
+      width: 180, // Fixed width instead of percentage
       color: colors.text,
     },
     price: {

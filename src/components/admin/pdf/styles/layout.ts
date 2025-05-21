@@ -10,7 +10,9 @@ export const layoutStyles = StyleSheet.create({
   },
   header: {
     marginBottom: 20,
-    borderBottom: '2px solid #D4AF37',
+    borderBottomWidth: 2,
+    borderBottomColor: '#D4AF37',
+    borderBottomStyle: 'solid',
     paddingBottom: 15,
     display: 'flex',
     flexDirection: 'row',
@@ -29,7 +31,9 @@ export const layoutStyles = StyleSheet.create({
     marginBottom: 20,
   },
   divider: {
-    borderBottom: '1px solid #E6E6FA',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E6E6FA',
+    borderBottomStyle: 'solid',
     marginVertical: 10,
   },
   footer: {
@@ -39,7 +43,9 @@ export const layoutStyles = StyleSheet.create({
     right: 0,
     textAlign: 'center',
     paddingTop: 10,
-    borderTop: '1px solid #ccc',
+    borderTopWidth: 1,
+    borderTopColor: '#ccc',
+    borderTopStyle: 'solid',
     fontSize: 9,
     color: '#666',
   },

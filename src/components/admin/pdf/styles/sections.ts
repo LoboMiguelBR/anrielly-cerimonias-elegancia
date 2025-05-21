@@ -23,7 +23,9 @@ export const sectionStyles = StyleSheet.create({
     padding: 15,
     backgroundColor: '#f3f4f6',
     borderRadius: 5,
-    borderTop: '2px solid #D4AF37',
+    borderTopWidth: 2,
+    borderTopColor: '#D4AF37',
+    borderTopStyle: 'solid',
   },
   totalPrice: {
     fontSize: 16,
@@ -42,7 +44,9 @@ export const sectionStyles = StyleSheet.create({
     backgroundColor: '#f0f0f8',
     borderRadius: 5,
     marginBottom: 20,
-    borderLeft: '3px solid #D4AF37',
+    borderLeftWidth: 3,
+    borderLeftColor: '#D4AF37',
+    borderLeftStyle: 'solid',
   },
   testimonialQuote: {
     fontStyle: 'italic',

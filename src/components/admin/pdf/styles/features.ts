@@ -14,7 +14,9 @@ export const featureStyles = StyleSheet.create({
   qrCodeBox: {
     width: 80,
     height: 80,
-    border: '1px solid #000',
+    borderWidth: 1,
+    borderColor: '#000',
+    borderStyle: 'solid',
     padding: 5,
     backgroundColor: '#fff',
     display: 'flex',
@@ -50,7 +52,7 @@ export const featureStyles = StyleSheet.create({
   differentialNumber: {
     width: 22,
     height: 22,
-    borderRadius: '50%',
+    borderRadius: 11, // Changed from '50%' to 11 (half of width/height)
     backgroundColor: '#7E69AB',
     color: 'white',
     fontSize: 12,
@@ -69,7 +71,9 @@ export const featureStyles = StyleSheet.create({
     marginTop: 12,
     marginBottom: 12,
     paddingLeft: 16,
-    borderLeft: '2px solid #7E69AB',
+    borderLeftWidth: 2,
+    borderLeftColor: '#7E69AB',
+    borderLeftStyle: 'solid',
   },
   testimonialQuote: {
     fontSize: 10,

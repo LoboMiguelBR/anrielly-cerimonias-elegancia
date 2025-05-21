@@ -9,14 +9,15 @@ export const coverPageStyles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 60,
-    height: '100%',
+    height: '100%', // This is a special case that's supported
   },
   coverPageImage: {
     width: 200,
     height: 200,
-    borderRadius: 100,
+    borderRadius: 100, // Changed from '100%' to 100
     marginBottom: 40,
-    border: '4px solid #D4AF37',
+    borderWidth: 4,
+    borderColor: '#D4AF37',
   },
   coverPageTitle: {
     fontFamily: 'Playfair Display',

@@ -8,7 +8,12 @@ const TestimonialsSection: React.FC<GenericSectionProps> = ({ colors }) => {
   return (
     <View style={styles.section}>
       <Text style={{...styles.sectionTitle, color: colors.primary}}>O que nossos clientes dizem</Text>
-      <View style={styles.testimonialSection}>
+      <View style={{
+        ...styles.testimonialSection,
+        borderLeftColor: colors.accent,
+        borderLeftStyle: 'solid',
+        borderLeftWidth: 2
+      }}>
         <Text style={{...styles.testimonialQuote, color: colors.text}}>
           "A Anrielly trouxe magia para nossa cerimônia. Cada palavra foi escolhida com carinho e emocionou a todos os presentes."
         </Text>
@@ -16,7 +21,12 @@ const TestimonialsSection: React.FC<GenericSectionProps> = ({ colors }) => {
           Mariana e Pedro, Casamento em Volta Redonda
         </Text>
       </View>
-      <View style={styles.testimonialSection}>
+      <View style={{
+        ...styles.testimonialSection,
+        borderLeftColor: colors.accent,
+        borderLeftStyle: 'solid',
+        borderLeftWidth: 2
+      }}>
         <Text style={{...styles.testimonialQuote, color: colors.text}}>
           "Profissionalismo impecável. A Anrielly conseguiu captar nossa história e transformá-la em uma narrativa emocionante."
         </Text>

@@ -25,7 +25,9 @@ export const typographyStyles = StyleSheet.create({
     marginBottom: 10,
     padding: 5,
     backgroundColor: '#E6E6FA',
-    borderLeft: '4px solid #9b87f5',
+    borderLeftWidth: 4,
+    borderLeftColor: '#9b87f5',
+    borderLeftStyle: 'solid',
   },
   text: {
     fontSize: 11,
@@ -37,8 +39,10 @@ export const typographyStyles = StyleSheet.create({
   },
   signature: {
     marginTop: 50,
-    borderTop: '1px solid #999',
-    width: '60%',
+    borderTopWidth: 1,
+    borderTopColor: '#999',
+    borderTopStyle: 'solid',
+    width: 250, // Changed from 60% to fixed width
     marginHorizontal: 'auto',
     paddingTop: 5,
     textAlign: 'center',

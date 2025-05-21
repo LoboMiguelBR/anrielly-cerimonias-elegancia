@@ -7,7 +7,10 @@ import { PDFFooterProps } from './types';
 const PDFFooter: React.FC<PDFFooterProps> = ({ validUntil, colors }) => {
   return (
     <>
-      <View style={styles.footer}>
+      <View style={{
+        ...styles.footer,
+        borderTopColor: colors.text,
+      }}>
         <Text style={{color: colors.text}}>Esta proposta é válida até {validUntil}</Text>
         
         <View style={styles.contactInfoFooter}>
