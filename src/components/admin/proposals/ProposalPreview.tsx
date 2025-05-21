@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { ProposalData } from '../hooks/proposal';
 import { ProposalTemplateData } from './templates/shared/types';
@@ -10,7 +9,7 @@ import {
   PDFPreviewContent,
   PreviewActions 
 } from './preview';
-import { storage } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client';
 import { v4 as uuidv4 } from 'uuid';
 import { toast } from 'sonner';
 
@@ -102,7 +101,8 @@ const ProposalPreview: React.FC<ProposalPreviewProps> = ({
         const filePath = `proposals/${fileName}`;
         
         // Upload the PDF to Supabase Storage
-        const { data: uploadData, error: uploadError } = await storage
+        const { data: uploadData, error: uploadError } = await supabase
+          .storage
           .from('proposals')
           .upload(filePath, blob, {
             contentType: 'application/pdf',
@@ -116,7 +116,8 @@ const ProposalPreview: React.FC<ProposalPreviewProps> = ({
         }
         
         // Get the public URL
-        const { data: urlData } = await storage
+        const { data: urlData } = await supabase
+          .storage
           .from('proposals')
           .getPublicUrl(filePath);
           

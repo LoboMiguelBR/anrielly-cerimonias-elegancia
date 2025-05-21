@@ -2,10 +2,7 @@
 import React from 'react';
 import { View, Text, Image, Svg, Path } from '@react-pdf/renderer';
 import { styles } from './styles';
-
-interface QRCodeSectionProps {
-  url: string;
-}
+import { QRCodeSectionProps } from './types';
 
 // Simple QR placeholder for when actual QR code can't be rendered
 const QRPlaceholder = () => (
@@ -22,21 +19,21 @@ const QRPlaceholder = () => (
  * QRCodeSection component for displaying a QR code in a PDF document
  * Uses a reliable QR code generation service with proper error handling
  */
-const QRCodeSection: React.FC<QRCodeSectionProps> = ({ url }) => {
+const QRCodeSection: React.FC<QRCodeSectionProps> = ({ url, colors }) => {
   // Using a reliable QR code service with high compatibility
   const encodedUrl = encodeURIComponent(url);
   const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodedUrl}&format=png`;
   
   return (
-    <View style={styles.qrCodeContainer}>
-      <View style={styles.qrCodeBox}>
+    <View style={{...styles.qrCodeContainer, borderColor: colors.accent}}>
+      <View style={{...styles.qrCodeBox, borderColor: colors.accent}}>
         {/* The Image component from react-pdf/renderer will attempt to load the QR code */}
         <Image src={qrCodeUrl} style={styles.qrCode} />
       </View>
-      <Text style={styles.qrCodeText}>
+      <Text style={{...styles.qrCodeText, color: colors.primary}}>
         Escaneie para visitar nosso site e ver mais trabalhos
       </Text>
-      <Text style={styles.qrCodeUrl}>{url}</Text>
+      <Text style={{...styles.qrCodeUrl, color: colors.text}}>{url}</Text>
     </View>
   );
 };

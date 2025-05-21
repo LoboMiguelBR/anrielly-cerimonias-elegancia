@@ -67,11 +67,14 @@ export async function saveTemplate(template: Omit<ProposalTemplateData, 'id' | '
   try {
     const { name, ...contentData } = template;
     
+    // Convert the contentData to a JSON string for storage
+    const contentJson = JSON.stringify(contentData);
+    
     const { data, error } = await supabase
       .from('proposal_templates')
       .insert({
         name: name,
-        content: contentData,
+        content: contentJson,
       })
       .select('id')
       .single();
@@ -95,11 +98,14 @@ export async function updateTemplate(
   try {
     const { name, ...contentData } = template;
     
+    // Convert the contentData to a JSON string for storage
+    const contentJson = JSON.stringify(contentData);
+    
     const { error } = await supabase
       .from('proposal_templates')
       .update({
         name: name,
-        content: contentData,
+        content: contentJson,
         updated_at: new Date().toISOString()
       })
       .eq('id', templateId);

@@ -3,22 +3,18 @@ import React from 'react';
 import { View, Text } from '@react-pdf/renderer';
 import { styles } from './styles';
 import { formatCurrency } from '@/lib/utils';
+import { PricingSectionProps } from './types';
 
-interface PricingSectionProps {
-  totalPrice: number;
-  paymentTerms: string;
-}
-
-const PricingSection: React.FC<PricingSectionProps> = ({ totalPrice, paymentTerms }) => {
+const PricingSection: React.FC<PricingSectionProps> = ({ totalPrice, paymentTerms, colors }) => {
   return (
     <View style={styles.priceSection}>
-      <Text style={styles.totalPrice}>
+      <Text style={{...styles.totalPrice, color: colors.primary}}>
         Valor Total: R$ {formatCurrency(totalPrice)}
       </Text>
-      <Text style={styles.text}>
-        <Text style={styles.textBold}>Condições de Pagamento:</Text>
+      <Text style={{...styles.text, color: colors.text}}>
+        <Text style={{...styles.textBold, color: colors.primary}}>Condições de Pagamento:</Text>
       </Text>
-      <Text style={styles.text}>{paymentTerms}</Text>
+      <Text style={{...styles.text, color: colors.text}}>{paymentTerms}</Text>
     </View>
   );
 };

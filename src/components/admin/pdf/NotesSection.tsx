@@ -2,18 +2,15 @@
 import React from 'react';
 import { View, Text } from '@react-pdf/renderer';
 import { styles } from './styles';
+import { NotesSectionProps } from './types';
 
-interface NotesSectionProps {
-  notes: string | null;
-}
-
-const NotesSection: React.FC<NotesSectionProps> = ({ notes }) => {
+const NotesSection: React.FC<NotesSectionProps> = ({ notes, colors }) => {
   if (!notes) return null;
   
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>Observações</Text>
-      <Text style={styles.text}>{notes}</Text>
+      <Text style={{...styles.sectionTitle, color: colors.primary}}>Observações</Text>
+      <Text style={{...styles.text, color: colors.text}}>{notes}</Text>
     </View>
   );
 };

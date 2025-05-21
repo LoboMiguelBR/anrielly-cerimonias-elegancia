@@ -1,10 +1,6 @@
 
 import { Service } from '../hooks/proposal/types';
 
-// Re-export the Service type
-export type { Service };
-
-// Re-export the ProposalData type if it's needed in other files
 export interface ProposalData {
   id: string;
   client_name: string;
@@ -20,4 +16,75 @@ export interface ProposalData {
   quote_request_id: string | null;
   validity_date: string;
   created_at?: string;
+  template_id?: string;
+  status?: string;
+  pdf_url?: string;
+}
+
+export interface Colors {
+  primary: string;
+  secondary: string;
+  accent: string;
+  text: string;
+  background: string;
+}
+
+export interface PDFHeaderProps {
+  proposalId: string;
+  createdDate: string;
+  colors: Colors;
+}
+
+export interface PDFTitleProps {
+  eventType: string;
+  colors: Colors;
+}
+
+export interface ClientInfoSectionProps {
+  client: Pick<ProposalData, 'client_name' | 'client_email' | 'client_phone'>;
+  colors: Colors;
+}
+
+export interface EventDetailsSectionProps {
+  eventType: string;
+  eventDate: string;
+  eventLocation: string;
+  colors: Colors;
+}
+
+export interface ServicesSectionProps {
+  services: Service[];
+  colors: Colors;
+}
+
+export interface PricingSectionProps {
+  totalPrice: number;
+  paymentTerms: string;
+  colors: Colors;
+}
+
+export interface NotesSectionProps {
+  notes: string | null;
+  colors: Colors;
+}
+
+export interface PDFFooterProps {
+  validUntil: string;
+  colors: Colors;
+}
+
+export interface QRCodeSectionProps {
+  url: string;
+  colors: Colors;
+}
+
+export interface GenericSectionProps {
+  colors: Colors;
+}
+
+export interface Service {
+  name: string;
+  included: boolean;
+  description?: string;
+  price?: number;
 }

@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { ProposalFormData, ProposalData } from './types';
 import { toast } from 'sonner';
@@ -37,7 +36,7 @@ export async function fetchProposal(proposalId: string): Promise<ProposalData | 
         quote_request_id: data.quote_request_id,
         validity_date: data.validity_date,
         created_at: data.created_at,
-        template_id: data.template_id,
+        template_id: data.template_id || undefined,
         status: data.status,
         pdf_url: data.pdf_url
       };
