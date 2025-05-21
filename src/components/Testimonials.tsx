@@ -1,9 +1,8 @@
-
 import { useRef, useState } from 'react';
 import useTestimonialsData from './testimonials/useTestimonialsData';
 import EnhancedTestimonialCarousel from './testimonials/EnhancedTestimonialCarousel';
 import { Button } from "@/components/ui/button";
-import TestimonialSubmissionModal from './testimonials/TestimonialSubmissionModal';
+import { TestimonialSubmissionModal } from './testimonials';
 
 const Testimonials = () => {
   const sectionRef = useRef<HTMLElement>(null);
