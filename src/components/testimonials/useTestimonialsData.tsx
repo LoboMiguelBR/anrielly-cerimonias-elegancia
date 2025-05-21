@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { getStaticTestimonials } from './StaticTestimonials';
+import { fetchApprovedTestimonials } from '@/components/admin/hooks/testimonials/api';
 
 export interface Testimonial {
   id: string;
@@ -25,26 +26,13 @@ export const useTestimonialsData = () => {
       
       console.log('[useTestimonialsData] Buscando depoimentos aprovados do banco...');
       
-      const { data, error } = await supabase
-        .from('testimonials')
-        .select('*')
-        .eq('status', 'approved')
-        .order('order_index');
-
-      if (error) {
-        throw error;
-      }
+      // Use the shared API function to fetch approved testimonials
+      const data = await fetchApprovedTestimonials();
       
       console.log('[useTestimonialsData] Depoimentos aprovados carregados:', data?.length);
       
       if (data && data.length > 0) {
-        // Cast the status field to the correct type
-        const typedData = data.map(item => ({
-          ...item,
-          status: item.status as 'pending' | 'approved' | 'rejected'
-        })) as Testimonial[];
-        
-        setTestimonials(typedData);
+        setTestimonials(data);
         console.log('[useTestimonialsData] Usando depoimentos aprovados do banco:', data);
       } else {
         // Fallback para depoimentos estáticos quando não há dados aprovados no banco

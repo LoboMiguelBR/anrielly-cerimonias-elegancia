@@ -86,7 +86,8 @@ const TestimonialSubmissionModal = ({ isOpen, onClose }: TestimonialSubmissionMo
           .from('testimonials')
           .upload(fileName, uploadImage, {
             cacheControl: '3600',
-            upsert: false
+            upsert: false,
+            contentType: uploadImage.type // Adicionado: Garante que o tipo de conteúdo seja corretamente definido
           });
         
         if (uploadError) throw uploadError;

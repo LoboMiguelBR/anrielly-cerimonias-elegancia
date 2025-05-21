@@ -9,7 +9,7 @@ import {
   deleteTestimonial as apiDeleteTestimonial,
   updateTestimonialStatus as apiUpdateTestimonialStatus,
   ensureTestimonialsBucketExists
-} from './testimonialsApi';
+} from './api';
 
 export function useTestimonials() {
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
