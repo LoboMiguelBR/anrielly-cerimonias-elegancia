@@ -1,187 +1,137 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { ProposalFormData, ProposalData } from './types';
-import { toast } from 'sonner';
-import { Json } from '@/integrations/supabase/types';
+import { ProposalData, Service } from './types';
 
-export async function fetchProposal(proposalId: string): Promise<ProposalData | null> {
+// Fetch a specific proposal
+export const fetchProposal = async (id: string): Promise<ProposalData | null> => {
   try {
     const { data, error } = await supabase
       .from('proposals')
       .select('*')
-      .eq('id', proposalId)
+      .eq('id', id)
       .single();
-    
-    if (error) {
-      console.error('Erro ao carregar proposta:', error);
-      toast.error("Erro ao carregar proposta");
-      return null;
-    }
-    
-    if (data) {
-      // Use type assertion to properly cast services from Json to Service[]
-      const typedServices = (data.services as unknown) as ProposalData['services'];
       
-      return {
-        id: data.id,
-        client_name: data.client_name,
-        client_email: data.client_email,
-        client_phone: data.client_phone,
-        event_type: data.event_type,
-        event_date: data.event_date,
-        event_location: data.event_location,
-        services: typedServices,
-        total_price: data.total_price,
-        payment_terms: data.payment_terms,
-        notes: data.notes || null,
-        quote_request_id: data.quote_request_id,
-        validity_date: data.validity_date,
-        created_at: data.created_at,
-        template_id: data.template_id || undefined,
-        status: data.status,
-        pdf_url: data.pdf_url
-      };
-    }
-    
-    return null;
-  } catch (error: any) {
-    console.error('Erro ao buscar proposta:', error);
-    toast.error(`Erro ao buscar proposta: ${error.message}`);
-    return null;
-  }
-}
-
-export async function saveProposalToDb(proposalData: ProposalFormData, proposalId?: string): Promise<string | null> {
-  try {
-    // Filter only included services
-    const includedServices = proposalData.services.filter(service => service.included);
-    
-    const dbProposalData = {
-      client_name: proposalData.client_name,
-      client_email: proposalData.client_email,
-      client_phone: proposalData.client_phone,
-      event_type: proposalData.event_type,
-      event_date: proposalData.event_date,
-      event_location: proposalData.event_location,
-      services: includedServices as unknown as Json, // Type cast to satisfy Supabase's Json type
-      total_price: parseFloat(proposalData.total_price) || 0,
-      payment_terms: proposalData.payment_terms,
-      notes: proposalData.notes || null,
-      quote_request_id: proposalData.quote_request_id,
-      validity_date: proposalData.validity_date,
-      template_id: proposalData.template_id || undefined,
-      status: proposalData.status || 'draft'
-    };
-    
-    let data;
-    let error;
-    
-    if (proposalId) {
-      // Update existing proposal
-      const result = await supabase
-        .from('proposals')
-        .update(dbProposalData)
-        .eq('id', proposalId)
-        .select('id')
-        .single();
-        
-      data = result.data;
-      error = result.error;
-    } else {
-      // Insert new proposal
-      const result = await supabase
-        .from('proposals')
-        .insert(dbProposalData)
-        .select('id')
-        .single();
-        
-      data = result.data;
-      error = result.error;
-    }
-    
     if (error) throw error;
+    if (!data) return null;
     
-    // Update quote request status if it's a new proposal
-    if (!proposalId && proposalData.quote_request_id) {
-      const { error: quoteError } = await supabase
-        .from('quote_requests')
-        .update({ status: 'proposta' })
-        .eq('id', proposalData.quote_request_id);
-      
-      if (quoteError) {
-        console.error('Erro ao atualizar status do orçamento', quoteError);
-      }
-    }
-    
-    toast.success(proposalId ? "Proposta atualizada com sucesso!" : "Proposta criada com sucesso!");
-    
-    return data?.id || proposalId || null;
-  } catch (error: any) {
-    console.error('Erro ao salvar proposta:', error);
-    toast.error(`Erro ao salvar proposta: ${error.message}`);
+    return {
+      id: data.id,
+      client_name: data.client_name,
+      client_email: data.client_email,
+      client_phone: data.client_phone,
+      event_type: data.event_type,
+      event_date: data.event_date,
+      event_location: data.event_location,
+      services: data.services as Service[],
+      total_price: data.total_price,
+      payment_terms: data.payment_terms,
+      notes: data.notes,
+      quote_request_id: data.quote_request_id,
+      validity_date: data.validity_date,
+      created_at: data.created_at,
+      template_id: data.template_id || '',
+      status: data.status,
+      pdf_url: data.pdf_url
+    };
+  } catch (error) {
+    console.error('Error fetching proposal:', error);
     return null;
   }
-}
+};
 
-export async function deleteProposalFromDb(proposalId: string): Promise<boolean> {
+// Create or update a proposal
+export const saveProposal = async (proposal: Omit<ProposalData, 'id' | 'created_at'> & { id?: string }): Promise<string | null> => {
+  try {
+    const newProposal = {
+      client_name: proposal.client_name,
+      client_email: proposal.client_email,
+      client_phone: proposal.client_phone,
+      event_type: proposal.event_type,
+      event_date: proposal.event_date,
+      event_location: proposal.event_location,
+      services: proposal.services,
+      total_price: proposal.total_price,
+      payment_terms: proposal.payment_terms,
+      notes: proposal.notes,
+      quote_request_id: proposal.quote_request_id,
+      validity_date: proposal.validity_date,
+      template_id: proposal.template_id || '',
+      status: proposal.status || 'draft',
+    };
+
+    if (proposal.id) {
+      // Update existing proposal
+      const { error } = await supabase
+        .from('proposals')
+        .update(newProposal)
+        .eq('id', proposal.id);
+        
+      if (error) throw error;
+      return proposal.id;
+    } else {
+      // Create new proposal
+      const { data, error } = await supabase
+        .from('proposals')
+        .insert([newProposal])
+        .select('id');
+        
+      if (error) throw error;
+      return data?.[0]?.id || null;
+    }
+  } catch (error) {
+    console.error('Error saving proposal:', error);
+    return null;
+  }
+};
+
+// Delete a proposal
+export const deleteProposal = async (id: string): Promise<boolean> => {
   try {
     const { error } = await supabase
       .from('proposals')
       .delete()
-      .eq('id', proposalId);
+      .eq('id', id);
       
     if (error) throw error;
-    
-    toast.success("Proposta excluída com sucesso!");
     return true;
-  } catch (error: any) {
-    console.error('Erro ao excluir proposta:', error);
-    toast.error(`Erro ao excluir proposta: ${error.message}`);
+  } catch (error) {
+    console.error('Error deleting proposal:', error);
     return false;
   }
-}
+};
 
-export async function sendProposalByEmail(proposal: ProposalData): Promise<boolean> {
+// Generate and store a PDF for a proposal
+export const generateProposalPDF = async (proposalId: string, pdfBlob: Blob): Promise<string | null> => {
   try {
-    if (!proposal.pdf_url) {
-      toast.error("É necessário gerar o PDF antes de enviar por email");
-      return false;
-    }
+    // Upload PDF to storage
+    const filePath = `proposals/${proposalId}.pdf`;
+    const { error: uploadError } = await supabase.storage
+      .from('proposals')
+      .upload(filePath, pdfBlob, {
+        contentType: 'application/pdf',
+        upsert: true,
+      });
 
-    const { data, error } = await supabase.functions.invoke('send-proposal', {
-      body: {
-        proposalId: proposal.id,
-        to: proposal.client_email,
-        clientName: proposal.client_name,
-        pdfUrl: proposal.pdf_url
-      }
-    });
+    if (uploadError) throw uploadError;
 
-    if (error) {
-      throw new Error(error.message);
-    }
+    // Get public URL
+    const { data } = supabase.storage
+      .from('proposals')
+      .getPublicUrl(filePath);
 
-    toast.success("Proposta enviada com sucesso por email!");
-    return true;
-  } catch (error: any) {
-    console.error('Erro ao enviar proposta por email:', error);
-    toast.error(`Erro ao enviar: ${error.message}`);
-    return false;
-  }
-}
+    const pdfUrl = data.publicUrl;
 
-export async function savePdfUrl(proposalId: string, pdfUrl: string): Promise<boolean> {
-  try {
-    const { error } = await supabase
+    // Update proposal with PDF URL
+    const { error: updateError } = await supabase
       .from('proposals')
       .update({ pdf_url: pdfUrl })
       .eq('id', proposalId);
-      
-    if (error) throw error;
-    
-    return true;
-  } catch (error: any) {
-    console.error('Erro ao salvar URL do PDF:', error);
-    return false;
+
+    if (updateError) throw updateError;
+
+    return pdfUrl;
+  } catch (error) {
+    console.error('Error generating proposal PDF:', error);
+    return null;
   }
-}
+};
