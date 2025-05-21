@@ -109,12 +109,13 @@ export const uploadGalleryImages = async (
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}_${i}.${fileExt}`;
       
-      // 1. Upload image to Supabase Storage
+      // 1. Upload image to Supabase Storage with public access
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('gallery')
         .upload(fileName, file, {
           cacheControl: '3600',
-          upsert: false
+          upsert: false,
+          contentType: file.type // Ensure correct content type for public access
         });
       
       if (uploadError) {

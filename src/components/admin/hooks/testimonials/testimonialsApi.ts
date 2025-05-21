@@ -70,7 +70,7 @@ export const addTestimonial = async (
     
     let imageUrl = null;
     
-    // Upload image if selected
+    // Upload image if selected with public access
     if (uploadImage) {
       const fileExt = uploadImage.name.split('.').pop();
       const fileName = `${Date.now()}.${fileExt}`;
@@ -79,7 +79,8 @@ export const addTestimonial = async (
         .from('testimonials')
         .upload(fileName, uploadImage, {
           cacheControl: '3600',
-          upsert: false
+          upsert: false,
+          contentType: uploadImage.type // Ensure correct content type for public access
         });
       
       if (uploadError) throw uploadError;
@@ -133,7 +134,7 @@ export const updateTestimonial = async (
   try {
     let imageUrl = testimonial.image_url;
     
-    // Upload new image if selected
+    // Upload new image if selected with public access
     if (uploadImage) {
       // Remove old image if exists
       if (testimonial.image_url) {
@@ -153,7 +154,8 @@ export const updateTestimonial = async (
         .from('testimonials')
         .upload(fileName, uploadImage, {
           cacheControl: '3600',
-          upsert: false
+          upsert: false,
+          contentType: uploadImage.type // Ensure correct content type for public access
         });
       
       if (uploadError) throw uploadError;
