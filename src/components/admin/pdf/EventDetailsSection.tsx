@@ -8,7 +8,7 @@ const EventDetailsSection: React.FC<EventDetailsSectionProps> = ({
   eventType, 
   eventDate, 
   eventLocation,
-  colors
+  colors 
 }) => {
   return (
     <View style={styles.section}>
@@ -27,8 +27,7 @@ const EventDetailsSection: React.FC<EventDetailsSectionProps> = ({
         <Text style={{
           ...styles.textBold, 
           color: colors.primary,
-          fontFamily: 'Helvetica',
-          fontWeight: 'bold'
+          fontFamily: 'Helvetica'
         }}>
           Tipo de Evento:
         </Text> {eventType}
@@ -41,10 +40,9 @@ const EventDetailsSection: React.FC<EventDetailsSectionProps> = ({
         <Text style={{
           ...styles.textBold, 
           color: colors.primary,
-          fontFamily: 'Helvetica',
-          fontWeight: 'bold'
+          fontFamily: 'Helvetica'
         }}>
-          Data:
+          Data do Evento:
         </Text> {eventDate}
       </Text>
       <Text style={{
@@ -55,10 +53,9 @@ const EventDetailsSection: React.FC<EventDetailsSectionProps> = ({
         <Text style={{
           ...styles.textBold, 
           color: colors.primary,
-          fontFamily: 'Helvetica',
-          fontWeight: 'bold'
+          fontFamily: 'Helvetica'
         }}>
-          Local:
+          Local do Evento:
         </Text> {eventLocation}
       </Text>
     </View>
@@ -66,3 +63,6 @@ const EventDetailsSection: React.FC<EventDetailsSectionProps> = ({
 };
 
 export default EventDetailsSection;
+
+// Fix the export for use in page components
+export { EventDetailsSection };

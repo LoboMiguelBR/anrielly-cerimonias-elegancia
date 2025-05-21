@@ -1,19 +1,13 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useProposalForm } from '../hooks/proposal';
-import ClientSelection from './ClientSelection';
-import ServicesSection from './ServicesSection';
-import PriceSection from './PriceSection';
-import NotesSection from './NotesSection';
-import ValidityDateSection from './ValidityDateSection';
-import ActionButtons from './ActionButtons';
+import { toast } from 'sonner';
 import ProposalPreview from './ProposalPreview';
 import { ProposalData } from '../hooks/proposal';
-import { Button } from '@/components/ui/button';
-import { ChevronLeft, Loader2, FileText, Mail } from 'lucide-react';
-import TemplateSelector from './templates/TemplateSelector';
-import { ProposalTemplateData } from './templates/shared/types';
-import { toast } from 'sonner';
+import GeneratorHeader from './generator/GeneratorHeader';
+import GeneratorFooter from './generator/GeneratorFooter';
+import ProposalForm from './generator/ProposalForm';
+import GeneratorLoadingState from './generator/GeneratorLoadingState';
 
 interface ProposalGeneratorProps {
   quoteRequests: Array<{
@@ -65,13 +59,13 @@ const ProposalGenerator: React.FC<ProposalGeneratorProps> = ({
     saveProposalPdfUrl
   } = useProposalForm(initialProposalId, quoteIdFromUrl, quoteRequests);
 
-  // Log para depurar o fluxo
+  // Debugging logs
   console.log("ProposalGenerator rendering, formData:", formData);
   console.log("showPreview:", showPreview, "proposal:", proposal);
 
   const handleGeneratePDF = async () => {
     try {
-      // FIX: Validate required data before attempting to save
+      // Validate required data before attempting to save
       if (!formData.client_name || !formData.client_name.trim()) {
         toast.error("Nome do cliente é obrigatório");
         return;
@@ -115,7 +109,6 @@ const ProposalGenerator: React.FC<ProposalGeneratorProps> = ({
         validity_date: formData.validity_date,
         created_at: new Date().toISOString(),
         quote_request_id: formData.quote_request_id,
-        // FIX: Properly handle template_id to avoid empty string
         template_id: selectedTemplate.id !== 'default' ? selectedTemplate.id : null
       };
       
@@ -159,17 +152,8 @@ const ProposalGenerator: React.FC<ProposalGeneratorProps> = ({
     }
   };
 
-  const handleTemplateChange = (template: ProposalTemplateData) => {
-    setSelectedTemplate(template);
-  };
-
   if (isLoading) {
-    return (
-      <div className="p-12 text-center">
-        <Loader2 className="w-8 h-8 animate-spin mx-auto text-purple-500" />
-        <p className="mt-2 text-gray-500">Carregando dados da proposta...</p>
-      </div>
-    );
+    return <GeneratorLoadingState />;
   }
 
   if (showPreview && proposal) {
@@ -186,88 +170,35 @@ const ProposalGenerator: React.FC<ProposalGeneratorProps> = ({
 
   return (
     <div className="space-y-6">
-      <div className="border-b pb-4 mb-6">
-        <h3 className="text-xl font-medium mb-4">
-          {isEditMode ? 'Editar Proposta' : 'Nova Proposta'}
-        </h3>
-
-        <div className="mb-4">
-          <label className="block text-sm font-medium mb-2">Template da Proposta</label>
-          <TemplateSelector 
-            selectedTemplateId={formData.template_id || 'default'} 
-            onSelectTemplate={handleTemplateChange}
-          />
-        </div>
-      </div>
+      <GeneratorHeader 
+        isEditMode={isEditMode}
+        templateId={formData.template_id}
+        onTemplateChange={setSelectedTemplate}
+      />
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <ClientSelection 
-          quoteRequests={quoteRequests}
-          selectedQuote={selectedQuote}
-          handleQuoteSelect={handleQuoteSelect}
-          isLoading={isLoading}
-          disabled={isEditMode}
-        />
-        
-        <ValidityDateSection 
-          validityDate={formData.validity_date}
-          handleValidityDateChange={(value) => handleFormChange('validity_date', value)}
-          isLoading={isLoading}
-        />
-      </div>
-      
-      <ServicesSection 
-        services={formData.services}
-        customService={formData.customService}
+      <ProposalForm
+        quoteRequests={quoteRequests}
+        selectedQuote={selectedQuote}
+        formData={formData}
+        isEditMode={isEditMode}
+        isLoading={isLoading}
+        handleQuoteSelect={handleQuoteSelect}
+        handleFormChange={handleFormChange}
         handleServiceChange={handleServiceChange}
-        handleCustomServiceChange={(value) => handleFormChange('customService', value)}
         handleCustomServiceAdd={handleCustomServiceAdd}
-        isLoading={isLoading}
       />
       
-      <PriceSection 
-        totalPrice={formData.total_price}
-        paymentTerms={formData.payment_terms}
-        handlePriceChange={(value) => handleFormChange('total_price', value)}
-        handlePaymentTermsChange={(value) => handleFormChange('payment_terms', value)}
-        isLoading={isLoading}
+      <GeneratorFooter 
+        onClose={onClose}
+        onSendEmail={handleSendEmail}
+        onGeneratePDF={handleGeneratePDF}
+        isSaving={isSaving}
+        isDeleting={isDeleting}
+        isSending={isSending}
+        generatingPDF={generatingPDF}
+        hasPdfUrl={!!proposal?.pdf_url}
+        hasSelectedQuote={!!selectedQuote}
       />
-      
-      <NotesSection 
-        notes={formData.notes}
-        handleNotesChange={(value) => handleFormChange('notes', value)}
-        isLoading={isLoading}
-      />
-      
-      <div className="flex flex-wrap gap-3 justify-end mt-6 border-t pt-6">
-        {onClose && (
-          <Button 
-            variant="ghost" 
-            onClick={onClose}
-            disabled={isSaving || generatingPDF || isDeleting || isSending}
-          >
-            <ChevronLeft className="w-4 h-4 mr-2" /> Voltar
-          </Button>
-        )}
-        
-        <Button 
-          onClick={handleSendEmail}
-          disabled={isSending || !proposal?.pdf_url}
-          variant="outline"
-        >
-          {isSending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Mail className="w-4 h-4 mr-2" />}
-          Enviar por Email
-        </Button>
-        
-        <Button 
-          onClick={handleGeneratePDF} 
-          disabled={generatingPDF || !selectedQuote}
-          className="bg-purple-600 hover:bg-purple-700"
-        >
-          {generatingPDF ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <FileText className="w-4 h-4 mr-2" />}
-          Visualizar Proposta
-        </Button>
-      </div>
     </div>
   );
 };

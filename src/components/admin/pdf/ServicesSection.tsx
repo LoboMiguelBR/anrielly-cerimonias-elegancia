@@ -36,3 +36,6 @@ const ServicesSection: React.FC<ServicesSectionProps> = ({ services, colors }) =
 };
 
 export default ServicesSection;
+
+// Fix the export for use in page components
+export { ServicesSection };

@@ -26,3 +26,6 @@ const PDFTitle: React.FC<PDFTitleProps> = ({ eventType, colors }) => {
 };
 
 export default PDFTitle;
+
+// Fix the export for use in page components
+export { PDFTitle };

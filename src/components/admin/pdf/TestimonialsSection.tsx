@@ -2,9 +2,20 @@
 import React from 'react';
 import { View, Text } from '@react-pdf/renderer';
 import { styles } from './styles';
-import { GenericSectionProps } from './types';
+import { TestimonialsSectionProps } from './types';
 
-const TestimonialsSection: React.FC<GenericSectionProps> = ({ colors }) => {
+const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({ colors }) => {
+  const testimonials = [
+    {
+      quote: "A Anrielly conduziu nossa cerimônia de forma impecável. Todos os convidados elogiaram a emoção e personalização do momento.",
+      author: "Ana e Paulo"
+    },
+    {
+      quote: "Melhor decisão que tomamos para nosso casamento. Anrielly tornou nosso momento especial ainda mais único.",
+      author: "Camila e Bruno"
+    }
+  ];
+  
   return (
     <View style={styles.section}>
       <Text style={{
@@ -12,56 +23,32 @@ const TestimonialsSection: React.FC<GenericSectionProps> = ({ colors }) => {
         color: colors.primary,
         fontFamily: 'Times-Roman'
       }}>
-        O que nossos clientes dizem
+        O que dizem nossos clientes
       </Text>
-      <View style={{
-        ...styles.testimonialSection,
-        borderLeftColor: colors.accent,
-        borderLeftStyle: 'solid',
-        borderLeftWidth: 2
-      }}>
-        <Text style={{
-          ...styles.testimonialQuote, 
-          color: colors.text, 
-          fontFamily: 'Helvetica',
-          fontStyle: 'italic'
-        }}>
-          "A Anrielly trouxe magia para nossa cerimônia. Cada palavra foi escolhida com carinho e emocionou a todos os presentes."
-        </Text>
-        <Text style={{
-          ...styles.testimonialAuthor, 
-          color: colors.secondary, 
-          fontFamily: 'Helvetica',
-          fontWeight: 'bold'
-        }}>
-          Mariana e Pedro, Casamento em Volta Redonda
-        </Text>
-      </View>
-      <View style={{
-        ...styles.testimonialSection,
-        borderLeftColor: colors.accent,
-        borderLeftStyle: 'solid',
-        borderLeftWidth: 2
-      }}>
-        <Text style={{
-          ...styles.testimonialQuote, 
-          color: colors.text, 
-          fontFamily: 'Helvetica',
-          fontStyle: 'italic'
-        }}>
-          "Profissionalismo impecável. A Anrielly conseguiu captar nossa história e transformá-la em uma narrativa emocionante."
-        </Text>
-        <Text style={{
-          ...styles.testimonialAuthor, 
-          color: colors.secondary, 
-          fontFamily: 'Helvetica',
-          fontWeight: 'bold'
-        }}>
-          Família Silva, Bodas de Prata
-        </Text>
-      </View>
+      
+      {testimonials.map((testimonial, index) => (
+        <View key={index} style={styles.testimonialSection}>
+          <Text style={{
+            ...styles.testimonialQuote, 
+            color: colors.text,
+            fontFamily: 'Helvetica'
+          }}>
+            "{testimonial.quote}"
+          </Text>
+          <Text style={{
+            ...styles.testimonialAuthor, 
+            color: colors.secondary,
+            fontFamily: 'Helvetica'
+          }}>
+            {testimonial.author}
+          </Text>
+        </View>
+      ))}
     </View>
   );
 };
 
 export default TestimonialsSection;
+
+// Fix the export for use in page components
+export { TestimonialsSection };

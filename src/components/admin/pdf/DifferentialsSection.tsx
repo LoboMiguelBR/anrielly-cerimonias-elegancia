@@ -2,18 +2,19 @@
 import React from 'react';
 import { View, Text } from '@react-pdf/renderer';
 import { styles } from './styles';
-import { GenericSectionProps } from './types';
+import { DifferentialsSectionProps } from './types';
 
-const DifferentialsSection: React.FC<GenericSectionProps> = ({ colors }) => {
+const DifferentialsSection: React.FC<DifferentialsSectionProps> = ({ colors }) => {
   const differentials = [
-    "Roteiro personalizado para cada cerimônia, refletindo a história e valores do casal.",
-    "Oratória refinada e cuidadosamente preparada para emocionar os convidados.",
-    "Coordenação completa com todos os fornecedores para um evento sem preocupações.",
-    "Atenção aos detalhes e flexibilidade para se adaptar a imprevistos."
+    'Cerimônias personalizadas para sua história',
+    'Atendimento exclusivo durante todo o processo',
+    'Voz profissional e dicção impecável',
+    'Experiência em diversos tipos de cerimônias',
+    'Suporte na organização do roteiro cerimonial'
   ];
-
+  
   return (
-    <View style={styles.differentialsSection}>
+    <View style={styles.section}>
       <Text style={{
         ...styles.sectionTitle, 
         color: colors.primary,
@@ -23,17 +24,16 @@ const DifferentialsSection: React.FC<GenericSectionProps> = ({ colors }) => {
       </Text>
       
       {differentials.map((differential, index) => (
-        <View key={index} style={styles.differentialItem}>
+        <View key={index} style={styles.serviceItem}>
           <Text style={{
-            ...styles.differentialNumber, 
-            backgroundColor: colors.primary,
+            ...styles.dot, 
+            color: colors.accent,
             fontFamily: 'Helvetica'
           }}>
-            {index+1}
+            •
           </Text>
           <Text style={{
-            ...styles.differentialText, 
-            color: colors.text, 
+            color: colors.text,
             fontFamily: 'Helvetica'
           }}>
             {differential}
@@ -45,3 +45,6 @@ const DifferentialsSection: React.FC<GenericSectionProps> = ({ colors }) => {
 };
 
 export default DifferentialsSection;
+
+// Fix the export for use in page components
+export { DifferentialsSection };

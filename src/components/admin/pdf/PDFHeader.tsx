@@ -32,3 +32,6 @@ const PDFHeader: React.FC<PDFHeaderProps> = ({ proposalId, createdDate, colors }
 };
 
 export default PDFHeader;
+
+// Fix the export for use in page components
+export { PDFHeader };

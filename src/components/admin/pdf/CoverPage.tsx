@@ -1,177 +1,76 @@
 
 import React from 'react';
-import { View, Text, Image, StyleSheet } from '@react-pdf/renderer';
-import { formatCurrency } from '@/lib/utils';
-
-interface CoverPageProps {
-  clientName: string;
-  eventType: string;
-  eventDate: string;
-  totalPrice: number;
-  colors?: {
-    primary: string;
-    secondary: string;
-    accent: string;
-    text: string;
-    background: string;
-  };
-}
-
-const defaultColors = {
-  primary: '#8A2BE2', // Purple
-  secondary: '#F2AE30', // Gold
-  accent: '#E57373',
-  text: '#333333',
-  background: '#FFFFFF'
-};
+import { View, Text, Image } from '@react-pdf/renderer';
+import { styles } from './styles';
+import { CoverPageProps } from './types';
 
 const CoverPage: React.FC<CoverPageProps> = ({ 
   clientName, 
   eventType, 
-  eventDate, 
+  eventDate,
   totalPrice,
-  colors = defaultColors
+  colors 
 }) => {
-  // Supabase image URL for logo
-  const logoUrl = "https://oampddkpuybkbwqggrty.supabase.co/storage/v1/object/public/public-assets/LogoAG.png";
-  
-  const styles = StyleSheet.create({
-    page: {
-      flexDirection: 'column',
-      backgroundColor: colors.background,
-      padding: 0,
-      position: 'relative'
-    },
-    coverImg: {
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      opacity: 0.05
-    },
-    container: {
-      position: 'relative', 
-      display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'center',
-      alignItems: 'center',
-      height: '100%',
-      padding: 30,
-      zIndex: 10
-    },
-    header: {
-      fontSize: 40,
-      fontWeight: 'bold',
-      marginBottom: 20,
-      color: colors.primary,
-      textAlign: 'center',
-      fontFamily: 'Times-Roman'
-    },
-    subheader: {
-      fontSize: 24,
-      marginBottom: 10,
-      color: colors.secondary,
-      textAlign: 'center',
-      fontFamily: 'Times-Roman'
-    },
-    clientInfo: {
-      marginTop: 60,
-      marginBottom: 40,
-      padding: 20,
-      width: 400,
-      borderWidth: 1,
-      borderColor: colors.secondary,
-      borderStyle: 'solid',
-      borderRadius: 4,
-      backgroundColor: colors.background,
-      alignSelf: 'center'
-    },
-    infoRow: {
-      flexDirection: 'row',
-      marginBottom: 10,
-    },
-    label: {
-      fontWeight: 'bold',
-      width: 120,
-      color: colors.primary,
-      fontFamily: 'Helvetica'
-    },
-    value: {
-      width: 180,
-      color: colors.text,
-      fontFamily: 'Helvetica'
-    },
-    price: {
-      fontSize: 18,
-      color: colors.primary,
-      marginTop: 10,
-      fontWeight: 'bold',
-      textAlign: 'center',
-      fontFamily: 'Helvetica'
-    },
-    logo: {
-      width: 150,
-      height: 150,
-      marginBottom: 30,
-      alignSelf: 'center'
-    },
-    footer: {
-      position: 'absolute',
-      bottom: 30,
-      left: 0,
-      right: 0,
-      textAlign: 'center',
-      color: colors.text,
-      fontSize: 10,
-      fontFamily: 'Helvetica'
-    }
-  });
+  // Format the price for display
+  const formattedPrice = new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL'
+  }).format(totalPrice);
 
   return (
-    <View style={styles.page}>
-      {/* Background with low opacity - no actual image */}
-      <View style={styles.coverImg} />
-      
-      <View style={styles.container}>
-        {/* Logo */}
-        <Image 
-          src={logoUrl} 
-          style={styles.logo} 
-        />
-        
-        {/* Title */}
-        <Text style={styles.header}>Proposta Fotográfica</Text>
-        <Text style={styles.subheader}>{eventType}</Text>
-        
-        {/* Client Info Box */}
-        <View style={styles.clientInfo}>
-          <View style={styles.infoRow}>
-            <Text style={styles.label}>Cliente:</Text>
-            <Text style={styles.value}>{clientName}</Text>
-          </View>
-          
-          <View style={styles.infoRow}>
-            <Text style={styles.label}>Data do Evento:</Text>
-            <Text style={styles.value}>{eventDate}</Text>
-          </View>
-          
-          <View style={styles.infoRow}>
-            <Text style={styles.label}>Tipo de Evento:</Text>
-            <Text style={styles.value}>{eventType}</Text>
-          </View>
-          
-          <Text style={styles.price}>
-            R$ {formatCurrency(totalPrice)}
-          </Text>
-        </View>
-      </View>
-      
-      <Text style={styles.footer}>
-        Anrielly Gomes Fotografia - www.anriellygomes.com.br
+    <View style={{
+      ...styles.coverPage,
+      backgroundColor: colors.background
+    }}>
+      <Image 
+        src="https://anriellygomes.com.br/wp-content/uploads/2019/06/Logo-Anrielly-Gomes.png"
+        style={{
+          ...styles.coverPageImage,
+          borderColor: colors.primary
+        }}
+      />
+      <Text style={{
+        ...styles.coverPageTitle,
+        color: colors.primary,
+        fontFamily: 'Times-Roman'
+      }}>
+        Proposta de Serviços
+      </Text>
+      <Text style={{
+        ...styles.coverPageSubtitle,
+        color: colors.secondary,
+        fontFamily: 'Helvetica'
+      }}>
+        {eventType}
+      </Text>
+      <Text style={{
+        ...styles.coverPageSubtitle,
+        color: colors.text,
+        fontFamily: 'Helvetica'
+      }}>
+        Data: {eventDate}
+      </Text>
+      <Text style={{
+        ...styles.coverPageClientName,
+        color: colors.accent,
+        fontFamily: 'Times-Roman',
+      }}>
+        {clientName}
+      </Text>
+      <Text style={{
+        fontSize: 16,
+        marginTop: 10,
+        color: colors.primary,
+        textAlign: 'center',
+        fontFamily: 'Helvetica',
+      }}>
+        Valor: {formattedPrice}
       </Text>
     </View>
   );
 };
 
 export default CoverPage;
+
+// Fix export for the component that was previously using CoverPageComponent
+export { CoverPage as CoverPageComponent };

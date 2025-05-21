@@ -42,3 +42,6 @@ const PricingSection: React.FC<PricingSectionProps> = ({ totalPrice, paymentTerm
 };
 
 export default PricingSection;
+
+// Fix the export for use in page components
+export { PricingSection };

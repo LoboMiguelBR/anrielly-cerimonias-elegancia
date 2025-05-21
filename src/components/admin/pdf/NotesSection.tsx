@@ -28,3 +28,6 @@ const NotesSection: React.FC<NotesSectionProps> = ({ notes, colors }) => {
 };
 
 export default NotesSection;
+
+// Fix the export for use in page components
+export { NotesSection };
