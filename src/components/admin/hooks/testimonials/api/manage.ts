@@ -4,6 +4,61 @@ import { supabase } from '@/integrations/supabase/client';
 import { Testimonial } from '../types';
 import { uploadTestimonialImage, deleteTestimonialImage } from './utils';
 
+// Add new testimonial (this was missing and causing the error)
+export const addTestimonial = async (
+  formData: { name: string; role: string; quote: string }, 
+  uploadImage: File | null
+): Promise<boolean> => {
+  if (!formData.name || !formData.quote) {
+    toast.error('Nome e depoimento são obrigatórios');
+    return false;
+  }
+  
+  try {
+    // Upload image if selected
+    let imageUrl = null;
+    if (uploadImage) {
+      imageUrl = await uploadTestimonialImage(uploadImage);
+    }
+    
+    // Get current testimonials to determine order_index
+    const { data: testimonials } = await supabase
+      .from('testimonials')
+      .select('order_index')
+      .order('order_index', { ascending: false })
+      .limit(1);
+    
+    const lastOrderIndex = testimonials && testimonials.length > 0 ? testimonials[0].order_index || 0 : 0;
+    
+    // Create testimonial record
+    const { error: insertError } = await supabase
+      .from('testimonials')
+      .insert({
+        name: formData.name,
+        role: formData.role || '',
+        quote: formData.quote,
+        image_url: imageUrl,
+        order_index: lastOrderIndex + 1,
+        status: 'pending' // Default status for new testimonials
+      });
+    
+    if (insertError) throw insertError;
+    
+    toast.success('Depoimento enviado com sucesso!', {
+      description: 'Seu depoimento será exibido após análise e aprovação.'
+    });
+    
+    return true;
+    
+  } catch (error: any) {
+    console.error('Erro ao enviar depoimento:', error);
+    toast.error('Erro ao enviar depoimento', {
+      description: error.message
+    });
+    return false;
+  }
+};
+
 // Update existing testimonial
 export const updateTestimonial = async (
   testimonial: Testimonial, 
