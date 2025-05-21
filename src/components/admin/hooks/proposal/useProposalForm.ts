@@ -134,13 +134,14 @@ export function useProposalForm(initialProposalId?: string, selectedQuoteId?: st
   const saveProposalHandler = async (): Promise<string | null> => {
     setIsSaving(true);
     
-    // Add template ID to the form data
-    const dataWithTemplate = {
+    // Convert string values to appropriate types and format for the API
+    const proposalData = {
       ...formData,
+      total_price: parseFloat(formData.total_price) || 0, // Convert string to number
       template_id: selectedTemplate.id !== 'default' ? selectedTemplate.id : undefined
     };
     
-    const savedId = await saveProposal(dataWithTemplate);
+    const savedId = await saveProposal(proposalData);
     
     if (savedId && !isEditMode) {
       setProposalId(savedId);

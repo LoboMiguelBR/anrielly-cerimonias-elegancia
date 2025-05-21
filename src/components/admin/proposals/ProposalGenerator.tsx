@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useProposalForm } from '../hooks/proposal';
 import ClientSelection from './ClientSelection';
