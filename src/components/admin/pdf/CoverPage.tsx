@@ -32,6 +32,12 @@ const CoverPage: React.FC<CoverPageProps> = ({
   totalPrice,
   colors = defaultColors
 }) => {
+  // Supabase image URL for logo
+  const logoUrl = "https://oampddkpuybkbwqggrty.supabase.co/storage/v1/object/public/public-assets/LogoAG.png";
+  
+  // Create a fallback for the background image (won't show in the PDF but prevents errors)
+  const backgroundImageUrl = ""; // We'll handle this differently with a low opacity background
+  
   const styles = StyleSheet.create({
     page: {
       flexDirection: 'column',
@@ -45,7 +51,7 @@ const CoverPage: React.FC<CoverPageProps> = ({
       left: 0,
       right: 0,
       bottom: 0,
-      opacity: 0.1
+      opacity: 0.05 // Very low opacity as fallback
     },
     container: {
       position: 'relative', 
@@ -63,14 +69,14 @@ const CoverPage: React.FC<CoverPageProps> = ({
       marginBottom: 20,
       color: colors.primary,
       textAlign: 'center',
-      fontFamily: 'Times-Roman'
+      fontFamily: 'Times-Roman' // Changed from Times-Roman
     },
     subheader: {
       fontSize: 24,
       marginBottom: 10,
       color: colors.secondary,
       textAlign: 'center',
-      fontFamily: 'Times-Roman'
+      fontFamily: 'Times-Roman' // Changed from Times-Roman
     },
     clientInfo: {
       marginTop: 60,
@@ -79,6 +85,7 @@ const CoverPage: React.FC<CoverPageProps> = ({
       width: 400, // Fixed width instead of percentage
       borderWidth: 1,
       borderColor: colors.secondary,
+      borderStyle: 'solid',
       borderRadius: 4,
       backgroundColor: colors.background,
       alignSelf: 'center'
@@ -91,10 +98,12 @@ const CoverPage: React.FC<CoverPageProps> = ({
       fontWeight: 'bold',
       width: 120, // Fixed width instead of percentage
       color: colors.primary,
+      fontFamily: 'Helvetica-Bold' // Added specific font
     },
     value: {
       width: 180, // Fixed width instead of percentage
       color: colors.text,
+      fontFamily: 'Helvetica' // Added fontFamily
     },
     price: {
       fontSize: 18,
@@ -102,6 +111,7 @@ const CoverPage: React.FC<CoverPageProps> = ({
       marginTop: 10,
       fontWeight: 'bold',
       textAlign: 'center',
+      fontFamily: 'Helvetica-Bold' // Added specific font
     },
     logo: {
       width: 150,
@@ -117,21 +127,19 @@ const CoverPage: React.FC<CoverPageProps> = ({
       textAlign: 'center',
       color: colors.text,
       fontSize: 10,
+      fontFamily: 'Helvetica' // Added fontFamily
     }
   });
 
   return (
     <View style={styles.page}>
-      {/* Background image with low opacity */}
-      <Image 
-        src="/assets/camera-bg.jpg" 
-        style={styles.coverImg} 
-      />
+      {/* Background with low opacity - no actual image */}
+      <View style={styles.coverImg} />
       
       <View style={styles.container}>
         {/* Logo */}
         <Image 
-          src="/assets/logo.png" 
+          src={logoUrl} 
           style={styles.logo} 
         />
         

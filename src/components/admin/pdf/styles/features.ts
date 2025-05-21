@@ -32,11 +32,13 @@ export const featureStyles = StyleSheet.create({
     marginTop: 10,
     textAlign: 'center',
     color: '#333',
+    fontFamily: 'Helvetica', // Added fontFamily
   },
   qrCodeUrl: {
     fontSize: 8,
     marginTop: 5,
     color: '#666',
+    fontFamily: 'Helvetica', // Added fontFamily
   },
   
   // Differentials section styles
@@ -60,10 +62,12 @@ export const featureStyles = StyleSheet.create({
     lineHeight: 1.4,
     marginRight: 8,
     paddingTop: 2,
+    fontFamily: 'Helvetica', // Added fontFamily
   },
   differentialText: {
     flex: 1,
     fontSize: 10,
+    fontFamily: 'Helvetica', // Added fontFamily
   },
   
   // Testimonial styles
@@ -79,9 +83,11 @@ export const featureStyles = StyleSheet.create({
     fontSize: 10,
     fontStyle: 'italic',
     marginBottom: 6,
+    fontFamily: 'Helvetica-Oblique', // Changed to supported font style
   },
   testimonialAuthor: {
     fontSize: 9,
     fontWeight: 'bold',
+    fontFamily: 'Helvetica-Bold', // Added fontFamily
   }
 });

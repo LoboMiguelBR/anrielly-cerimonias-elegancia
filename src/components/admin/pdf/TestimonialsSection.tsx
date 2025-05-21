@@ -14,10 +14,10 @@ const TestimonialsSection: React.FC<GenericSectionProps> = ({ colors }) => {
         borderLeftStyle: 'solid',
         borderLeftWidth: 2
       }}>
-        <Text style={{...styles.testimonialQuote, color: colors.text}}>
+        <Text style={{...styles.testimonialQuote, color: colors.text, fontFamily: 'Helvetica-Oblique'}}>
           "A Anrielly trouxe magia para nossa cerimônia. Cada palavra foi escolhida com carinho e emocionou a todos os presentes."
         </Text>
-        <Text style={{...styles.testimonialAuthor, color: colors.secondary}}>
+        <Text style={{...styles.testimonialAuthor, color: colors.secondary, fontFamily: 'Helvetica-Bold'}}>
           Mariana e Pedro, Casamento em Volta Redonda
         </Text>
       </View>
@@ -27,10 +27,10 @@ const TestimonialsSection: React.FC<GenericSectionProps> = ({ colors }) => {
         borderLeftStyle: 'solid',
         borderLeftWidth: 2
       }}>
-        <Text style={{...styles.testimonialQuote, color: colors.text}}>
+        <Text style={{...styles.testimonialQuote, color: colors.text, fontFamily: 'Helvetica-Oblique'}}>
           "Profissionalismo impecável. A Anrielly conseguiu captar nossa história e transformá-la em uma narrativa emocionante."
         </Text>
-        <Text style={{...styles.testimonialAuthor, color: colors.secondary}}>
+        <Text style={{...styles.testimonialAuthor, color: colors.secondary, fontFamily: 'Helvetica-Bold'}}>
           Família Silva, Bodas de Prata
         </Text>
       </View>

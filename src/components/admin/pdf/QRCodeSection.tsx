@@ -30,10 +30,12 @@ const QRCodeSection: React.FC<QRCodeSectionProps> = ({ url, colors }) => {
         {/* The Image component from react-pdf/renderer will attempt to load the QR code */}
         <Image src={qrCodeUrl} style={styles.qrCode} />
       </View>
-      <Text style={{...styles.qrCodeText, color: colors.primary}}>
+      <Text style={{...styles.qrCodeText, color: colors.primary, fontFamily: 'Helvetica'}}>
         Escaneie para visitar nosso site e ver mais trabalhos
       </Text>
-      <Text style={{...styles.qrCodeUrl, color: colors.text}}>{url}</Text>
+      <Text style={{...styles.qrCodeUrl, color: colors.text, fontFamily: 'Helvetica'}}>
+        {url}
+      </Text>
     </View>
   );
 };
