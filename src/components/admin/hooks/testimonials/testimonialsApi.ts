@@ -1,3 +1,4 @@
+
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { Testimonial } from './types';
@@ -98,7 +99,8 @@ export const addTestimonial = async (
         role: formData.role,
         quote: formData.quote,
         image_url: imageUrl,
-        order_index: testimonials.length
+        order_index: testimonials.length,
+        status: 'pending' // Default for admin-added testimonials
       });
     
     if (insertError) throw insertError;
@@ -180,6 +182,40 @@ export const updateTestimonial = async (
   } catch (error: any) {
     console.error('Error updating testimonial:', error);
     toast.error(`Erro ao atualizar depoimento: ${error.message}`);
+    return false;
+  }
+};
+
+// Update testimonial status
+export const updateTestimonialStatus = async (
+  testimonial: Testimonial, 
+  newStatus: 'pending' | 'approved' | 'rejected'
+): Promise<boolean> => {
+  if (!testimonial) return false;
+  
+  try {
+    const { error } = await supabase
+      .from('testimonials')
+      .update({
+        status: newStatus,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', testimonial.id);
+    
+    if (error) throw error;
+    
+    const statusMessages = {
+      pending: 'Depoimento marcado como pendente',
+      approved: 'Depoimento aprovado com sucesso',
+      rejected: 'Depoimento rejeitado'
+    };
+    
+    toast.success(statusMessages[newStatus]);
+    return true;
+    
+  } catch (error: any) {
+    console.error('Error updating testimonial status:', error);
+    toast.error(`Erro ao atualizar status do depoimento: ${error.message}`);
     return false;
   }
 };

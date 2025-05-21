@@ -6,4 +6,5 @@ export interface Testimonial {
   quote: string;
   image_url: string | null;
   order_index: number | null;
+  status: 'pending' | 'approved' | 'rejected';
 }

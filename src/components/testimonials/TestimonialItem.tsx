@@ -1,6 +1,5 @@
 
 import { FC } from 'react';
-import { normalizeImageUrl } from '@/utils/imageUtils';
 
 export interface TestimonialItemProps {
   id: string;
@@ -8,34 +7,34 @@ export interface TestimonialItemProps {
   role: string;
   quote: string;
   imageUrl: string | null;
+  status?: 'pending' | 'approved' | 'rejected';
 }
 
 const TestimonialItem: FC<TestimonialItemProps> = ({ name, role, quote, imageUrl }) => {
-  const normalizedImageUrl = normalizeImageUrl(imageUrl);
-  
-  console.log('[TestimonialItem]', { name, imageUrl, normalizedUrl: normalizedImageUrl });
-
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md flex flex-col items-center">
-      <div className="mb-6">
-        <img 
-          src={normalizedImageUrl} 
-          alt={`Foto de ${name}`} 
-          className="w-20 h-20 rounded-full object-cover border-2 border-gold/30"
-          loading="lazy"
-          onError={(e) => {
-            console.error(`[TestimonialItem] Falha ao carregar imagem de ${name}: ${normalizedImageUrl}`);
-            (e.target as HTMLImageElement).src = '/placeholder.svg';
-          }}
-        />
+    <div className="testimonial-item text-center p-6">
+      <div className="avatar mx-auto mb-4 relative">
+        <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-gold/20 mx-auto">
+          <img 
+            src={imageUrl || '/placeholder.svg'} 
+            alt={`Depoimento de ${name}`} 
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = '/placeholder.svg';
+            }}
+          />
+        </div>
+        <div className="absolute -bottom-2 right-1/3 w-8 h-8 bg-gold/80 rounded-full flex items-center justify-center text-white text-xl">
+          "
+        </div>
       </div>
-      <blockquote className="text-center mb-4 font-playfair italic text-gray-700">
-        "{quote}"
+      <blockquote className="mb-4">
+        <p className="italic text-gray-700">{quote}</p>
       </blockquote>
-      <div className="text-center">
-        <p className="font-semibold">{name}</p>
-        <p className="text-sm text-gray-500">{role}</p>
-      </div>
+      <footer>
+        <cite className="not-italic font-semibold">{name}</cite>
+        {role && <span className="block text-gray-500 text-sm">{role}</span>}
+      </footer>
     </div>
   );
 };

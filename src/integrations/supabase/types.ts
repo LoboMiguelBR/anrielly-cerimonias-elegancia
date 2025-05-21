@@ -182,6 +182,7 @@ export type Database = {
           order_index: number | null
           quote: string
           role: string
+          status: string
           updated_at: string
         }
         Insert: {
@@ -192,6 +193,7 @@ export type Database = {
           order_index?: number | null
           quote: string
           role: string
+          status?: string
           updated_at?: string
         }
         Update: {
@@ -202,6 +204,7 @@ export type Database = {
           order_index?: number | null
           quote?: string
           role?: string
+          status?: string
           updated_at?: string
         }
         Relationships: []

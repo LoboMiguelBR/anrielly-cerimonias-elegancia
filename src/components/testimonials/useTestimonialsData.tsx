@@ -10,6 +10,7 @@ export interface Testimonial {
   role: string;
   quote: string;
   image_url: string | null;
+  status: 'pending' | 'approved' | 'rejected';
 }
 
 export const useTestimonialsData = () => {
@@ -22,31 +23,33 @@ export const useTestimonialsData = () => {
       setIsLoading(true);
       setError(null);
       
-      console.log('[useTestimonialsData] Buscando depoimentos do banco...');
+      console.log('[useTestimonialsData] Buscando depoimentos aprovados do banco...');
       
       const { data, error } = await supabase
         .from('testimonials')
         .select('*')
+        .eq('status', 'approved')
         .order('order_index');
 
       if (error) {
         throw error;
       }
       
-      console.log('[useTestimonialsData] Depoimentos carregados:', data?.length);
+      console.log('[useTestimonialsData] Depoimentos aprovados carregados:', data?.length);
       
       if (data && data.length > 0) {
         setTestimonials(data || []);
-        console.log('[useTestimonialsData] Usando depoimentos do banco:', data);
+        console.log('[useTestimonialsData] Usando depoimentos aprovados do banco:', data);
       } else {
-        // Fallback para depoimentos estáticos quando não há dados no banco
+        // Fallback para depoimentos estáticos quando não há dados aprovados no banco
         console.log('[useTestimonialsData] Usando depoimentos estáticos de fallback');
         const staticData = getStaticTestimonials().map(item => ({
           id: item.id,
           name: item.name,
           role: item.role,
           quote: item.quote,
-          image_url: item.imageUrl
+          image_url: item.imageUrl,
+          status: 'approved' as const
         }));
         console.log('[useTestimonialsData] Dados estáticos:', staticData);
         setTestimonials(staticData);
@@ -62,7 +65,8 @@ export const useTestimonialsData = () => {
         name: item.name,
         role: item.role,
         quote: item.quote,
-        image_url: item.imageUrl
+        image_url: item.imageUrl,
+        status: 'approved' as const
       }));
       console.log('[useTestimonialsData] Dados estáticos de fallback:', staticData);
       setTestimonials(staticData);

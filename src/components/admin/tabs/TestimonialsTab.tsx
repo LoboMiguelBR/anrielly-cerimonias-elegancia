@@ -7,14 +7,18 @@ import TestimonialCard from '../testimonials/TestimonialCard';
 import AddTestimonialDialog from '../testimonials/AddTestimonialDialog';
 import EditTestimonialDialog from '../testimonials/EditTestimonialDialog';
 import DeleteTestimonialDialog from '../testimonials/DeleteTestimonialDialog';
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const TestimonialsTab = () => {
   const {
     testimonials,
     isLoading,
     isSubmitting,
+    activeFilter,
+    setActiveFilter,
     addTestimonial,
     updateTestimonial,
+    updateTestimonialStatus,
     deleteTestimonial
   } = useTestimonials();
   
@@ -45,6 +49,10 @@ const TestimonialsTab = () => {
     return success;
   };
 
+  const handleUpdateStatus = async (testimonial: Testimonial, newStatus: 'pending' | 'approved' | 'rejected') => {
+    await updateTestimonialStatus(testimonial, newStatus);
+  };
+
   return (
     <div className="p-6 bg-white rounded-lg shadow-sm">
       <div className="flex justify-between items-center mb-6">
@@ -54,14 +62,40 @@ const TestimonialsTab = () => {
         </Button>
       </div>
       
+      <Tabs value={activeFilter} onValueChange={(value: any) => setActiveFilter(value)} className="mb-6">
+        <TabsList className="mb-2">
+          <TabsTrigger value="all">Todos</TabsTrigger>
+          <TabsTrigger value="pending">Pendentes</TabsTrigger>
+          <TabsTrigger value="approved">Aprovados</TabsTrigger>
+          <TabsTrigger value="rejected">Rejeitados</TabsTrigger>
+        </TabsList>
+        
+        <div className="text-sm text-gray-500">
+          {activeFilter === 'all' && 'Exibindo todos os depoimentos'}
+          {activeFilter === 'pending' && 'Exibindo apenas depoimentos pendentes de aprovação'}
+          {activeFilter === 'approved' && 'Exibindo apenas depoimentos aprovados'}
+          {activeFilter === 'rejected' && 'Exibindo apenas depoimentos rejeitados'}
+        </div>
+      </Tabs>
+      
       {isLoading ? (
         <div className="p-12 text-center">Carregando depoimentos...</div>
       ) : testimonials.length === 0 ? (
         <div className="p-12 text-center border-2 border-dashed rounded-lg">
-          <p className="text-gray-500 mb-4">Nenhum depoimento cadastrado</p>
-          <Button onClick={() => setShowAddDialog(true)} variant="outline">
-            <Plus className="mr-2" size={16} /> Adicionar primeiro depoimento
-          </Button>
+          {activeFilter === 'all' ? (
+            <>
+              <p className="text-gray-500 mb-4">Nenhum depoimento cadastrado</p>
+              <Button onClick={() => setShowAddDialog(true)} variant="outline">
+                <Plus className="mr-2" size={16} /> Adicionar primeiro depoimento
+              </Button>
+            </>
+          ) : (
+            <p className="text-gray-500">Nenhum depoimento {
+              activeFilter === 'pending' ? 'pendente' : 
+              activeFilter === 'approved' ? 'aprovado' : 
+              'rejeitado'
+            } encontrado</p>
+          )}
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -71,6 +105,7 @@ const TestimonialsTab = () => {
               testimonial={testimonial}
               onEdit={handleEditTestimonial}
               onDelete={confirmDeleteTestimonial}
+              onUpdateStatus={handleUpdateStatus}
             />
           ))}
         </div>

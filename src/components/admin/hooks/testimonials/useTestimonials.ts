@@ -7,6 +7,7 @@ import {
   addTestimonial as apiAddTestimonial,
   updateTestimonial as apiUpdateTestimonial,
   deleteTestimonial as apiDeleteTestimonial,
+  updateTestimonialStatus as apiUpdateTestimonialStatus,
   ensureTestimonialsBucketExists
 } from './testimonialsApi';
 
@@ -14,6 +15,7 @@ export function useTestimonials() {
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [activeFilter, setActiveFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
   
   useEffect(() => {
     fetchTestimonials();
@@ -51,6 +53,11 @@ export function useTestimonials() {
     }
   };
 
+  const filteredTestimonials = testimonials.filter(testimonial => {
+    if (activeFilter === 'all') return true;
+    return testimonial.status === activeFilter;
+  });
+
   const addTestimonial = async (formData: { name: string; role: string; quote: string }, uploadImage: File | null) => {
     setIsSubmitting(true);
     const success = await apiAddTestimonial(formData, uploadImage);
@@ -69,17 +76,30 @@ export function useTestimonials() {
     return success;
   };
 
+  const updateTestimonialStatus = async (
+    testimonial: Testimonial,
+    newStatus: 'pending' | 'approved' | 'rejected'
+  ) => {
+    setIsSubmitting(true);
+    const success = await apiUpdateTestimonialStatus(testimonial, newStatus);
+    setIsSubmitting(false);
+    return success;
+  };
+
   const deleteTestimonial = async (testimonial: Testimonial) => {
     return await apiDeleteTestimonial(testimonial);
   };
 
   return {
-    testimonials,
+    testimonials: filteredTestimonials,
     isLoading,
     isSubmitting,
+    activeFilter,
+    setActiveFilter,
     fetchTestimonials,
     addTestimonial,
     updateTestimonial,
+    updateTestimonialStatus,
     deleteTestimonial
   };
 }

@@ -1,19 +1,22 @@
 
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import useTestimonialsData from './testimonials/useTestimonialsData';
 import EnhancedTestimonialCarousel from './testimonials/EnhancedTestimonialCarousel';
 import { Button } from "@/components/ui/button";
+import TestimonialSubmissionModal from './testimonials/TestimonialSubmissionModal';
 
 const Testimonials = () => {
   const sectionRef = useRef<HTMLElement>(null);
   const { testimonials, isLoading, error, fetchTestimonials } = useTestimonialsData();
+  const [showSubmissionModal, setShowSubmissionModal] = useState(false);
   
   const mappedTestimonials = testimonials.map(testimonial => ({
     id: testimonial.id,
     name: testimonial.name,
     role: testimonial.role,
     quote: testimonial.quote,
-    imageUrl: testimonial.image_url
+    imageUrl: testimonial.image_url,
+    status: testimonial.status
   }));
 
   console.log('[Testimonials] Renderizando componente com', mappedTestimonials.length, 'depoimentos');
@@ -51,16 +54,33 @@ const Testimonials = () => {
               <EnhancedTestimonialCarousel testimonials={mappedTestimonials} />
             </div>
             <div className="text-center mt-10">
-              <p className="text-gray-500 italic">
+              <p className="text-gray-500 italic mb-4">
                 Conheça a experiência de nossos clientes
               </p>
+              <Button 
+                onClick={() => setShowSubmissionModal(true)}
+                className="bg-gold hover:bg-gold/80 text-white transition-colors"
+              >
+                Envie seu Depoimento
+              </Button>
             </div>
           </>
         ) : (
           <div className="py-10 text-center text-gray-500">
-            Nenhum depoimento encontrado.
+            <p className="mb-4">Nenhum depoimento encontrado.</p>
+            <Button 
+              onClick={() => setShowSubmissionModal(true)}
+              className="bg-gold hover:bg-gold/80 text-white transition-colors"
+            >
+              Seja o primeiro a enviar um depoimento
+            </Button>
           </div>
         )}
+        
+        <TestimonialSubmissionModal 
+          isOpen={showSubmissionModal}
+          onClose={() => setShowSubmissionModal(false)}
+        />
       </div>
     </section>
   );
