@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { ProposalFormData, ProposalData } from './types';
 import { toast } from 'sonner';
@@ -68,7 +69,7 @@ export async function saveProposalToDb(proposalData: ProposalFormData, proposalI
       notes: proposalData.notes || null,
       quote_request_id: proposalData.quote_request_id,
       validity_date: proposalData.validity_date,
-      template_id: proposalData.template_id,
+      template_id: proposalData.template_id || undefined,
       status: proposalData.status || 'draft'
     };
     

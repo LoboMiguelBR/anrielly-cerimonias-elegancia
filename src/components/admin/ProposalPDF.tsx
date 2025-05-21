@@ -73,10 +73,7 @@ const ProposalPDF: React.FC<ProposalProps> = ({ proposal, template = defaultTemp
       ...styles.subtitle,
       color: template.colors.secondary,
     },
-    heading: {
-      ...styles.heading,
-      color: template.colors.primary,
-    },
+    // Remove the heading style that doesn't exist
     text: {
       ...styles.text,
       color: template.colors.text,

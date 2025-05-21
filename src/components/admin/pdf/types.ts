@@ -1,5 +1,6 @@
 
-import { Service } from '../hooks/proposal/types';
+// Remove the conflicting import and use the existing Service type
+// import { Service } from '../hooks/proposal/types';
 
 export interface ProposalData {
   id: string;

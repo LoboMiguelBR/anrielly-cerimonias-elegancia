@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { ProposalData } from '../hooks/proposal';
 import { ProposalTemplateData } from './templates/shared/types';
