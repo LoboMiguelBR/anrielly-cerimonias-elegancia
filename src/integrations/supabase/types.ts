@@ -79,6 +79,7 @@ export type Database = {
           quote_request_id: string | null
           services: Json
           status: string | null
+          template_id: string | null
           total_price: number
           updated_at: string
           validity_date: string
@@ -98,6 +99,7 @@ export type Database = {
           quote_request_id?: string | null
           services?: Json
           status?: string | null
+          template_id?: string | null
           total_price: number
           updated_at?: string
           validity_date: string
@@ -117,6 +119,7 @@ export type Database = {
           quote_request_id?: string | null
           services?: Json
           status?: string | null
+          template_id?: string | null
           total_price?: number
           updated_at?: string
           validity_date?: string
@@ -127,6 +130,13 @@ export type Database = {
             columns: ["quote_request_id"]
             isOneToOne: false
             referencedRelation: "quote_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "proposals_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "proposal_templates"
             referencedColumns: ["id"]
           },
         ]

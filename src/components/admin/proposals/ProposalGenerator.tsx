@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useProposalForm } from '../hooks/proposal';
 import ClientSelection from './ClientSelection';
@@ -62,7 +63,7 @@ const ProposalGenerator: React.FC<ProposalGeneratorProps> = ({
     deleteProposal,
     sendProposalEmail,
     saveProposalPdfUrl
-  } = useProposalForm(initialProposalId, quoteIdFromUrl);
+  } = useProposalForm(initialProposalId, quoteIdFromUrl, quoteRequests);
 
   // Log para depurar o fluxo
   console.log("ProposalGenerator rendering, formData:", formData);

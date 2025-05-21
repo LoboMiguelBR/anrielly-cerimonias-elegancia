@@ -1,5 +1,6 @@
+
 import { useState, useEffect } from 'react';
-import { ProposalFormData, ProposalData } from './types';
+import { ProposalFormData, ProposalData, QuoteRequest } from './types';
 import { defaultFormData } from './constants';
 import { fetchProposal, saveProposal, deleteProposal, sendProposalByEmail, savePdfUrl } from './proposalApi';
 import { ProposalTemplateData } from '../../proposals/templates/shared/types';
@@ -36,7 +37,11 @@ export interface UseProposalFormReturn {
   setProposalId: React.Dispatch<React.SetStateAction<string | undefined>>;
 }
 
-export function useProposalForm(initialProposalId?: string, selectedQuoteId?: string | null): UseProposalFormReturn {
+export function useProposalForm(
+  initialProposalId?: string, 
+  selectedQuoteId?: string | null, 
+  quoteRequests?: Array<QuoteRequest>
+): UseProposalFormReturn {
   const [selectedQuote, setSelectedQuote] = useState<string>(selectedQuoteId || "");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isSaving, setIsSaving] = useState<boolean>(false);
@@ -98,6 +103,28 @@ export function useProposalForm(initialProposalId?: string, selectedQuoteId?: st
       setFormData({...defaultFormData});
     }
   }, [proposalId]);
+
+  // Update form data when a quote request is selected
+  useEffect(() => {
+    if (selectedQuote && quoteRequests?.length && !isEditMode) {
+      const selectedQuoteData = quoteRequests.find(q => q.id === selectedQuote);
+      
+      if (selectedQuoteData) {
+        console.log('Selected quote data:', selectedQuoteData);
+        
+        setFormData(prev => ({
+          ...prev,
+          client_name: selectedQuoteData.name || '',
+          client_email: selectedQuoteData.email || '',
+          client_phone: selectedQuoteData.phone || '',
+          event_type: selectedQuoteData.event_type || selectedQuoteData.eventType || '',
+          event_date: selectedQuoteData.event_date || '',
+          event_location: selectedQuoteData.event_location || '',
+          quote_request_id: selectedQuote,
+        }));
+      }
+    }
+  }, [selectedQuote, quoteRequests, isEditMode]);
 
   const handleQuoteSelect = (quoteId: string) => {
     setSelectedQuote(quoteId);
