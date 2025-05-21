@@ -43,15 +43,21 @@ const About = () => {
             </div>
           </div>
           
-          <div className="animate-on-scroll">
-            <p className="text-lg mb-6 leading-relaxed">
-              Sou Anrielly Gomes, apaixonada por transformar cerimônias em momentos únicos. Com mais de 20 anos de experiência e uma trajetória em oratória e eventos, levo emoção e leveza a cada celebração.
+          <div className="animate-on-scroll space-y-4">
+            <p className="text-lg leading-relaxed">
+              <span className="font-semibold">Olá!</span> Sou Anrielly Gomes, uma apaixonada Mestre de Cerimônias com mais de 20 anos de trajetória profissional, marcada por sensibilidade, elegância e compromisso com momentos inesquecíveis.
             </p>
-            <p className="text-lg mb-6 leading-relaxed">
-              Minha missão é conduzir seu momento especial com profissionalismo e sensibilidade, criando memórias inesquecíveis para você e seus convidados.
+            
+            <p className="text-lg leading-relaxed">
+              Ao longo da minha jornada, atuei na advocacia e no empreendedorismo, mas foi no universo da comunicação e celebração que encontrei meu verdadeiro propósito: transformar eventos em experiências únicas, emocionantes e memoráveis.
             </p>
-            <p className="text-lg font-medium italic text-gray-700">
-              "Cada cerimônia é única como a história de cada casal."
+            
+            <p className="text-lg leading-relaxed">
+              Com formação em oratória, cerimonial e condução de eventos, atuo com empatia, carisma e atenção minuciosa aos detalhes. Cada cerimônia que conduzo é planejada com amor, escuta ativa e um roteiro personalizado, sempre respeitando a essência de cada história.
+            </p>
+            
+            <p className="text-lg leading-relaxed font-medium italic text-gray-700">
+              "A minha missão é dar vida a momentos que tocam o coração — conduzindo cada etapa com segurança, leveza e profissionalismo, para que você possa apenas viver e sentir cada instante."
             </p>
           </div>
         </div>
