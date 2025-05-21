@@ -1,7 +1,6 @@
 
 import { useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { uploadTestimonialImage, submitTestimonial } from '@/components/admin/hooks/testimonials/api/upload';
 
 export interface TestimonialFormData {
   name: string;
@@ -61,11 +60,6 @@ export const useTestimonialSubmission = () => {
   };
 
   const handleSubmit = async () => {
-    if (!formData.name || !formData.quote) {
-      toast.error('Por favor, preencha os campos obrigatórios');
-      return false;
-    }
-
     setIsSubmitting(true);
 
     try {
@@ -73,62 +67,20 @@ export const useTestimonialSubmission = () => {
       
       // Upload image if selected
       if (uploadImage) {
-        const fileExt = uploadImage.name.split('.').pop();
-        const fileName = `${Date.now()}.${fileExt}`;
-        
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('testimonials')
-          .upload(fileName, uploadImage, {
-            cacheControl: '3600',
-            upsert: false,
-            contentType: uploadImage.type
-          });
-        
-        if (uploadError) throw uploadError;
-        
-        // Get public URL
-        const { data: publicUrlData } = supabase.storage
-          .from('testimonials')
-          .getPublicUrl(fileName);
-        
-        imageUrl = publicUrlData.publicUrl;
+        imageUrl = await uploadTestimonialImage(uploadImage);
       }
       
-      // Get current testimonials to determine order_index
-      const { data: testimonials } = await supabase
-        .from('testimonials')
-        .select('order_index')
-        .order('order_index', { ascending: false })
-        .limit(1);
+      // Submit testimonial
+      const success = await submitTestimonial(formData, imageUrl);
       
-      const lastOrderIndex = testimonials && testimonials.length > 0 ? testimonials[0].order_index || 0 : 0;
+      if (success) {
+        resetForm();
+      }
       
-      // Create testimonial record with pending status
-      const { error: insertError } = await supabase
-        .from('testimonials')
-        .insert({
-          name: formData.name,
-          role: formData.role || '',
-          quote: formData.quote,
-          image_url: imageUrl,
-          order_index: lastOrderIndex + 1,
-          status: 'pending' // Default status for new testimonials
-        });
-      
-      if (insertError) throw insertError;
-      
-      toast.success('Depoimento enviado com sucesso!', {
-        description: 'Seu depoimento será exibido após análise e aprovação.'
-      });
-      
-      resetForm();
-      return true;
+      return success;
       
     } catch (error: any) {
       console.error('Erro ao enviar depoimento:', error);
-      toast.error('Erro ao enviar depoimento', {
-        description: error.message
-      });
       return false;
     } finally {
       setIsSubmitting(false);
