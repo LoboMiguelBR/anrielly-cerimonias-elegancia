@@ -36,7 +36,10 @@ export async function fetchProposal(proposalId: string): Promise<ProposalData | 
         notes: data.notes || null,
         quote_request_id: data.quote_request_id,
         validity_date: data.validity_date,
-        created_at: data.created_at
+        created_at: data.created_at,
+        template_id: data.template_id,
+        status: data.status,
+        pdf_url: data.pdf_url
       };
     }
     
@@ -65,7 +68,9 @@ export async function saveProposalToDb(proposalData: ProposalFormData, proposalI
       payment_terms: proposalData.payment_terms,
       notes: proposalData.notes || null,
       quote_request_id: proposalData.quote_request_id,
-      validity_date: proposalData.validity_date
+      validity_date: proposalData.validity_date,
+      template_id: proposalData.template_id,
+      status: proposalData.status || 'draft'
     };
     
     let data;
@@ -132,6 +137,51 @@ export async function deleteProposalFromDb(proposalId: string): Promise<boolean>
   } catch (error: any) {
     console.error('Erro ao excluir proposta:', error);
     toast.error(`Erro ao excluir proposta: ${error.message}`);
+    return false;
+  }
+}
+
+export async function sendProposalByEmail(proposal: ProposalData): Promise<boolean> {
+  try {
+    if (!proposal.pdf_url) {
+      toast.error("É necessário gerar o PDF antes de enviar por email");
+      return false;
+    }
+
+    const { data, error } = await supabase.functions.invoke('send-proposal', {
+      body: {
+        proposalId: proposal.id,
+        to: proposal.client_email,
+        clientName: proposal.client_name,
+        pdfUrl: proposal.pdf_url
+      }
+    });
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    toast.success("Proposta enviada com sucesso por email!");
+    return true;
+  } catch (error: any) {
+    console.error('Erro ao enviar proposta por email:', error);
+    toast.error(`Erro ao enviar: ${error.message}`);
+    return false;
+  }
+}
+
+export async function savePdfUrl(proposalId: string, pdfUrl: string): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from('proposals')
+      .update({ pdf_url: pdfUrl })
+      .eq('id', proposalId);
+      
+    if (error) throw error;
+    
+    return true;
+  } catch (error: any) {
+    console.error('Erro ao salvar URL do PDF:', error);
     return false;
   }
 }

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { useProposalForm } from '../hooks/proposal';
 import ClientSelection from './ClientSelection';
 import ServicesSection from './ServicesSection';
@@ -9,7 +10,10 @@ import ActionButtons from './ActionButtons';
 import ProposalPreview from './ProposalPreview';
 import { ProposalData } from '../hooks/proposal';
 import { Button } from '@/components/ui/button';
-import { Loader2 } from 'lucide-react';
+import { ChevronLeft, Loader2, FileText, Mail } from 'lucide-react';
+import TemplateSelector from './templates/TemplateSelector';
+import { ProposalTemplateData } from './templates/shared/types';
+import { toast } from 'sonner';
 
 interface ProposalGeneratorProps {
   quoteRequests: Array<{
@@ -40,20 +44,25 @@ const ProposalGenerator: React.FC<ProposalGeneratorProps> = ({
     isLoading,
     isSaving,
     isDeleting,
+    isSending,
     generatingPDF,
     proposal,
     formData,
     isEditMode,
+    selectedTemplate,
     setSelectedQuote,
     setGeneratingPDF,
     setProposal,
     setFormData,
+    setSelectedTemplate,
     handleQuoteSelect,
     handleFormChange,
     handleServiceChange,
     handleCustomServiceAdd,
     saveProposal,
-    deleteProposal
+    deleteProposal,
+    sendProposalEmail,
+    saveProposalPdfUrl
   } = useProposalForm(initialProposalId, quoteIdFromUrl);
 
   // Log para depurar o fluxo
@@ -89,7 +98,8 @@ const ProposalGenerator: React.FC<ProposalGeneratorProps> = ({
         notes: formData.notes || null,
         validity_date: formData.validity_date,
         created_at: new Date().toISOString(),
-        quote_request_id: formData.quote_request_id
+        quote_request_id: formData.quote_request_id,
+        template_id: selectedTemplate.id !== 'default' ? selectedTemplate.id : undefined
       };
       
       console.log("Created proposalForPDF:", proposalForPDF);
@@ -99,16 +109,41 @@ const ProposalGenerator: React.FC<ProposalGeneratorProps> = ({
       
     } catch (error: any) {
       console.error('Erro ao gerar PDF:', error);
+      toast.error(`Erro ao gerar PDF: ${error.message}`);
     } finally {
       setGeneratingPDF(false);
     }
   };
 
+  const handleSendEmail = async () => {
+    if (!proposal) {
+      toast.error("Nenhuma proposta para enviar");
+      return;
+    }
+
+    if (!proposal.pdf_url) {
+      toast.error("É necessário gerar o PDF antes de enviar por email");
+      return;
+    }
+    
+    const success = await sendProposalEmail();
+    if (success) {
+      toast.success(`Proposta enviada para ${proposal.client_email}`);
+    }
+  };
+
   const handleBackFromPreview = () => {
     setShowPreview(false);
-    if (onClose) {
-      onClose();
+  };
+
+  const handlePdfGenerated = async (pdfUrl: string) => {
+    if (proposal?.id) {
+      await saveProposalPdfUrl(pdfUrl);
     }
+  };
+
+  const handleTemplateChange = (template: ProposalTemplateData) => {
+    setSelectedTemplate(template);
   };
 
   if (isLoading) {
@@ -122,11 +157,32 @@ const ProposalGenerator: React.FC<ProposalGeneratorProps> = ({
 
   if (showPreview && proposal) {
     console.log("Showing preview for proposal:", proposal);
-    return <ProposalPreview proposal={proposal} onBack={handleBackFromPreview} />;
+    return (
+      <ProposalPreview 
+        proposal={proposal} 
+        template={selectedTemplate} 
+        onBack={handleBackFromPreview} 
+        onPdfGenerated={handlePdfGenerated}
+      />
+    );
   }
 
   return (
     <div className="space-y-6">
+      <div className="border-b pb-4 mb-6">
+        <h3 className="text-xl font-medium mb-4">
+          {isEditMode ? 'Editar Proposta' : 'Nova Proposta'}
+        </h3>
+
+        <div className="mb-4">
+          <label className="block text-sm font-medium mb-2">Template da Proposta</label>
+          <TemplateSelector 
+            selectedTemplateId={formData.template_id || 'default'} 
+            onSelectTemplate={handleTemplateChange}
+          />
+        </div>
+      </div>
+      
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <ClientSelection 
           quoteRequests={quoteRequests}
@@ -166,26 +222,34 @@ const ProposalGenerator: React.FC<ProposalGeneratorProps> = ({
         isLoading={isLoading}
       />
       
-      <div className="flex flex-wrap gap-3 justify-end mt-6">
+      <div className="flex flex-wrap gap-3 justify-end mt-6 border-t pt-6">
         {onClose && (
           <Button 
             variant="ghost" 
             onClick={onClose}
-            disabled={isSaving || generatingPDF || isDeleting}
+            disabled={isSaving || generatingPDF || isDeleting || isSending}
           >
-            Cancelar
+            <ChevronLeft className="w-4 h-4 mr-2" /> Voltar
           </Button>
         )}
         
-        <ActionButtons 
-          isSaving={isSaving}
-          generatingPDF={generatingPDF}
-          selectedQuote={selectedQuote}
-          onSave={saveProposal}
-          onGeneratePDF={handleGeneratePDF}
-          proposal={proposal}
-          isEditMode={isEditMode}
-        />
+        <Button 
+          onClick={handleSendEmail}
+          disabled={isSending || !proposal?.pdf_url}
+          variant="outline"
+        >
+          {isSending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Mail className="w-4 h-4 mr-2" />}
+          Enviar por Email
+        </Button>
+        
+        <Button 
+          onClick={handleGeneratePDF} 
+          disabled={generatingPDF || !selectedQuote}
+          className="bg-purple-600 hover:bg-purple-700"
+        >
+          {generatingPDF ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <FileText className="w-4 h-4 mr-2" />}
+          Visualizar Proposta
+        </Button>
       </div>
     </div>
   );

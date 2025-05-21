@@ -4,6 +4,8 @@ import { Json } from '@/integrations/supabase/types';
 export interface Service {
   name: string;
   included: boolean;
+  description?: string;
+  price?: number;
 }
 
 export interface ProposalFormData {
@@ -20,6 +22,8 @@ export interface ProposalFormData {
   payment_terms: string;
   notes: string;
   quote_request_id: string | null;
+  template_id?: string;
+  status?: string;
 }
 
 export interface QuoteRequest {
@@ -48,4 +52,7 @@ export interface ProposalData {
   quote_request_id: string | null;
   validity_date: string;
   created_at?: string;
+  template_id?: string;
+  status?: string;
+  pdf_url?: string;
 }

@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-import { ProposalData } from '../pdf/types';
+import { ProposalData } from '../hooks/proposal';
+import { ProposalTemplateData } from './templates/shared/types';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Eye } from 'lucide-react';
 import { 
@@ -9,17 +10,28 @@ import {
   PDFPreviewContent,
   PreviewActions 
 } from './preview';
+import { storage } from '@/integrations/supabase/client';
+import { v4 as uuidv4 } from 'uuid';
+import { toast } from 'sonner';
 
 interface ProposalPreviewProps {
   proposal: ProposalData | null;
+  template: ProposalTemplateData;
   onBack: () => void;
+  onPdfGenerated?: (pdfUrl: string) => void;
 }
 
-const ProposalPreview: React.FC<ProposalPreviewProps> = ({ proposal, onBack }) => {
+const ProposalPreview: React.FC<ProposalPreviewProps> = ({ 
+  proposal, 
+  template, 
+  onBack,
+  onPdfGenerated
+}) => {
   const [activeTab, setActiveTab] = useState<string>("preview");
   const [pdfError, setPdfError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [renderKey, setRenderKey] = useState<number>(0); // Usado para forçar re-render do PDF
+  const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
   
   console.log("Rendering ProposalPreview with proposal:", proposal);
   
@@ -60,7 +72,10 @@ const ProposalPreview: React.FC<ProposalPreviewProps> = ({ proposal, onBack }) =
             notes: null,
             validity_date: new Date().toISOString(),
             quote_request_id: null
-          }} onBack={onBack} />
+          }} 
+          template={template}
+          onBack={onBack} 
+          />
         </div>
         <div className="p-12 text-center">
           <p className="text-gray-500">Nenhuma proposta foi gerada ainda.</p>
@@ -75,13 +90,62 @@ const ProposalPreview: React.FC<ProposalPreviewProps> = ({ proposal, onBack }) =
     setIsLoading(false);
   };
 
+  const handlePdfReady = async (blob: Blob) => {
+    setPdfBlob(blob);
+    
+    if (onPdfGenerated) {
+      try {
+        setIsLoading(true);
+        
+        // Generate a unique file name
+        const fileName = `proposal_${proposal.id}_${uuidv4()}.pdf`;
+        const filePath = `proposals/${fileName}`;
+        
+        // Upload the PDF to Supabase Storage
+        const { data: uploadData, error: uploadError } = await storage
+          .from('proposals')
+          .upload(filePath, blob, {
+            contentType: 'application/pdf',
+            upsert: true
+          });
+          
+        if (uploadError) {
+          console.error("Error uploading PDF:", uploadError);
+          toast.error("Erro ao fazer upload do PDF");
+          return;
+        }
+        
+        // Get the public URL
+        const { data: urlData } = await storage
+          .from('proposals')
+          .getPublicUrl(filePath);
+          
+        if (urlData && urlData.publicUrl) {
+          // Pass the URL back to the parent component
+          onPdfGenerated(urlData.publicUrl);
+          toast.success("PDF gerado e salvo com sucesso");
+        }
+      } catch (error) {
+        console.error("Error handling PDF ready:", error);
+        toast.error("Erro ao processar o PDF");
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  };
+
   return (
     <div className="bg-white border rounded-lg" key={renderKey}>
       <div className="flex justify-between items-center p-4 border-b">
         <h3 className="text-lg font-medium">
           Proposta para {proposal.client_name || "Cliente"}
         </h3>
-        <PreviewActions proposal={proposal} onBack={onBack} />
+        <PreviewActions 
+          proposal={proposal} 
+          template={template}
+          pdfBlob={pdfBlob}
+          onBack={onBack} 
+        />
       </div>
 
       <Tabs 
@@ -98,10 +162,12 @@ const ProposalPreview: React.FC<ProposalPreviewProps> = ({ proposal, onBack }) =
         <TabsContent value="preview" className="border rounded-lg p-1 bg-gray-100">
           <PDFPreviewContent
             proposal={proposal}
+            template={template}
             isLoading={isLoading}
             pdfError={pdfError}
             onBack={onBack}
             onError={handlePdfError}
+            onPdfReady={handlePdfReady}
           />
         </TabsContent>
       </Tabs>

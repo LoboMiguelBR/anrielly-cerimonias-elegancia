@@ -1,7 +1,6 @@
 
 import React from 'react';
-import { View, Text, Image } from '@react-pdf/renderer';
-import { styles } from './styles';
+import { View, Text, Image, StyleSheet } from '@react-pdf/renderer';
 import { formatCurrency } from '@/lib/utils';
 
 interface CoverPageProps {
@@ -9,47 +8,163 @@ interface CoverPageProps {
   eventType: string;
   eventDate: string;
   totalPrice: number;
+  colors?: {
+    primary: string;
+    secondary: string;
+    accent: string;
+    text: string;
+    background: string;
+  };
 }
 
-const CoverPage: React.FC<CoverPageProps> = ({ clientName, eventType, eventDate, totalPrice }) => {
-  // Use an embedded logo as data URI to avoid external dependencies
-  const logoDataUri = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAADICAYAAACtWK6eAAAACXBIWXMAAAsTAAALEwEAmpwYAAAF9mlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4gPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgNS42LWMxNDUgNzkuMTYzNDk5LCAyMDE4LzA4LzEzLTE2OjQwOjIyICAgICAgICAiPiA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgeG1sbnM6cGhvdG9zaG9wPSJodHRwOi8vbnMuYWRvYmUuY29tL3Bob3Rvc2hvcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RFdnQ9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZUV2ZW50IyIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgQ0MgMjAxOSAoV2luZG93cykiIHhtcDpDcmVhdGVEYXRlPSIyMDIzLTExLTAxVDE1OjQxOjA1LTAzOjAwIiB4bXA6TW9kaWZ5RGF0ZT0iMjAyMy0xMS0wMVQxNTo0MjozNC0wMzowMCIgeG1wOk1ldGFkYXRhRGF0ZT0iMjAyMy0xMS0wMVQxNTo0MjozNC0wMzowMCIgZGM6Zm9ybWF0PSJpbWFnZS9wbmciIHBob3Rvc2hvcDpDb2xvck1vZGU9IjMiIHBob3Rvc2hvcDpJQ0NQcm9maWxlPSJzUkdCIElFQzYxOTY2LTIuMSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDphNWRkODc0MS04NjQ1LWYyNDgtYjYyMC1jMDQyZGQwMTVkMGYiIHhtcE1NOkRvY3VtZW50SUQ9ImFkb2JlOmRvY2lkOnBob3Rvc2hvcDplOTFhYTYxNi1iODQyLTg1NDQtYmE5OS05Zjc4MDdmMTY5MjkiIHhtcE1NOk9yaWdpbmFsRG9jdW1lbnRJRD0ieG1wLmRpZDplYmI0OTk2Yi0wYzZkLTJlNDctOGViZS1lMGI5Mzg1ZjVkYmYiPiA8eG1wTU06SGlzdG9yeT4gPHJkZjpTZXE+IDxyZGY6bGkgc3RFdnQ6YWN0aW9uPSJjcmVhdGVkIiBzdEV2dDppbnN0YW5jZUlEPSJ4bXAuaWlkOmViYjQ5OTZiLTBjNmQtMmU0Ny04ZWJlLWUwYjkzODVmNWRiZiIgc3RFdnQ6d2hlbj0iMjAyMy0xMS0wMVQxNTo0MTowNS0wMzowMCIgc3RFdnQ6c29mdHdhcmVBZ2VudD0iQWRvYmUgUGhvdG9zaG9wIENDIDIwMTkgKFdpbmRvd3MpIi8+IDxyZGY6bGkgc3RFdnQ6YWN0aW9uPSJzYXZlZCIgc3RFdnQ6aW5zdGFuY2VJRD0ieG1wLmlpZDphNWRkODc0MS04NjQ1LWYyNDgtYjYyMC1jMDQyZGQwMTVkMGYiIHN0RXZ0OndoZW49IjIwMjMtMTEtMDFUMTU6NDI6MzQtMDM6MDAiIHN0RXZ0OnNvZnR3YXJlQWdlbnQ9IkFkb2JlIFBob3Rvc2hvcCBDQyAyMDE5IChXaW5kb3dzKSIgc3RFdnQ6Y2hhbmdlZD0iLyIvPiA8L3JkZjpTZXE+IDwveG1wTU06SGlzdG9yeT4gPC9yZGY6RGVzY3JpcHRpb24+IDwvcmRmOlJERj4gPC94OnhtcG1ldGE+IDw/eHBhY2tldCBlbmQ9InIiPz7PAa2nAAAT20lEQVR4nO3de3QU5b0H8O/M7C1ZEkISonihJICActQIQrkEKFBUDtQqYJGbVaClzXNKqxWL4GlF9PT0tfacnrZUqC1S7S1a5SYgV6GgJgpJDCQQIDEkJOTOZnf2PvsHIs0lhJ3J7G42v88/2ZmdfZ5nk/1k3nnnfdFoAURER6BpHQDRcMYEIVIgQYgUMEGIFCQkg3OKo0xpvjD8gTD8wQjCUQP+QBjeSBQ+GBJN/162lXDJ+lXwV2lvGAZ8gQh8gTC6vUE0tvvQ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";
-  
+const defaultColors = {
+  primary: '#8A2BE2', // Purple
+  secondary: '#F2AE30', // Gold
+  accent: '#E57373',
+  text: '#333333',
+  background: '#FFFFFF'
+};
+
+const CoverPage: React.FC<CoverPageProps> = ({ 
+  clientName, 
+  eventType, 
+  eventDate, 
+  totalPrice,
+  colors = defaultColors
+}) => {
+  const styles = StyleSheet.create({
+    page: {
+      flexDirection: 'column',
+      backgroundColor: colors.background,
+      padding: 0,
+      position: 'relative'
+    },
+    coverImg: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      opacity: 0.1
+    },
+    container: {
+      position: 'relative', 
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'center',
+      alignItems: 'center',
+      height: '100%',
+      padding: 30,
+      zIndex: 10
+    },
+    header: {
+      fontSize: 40,
+      fontWeight: 'bold',
+      marginBottom: 20,
+      color: colors.primary,
+      textAlign: 'center',
+      fontFamily: 'Times-Roman'
+    },
+    subheader: {
+      fontSize: 24,
+      marginBottom: 10,
+      color: colors.secondary,
+      textAlign: 'center',
+      fontFamily: 'Times-Roman'
+    },
+    clientInfo: {
+      marginTop: 60,
+      marginBottom: 40,
+      padding: 20,
+      width: '100%',
+      maxWidth: 400,
+      borderWidth: 1,
+      borderColor: colors.secondary,
+      borderRadius: 4,
+      backgroundColor: colors.background,
+      alignSelf: 'center'
+    },
+    infoRow: {
+      flexDirection: 'row',
+      marginBottom: 10,
+    },
+    label: {
+      fontWeight: 'bold',
+      width: '40%',
+      color: colors.primary,
+    },
+    value: {
+      width: '60%',
+      color: colors.text,
+    },
+    price: {
+      fontSize: 18,
+      color: colors.primary,
+      marginTop: 10,
+      fontWeight: 'bold',
+      textAlign: 'center',
+    },
+    logo: {
+      width: 150,
+      height: 150,
+      marginBottom: 30,
+      alignSelf: 'center'
+    },
+    footer: {
+      position: 'absolute',
+      bottom: 30,
+      left: 0,
+      right: 0,
+      textAlign: 'center',
+      color: colors.text,
+      fontSize: 10,
+    }
+  });
+
   return (
-    <View style={styles.coverPage}>
+    <View style={styles.page}>
+      {/* Background image with low opacity */}
       <Image 
-        src={logoDataUri}
-        style={styles.coverPageImage}
+        src="/assets/camera-bg.jpg" 
+        style={styles.coverImg} 
       />
       
-      <Text style={styles.coverPageTitle}>
-        Anrielly Gomes
-      </Text>
+      <View style={styles.container}>
+        {/* Logo */}
+        <Image 
+          src="/assets/logo.png" 
+          style={styles.logo} 
+        />
+        
+        {/* Title */}
+        <Text style={styles.header}>Proposta Fotográfica</Text>
+        <Text style={styles.subheader}>{eventType}</Text>
+        
+        {/* Client Info Box */}
+        <View style={styles.clientInfo}>
+          <View style={styles.infoRow}>
+            <Text style={styles.label}>Cliente:</Text>
+            <Text style={styles.value}>{clientName}</Text>
+          </View>
+          
+          <View style={styles.infoRow}>
+            <Text style={styles.label}>Data do Evento:</Text>
+            <Text style={styles.value}>{eventDate}</Text>
+          </View>
+          
+          <View style={styles.infoRow}>
+            <Text style={styles.label}>Tipo de Evento:</Text>
+            <Text style={styles.value}>{eventType}</Text>
+          </View>
+          
+          <Text style={styles.price}>
+            R$ {formatCurrency(totalPrice)}
+          </Text>
+        </View>
+      </View>
       
-      <Text style={styles.coverPageSubtitle}>
-        Mestre de Cerimônia | Celebrante de Casamentos
-      </Text>
-      
-      <View style={styles.divider} />
-      
-      <Text style={styles.coverPageTitle}>
-        Proposta de Serviço
-      </Text>
-      
-      <Text style={styles.subtitle}>
-        {eventType}
-      </Text>
-      
-      <Text style={styles.subtitle}>
-        {eventDate}
-      </Text>
-      
-      <Text style={[styles.subtitle, {marginTop: 20}]}>
-        Valor: R$ {formatCurrency(totalPrice)}
-      </Text>
-      
-      <Text style={styles.coverPageClientName}>
-        Para: {clientName}
+      <Text style={styles.footer}>
+        Anrielly Gomes Fotografia - www.anriellygomes.com.br
       </Text>
     </View>
   );

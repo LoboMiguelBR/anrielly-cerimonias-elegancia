@@ -1,8 +1,10 @@
 
 import React from 'react';
 import { Document, Page, View, Text } from '@react-pdf/renderer';
-import { ProposalData } from './pdf/types';
+import { ProposalData } from './hooks/proposal';
 import { styles } from './pdf/styles';
+import { ProposalTemplateData } from './proposals/templates/shared/types';
+import { defaultTemplate } from './proposals/templates/shared/templateService';
 import {
   PDFHeader,
   PDFTitle,
@@ -21,9 +23,10 @@ import {
 
 interface ProposalProps {
   proposal: ProposalData;
+  template?: ProposalTemplateData;
 }
 
-const ProposalPDF: React.FC<ProposalProps> = ({ proposal }) => {
+const ProposalPDF: React.FC<ProposalProps> = ({ proposal, template = defaultTemplate }) => {
   // Ensure we have valid data with fallbacks
   const safeProposal = {
     ...proposal,
@@ -55,75 +58,136 @@ const ProposalPDF: React.FC<ProposalProps> = ({ proposal }) => {
   // Website URL with fallback
   const websiteUrl = "https://www.anriellygomes.com.br";
 
+  // Apply template colors to styles
+  const customStyles = {
+    ...styles,
+    coverPage: {
+      ...styles.coverPage,
+      background: template.colors.background,
+    },
+    title: {
+      ...styles.title,
+      color: template.colors.primary,
+    },
+    subtitle: {
+      ...styles.subtitle,
+      color: template.colors.secondary,
+    },
+    heading: {
+      ...styles.heading,
+      color: template.colors.primary,
+    },
+    text: {
+      ...styles.text,
+      color: template.colors.text,
+    },
+    section: {
+      ...styles.section,
+      borderColor: template.colors.accent,
+    }
+  };
+
   return (
     <Document>
       {/* Cover Page */}
-      <Page size="A4" style={styles.page}>
+      <Page size="A4" style={customStyles.page}>
         <CoverPage 
           clientName={safeProposal.client_name}
           eventType={safeProposal.event_type}
           eventDate={formattedDate}
           totalPrice={safeProposal.total_price}
+          colors={template.colors}
         />
       </Page>
 
       {/* Main Content Page */}
-      <Page size="A4" style={styles.page}>
+      <Page size="A4" style={customStyles.page}>
         <PDFHeader 
           proposalId={safeProposal.id} 
-          createdDate={createdDate} 
+          createdDate={createdDate}
+          colors={template.colors}
         />
 
-        <PDFTitle eventType={safeProposal.event_type} />
+        <PDFTitle 
+          eventType={safeProposal.event_type} 
+          colors={template.colors}
+        />
 
-        <View style={styles.divider} />
+        <View style={{...customStyles.divider, backgroundColor: template.colors.primary}} />
 
-        <ClientInfoSection client={safeProposal} />
+        <ClientInfoSection 
+          client={safeProposal} 
+          colors={template.colors}
+        />
 
         <EventDetailsSection 
           eventType={safeProposal.event_type}
           eventDate={formattedDate}
           eventLocation={safeProposal.event_location}
+          colors={template.colors}
         />
         
-        <AboutSection />
+        {template.showAboutSection && (
+          <AboutSection colors={template.colors} />
+        )}
       </Page>
 
       {/* Services and Pricing Page */}
-      <Page size="A4" style={styles.page}>
+      <Page size="A4" style={customStyles.page}>
         <PDFHeader 
           proposalId={safeProposal.id} 
-          createdDate={createdDate} 
+          createdDate={createdDate}
+          colors={template.colors}
         />
         
-        <ServicesSection services={safeProposal.services} />
+        <ServicesSection 
+          services={safeProposal.services} 
+          colors={template.colors}
+        />
         
-        <DifferentialsSection />
+        {template.showDifferentials && (
+          <DifferentialsSection colors={template.colors} />
+        )}
 
         <PricingSection 
           totalPrice={safeProposal.total_price}
           paymentTerms={safeProposal.payment_terms}
+          colors={template.colors}
         />
 
-        <NotesSection notes={safeProposal.notes} />
+        <NotesSection 
+          notes={safeProposal.notes} 
+          colors={template.colors}
+        />
       </Page>
 
       {/* Testimonials and Signature Page */}
-      <Page size="A4" style={styles.page}>
+      <Page size="A4" style={customStyles.page}>
         <PDFHeader 
           proposalId={safeProposal.id} 
-          createdDate={createdDate} 
+          createdDate={createdDate}
+          colors={template.colors}
         />
         
-        <TestimonialsSection />
+        {template.showTestimonials && (
+          <TestimonialsSection colors={template.colors} />
+        )}
         
-        <QRCodeSection url={websiteUrl} />
+        {template.showQrCode && (
+          <QRCodeSection 
+            url={websiteUrl} 
+            colors={template.colors}
+          />
+        )}
         
-        <View style={styles.signature}>
-          <Text>Assinatura do Cliente</Text>
+        <View style={{...customStyles.signature, borderColor: template.colors.primary}}>
+          <Text style={{...customStyles.text, color: template.colors.text}}>Assinatura do Cliente</Text>
         </View>
         
-        <PDFFooter validUntil={validUntil} />
+        <PDFFooter 
+          validUntil={validUntil}
+          colors={template.colors}
+        />
       </Page>
     </Document>
   );
