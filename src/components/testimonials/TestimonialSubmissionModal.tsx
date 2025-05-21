@@ -63,21 +63,8 @@ const TestimonialSubmissionModal = ({ isOpen, onClose }: TestimonialSubmissionMo
       
       // Upload image if selected
       if (uploadImage) {
-        // Check if bucket exists
-        const { data: buckets } = await supabase.storage.listBuckets();
-        const testimonialsBucketExists = buckets?.some(bucket => bucket.name === 'testimonials');
-        
-        if (!testimonialsBucketExists) {
-          // Create bucket if it doesn't exist
-          const { error: createBucketError } = await supabase.storage.createBucket('testimonials', {
-            public: true
-          });
-          
-          if (createBucketError) {
-            console.error('Erro ao criar bucket:', createBucketError);
-            throw createBucketError;
-          }
-        }
+        // Removed bucket creation check and logic since the bucket should already exist
+        // This was causing the RLS policy violation
         
         const fileExt = uploadImage.name.split('.').pop();
         const fileName = `${Date.now()}.${fileExt}`;
@@ -87,7 +74,7 @@ const TestimonialSubmissionModal = ({ isOpen, onClose }: TestimonialSubmissionMo
           .upload(fileName, uploadImage, {
             cacheControl: '3600',
             upsert: false,
-            contentType: uploadImage.type // Adicionado: Garante que o tipo de conteúdo seja corretamente definido
+            contentType: uploadImage.type // Fixed: Added contentType parameter
           });
         
         if (uploadError) throw uploadError;
