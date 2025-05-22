@@ -15,36 +15,14 @@ const Gallery: React.FC = () => {
           Galeria
         </h2>
 
-        {isLoading ? (
-          <div className="py-10 text-center" aria-busy="true">
-            Carregando imagens...
-          </div>
-        ) : error ? (
-          <div className="py-10 text-center text-red-500" role="alert">
-            <p>{error}</p>
-            <div className="mt-4">
-              <Button 
-                onClick={fetchGalleryImages}
-                className="px-4 py-2 bg-gold/80 text-white rounded-md hover:bg-gold transition-colors"
-                aria-label="Tentar recarregar galeria"
-              >
-                Tentar novamente
-              </Button>
-            </div>
-          </div>
-        ) : displayImages.length === 0 ? (
-          <div className="py-10 text-center text-gray-500">
-            Nenhuma imagem disponível no momento.
-          </div>
-        ) : (
-          <GalleryGrid 
-            isLoading={isLoading}
-            error={error}
-            displayImages={displayImages}
-            onRetry={fetchGalleryImages}
-            onImageClick={(url, title, description) => openImageModal(url, title, description)}
-          />
-        )}
+        {/* Always render GalleryGrid component regardless of state */}
+        <GalleryGrid 
+          isLoading={isLoading}
+          error={error}
+          displayImages={displayImages}
+          onRetry={fetchGalleryImages}
+          onImageClick={(url, title, description) => openImageModal(url, title, description)}
+        />
       </div>
     </section>
   );
