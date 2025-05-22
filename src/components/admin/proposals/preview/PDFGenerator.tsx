@@ -21,13 +21,18 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({
   children
 }) => {
   const [pdfDocument, setPdfDocument] = useState<React.ReactElement | null>(null);
+  const [hasGenerated, setHasGenerated] = useState<boolean>(false);
 
   // Generate PDF blob when component mounts
   useEffect(() => {
+    // Add this flag to prevent infinite loop
+    if (hasGenerated) return;
+
     const generatePdf = async () => {
       try {
         const doc = <ProposalPDF proposal={proposal} template={template} />;
         setPdfDocument(doc);
+        setHasGenerated(true);
         
         // Generate PDF blob if callback is provided
         if (onPdfReady) {
@@ -41,7 +46,7 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({
     };
     
     generatePdf();
-  }, [proposal, template, onPdfReady, onError]);
+  }, [proposal.id, hasGenerated, onPdfReady, onError]);
 
   return <>{children(pdfDocument)}</>;
 };

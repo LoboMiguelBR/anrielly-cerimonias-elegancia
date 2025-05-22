@@ -23,6 +23,7 @@ const PDFActions: React.FC<PDFActionsProps> = ({
   pdfBlob
 }) => {
   const [isSending, setIsSending] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   const handleEmailProposal = async () => {
     if (!proposal.client_email) {
@@ -66,6 +67,28 @@ const PDFActions: React.FC<PDFActionsProps> = ({
     return `proposta_${cleanName}_${timestamp}.pdf`;
   };
 
+  const handleDownloadPdf = () => {
+    if (!pdfBlob) return;
+    
+    try {
+      setIsDownloading(true);
+      const url = URL.createObjectURL(pdfBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = getPdfFilename();
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      toast.success("Download iniciado");
+    } catch (error) {
+      console.error("Erro ao baixar PDF:", error);
+      toast.error("Erro ao baixar PDF");
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
   return (
     <div className="flex items-center gap-2">
       <Button variant="outline" size="sm" onClick={onBack}>
@@ -77,18 +100,15 @@ const PDFActions: React.FC<PDFActionsProps> = ({
           variant="default" 
           size="sm" 
           className="bg-gold/80 text-white hover:bg-gold"
-          onClick={() => {
-            const url = URL.createObjectURL(pdfBlob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = getPdfFilename();
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
-          }}
+          onClick={handleDownloadPdf}
+          disabled={isDownloading}
         >
-          <Download className="w-4 h-4 mr-2" /> Baixar PDF
+          {isDownloading ? (
+            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+          ) : (
+            <Download className="w-4 h-4 mr-2" />
+          )}
+          Baixar PDF
         </Button>
       ) : (
         <PDFDownloadLink

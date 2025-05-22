@@ -23,12 +23,16 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
   proposal,
   isEditMode = false
 }) => {
+  // Calculate button disabled state
+  const saveDisabled = isSaving || (!selectedQuote && !isEditMode);
+  const previewDisabled = generatingPDF || (!selectedQuote && !isEditMode);
+
   return (
     <>
       <Button 
         variant="outline" 
         onClick={onSave} 
-        disabled={isSaving || !selectedQuote}
+        disabled={saveDisabled}
         className="flex items-center"
       >
         {isSaving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
@@ -37,7 +41,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
       
       <Button 
         onClick={onGeneratePDF} 
-        disabled={generatingPDF || !selectedQuote}
+        disabled={previewDisabled}
         className="bg-purple-200 hover:bg-purple-300 text-primary-foreground"
       >
         {generatingPDF ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <FileText className="w-4 h-4 mr-2" />}

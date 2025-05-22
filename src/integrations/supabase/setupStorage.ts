@@ -13,13 +13,22 @@ export const createStorageBuckets = async () => {
         
         // Try to create the bucket if it doesn't exist
         const { error: createError } = await supabase.storage.createBucket(bucketName, {
-          public: bucketName === 'proposals'
+          public: true
         });
         
         if (createError) {
           console.error(`Erro ao criar bucket '${bucketName}':`, createError.message);
         } else {
           console.log(`Bucket '${bucketName}' criado com sucesso.`);
+          
+          // Set bucket as public
+          const { error: updateError } = await supabase.storage.updateBucket(bucketName, {
+            public: true
+          });
+          
+          if (updateError) {
+            console.error(`Erro ao tornar bucket '${bucketName}' público:`, updateError.message);
+          }
         }
       } else {
         console.log(`Bucket '${bucketName}' está acessível. Contém ${data.length} arquivos.`);
