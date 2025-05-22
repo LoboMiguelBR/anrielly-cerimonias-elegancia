@@ -1,8 +1,7 @@
-
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Home, Image, MessageCircle, FileText, Camera, PaletteSwatch } from 'lucide-react';
+import { Home, Image, MessageCircle, FileText, Camera, Palette } from 'lucide-react';
 import AdminHeader from '@/components/admin/AdminHeader';
 import DashboardTab from '@/components/admin/tabs/DashboardTab';
 import GalleryTab from '@/components/admin/tabs/GalleryTab';
@@ -66,7 +65,7 @@ const AdminDashboard = () => {
               <Camera className="w-4 h-4 mr-2" /> Propostas
             </TabsTrigger>
             <TabsTrigger value="templates" className="flex items-center">
-              <PaletteSwatch className="w-4 h-4 mr-2" /> Templates
+              <Palette className="w-4 h-4 mr-2" /> Templates
             </TabsTrigger>
           </TabsList>
           

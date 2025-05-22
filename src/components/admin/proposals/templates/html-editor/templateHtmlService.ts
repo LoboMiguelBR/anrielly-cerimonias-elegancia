@@ -1,7 +1,41 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { HtmlTemplateData, TemplateSection, TemplateAsset } from './types';
+import { HtmlTemplateData, TemplateSection, TemplateAsset, TemplateSectionType } from './types';
 import { toast } from 'sonner';
+
+// Helper function to convert database JSON to the expected Record<string, string[]> format
+const convertToVariablesRecord = (dbVariables: any): Record<string, string[]> => {
+  if (!dbVariables) return {};
+  
+  // If it's already an object with the right structure
+  if (typeof dbVariables === 'object' && !Array.isArray(dbVariables)) {
+    const result: Record<string, string[]> = {};
+    
+    // Convert each key to ensure values are string arrays
+    Object.entries(dbVariables).forEach(([key, value]) => {
+      if (Array.isArray(value)) {
+        result[key] = value.map(item => String(item));
+      } else {
+        // If value is not an array, create a single-item array
+        result[key] = [String(value)];
+      }
+    });
+    
+    return result;
+  }
+  
+  // Fallback to empty object if structure is incorrect
+  return {};
+};
+
+// Convert string to TemplateSectionType enum
+const convertToSectionType = (type: string): TemplateSectionType => {
+  const enumValues = Object.values(TemplateSectionType);
+  if (enumValues.includes(type as TemplateSectionType)) {
+    return type as TemplateSectionType;
+  }
+  return TemplateSectionType.CUSTOM; // Default to CUSTOM if not found
+};
 
 // Fetch all available HTML templates
 export async function fetchHtmlTemplates(): Promise<HtmlTemplateData[]> {
@@ -19,7 +53,7 @@ export async function fetchHtmlTemplates(): Promise<HtmlTemplateData[]> {
       description: template.description || '',
       htmlContent: template.html_content,
       cssContent: template.css_content || '',
-      variables: template.variables || {},
+      variables: convertToVariablesRecord(template.variables),
       isDefault: template.is_default,
       createdAt: template.created_at,
       updatedAt: template.updated_at
@@ -49,7 +83,7 @@ export async function fetchHtmlTemplateById(id: string): Promise<HtmlTemplateDat
       description: data.description || '',
       htmlContent: data.html_content,
       cssContent: data.css_content || '',
-      variables: data.variables || {},
+      variables: convertToVariablesRecord(data.variables),
       isDefault: data.is_default,
       createdAt: data.created_at,
       updatedAt: data.updated_at
@@ -151,7 +185,7 @@ export async function fetchTemplateSections(): Promise<TemplateSection[]> {
       name: section.name,
       description: section.description || '',
       htmlContent: section.html_content,
-      sectionType: section.section_type,
+      sectionType: convertToSectionType(section.section_type),
       createdAt: section.created_at,
       updatedAt: section.updated_at
     }));
@@ -290,7 +324,7 @@ export async function getDefaultHtmlTemplate(): Promise<HtmlTemplateData | null>
       description: data.description || '',
       htmlContent: data.html_content,
       cssContent: data.css_content || '',
-      variables: data.variables || {},
+      variables: convertToVariablesRecord(data.variables),
       isDefault: data.is_default,
       createdAt: data.created_at,
       updatedAt: data.updated_at
@@ -311,7 +345,7 @@ export async function getDefaultHtmlTemplate(): Promise<HtmlTemplateData | null>
         description: data[0].description || '',
         htmlContent: data[0].html_content,
         cssContent: data[0].css_content || '',
-        variables: data[0].variables || {},
+        variables: convertToVariablesRecord(data[0].variables),
         isDefault: data[0].is_default,
         createdAt: data[0].created_at,
         updatedAt: data[0].updated_at
