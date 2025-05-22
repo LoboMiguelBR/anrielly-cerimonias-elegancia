@@ -2,7 +2,6 @@
 import React, { useRef } from 'react';
 import { useGalleryContext } from './gallery/GalleryContext';
 import GalleryGrid from './gallery/GalleryGrid';
-import { Button } from "@/components/ui/button";
 
 const Gallery: React.FC = () => {
   const sectionRef = useRef<HTMLElement>(null);

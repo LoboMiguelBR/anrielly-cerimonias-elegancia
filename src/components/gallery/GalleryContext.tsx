@@ -2,6 +2,7 @@
 import { createContext, useContext, useState, ReactNode } from 'react';
 import { useGalleryImages } from './useGalleryImages';
 import { DisplayImage } from './types';
+import GalleryModal from './GalleryModal';
 
 interface GalleryContextType {
   displayImages: DisplayImage[];
@@ -28,10 +29,15 @@ export const GalleryProvider = ({ children }: { children: ReactNode }) => {
     description: img.description
   }));
 
+  // Function to open the image modal with the selected image
   const openImageModal = (url: string, title: string, description: string | null) => {
-    setModalImage({ url, title, description });
-    // Note: You would typically open a modal here
     console.log('Opening modal for image:', { url, title, description });
+    setModalImage({ url, title, description });
+  };
+  
+  // Function to close the image modal
+  const closeImageModal = () => {
+    setModalImage(null);
   };
 
   return (
@@ -43,6 +49,14 @@ export const GalleryProvider = ({ children }: { children: ReactNode }) => {
       openImageModal
     }}>
       {children}
+      {/* Render the GalleryModal directly in the provider */}
+      <GalleryModal
+        isOpen={modalImage !== null}
+        onClose={closeImageModal}
+        imageUrl={modalImage?.url || null}
+        imageTitle={modalImage?.title || ''}
+        imageDescription={modalImage?.description}
+      />
     </GalleryContext.Provider>
   );
 };

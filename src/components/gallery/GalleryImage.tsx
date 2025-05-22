@@ -1,63 +1,33 @@
 
 import React from 'react';
+import { DisplayImage } from './types';
 import { normalizeImageUrl } from '@/utils/imageUtils';
 
 interface GalleryImageProps {
-  url: string;
-  title: string;
-  description: string | null;
-  index: number;
+  image: DisplayImage;
   onClick: () => void;
 }
 
-const GalleryImage: React.FC<GalleryImageProps> = ({ 
-  url, 
-  title, 
-  description, 
-  index, 
-  onClick 
-}) => {
-  if (!url) {
-    console.warn('[GalleryImage] URL inválida recebida, não renderizando:', { url, title, index });
-    return null;
-  }
-
-  const processedUrl = normalizeImageUrl(url);
-
-  console.log('[GalleryImage] Renderizando imagem:', { url, title, index });
+const GalleryImage: React.FC<GalleryImageProps> = ({ image, onClick }) => {
+  const imageUrl = normalizeImageUrl(image.url);
 
   return (
     <div 
-      className="aspect-square overflow-hidden rounded-lg shadow-md animate-on-scroll"
-      style={{ animationDelay: `${index * 100}ms` }}
+      className="relative overflow-hidden rounded-lg shadow-md cursor-pointer hover:shadow-xl transition-all duration-300 aspect-square"
       onClick={onClick}
-      tabIndex={0}
-      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onClick(); }}
-      role="button"
-      aria-label={`Ver imagem ampliada: ${title || `Imagem ${index + 1}`}${description ? ` - ${description}` : ''}`}
     >
-      <div className="relative h-full group cursor-pointer">
-        <img 
-          src={processedUrl} 
-          alt={`${title || `Galeria Anrielly Gomes - Imagem ${index + 1}`}${description ? ` - ${description}` : ''}`} 
-          className="w-full h-full object-cover hover-zoom"
-          loading="lazy"
-          draggable={false}
-          onError={(e) => {
-            console.error(`[GalleryImage] Falha ao carregar imagem: ${processedUrl}, URL original: ${url}`);
-            (e.target as HTMLImageElement).src = '/placeholder.svg';
-          }}
-        />
-        <div className="absolute inset-0 bg-gold/0 group-hover:bg-gold/20 transition-all duration-300 flex items-center justify-center">
-          <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            <span className="sr-only">Ver ampliado</span>
-          </div>
-        </div>
-        {description && (
-          <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white p-2 opacity-0 group-hover:opacity-100 transition-opacity">
-            <p className="text-sm truncate">{description}</p>
-          </div>
-        )}
+      <img
+        src={imageUrl}
+        alt={`${image.title}${image.description ? ` - ${image.description}` : ''}`}
+        className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-300"
+        loading="lazy"
+        onError={(e) => {
+          console.error(`[GalleryImage] Falha ao carregar imagem: ${imageUrl}, URL original: ${image.url}`);
+          (e.target as HTMLImageElement).src = '/placeholder.svg';
+        }}
+      />
+      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
+        <h3 className="text-white font-semibold line-clamp-1">{image.title}</h3>
       </div>
     </div>
   );
