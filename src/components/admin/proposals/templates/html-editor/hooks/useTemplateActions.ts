@@ -52,7 +52,14 @@ export const useTemplateActions = () => {
       
       // If we have onSave callback, use it
       if (onSave) {
-        success = await onSave(templateToSave);
+        console.log('Using provided onSave callback');
+        try {
+          success = await onSave(templateToSave);
+          console.log('onSave callback result:', success);
+        } catch (error: any) {
+          console.error('Error in onSave callback:', error);
+          throw error;
+        }
       } else {
         // Otherwise use our service directly
         console.log('Using direct save method');
@@ -63,15 +70,15 @@ export const useTemplateActions = () => {
             // Create new template
             const newId = await saveHtmlTemplate({
               name: template.name,
-              description: template.description,
+              description: template.description || '',
               htmlContent,
               cssContent,
               variables: template.variables,
               isDefault: template.isDefault
             });
             
+            console.log('saveHtmlTemplate returned ID:', newId);
             success = !!newId;
-            console.log('New template created with ID:', newId);
             
             if (success && newId) {
               updatedTemplate = {
@@ -94,18 +101,17 @@ export const useTemplateActions = () => {
             // Update existing template
             success = await updateHtmlTemplate(template.id, {
               name: template.name,
-              description: template.description,
+              description: template.description || '',
               htmlContent,
               cssContent,
               variables: template.variables,
               isDefault: template.isDefault
             });
             
+            console.log('updateHtmlTemplate result:', success);
             setDebugInfo(success 
               ? `Template atualizado com sucesso! ID: ${template.id}` 
               : 'Falha na atualização do template. Verifique as políticas RLS da tabela.');
-            
-            console.log('Template update result:', success ? 'Success' : 'Failed');
           } catch (error: any) {
             console.error('Detailed update error:', error);
             setDebugInfo(`Erro ao atualizar: ${error.message || JSON.stringify(error)}. Verifique se as políticas RLS estão configuradas na tabela proposal_template_html.`);

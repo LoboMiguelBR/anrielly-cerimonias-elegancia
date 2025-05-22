@@ -17,13 +17,7 @@ export const useTemplateEditor = (
     togglePreviewMode 
   } = useTemplateDisplay();
 
-  const { 
-    isSaving, 
-    saveError, 
-    debugInfo, 
-    handleSave: saveTemplate 
-  } = useTemplateActions();
-
+  // Initialize content with empty template (not null)
   const {
     template,
     setTemplate,
@@ -38,8 +32,16 @@ export const useTemplateEditor = (
     handleInsertVariable,
     handleCursorPositionChange,
     setActiveEditor
-  } = useTemplateContent(null); // Start with null, we'll set it in useEffect
+  } = useTemplateContent(null);
 
+  const { 
+    isSaving, 
+    saveError, 
+    debugInfo, 
+    handleSave: saveTemplate 
+  } = useTemplateActions();
+
+  // Load template using the dedicated hook
   const { isLoading } = useTemplateLoading(
     initialTemplate,
     setTemplate,
@@ -48,11 +50,27 @@ export const useTemplateEditor = (
   );
 
   const handleSave = async () => {
-    if (!template) return;
+    if (!template) {
+      console.error('No template to save');
+      return;
+    }
+
+    console.log('Saving template:', {
+      id: template.id,
+      name: template.name,
+      htmlContent: htmlContent.substring(0, 50) + '...',
+      cssContent: cssContent ? cssContent.substring(0, 50) + '...' : ''
+    });
 
     const result = await saveTemplate(template, htmlContent, cssContent, onSave);
+    
+    console.log('Save result:', result);
+    
     if (result.success && result.template) {
       setTemplate(result.template);
+      console.log('Template updated after save:', result.template.id);
+    } else {
+      console.error('Failed to save template:', saveError);
     }
   };
 

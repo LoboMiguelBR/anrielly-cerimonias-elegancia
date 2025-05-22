@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useCallback } from 'react';
 import { TemplateEditorProps } from './types';
 import { useTemplateEditor } from './hooks/useTemplateEditor';
 import TemplatePreview from './TemplatePreview';
@@ -37,6 +37,33 @@ export const TemplateHtmlEditor: React.FC<TemplateEditorProps> = ({
     handleInsertVariable,
     handleCursorPositionChange
   } = useTemplateEditor(initialTemplate, onSave);
+
+  // Use useCallback to prevent creating new functions on every render
+  const onSelectAsset = useCallback((asset: { url: string; fileName: string }) => {
+    if (activeEditor === 'html') {
+      const imageTag = `<img src="${asset.url}" alt="${asset.fileName}" />`;
+      const result = insertVariableAtCursor(
+        htmlContent,
+        currentCursorPosition,
+        '',
+        '',
+        imageTag
+      );
+      handleHtmlChange(result.updatedContent);
+      handleCursorPositionChange(result.cursorPosition);
+      
+    } else if (activeEditor === 'css') {
+      const cssImageUrl = `url('${asset.url}')`;
+      const result = insertVariableAtCursor(
+        cssContent,
+        currentCursorPosition,
+        '',
+        '',
+        cssImageUrl
+      );
+      handleCssChange(result.updatedContent);
+    }
+  }, [activeEditor, htmlContent, cssContent, currentCursorPosition, handleHtmlChange, handleCssChange, handleCursorPositionChange]);
 
   if (isLoading) {
     return <LoadingState />;
@@ -89,32 +116,7 @@ export const TemplateHtmlEditor: React.FC<TemplateEditorProps> = ({
               activeEditor={activeEditor}
               currentCursorPosition={currentCursorPosition}
               onInsertVariable={handleInsertVariable}
-              onSelectAsset={(asset) => {
-                // Insert asset URL at cursor position
-                if (activeEditor === 'html') {
-                  const imageTag = `<img src="${asset.url}" alt="${asset.fileName}" />`;
-                  const result = insertVariableAtCursor(
-                    htmlContent,
-                    currentCursorPosition,
-                    '',
-                    '',
-                    imageTag
-                  );
-                  handleHtmlChange(result.updatedContent);
-                  handleCursorPositionChange(result.cursorPosition);
-                  
-                } else if (activeEditor === 'css') {
-                  const cssImageUrl = `url('${asset.url}')`;
-                  const result = insertVariableAtCursor(
-                    cssContent,
-                    currentCursorPosition,
-                    '',
-                    '',
-                    cssImageUrl
-                  );
-                  handleCssChange(result.updatedContent);
-                }
-              }}
+              onSelectAsset={onSelectAsset}
             />
           </div>
         </div>
