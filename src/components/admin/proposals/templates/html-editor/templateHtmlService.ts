@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { HtmlTemplateData, TemplateSection, TemplateAsset, TemplateSectionType } from './types';
 import { toast } from 'sonner';
@@ -137,7 +136,7 @@ export async function saveHtmlTemplate(template: Omit<HtmlTemplateData, 'id' | '
       .single();
       
     if (error) {
-      console.error('Error saving HTML template:', error);
+      console.error('Error details from Supabase:', error);
       throw error;
     }
     
@@ -146,8 +145,19 @@ export async function saveHtmlTemplate(template: Omit<HtmlTemplateData, 'id' | '
     return data?.id || null;
   } catch (error: any) {
     console.error('Error saving HTML template:', error);
-    toast.error(`Erro ao salvar template HTML: ${error.message}`);
-    return null;
+    
+    // Improved error reporting
+    let errorMessage = 'Erro desconhecido';
+    if (error.message) {
+      errorMessage = error.message;
+    } else if (error.details) {
+      errorMessage = error.details;
+    } else if (typeof error === 'string') {
+      errorMessage = error;
+    }
+    
+    toast.error(`Erro ao salvar template HTML: ${errorMessage}`);
+    throw error; // Re-throw to allow calling code to handle it
   }
 }
 
@@ -172,15 +182,29 @@ export async function updateHtmlTemplate(templateId: string, templateData: Parti
       .update(updateData)
       .eq('id', templateId);
       
-    if (error) throw error;
+    if (error) {
+      console.error('Error details from Supabase:', error);
+      throw error;
+    }
     
     console.log('Template updated successfully');
     toast.success('Template HTML atualizado com sucesso!');
     return true;
   } catch (error: any) {
     console.error('Error updating HTML template:', error);
-    toast.error(`Erro ao atualizar template HTML: ${error.message}`);
-    return false;
+    
+    // Improved error reporting
+    let errorMessage = 'Erro desconhecido';
+    if (error.message) {
+      errorMessage = error.message;
+    } else if (error.details) {
+      errorMessage = error.details;
+    } else if (typeof error === 'string') {
+      errorMessage = error;
+    }
+    
+    toast.error(`Erro ao atualizar template HTML: ${errorMessage}`);
+    throw error; // Re-throw to allow calling code to handle it
   }
 }
 

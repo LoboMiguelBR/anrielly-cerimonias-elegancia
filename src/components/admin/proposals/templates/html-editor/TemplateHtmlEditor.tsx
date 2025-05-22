@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { HtmlTemplateData, TemplateEditorProps } from './types';
 import { Button } from "@/components/ui/button";
@@ -20,7 +21,7 @@ import CodeEditor from './CodeEditor';
 import TemplatePreview from './TemplatePreview';
 import VariablesPanel from './VariablesPanel';
 import AssetsPanel from './AssetsPanel';
-import { Loader2, Save, ArrowLeftCircle, Eye } from 'lucide-react';
+import { Loader2, Save, ArrowLeftCircle, Eye, AlertCircle } from 'lucide-react';
 
 export const TemplateHtmlEditor: React.FC<TemplateEditorProps> = ({ 
   initialTemplate,
@@ -37,12 +38,14 @@ export const TemplateHtmlEditor: React.FC<TemplateEditorProps> = ({
   const [currentCursorPosition, setCurrentCursorPosition] = useState<number>(0);
   const [activeEditor, setActiveEditor] = useState<'html' | 'css'>('html');
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [debugInfo, setDebugInfo] = useState<string | null>(null);
   
   useEffect(() => {
     const loadTemplate = async () => {
       try {
         setIsLoading(true);
         setSaveError(null);
+        setDebugInfo(null);
 
         if (initialTemplate) {
           console.log('Loading initial template:', initialTemplate.id);
@@ -108,6 +111,7 @@ export const TemplateHtmlEditor: React.FC<TemplateEditorProps> = ({
     try {
       setIsSaving(true);
       setSaveError(null);
+      setDebugInfo(null);
       
       // Validate template data
       if (!template.name || template.name.trim() === '') {
@@ -148,38 +152,55 @@ export const TemplateHtmlEditor: React.FC<TemplateEditorProps> = ({
         
         if (template.id === 'new') {
           console.log('Creating new template');
-          // Create new template
-          const newId = await saveHtmlTemplate({
-            name: template.name,
-            description: template.description,
-            htmlContent,
-            cssContent,
-            variables: template.variables,
-            isDefault: template.isDefault
-          });
-          
-          success = !!newId;
-          console.log('New template created with ID:', newId);
-          
-          if (success && newId) {
-            setTemplate({
-              ...templateToSave,
-              id: newId
+          try {
+            // Create new template
+            const newId = await saveHtmlTemplate({
+              name: template.name,
+              description: template.description,
+              htmlContent,
+              cssContent,
+              variables: template.variables,
+              isDefault: template.isDefault
             });
+            
+            success = !!newId;
+            console.log('New template created with ID:', newId);
+            
+            if (success && newId) {
+              setTemplate({
+                ...templateToSave,
+                id: newId
+              });
+              setDebugInfo(`Template salvo com sucesso! ID: ${newId}`);
+            }
+          } catch (error: any) {
+            console.error('Detailed save error:', error);
+            setDebugInfo(`Erro ao salvar: ${error.message || JSON.stringify(error)}`);
+            throw error;
           }
         } else {
           console.log('Updating existing template:', template.id);
-          // Update existing template
-          success = await updateHtmlTemplate(template.id, {
-            name: template.name,
-            description: template.description,
-            htmlContent,
-            cssContent,
-            variables: template.variables,
-            isDefault: template.isDefault
-          });
-          
-          console.log('Template update result:', success ? 'Success' : 'Failed');
+          try {
+            // Update existing template
+            success = await updateHtmlTemplate(template.id, {
+              name: template.name,
+              description: template.description,
+              htmlContent,
+              cssContent,
+              variables: template.variables,
+              isDefault: template.isDefault
+            });
+            
+            setDebugInfo(success 
+              ? `Template atualizado com sucesso! ID: ${template.id}` 
+              : 'Falha na atualização do template');
+            
+            console.log('Template update result:', success ? 'Success' : 'Failed');
+          } catch (error: any) {
+            console.error('Detailed update error:', error);
+            setDebugInfo(`Erro ao atualizar: ${error.message || JSON.stringify(error)}`);
+            throw error;
+          }
         }
       }
       
@@ -293,6 +314,16 @@ export const TemplateHtmlEditor: React.FC<TemplateEditorProps> = ({
         <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-md mb-4">
           <p className="font-medium">Erro ao salvar template:</p>
           <p>{saveError}</p>
+        </div>
+      )}
+
+      {debugInfo && (
+        <div className="bg-blue-50 border border-blue-200 text-blue-700 p-3 rounded-md mb-4 flex items-start">
+          <AlertCircle className="h-5 w-5 mr-2 mt-0.5" />
+          <div>
+            <p className="font-medium">Informação de Depuração:</p>
+            <p className="text-sm">{debugInfo}</p>
+          </div>
         </div>
       )}
 
