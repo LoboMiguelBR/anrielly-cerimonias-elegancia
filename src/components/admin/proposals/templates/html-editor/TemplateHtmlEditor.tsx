@@ -9,6 +9,7 @@ import ErrorMessages from './components/ErrorMessages';
 import EditorContent from './components/EditorContent';
 import SidebarTools from './components/SidebarTools';
 import LoadingState from './components/LoadingState';
+import { insertVariableAtCursor } from './utils/editorUtils';
 
 export const TemplateHtmlEditor: React.FC<TemplateEditorProps> = ({ 
   initialTemplate,
