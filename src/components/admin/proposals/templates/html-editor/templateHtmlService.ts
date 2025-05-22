@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { HtmlTemplateData, TemplateSection, TemplateAsset, TemplateSectionType } from './types';
 import { toast } from 'sonner';
@@ -357,9 +358,6 @@ async function createDefaultTemplate(): Promise<HtmlTemplateData | null> {
     return null;
   }
 }
-
-// Export the other functions unchanged
-export { fetchTemplateSections, uploadTemplateAsset, fetchTemplateAssets, deleteTemplateAsset };
 
 // Maintain these functions from the original file
 export const fetchTemplateSections = async (): Promise<TemplateSection[]> => {

@@ -1,6 +1,7 @@
 
 import { useState } from 'react';
 import { uploadTestimonialImage, submitTestimonial } from '@/components/admin/hooks/testimonials/api/upload';
+import { sendNewTestimonialNotification } from '@/utils/emailUtils';
 
 export interface TestimonialFormData {
   name: string;
@@ -74,6 +75,9 @@ export const useTestimonialSubmission = () => {
       const success = await submitTestimonial(formData, imageUrl);
       
       if (success) {
+        // Send email notification about new testimonial
+        await sendNewTestimonialNotification(formData.name, ''); // We don't collect email in testimonials form
+        
         resetForm();
       }
       

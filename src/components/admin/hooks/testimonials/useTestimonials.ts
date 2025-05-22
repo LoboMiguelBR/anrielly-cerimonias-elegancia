@@ -10,6 +10,7 @@ import {
   updateTestimonialStatus as apiUpdateTestimonialStatus,
   ensureTestimonialsBucketExists
 } from './api';
+import { sendTestimonialApprovedNotification } from '@/utils/emailUtils';
 
 export function useTestimonials() {
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
@@ -82,6 +83,16 @@ export function useTestimonials() {
   ) => {
     setIsSubmitting(true);
     const success = await apiUpdateTestimonialStatus(testimonial, newStatus);
+    
+    // Send notification when testimonial is approved
+    if (success && newStatus === 'approved') {
+      try {
+        await sendTestimonialApprovedNotification(testimonial.name, ''); // We don't have email in basic testimonial
+      } catch (error) {
+        console.error('Error sending testimonial approval notification:', error);
+      }
+    }
+    
     setIsSubmitting(false);
     return success;
   };

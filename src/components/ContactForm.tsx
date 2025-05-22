@@ -3,6 +3,7 @@ import { useState, FormEvent, useEffect, useRef } from 'react';
 import { Phone, Instagram, Mail } from 'lucide-react';
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { sendContactNotification } from '@/utils/emailUtils';
 
 const ContactForm = () => {
   const { toast } = useToast();
@@ -68,6 +69,14 @@ const ContactForm = () => {
         });
         
       if (error) throw error;
+      
+      // Send email notification
+      await sendContactNotification(
+        formData.name, 
+        formData.email, 
+        formData.phone, 
+        formData.message || ''
+      );
       
       toast({
         title: "Solicitação enviada!",
