@@ -39,6 +39,72 @@ export type Database = {
         }
         Relationships: []
       }
+      proposal_assets: {
+        Row: {
+          created_at: string
+          file_name: string
+          file_path: string
+          file_size: number | null
+          file_type: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          file_name: string
+          file_path: string
+          file_size?: number | null
+          file_type?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          file_name?: string
+          file_path?: string
+          file_size?: number | null
+          file_type?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      proposal_template_html: {
+        Row: {
+          created_at: string
+          css_content: string | null
+          description: string | null
+          html_content: string
+          id: string
+          is_default: boolean | null
+          name: string
+          updated_at: string
+          variables: Json | null
+        }
+        Insert: {
+          created_at?: string
+          css_content?: string | null
+          description?: string | null
+          html_content?: string
+          id?: string
+          is_default?: boolean | null
+          name: string
+          updated_at?: string
+          variables?: Json | null
+        }
+        Update: {
+          created_at?: string
+          css_content?: string | null
+          description?: string | null
+          html_content?: string
+          id?: string
+          is_default?: boolean | null
+          name?: string
+          updated_at?: string
+          variables?: Json | null
+        }
+        Relationships: []
+      }
       proposal_templates: {
         Row: {
           content: string
@@ -179,6 +245,36 @@ export type Database = {
           name?: string
           phone?: string
           status?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      template_sections: {
+        Row: {
+          created_at: string
+          description: string | null
+          html_content: string
+          id: string
+          name: string
+          section_type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          html_content: string
+          id?: string
+          name: string
+          section_type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          html_content?: string
+          id?: string
+          name?: string
+          section_type?: string
           updated_at?: string
         }
         Relationships: []

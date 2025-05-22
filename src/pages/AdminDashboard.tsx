@@ -2,13 +2,14 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Home, Image, MessageCircle, FileText, Camera } from 'lucide-react';
+import { Home, Image, MessageCircle, FileText, Camera, PaletteSwatch } from 'lucide-react';
 import AdminHeader from '@/components/admin/AdminHeader';
 import DashboardTab from '@/components/admin/tabs/DashboardTab';
 import GalleryTab from '@/components/admin/tabs/GalleryTab';
 import TestimonialsTab from '@/components/admin/tabs/TestimonialsTab';
 import QuotesTab from '@/components/admin/tabs/QuotesTab';
 import ProposalsTab from '@/components/admin/tabs/ProposalsTab';
+import ProposalTemplatesTab from '@/components/admin/tabs/ProposalTemplatesTab';
 import { useQuoteRequests } from '@/hooks/useQuoteRequests';
 
 const AdminDashboard = () => {
@@ -64,6 +65,9 @@ const AdminDashboard = () => {
             <TabsTrigger value="proposals" className="flex items-center">
               <Camera className="w-4 h-4 mr-2" /> Propostas
             </TabsTrigger>
+            <TabsTrigger value="templates" className="flex items-center">
+              <PaletteSwatch className="w-4 h-4 mr-2" /> Templates
+            </TabsTrigger>
           </TabsList>
           
           <TabsContent value="dashboard">
@@ -84,6 +88,10 @@ const AdminDashboard = () => {
           
           <TabsContent value="proposals">
             <ProposalsTab quoteRequests={quoteRequests || []} quoteIdFromUrl={quoteIdFromUrl} />
+          </TabsContent>
+          
+          <TabsContent value="templates">
+            <ProposalTemplatesTab />
           </TabsContent>
         </Tabs>
       </main>

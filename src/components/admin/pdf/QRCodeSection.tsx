@@ -1,11 +1,12 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, Image } from '@react-pdf/renderer';
 import { styles } from './styles';
 import { QRCodeSectionProps } from './types';
+import { generateQRCode } from '../utils/qrCodeGenerator';
 
 const QRCodeSection: React.FC<QRCodeSectionProps> = ({ url, colors }) => {
-  // QR code data URL (using a reliable external service)
+  // Generate QR code for the PDF
   const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(url)}&format=svg`;
   
   return (
