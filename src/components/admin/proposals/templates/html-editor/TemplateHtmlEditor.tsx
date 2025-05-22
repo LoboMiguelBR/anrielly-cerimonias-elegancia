@@ -36,18 +36,22 @@ export const TemplateHtmlEditor: React.FC<TemplateEditorProps> = ({
   const [cssContent, setCssContent] = useState<string>('');
   const [currentCursorPosition, setCurrentCursorPosition] = useState<number>(0);
   const [activeEditor, setActiveEditor] = useState<'html' | 'css'>('html');
+  const [saveError, setSaveError] = useState<string | null>(null);
   
   useEffect(() => {
     const loadTemplate = async () => {
       try {
         setIsLoading(true);
+        setSaveError(null);
 
         if (initialTemplate) {
+          console.log('Loading initial template:', initialTemplate.id);
           setTemplate(initialTemplate);
           setHtmlContent(initialTemplate.htmlContent);
           setCssContent(initialTemplate.cssContent || '');
         } else {
           // Create a new empty template
+          console.log('Creating new empty template');
           const emptyTemplate: HtmlTemplateData = {
             id: 'new',
             name: 'Novo Template',
@@ -103,6 +107,28 @@ export const TemplateHtmlEditor: React.FC<TemplateEditorProps> = ({
 
     try {
       setIsSaving(true);
+      setSaveError(null);
+      
+      // Validate template data
+      if (!template.name || template.name.trim() === '') {
+        toast.error('O nome do template é obrigatório');
+        setSaveError('Nome do template é obrigatório');
+        return;
+      }
+      
+      if (!htmlContent || htmlContent.trim() === '') {
+        toast.error('O conteúdo HTML é obrigatório');
+        setSaveError('Conteúdo HTML é obrigatório');
+        return;
+      }
+      
+      console.log('Saving template:', {
+        id: template.id,
+        name: template.name,
+        htmlContent: htmlContent.length > 50 ? htmlContent.substring(0, 50) + '...' : htmlContent,
+        cssContent: cssContent ? (cssContent.length > 50 ? cssContent.substring(0, 50) + '...' : cssContent) : '',
+        isDefault: template.isDefault
+      });
       
       // Ensure we have complete template data
       const templateToSave: HtmlTemplateData = {
@@ -118,7 +144,10 @@ export const TemplateHtmlEditor: React.FC<TemplateEditorProps> = ({
         success = await onSave(templateToSave);
       } else {
         // Otherwise use our service directly
+        console.log('Using direct save method');
+        
         if (template.id === 'new') {
+          console.log('Creating new template');
           // Create new template
           const newId = await saveHtmlTemplate({
             name: template.name,
@@ -130,6 +159,7 @@ export const TemplateHtmlEditor: React.FC<TemplateEditorProps> = ({
           });
           
           success = !!newId;
+          console.log('New template created with ID:', newId);
           
           if (success && newId) {
             setTemplate({
@@ -138,6 +168,7 @@ export const TemplateHtmlEditor: React.FC<TemplateEditorProps> = ({
             });
           }
         } else {
+          console.log('Updating existing template:', template.id);
           // Update existing template
           success = await updateHtmlTemplate(template.id, {
             name: template.name,
@@ -147,15 +178,21 @@ export const TemplateHtmlEditor: React.FC<TemplateEditorProps> = ({
             variables: template.variables,
             isDefault: template.isDefault
           });
+          
+          console.log('Template update result:', success ? 'Success' : 'Failed');
         }
       }
       
       if (success) {
         toast.success('Template salvo com sucesso!');
+      } else {
+        toast.error('Erro ao salvar template. Tente novamente.');
+        setSaveError('Falha ao salvar o template no banco de dados');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving template:', error);
-      toast.error('Erro ao salvar template');
+      toast.error(`Erro ao salvar template: ${error.message}`);
+      setSaveError(`Erro: ${error.message}`);
     } finally {
       setIsSaving(false);
     }
@@ -252,6 +289,13 @@ export const TemplateHtmlEditor: React.FC<TemplateEditorProps> = ({
         </div>
       </div>
 
+      {saveError && (
+        <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-md mb-4">
+          <p className="font-medium">Erro ao salvar template:</p>
+          <p>{saveError}</p>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 gap-4 mb-4">
         <div className="flex gap-4">
           <div className="flex-1">
@@ -261,7 +305,11 @@ export const TemplateHtmlEditor: React.FC<TemplateEditorProps> = ({
               value={template?.name || ''}
               onChange={handleNameChange}
               placeholder="Nome do template"
+              className={!template?.name ? "border-red-300 focus:border-red-500" : ""}
             />
+            {!template?.name && (
+              <p className="text-red-500 text-xs mt-1">Nome é obrigatório</p>
+            )}
           </div>
           
           <div className="flex-1">

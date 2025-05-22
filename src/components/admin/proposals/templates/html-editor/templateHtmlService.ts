@@ -112,6 +112,17 @@ export async function fetchHtmlTemplateById(id: string): Promise<HtmlTemplateDat
 export async function saveHtmlTemplate(template: Omit<HtmlTemplateData, 'id' | 'createdAt' | 'updatedAt'>): Promise<string | null> {
   try {
     console.log('Saving new HTML template:', template.name);
+    
+    // Improved logging for debugging
+    console.log('Template data being sent to Supabase:', {
+      name: template.name,
+      description: template.description || '',
+      html_content: template.htmlContent.substring(0, 50) + '...',
+      css_content: template.cssContent ? template.cssContent.substring(0, 50) + '...' : '',
+      variables: template.variables || {},
+      is_default: template.isDefault
+    });
+    
     const { data, error } = await supabase
       .from('proposal_template_html')
       .insert({
@@ -125,9 +136,12 @@ export async function saveHtmlTemplate(template: Omit<HtmlTemplateData, 'id' | '
       .select('id')
       .single();
       
-    if (error) throw error;
+    if (error) {
+      console.error('Error saving HTML template:', error);
+      throw error;
+    }
     
-    console.log('Template saved with ID:', data.id);
+    console.log('Template saved successfully with ID:', data.id);
     toast.success('Template HTML salvo com sucesso!');
     return data?.id || null;
   } catch (error: any) {
@@ -150,6 +164,8 @@ export async function updateHtmlTemplate(templateId: string, templateData: Parti
     if (templateData.variables !== undefined) updateData.variables = templateData.variables;
     if (templateData.isDefault !== undefined) updateData.is_default = templateData.isDefault;
     updateData.updated_at = new Date().toISOString();
+    
+    console.log('Update data being sent to Supabase:', updateData);
     
     const { error } = await supabase
       .from('proposal_template_html')
@@ -359,7 +375,7 @@ async function createDefaultTemplate(): Promise<HtmlTemplateData | null> {
   }
 }
 
-// Maintain these functions from the original file
+// Fetch template sections
 export const fetchTemplateSections = async (): Promise<TemplateSection[]> => {
   try {
     const { data, error } = await supabase

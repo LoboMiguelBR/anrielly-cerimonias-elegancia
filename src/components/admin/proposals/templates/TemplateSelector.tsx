@@ -8,7 +8,6 @@ import {
   SelectValue 
 } from '@/components/ui/select';
 import { ProposalTemplateData } from './shared/types';
-import { defaultTemplate, fetchTemplates } from './shared/templateService';
 import { HtmlTemplateData } from './html-editor/types';
 import { fetchHtmlTemplates } from './html-editor/templateHtmlService';
 
@@ -21,7 +20,6 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
   selectedTemplateId = 'default',
   onSelectTemplate
 }) => {
-  const [templates, setTemplates] = useState<ProposalTemplateData[]>([defaultTemplate]);
   const [htmlTemplates, setHtmlTemplates] = useState<HtmlTemplateData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -30,13 +28,12 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
       setIsLoading(true);
       
       try {
-        // Load legacy templates
-        const legacyTemplates = await fetchTemplates();
-        
+        console.log('Loading HTML templates for selector...');
         // Load HTML templates
         const htmlTemplatesData = await fetchHtmlTemplates();
+        console.log(`Loaded ${htmlTemplatesData.length} HTML templates:`, 
+          htmlTemplatesData.map(t => ({ id: t.id, name: t.name })));
         
-        setTemplates([defaultTemplate, ...legacyTemplates]);
         setHtmlTemplates(htmlTemplatesData);
       } catch (error) {
         console.error('Error loading templates:', error);
@@ -49,54 +46,81 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
   }, []);
 
   const handleTemplateChange = (value: string) => {
-    // Check if the selected template is an HTML template
-    if (value.startsWith('html_')) {
-      const htmlTemplateId = value.replace('html_', '');
-      const selectedHtmlTemplate = htmlTemplates.find(t => t.id === htmlTemplateId);
+    console.log('Template selected:', value);
+    
+    // Get the selected HTML template
+    let selectedHtmlTemplate: HtmlTemplateData | undefined;
+    
+    if (value === 'default') {
+      // Find default template
+      selectedHtmlTemplate = htmlTemplates.find(t => t.isDefault);
       
-      if (selectedHtmlTemplate) {
-        // Convert HTML template to the format expected by the proposal system
-        const htmlAsProposalTemplate: ProposalTemplateData = {
-          id: selectedHtmlTemplate.id,
-          name: selectedHtmlTemplate.name,
-          colors: {
-            primary: '#6C2BD9',
-            secondary: '#A78BFA',
-            accent: '#F472B6',
-            text: '#333333',
-            background: '#FFFFFF'
-          },
-          fonts: {
-            title: 'Playfair Display, serif',
-            body: 'Inter, sans-serif'
-          },
-          logo: 'https://oampddkpuybkbwqggrty.supabase.co/storage/v1/object/public/proposals/LogoAG.png',
-          isHtmlTemplate: true,
-          htmlTemplate: selectedHtmlTemplate
-        };
-        
-        onSelectTemplate(htmlAsProposalTemplate);
-        return;
+      // If no default template found, use the first one
+      if (!selectedHtmlTemplate && htmlTemplates.length > 0) {
+        selectedHtmlTemplate = htmlTemplates[0];
       }
+    } else {
+      // Get selected template by ID (remove html_ prefix if it exists)
+      const templateId = value.startsWith('html_') ? value.replace('html_', '') : value;
+      selectedHtmlTemplate = htmlTemplates.find(t => t.id === templateId);
     }
     
-    // Handle legacy templates
-    const selectedTemplate = templates.find(t => t.id === value);
-    if (selectedTemplate) {
-      onSelectTemplate(selectedTemplate);
+    if (selectedHtmlTemplate) {
+      // Convert HTML template to the format expected by the proposal system
+      const htmlAsProposalTemplate: ProposalTemplateData = {
+        id: selectedHtmlTemplate.id,
+        name: selectedHtmlTemplate.name,
+        colors: {
+          primary: '#6C2BD9',
+          secondary: '#A78BFA',
+          accent: '#F472B6',
+          text: '#333333',
+          background: '#FFFFFF'
+        },
+        fonts: {
+          title: 'Playfair Display, serif',
+          body: 'Inter, sans-serif'
+        },
+        logo: 'https://oampddkpuybkbwqggrty.supabase.co/storage/v1/object/public/proposals/LogoAG.png',
+        isHtmlTemplate: true,
+        htmlTemplate: selectedHtmlTemplate
+      };
+      
+      console.log('Converting HTML template to proposal template:', htmlAsProposalTemplate);
+      onSelectTemplate(htmlAsProposalTemplate);
+    } else {
+      console.error('Selected template not found:', value);
     }
+  };
+
+  const getSelectedTemplateDisplayName = () => {
+    if (isLoading) {
+      return 'Carregando templates...';
+    }
+    
+    if (selectedTemplateId === 'default') {
+      const defaultTemplate = htmlTemplates.find(t => t.isDefault);
+      return defaultTemplate ? `${defaultTemplate.name} (Padrão)` : 'Template padrão';
+    }
+    
+    const templateId = selectedTemplateId.startsWith('html_') 
+      ? selectedTemplateId.replace('html_', '') 
+      : selectedTemplateId;
+    
+    const template = htmlTemplates.find(t => t.id === templateId);
+    return template ? template.name : 'Template padrão';
   };
 
   return (
     <div>
-      <Select disabled={isLoading} onValueChange={handleTemplateChange} defaultValue={selectedTemplateId}>
+      <Select 
+        disabled={isLoading} 
+        onValueChange={handleTemplateChange} 
+        defaultValue={selectedTemplateId}
+      >
         <SelectTrigger className="w-full">
           <SelectValue placeholder="Selecione um template">
-            {isLoading 
-              ? 'Carregando templates...' 
-              : (selectedTemplateId.startsWith('html_') 
-                ? htmlTemplates.find(t => t.id === selectedTemplateId.replace('html_', ''))?.name 
-                : templates.find(t => t.id === selectedTemplateId)?.name) || 'Template padrão'}
+            {getSelectedTemplateDisplayName()}
           </SelectValue>
         </SelectTrigger>
         <SelectContent>
@@ -104,25 +128,9 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
           
           {htmlTemplates.length > 0 && (
             <>
-              <div className="py-2 px-2 text-xs font-semibold text-gray-500">
-                Templates HTML
-              </div>
               {htmlTemplates.map(template => (
-                <SelectItem key={`html_${template.id}`} value={`html_${template.id}`}>
-                  {template.name} {template.isDefault ? '(Padrão)' : ''}
-                </SelectItem>
-              ))}
-            </>
-          )}
-          
-          {templates.length > 1 && (
-            <>
-              <div className="py-2 px-2 text-xs font-semibold text-gray-500">
-                Templates Legados
-              </div>
-              {templates.slice(1).map(template => (
                 <SelectItem key={template.id} value={template.id}>
-                  {template.name}
+                  {template.name} {template.isDefault ? '(Padrão)' : ''}
                 </SelectItem>
               ))}
             </>
