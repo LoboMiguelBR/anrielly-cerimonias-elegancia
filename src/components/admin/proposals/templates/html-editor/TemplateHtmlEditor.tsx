@@ -1,6 +1,6 @@
 
 import React, { useCallback } from 'react';
-import { TemplateEditorProps } from './types';
+import { TemplateAsset, TemplateEditorProps } from './types';
 import { useTemplateEditor } from './hooks/useTemplateEditor';
 import TemplatePreview from './TemplatePreview';
 import EditorHeader from './components/EditorHeader';
@@ -39,7 +39,12 @@ export const TemplateHtmlEditor: React.FC<TemplateEditorProps> = ({
   } = useTemplateEditor(initialTemplate, onSave);
 
   // Use useCallback to prevent creating new functions on every render
-  const onSelectAsset = useCallback((asset: { url: string; fileName: string }) => {
+  const onSelectAsset = useCallback((asset: TemplateAsset) => {
+    if (!asset.url) {
+      console.warn('Asset URL is undefined:', asset);
+      return;
+    }
+    
     if (activeEditor === 'html') {
       const imageTag = `<img src="${asset.url}" alt="${asset.fileName}" />`;
       const result = insertVariableAtCursor(
