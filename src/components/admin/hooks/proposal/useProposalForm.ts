@@ -61,9 +61,11 @@ export function useProposalForm(
       if (!proposalId) return;
       
       setIsLoading(true);
+      console.log('Loading proposal data for ID:', proposalId);
       const data = await fetchProposal(proposalId);
       
       if (data) {
+        console.log('Loaded proposal:', data);
         setFormData({
           client_name: data.client_name,
           client_email: data.client_email,
@@ -78,7 +80,7 @@ export function useProposalForm(
           payment_terms: data.payment_terms,
           notes: data.notes || "",
           quote_request_id: data.quote_request_id,
-          template_id: data.template_id,
+          template_id: data.template_id || '',
           status: data.status
         });
         
@@ -90,6 +92,9 @@ export function useProposalForm(
         if (data.pdf_url) {
           setProposal({...data});
         }
+      } else {
+        console.error('Failed to load proposal data');
+        toast.error('Erro ao carregar dados da proposta');
       }
       
       setIsLoading(false);
@@ -125,6 +130,18 @@ export function useProposalForm(
       }
     }
   }, [selectedQuote, quoteRequests, isEditMode]);
+
+  // Handle template changes
+  useEffect(() => {
+    if (selectedTemplate && selectedTemplate.id !== 'default') {
+      console.log('Template selected:', selectedTemplate);
+      // Update form data with selected template ID
+      setFormData(prev => ({ 
+        ...prev, 
+        template_id: selectedTemplate.id 
+      }));
+    }
+  }, [selectedTemplate]);
 
   const handleQuoteSelect = (quoteId: string) => {
     setSelectedQuote(quoteId);
@@ -162,13 +179,18 @@ export function useProposalForm(
     setIsSaving(true);
     
     try {
+      console.log('Saving proposal with data:', formData);
+      console.log('Selected template:', selectedTemplate);
+      
       // Convert string values to appropriate types and format for the API
       const proposalData = {
         ...formData,
-        total_price: parseFloat(formData.total_price) || 0, // Convert string to number
-        // FIX: Properly handle template_id to avoid empty string for UUID field
-        template_id: selectedTemplate.id && selectedTemplate.id !== 'default' ? selectedTemplate.id : null
+        total_price: parseFloat(formData.total_price) || 0,
+        // Use template_id from formData which gets updated from selectedTemplate
+        template_id: formData.template_id
       };
+      
+      console.log('Processed proposal data for saving:', proposalData);
       
       const savedId = await saveProposal(proposalData);
       
@@ -178,6 +200,7 @@ export function useProposalForm(
       }
       
       console.log("Proposal saved with ID:", savedId);
+      toast.success('Proposta salva com sucesso!');
       
       if (!isEditMode) {
         setProposalId(savedId);
@@ -221,6 +244,7 @@ export function useProposalForm(
   const saveProposalPdfUrl = async (url: string): Promise<boolean> => {
     if (!proposalId) return false;
     
+    console.log('Saving PDF URL to proposal:', url);
     const success = await savePdfUrl(proposalId, url);
     
     // Update local proposal object with the PDF URL

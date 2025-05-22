@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { PDFPreviewContent, PDFHeader, PDFTabs, proposalUtils } from './preview';
-import { ProposalData, generateProposalPDF } from '../hooks/proposal';
+import { ProposalData } from '../hooks/proposal';
 import { ProposalTemplateData } from './templates/shared/types';
 import { defaultTemplate } from './templates/shared/templateService';
 import { toast } from 'sonner';
@@ -28,11 +28,15 @@ const ProposalPreview: React.FC<ProposalPreviewProps> = ({
   const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   
-  const isHtmlTemplate = proposal.template_id && proposal.template_id !== 'default';
+  console.log('ProposalPreview - template_id:', proposal.template_id);
+  const isHtmlTemplate = !!proposal.template_id && proposal.template_id !== 'default';
+  console.log('Is HTML template:', isHtmlTemplate);
 
   // Handle errors in the PDF generation process
   const handleError = (error: string) => {
+    console.error('PDF generation error:', error);
     setPdfError(error);
+    toast.error(`Erro ao gerar PDF: ${error}`);
   };
 
   // Handle PDF blob ready
@@ -101,6 +105,7 @@ const ProposalPreview: React.FC<ProposalPreviewProps> = ({
   // Automatically generate PDF if we have an HTML template
   useEffect(() => {
     if (isHtmlTemplate && !pdfBlob && !isLoading && !pdfError) {
+      console.log('Setting isLoading to true to generate PDF');
       setIsLoading(true);
     }
   }, [isHtmlTemplate, pdfBlob, isLoading, pdfError]);
@@ -114,13 +119,14 @@ const ProposalPreview: React.FC<ProposalPreviewProps> = ({
         pdfBlob={pdfBlob}
       />
       
-      {isHtmlTemplate && !pdfBlob && !pdfError ? (
+      {isHtmlTemplate ? (
         <div className="p-4">
           <HtmlProposalRenderer
             proposal={proposal}
             templateId={proposal.template_id}
             onPdfReady={handlePdfReady}
             onError={handleError}
+            previewOnly={activeTab === 'preview'}
           />
         </div>
       ) : (

@@ -2,10 +2,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ProposalData } from '../../hooks/proposal';
 import { HtmlTemplateData } from './html-editor/types';
-import { fetchHtmlTemplateById, getDefaultHtmlTemplate } from './html-editor/htmlTemplateService';
+import { fetchHtmlTemplateById } from './html-editor/templateHtmlService';
 import { replaceVariablesInTemplate } from './html-editor/variableUtils';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
+import { toast } from 'sonner';
 
 interface HtmlProposalRendererProps {
   proposal: ProposalData;
@@ -35,16 +36,20 @@ const HtmlProposalRenderer: React.FC<HtmlProposalRendererProps> = ({
         
         // First try to load the specified template
         if (templateId && templateId !== 'default') {
+          console.log('Loading HTML template with ID:', templateId);
           loadedTemplate = await fetchHtmlTemplateById(templateId);
+          console.log('Loaded template:', loadedTemplate);
         }
         
-        // If no template is found, get the default template
+        // If no template is found, get a default template
         if (!loadedTemplate) {
-          loadedTemplate = await getDefaultHtmlTemplate();
-        }
-        
-        if (!loadedTemplate) {
-          throw new Error('Nenhum template HTML encontrado');
+          console.error('No template found with ID:', templateId);
+          toast.error('Template HTML não encontrado');
+          if (onError) {
+            onError('Template HTML não encontrado');
+          }
+          setIsLoading(false);
+          return;
         }
         
         setTemplate(loadedTemplate);
@@ -63,58 +68,82 @@ const HtmlProposalRenderer: React.FC<HtmlProposalRendererProps> = ({
 
   useEffect(() => {
     if (template && proposal) {
-      // Replace variables in the template with actual data
-      const html = replaceVariablesInTemplate(template.htmlContent, proposal);
-      setProcessedHtml(html);
+      try {
+        // Replace variables in the template with actual data
+        console.log('Processing template with proposal data:', proposal);
+        const html = replaceVariablesInTemplate(template.htmlContent, proposal);
+        setProcessedHtml(html);
+      } catch (error) {
+        console.error('Error processing template:', error);
+        if (onError) {
+          onError('Erro ao processar template HTML');
+        }
+      }
     }
-  }, [template, proposal]);
+  }, [template, proposal, onError]);
 
   useEffect(() => {
     if (!previewOnly && containerRef.current && processedHtml && !isLoading) {
+      console.log('Generating PDF...');
       generatePDF();
     }
   }, [processedHtml, isLoading, previewOnly]);
 
   const generatePDF = async () => {
-    if (!containerRef.current) return;
+    if (!containerRef.current) {
+      console.error('Container ref is null, cannot generate PDF');
+      return;
+    }
 
     try {
       const element = containerRef.current;
       
-      // Wait a bit for the HTML to render
+      console.log('Starting PDF generation from HTML element');
+      // Wait a bit for the HTML to render fully
       setTimeout(async () => {
-        // Create a canvas from the HTML element
-        const canvas = await html2canvas(element, {
-          scale: 2,
-          useCORS: true,
-          allowTaint: true,
-          logging: false,
-        });
-        
-        // Create PDF
-        const imgWidth = 210; // A4 width in mm
-        const pageHeight = 297; // A4 height in mm
-        const imgHeight = (canvas.height * imgWidth) / canvas.width;
-        let heightLeft = imgHeight;
-        let position = 0;
-        
-        const pdf = new jsPDF('p', 'mm', 'a4');
-        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, position, imgWidth, imgHeight);
-        
-        // Add new pages if content is longer than one page
-        heightLeft -= pageHeight;
-        while (heightLeft > 0) {
-          position = heightLeft - imgHeight;
-          pdf.addPage();
+        try {
+          // Create a canvas from the HTML element
+          const canvas = await html2canvas(element, {
+            scale: 2,
+            useCORS: true,
+            allowTaint: true,
+            logging: true,
+          });
+          
+          console.log('Canvas generated successfully');
+          
+          // Create PDF
+          const imgWidth = 210; // A4 width in mm
+          const pageHeight = 297; // A4 height in mm
+          const imgHeight = (canvas.height * imgWidth) / canvas.width;
+          let heightLeft = imgHeight;
+          let position = 0;
+          
+          const pdf = new jsPDF('p', 'mm', 'a4');
           pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, position, imgWidth, imgHeight);
+          
+          // Add new pages if content is longer than one page
           heightLeft -= pageHeight;
-        }
-        
-        // Generate blob
-        const pdfBlob = pdf.output('blob');
-        
-        if (onPdfReady) {
-          onPdfReady(pdfBlob);
+          while (heightLeft > 0) {
+            position = heightLeft - imgHeight;
+            pdf.addPage();
+            pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, position, imgWidth, imgHeight);
+            heightLeft -= pageHeight;
+          }
+          
+          // Generate blob
+          const pdfBlob = pdf.output('blob');
+          console.log('PDF blob generated successfully');
+          
+          if (onPdfReady) {
+            console.log('Calling onPdfReady with blob');
+            onPdfReady(pdfBlob);
+          }
+        } catch (canvasError: any) {
+          console.error('Error generating canvas:', canvasError);
+          if (onError) {
+            onError(`Erro ao gerar canvas para PDF: ${canvasError.message || 'Erro desconhecido'}`);
+          }
         }
       }, 1000);
     } catch (error: any) {
