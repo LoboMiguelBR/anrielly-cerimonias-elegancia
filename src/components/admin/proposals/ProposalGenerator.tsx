@@ -125,6 +125,22 @@ const ProposalGenerator: React.FC<ProposalGeneratorProps> = ({
     }
   };
 
+  const handleDelete = async () => {
+    if (!isEditMode || !initialProposalId) {
+      toast.error("Esta proposta não pode ser excluída");
+      return;
+    }
+    
+    const success = await deleteProposal();
+    
+    if (success) {
+      toast.success("Proposta excluída com sucesso");
+      if (onClose) onClose();
+    } else {
+      toast.error("Erro ao excluir proposta");
+    }
+  };
+
   const handleSendEmail = async () => {
     if (!proposal) {
       toast.error("Nenhuma proposta para enviar");
@@ -192,6 +208,7 @@ const ProposalGenerator: React.FC<ProposalGeneratorProps> = ({
         onClose={onClose}
         onSendEmail={handleSendEmail}
         onGeneratePDF={handleGeneratePDF}
+        onDelete={isEditMode ? handleDelete : undefined}
         isSaving={isSaving}
         isDeleting={isDeleting}
         isSending={isSending}

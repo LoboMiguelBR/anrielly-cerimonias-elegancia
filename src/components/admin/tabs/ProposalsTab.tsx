@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FileText, List, PlusCircle } from 'lucide-react';
-import ProposalsList from '../proposals/list/ProposalsList';
+import ProposalsList from '../proposals/ProposalsList';
 import ProposalGenerator from '../proposals/ProposalGenerator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import DeleteConfirmationDialog from '../proposals/DeleteConfirmationDialog';
@@ -30,20 +30,6 @@ const ProposalsTab = ({ quoteRequests, quoteIdFromUrl }: ProposalsTabProps) => {
   const [activeTab, setActiveTab] = useState<string>("list");
   const [selectedProposalId, setSelectedProposalId] = useState<string | null>(null);
   
-  const {
-    proposals,
-    isLoading,
-    selectedProposal,
-    showAddEditDialog,
-    showDeleteDialog,
-    handleAddNew,
-    handleEdit,
-    handleDelete,
-    handleDeleteConfirmed,
-    setShowAddEditDialog,
-    setShowDeleteDialog
-  } = useProposalList();
-
   const handleBackToList = () => {
     setActiveTab("list");
     setSelectedProposalId(null);
@@ -105,9 +91,7 @@ const ProposalsTab = ({ quoteRequests, quoteIdFromUrl }: ProposalsTabProps) => {
           <TabsContent value="list">
             <ProposalsList 
               quoteRequests={quoteRequests} 
-              quoteIdFromUrl={quoteIdFromUrl} 
-              onViewProposal={handleViewProposal}
-              onCreateNew={handleCreateNew}
+              quoteIdFromUrl={quoteIdFromUrl}
             />
           </TabsContent>
           
@@ -128,15 +112,6 @@ const ProposalsTab = ({ quoteRequests, quoteIdFromUrl }: ProposalsTabProps) => {
           </TabsContent>
         </Tabs>
       </div>
-
-      {/* Delete Confirmation Dialog */}
-      <DeleteConfirmationDialog
-        open={showDeleteDialog}
-        onClose={() => setShowDeleteDialog(false)}
-        onConfirm={handleDeleteConfirmed}
-        title="Excluir Proposta"
-        description={`Tem certeza que deseja excluir a proposta para ${selectedProposal?.client_name}? Esta ação não pode ser desfeita.`}
-      />
     </div>
   );
 };
