@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { HtmlTemplateData, TemplateEditorProps } from './types';
 import { Button } from "@/components/ui/button";
@@ -172,10 +171,13 @@ export const TemplateHtmlEditor: React.FC<TemplateEditorProps> = ({
                 id: newId
               });
               setDebugInfo(`Template salvo com sucesso! ID: ${newId}`);
+            } else {
+              setDebugInfo(`Erro: ID não retornado após salvar. Verifique as políticas RLS da tabela.`);
+              throw new Error('ID não retornado após salvar');
             }
           } catch (error: any) {
             console.error('Detailed save error:', error);
-            setDebugInfo(`Erro ao salvar: ${error.message || JSON.stringify(error)}`);
+            setDebugInfo(`Erro ao salvar: ${error.message || JSON.stringify(error)}. Verifique se as políticas RLS estão configuradas na tabela proposal_template_html.`);
             throw error;
           }
         } else {
@@ -193,12 +195,12 @@ export const TemplateHtmlEditor: React.FC<TemplateEditorProps> = ({
             
             setDebugInfo(success 
               ? `Template atualizado com sucesso! ID: ${template.id}` 
-              : 'Falha na atualização do template');
+              : 'Falha na atualização do template. Verifique as políticas RLS da tabela.');
             
             console.log('Template update result:', success ? 'Success' : 'Failed');
           } catch (error: any) {
             console.error('Detailed update error:', error);
-            setDebugInfo(`Erro ao atualizar: ${error.message || JSON.stringify(error)}`);
+            setDebugInfo(`Erro ao atualizar: ${error.message || JSON.stringify(error)}. Verifique se as políticas RLS estão configuradas na tabela proposal_template_html.`);
             throw error;
           }
         }
@@ -207,13 +209,13 @@ export const TemplateHtmlEditor: React.FC<TemplateEditorProps> = ({
       if (success) {
         toast.success('Template salvo com sucesso!');
       } else {
-        toast.error('Erro ao salvar template. Tente novamente.');
-        setSaveError('Falha ao salvar o template no banco de dados');
+        toast.error('Erro ao salvar template. Verifique as políticas RLS.');
+        setSaveError('Falha ao salvar o template no banco de dados. Verifique se as políticas RLS estão configuradas na tabela proposal_template_html.');
       }
     } catch (error: any) {
       console.error('Error saving template:', error);
       toast.error(`Erro ao salvar template: ${error.message}`);
-      setSaveError(`Erro: ${error.message}`);
+      setSaveError(`Erro: ${error.message || "Problema desconhecido"}. Verifique se as políticas RLS estão configuradas na tabela proposal_template_html.`);
     } finally {
       setIsSaving(false);
     }
@@ -253,8 +255,11 @@ export const TemplateHtmlEditor: React.FC<TemplateEditorProps> = ({
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-8">
-        <Loader2 className="h-8 w-8 animate-spin text-purple-500" />
-        <span className="ml-2">Carregando editor...</span>
+        <Loader2 className="h-8 w-8 animate-spin text-purple-500 mr-3" />
+        <div>
+          <span className="font-medium">Carregando editor...</span>
+          <p className="text-xs text-gray-500 mt-1">Conectando ao banco de dados...</p>
+        </div>
       </div>
     );
   }

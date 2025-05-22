@@ -1,12 +1,12 @@
 
 import React, { useRef } from 'react';
 import { useGalleryContext } from './gallery/GalleryContext';
-import GalleryCarousel from './gallery/GalleryCarousel';
+import GalleryGrid from './gallery/GalleryGrid';
 import { Button } from "@/components/ui/button";
 
 const Gallery: React.FC = () => {
   const sectionRef = useRef<HTMLElement>(null);
-  const { displayImages, isLoading, error, fetchGalleryImages } = useGalleryContext();
+  const { displayImages, isLoading, error, fetchGalleryImages, openImageModal } = useGalleryContext();
 
   return (
     <section id="galeria" className="bg-white py-16" ref={sectionRef}>
@@ -37,7 +37,13 @@ const Gallery: React.FC = () => {
             Nenhuma imagem disponível no momento.
           </div>
         ) : (
-          <GalleryCarousel images={displayImages} />
+          <GalleryGrid 
+            isLoading={isLoading}
+            error={error}
+            displayImages={displayImages}
+            onRetry={fetchGalleryImages}
+            onImageClick={(url, title, description) => openImageModal(url, title, description)}
+          />
         )}
       </div>
     </section>
