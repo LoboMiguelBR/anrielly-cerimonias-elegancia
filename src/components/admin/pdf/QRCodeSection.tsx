@@ -3,11 +3,10 @@ import React from 'react';
 import { View, Text, Image } from '@react-pdf/renderer';
 import { styles } from './styles';
 import { QRCodeSectionProps } from './types';
-import { generateQRCode } from '../utils/qrCodeGenerator';
 
 const QRCodeSection: React.FC<QRCodeSectionProps> = ({ url, colors }) => {
-  // Generate QR Code data URL
-  const qrCodeDataUrl = generateQRCode(url);
+  // QR code data URL (using a reliable external service)
+  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(url)}&format=svg`;
   
   return (
     <View style={{
@@ -24,7 +23,7 @@ const QRCodeSection: React.FC<QRCodeSectionProps> = ({ url, colors }) => {
       }}>
         Para mais informações, visite nosso site:
       </Text>
-      <Image src={qrCodeDataUrl} style={{ width: 100, height: 100 }} />
+      <Image src={qrCodeUrl} style={{ width: 100, height: 100 }} />
       <Text style={{
         ...styles.text, 
         color: colors.primary,
