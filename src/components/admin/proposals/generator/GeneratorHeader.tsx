@@ -37,6 +37,10 @@ const GeneratorHeader: React.FC<GeneratorHeaderProps> = ({
                 text: '#333333',
                 background: '#FFFFFF'
               },
+              fonts: {
+                title: 'Playfair Display, serif',
+                body: 'Inter, sans-serif'
+              },
               logo: 'https://oampddkpuybkbwqggrty.supabase.co/storage/v1/object/public/proposals/LogoAG.png',
               isHtmlTemplate: true,
               htmlTemplate: htmlTemplate

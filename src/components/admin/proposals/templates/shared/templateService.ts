@@ -15,7 +15,7 @@ export const defaultTemplate: ProposalTemplateData = {
     background: '#FFFFFF'
   },
   fonts: {
-    heading: 'Playfair Display, serif',
+    title: 'Playfair Display, serif',
     body: 'Inter, sans-serif'
   },
   logo: "https://oampddkpuybkbwqggrty.supabase.co/storage/v1/object/public/proposals/LogoAG.png",
