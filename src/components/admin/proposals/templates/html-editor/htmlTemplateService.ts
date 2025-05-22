@@ -1,87 +1,147 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { HtmlTemplateData } from './types';
-import { toast } from 'sonner';
-import { convertToVariablesRecord } from './templateHtmlService';
+import { v4 as uuidv4 } from 'uuid';
+import { ProposalData } from '@/components/admin/hooks/proposal';
+import { processVariables } from './variableUtils';
 
-// Function to fetch HTML templates by ID
-export async function fetchHtmlTemplateById(id: string | null | undefined): Promise<HtmlTemplateData | null> {
-  if (!id) return null;
-  
+// Fetch all HTML templates
+export const fetchHtmlTemplates = async (): Promise<HtmlTemplateData[]> => {
   try {
     const { data, error } = await supabase
-      .from('proposal_template_html')
+      .from('html_templates')
+      .select('*')
+      .order('name', { ascending: true });
+      
+    if (error) throw error;
+    
+    return data || [];
+  } catch (error) {
+    console.error('Error fetching HTML templates:', error);
+    return [];
+  }
+};
+
+// Fetch a specific HTML template by ID
+export const fetchHtmlTemplateById = async (id: string): Promise<HtmlTemplateData | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('html_templates')
       .select('*')
       .eq('id', id)
       .single();
       
     if (error) throw error;
-    if (!data) return null;
     
-    return {
-      id: data.id,
-      name: data.name,
-      description: data.description || '',
-      htmlContent: data.html_content,
-      cssContent: data.css_content || '',
-      variables: convertToVariablesRecord(data.variables),
-      isDefault: data.is_default,
-      createdAt: data.created_at,
-      updatedAt: data.updated_at
-    };
-  } catch (error: any) {
-    console.error(`Error fetching HTML template with ID ${id}:`, error);
-    toast.error('Erro ao carregar template HTML');
+    return data || null;
+  } catch (error) {
+    console.error('Error fetching HTML template by ID:', error);
     return null;
   }
-}
+};
 
-// Function to get default HTML template
-export async function getDefaultHtmlTemplate(): Promise<HtmlTemplateData | null> {
+// Get the default HTML template, used when no template is specified
+export const getDefaultHtmlTemplate = async (): Promise<HtmlTemplateData | null> => {
   try {
     const { data, error } = await supabase
-      .from('proposal_template_html')
+      .from('html_templates')
       .select('*')
       .eq('is_default', true)
       .single();
       
-    if (error) throw error;
-    if (!data) return null;
-    
-    return {
-      id: data.id,
-      name: data.name,
-      description: data.description || '',
-      htmlContent: data.html_content,
-      cssContent: data.css_content || '',
-      variables: convertToVariablesRecord(data.variables),
-      isDefault: data.is_default,
-      createdAt: data.created_at,
-      updatedAt: data.updated_at
-    };
-  } catch (error: any) {
-    console.error('Error fetching default HTML template:', error);
-    
-    // If no default template, try to get any template
-    const { data } = await supabase
-      .from('proposal_template_html')
-      .select('*')
-      .limit(1);
-      
-    if (data && data.length > 0) {
-      return {
-        id: data[0].id,
-        name: data[0].name,
-        description: data[0].description || '',
-        htmlContent: data[0].html_content,
-        cssContent: data[0].css_content || '',
-        variables: convertToVariablesRecord(data[0].variables),
-        isDefault: data[0].is_default,
-        createdAt: data[0].created_at,
-        updatedAt: data[0].updated_at
-      };
+    if (error) {
+      // If no default template exists, get the first template
+      const { data: firstTemplate, error: secondError } = await supabase
+        .from('html_templates')
+        .select('*')
+        .limit(1)
+        .single();
+        
+      if (secondError) return null;
+      return firstTemplate;
     }
     
+    return data || null;
+  } catch (error) {
+    console.error('Error fetching default HTML template:', error);
     return null;
   }
-}
+};
+
+// Save a new or update an existing HTML template
+export const saveHtmlTemplate = async (template: Partial<HtmlTemplateData>): Promise<string | null> => {
+  try {
+    if (template.id) {
+      // Update existing template
+      const { error } = await supabase
+        .from('html_templates')
+        .update({
+          name: template.name,
+          description: template.description,
+          htmlContent: template.htmlContent,
+          cssContent: template.cssContent,
+          is_default: template.is_default || false,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', template.id);
+        
+      if (error) throw error;
+      
+      return template.id;
+    } else {
+      // Create new template
+      const newId = uuidv4();
+      const { error } = await supabase
+        .from('html_templates')
+        .insert([
+          {
+            id: newId,
+            name: template.name,
+            description: template.description,
+            htmlContent: template.htmlContent,
+            cssContent: template.cssContent,
+            is_default: template.is_default || false,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          }
+        ]);
+        
+      if (error) throw error;
+      
+      return newId;
+    }
+  } catch (error) {
+    console.error('Error saving HTML template:', error);
+    return null;
+  }
+};
+
+// Delete an HTML template
+export const deleteHtmlTemplate = async (id: string): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from('html_templates')
+      .delete()
+      .eq('id', id);
+      
+    if (error) throw error;
+    
+    return true;
+  } catch (error) {
+    console.error('Error deleting HTML template:', error);
+    return false;
+  }
+};
+
+// Get a preview of the HTML template with proposal data
+export const getTemplatePreview = (
+  htmlTemplate: HtmlTemplateData, 
+  proposalData: ProposalData
+): string => {
+  try {
+    return processVariables(htmlTemplate.htmlContent, proposalData);
+  } catch (error) {
+    console.error('Error generating template preview:', error);
+    return htmlTemplate.htmlContent;
+  }
+};

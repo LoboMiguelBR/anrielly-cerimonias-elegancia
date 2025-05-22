@@ -1,8 +1,7 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ProposalData } from '../../hooks/proposal';
 import { HtmlTemplateData } from './html-editor/types';
-import { PDFViewer, Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer';
 import { fetchHtmlTemplateById, getDefaultHtmlTemplate } from './html-editor/htmlTemplateService';
 import { replaceVariablesInTemplate } from './html-editor/variableUtils';
 import html2canvas from 'html2canvas';
@@ -26,7 +25,7 @@ const HtmlProposalRenderer: React.FC<HtmlProposalRendererProps> = ({
   const [template, setTemplate] = useState<HtmlTemplateData | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [processedHtml, setProcessedHtml] = useState<string>('');
-  const containerRef = React.useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const loadTemplate = async () => {

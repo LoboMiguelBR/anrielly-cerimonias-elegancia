@@ -14,6 +14,15 @@ export interface ProposalTemplateData {
   logo: string;
   isHtmlTemplate?: boolean;
   htmlTemplate?: HtmlTemplateData;
+  // Add the missing properties
+  showQrCode?: boolean;
+  showTestimonials?: boolean;
+  showDifferentials?: boolean;
+  showAboutSection?: boolean;
+  fonts?: {
+    title: string;
+    body: string;
+  };
 }
 
 export interface ProposalThemeContext {

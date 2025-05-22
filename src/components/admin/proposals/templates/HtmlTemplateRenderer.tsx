@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { ProposalData } from '../../hooks/proposal';
 import { HtmlTemplateData } from './html-editor/types';
 import { replaceVariablesInTemplate } from './html-editor/variableUtils';
-import { Frame, FrameContextConsumer } from 'react-frame-component';
+import Frame from 'react-frame-component';
 
 interface HtmlTemplateRendererProps {
   proposal: ProposalData;
