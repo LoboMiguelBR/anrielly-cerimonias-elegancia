@@ -32,6 +32,7 @@ export const CoverPage: React.FC<CoverPageProps> = ({ proposal, template }) => {
         eventType={proposal.event_type}
         eventDate={formattedDate}
         totalPrice={proposal.total_price}
+        logoUrl={template.logo}
         colors={template.colors}
       />
     </Page>

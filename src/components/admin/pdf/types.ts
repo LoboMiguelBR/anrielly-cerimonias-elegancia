@@ -103,6 +103,7 @@ export interface CoverPageProps {
   eventType: string;
   eventDate: string;
   totalPrice: number;
+  logoUrl?: string;
   colors: {
     primary: string;
     secondary: string;

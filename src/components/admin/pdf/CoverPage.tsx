@@ -9,6 +9,7 @@ const CoverPage: React.FC<CoverPageProps> = ({
   eventType, 
   eventDate,
   totalPrice,
+  logoUrl,
   colors 
 }) => {
   // Format the price for display
@@ -17,17 +18,21 @@ const CoverPage: React.FC<CoverPageProps> = ({
     currency: 'BRL'
   }).format(totalPrice);
 
+  // Default Supabase logo URL as fallback
+  const defaultLogoUrl = "https://oampddkpuybkbwqggrty.supabase.co/storage/v1/object/public/proposals/LogoAG.png";
+
   return (
     <View style={{
       ...styles.coverPage,
       backgroundColor: colors.background
     }}>
       <Image 
-        src="https://anriellygomes.com.br/wp-content/uploads/2019/06/Logo-Anrielly-Gomes.png"
+        src={logoUrl || defaultLogoUrl}
         style={{
           ...styles.coverPageImage,
           borderColor: colors.primary
         }}
+        cache={true}
       />
       <Text style={{
         ...styles.coverPageTitle,
