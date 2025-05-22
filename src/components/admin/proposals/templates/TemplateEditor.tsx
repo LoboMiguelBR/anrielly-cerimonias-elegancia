@@ -211,7 +211,7 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
               <h3 
                 style={{ 
                   color: watch("primaryColor") || '#000000',
-                  fontFamily: template.fonts.heading
+                  fontFamily: template.fonts.title
                 }}
                 className="text-xl font-semibold mb-2"
               >

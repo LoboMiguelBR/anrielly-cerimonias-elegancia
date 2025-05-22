@@ -19,7 +19,7 @@ export interface ProposalTemplateData {
   showTestimonials?: boolean;
   showDifferentials?: boolean;
   showAboutSection?: boolean;
-  fonts?: {
+  fonts: {
     title: string;
     body: string;
   };
