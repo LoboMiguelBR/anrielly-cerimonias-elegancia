@@ -11,7 +11,7 @@ interface AddTestimonialDialogProps {
   isOpen: boolean;
   isSubmitting: boolean;
   onClose: () => void;
-  onSubmit: (formData: { name: string; role: string; quote: string }, uploadImage: File | null) => Promise<boolean>;
+  onSubmit: (formData: { name: string; role: string; quote: string; email: string }, uploadImage: File | null) => Promise<boolean>;
 }
 
 const AddTestimonialDialog = ({ isOpen, isSubmitting, onClose, onSubmit }: AddTestimonialDialogProps) => {
@@ -19,6 +19,7 @@ const AddTestimonialDialog = ({ isOpen, isSubmitting, onClose, onSubmit }: AddTe
     name: '',
     role: '',
     quote: '',
+    email: '',
   });
   const [uploadImage, setUploadImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState('');
@@ -57,6 +58,7 @@ const AddTestimonialDialog = ({ isOpen, isSubmitting, onClose, onSubmit }: AddTe
         name: '',
         role: '',
         quote: '',
+        email: '',
       });
       setUploadImage(null);
       setPreviewUrl('');
@@ -115,7 +117,24 @@ const AddTestimonialDialog = ({ isOpen, isSubmitting, onClose, onSubmit }: AddTe
               value={formData.name}
               onChange={handleInputChange}
               placeholder="Nome da pessoa"
+              required
             />
+          </div>
+          
+          <div className="grid gap-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              name="email"
+              type="email"
+              value={formData.email}
+              onChange={handleInputChange}
+              placeholder="Email da pessoa"
+              required
+            />
+            <p className="text-xs text-gray-500">
+              O email não será exibido publicamente, apenas usado para notificações.
+            </p>
           </div>
           
           <div className="grid gap-2">
@@ -138,6 +157,7 @@ const AddTestimonialDialog = ({ isOpen, isSubmitting, onClose, onSubmit }: AddTe
               onChange={handleInputChange}
               placeholder="O que a pessoa disse sobre seu trabalho..."
               rows={4}
+              required
             />
           </div>
         </div>

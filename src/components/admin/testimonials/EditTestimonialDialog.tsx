@@ -13,7 +13,7 @@ interface EditTestimonialDialogProps {
   isSubmitting: boolean;
   testimonial: Testimonial | null;
   onClose: () => void;
-  onSubmit: (testimonial: Testimonial, formData: { name: string; role: string; quote: string }, uploadImage: File | null) => Promise<boolean>;
+  onSubmit: (testimonial: Testimonial, formData: { name: string; role: string; quote: string; email: string }, uploadImage: File | null) => Promise<boolean>;
 }
 
 const EditTestimonialDialog = ({ 
@@ -27,6 +27,7 @@ const EditTestimonialDialog = ({
     name: '',
     role: '',
     quote: '',
+    email: '',
   });
   const [uploadImage, setUploadImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState('');
@@ -38,6 +39,7 @@ const EditTestimonialDialog = ({
         name: testimonial.name,
         role: testimonial.role,
         quote: testimonial.quote,
+        email: testimonial.email,
       });
       setPreviewUrl(testimonial.image_url || '');
     }
@@ -130,7 +132,23 @@ const EditTestimonialDialog = ({
               name="name"
               value={formData.name}
               onChange={handleInputChange}
+              required
             />
+          </div>
+          
+          <div className="grid gap-2">
+            <Label htmlFor="edit-email">Email</Label>
+            <Input
+              id="edit-email"
+              name="email"
+              type="email"
+              value={formData.email}
+              onChange={handleInputChange}
+              required
+            />
+            <p className="text-xs text-gray-500">
+              O email não será exibido publicamente, apenas usado para notificações.
+            </p>
           </div>
           
           <div className="grid gap-2">
@@ -151,6 +169,7 @@ const EditTestimonialDialog = ({
               value={formData.quote}
               onChange={handleInputChange}
               rows={4}
+              required
             />
           </div>
         </div>

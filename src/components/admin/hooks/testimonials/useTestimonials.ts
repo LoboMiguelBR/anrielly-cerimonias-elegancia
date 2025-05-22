@@ -59,7 +59,7 @@ export function useTestimonials() {
     return testimonial.status === activeFilter;
   });
 
-  const addTestimonial = async (formData: { name: string; role: string; quote: string }, uploadImage: File | null) => {
+  const addTestimonial = async (formData: { name: string; role: string; quote: string; email: string }, uploadImage: File | null) => {
     setIsSubmitting(true);
     const success = await apiAddTestimonial(formData, uploadImage);
     setIsSubmitting(false);
@@ -68,7 +68,7 @@ export function useTestimonials() {
 
   const updateTestimonial = async (
     testimonial: Testimonial, 
-    formData: { name: string; role: string; quote: string }, 
+    formData: { name: string; role: string; quote: string; email: string }, 
     uploadImage: File | null
   ) => {
     setIsSubmitting(true);
@@ -87,7 +87,7 @@ export function useTestimonials() {
     // Send notification when testimonial is approved
     if (success && newStatus === 'approved') {
       try {
-        await sendTestimonialApprovedNotification(testimonial.name, ''); // We don't have email in basic testimonial
+        await sendTestimonialApprovedNotification(testimonial.name, testimonial.email);
       } catch (error) {
         console.error('Error sending testimonial approval notification:', error);
       }

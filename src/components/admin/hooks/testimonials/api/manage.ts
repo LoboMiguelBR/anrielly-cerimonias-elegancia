@@ -6,11 +6,11 @@ import { uploadTestimonialImage, deleteTestimonialImage } from './utils';
 
 // Add new testimonial (this was missing and causing the error)
 export const addTestimonial = async (
-  formData: { name: string; role: string; quote: string }, 
+  formData: { name: string; role: string; quote: string; email: string }, 
   uploadImage: File | null
 ): Promise<boolean> => {
-  if (!formData.name || !formData.quote) {
-    toast.error('Nome e depoimento são obrigatórios');
+  if (!formData.name || !formData.quote || !formData.email) {
+    toast.error('Nome, email e depoimento são obrigatórios');
     return false;
   }
   
@@ -35,6 +35,7 @@ export const addTestimonial = async (
       .from('testimonials')
       .insert({
         name: formData.name,
+        email: formData.email,
         role: formData.role || '',
         quote: formData.quote,
         image_url: imageUrl,
@@ -62,11 +63,11 @@ export const addTestimonial = async (
 // Update existing testimonial
 export const updateTestimonial = async (
   testimonial: Testimonial, 
-  formData: { name: string; role: string; quote: string }, 
+  formData: { name: string; role: string; quote: string; email: string }, 
   uploadImage: File | null
 ): Promise<boolean> => {
-  if (!testimonial || !formData.name || !formData.role || !formData.quote) {
-    toast.error('Todos os campos de texto são obrigatórios');
+  if (!testimonial || !formData.name || !formData.email || !formData.quote) {
+    toast.error('Nome, email e depoimento são obrigatórios');
     return false;
   }
   
@@ -89,6 +90,7 @@ export const updateTestimonial = async (
       .from('testimonials')
       .update({
         name: formData.name,
+        email: formData.email,
         role: formData.role,
         quote: formData.quote,
         image_url: imageUrl,

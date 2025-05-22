@@ -39,10 +39,10 @@ export const uploadTestimonialImage = async (file: File): Promise<string | null>
  * Submit a new testimonial
  */
 export const submitTestimonial = async (
-  formData: { name: string; role: string; quote: string }, 
+  formData: { name: string; role: string; quote: string; email: string }, 
   imageUrl: string | null
 ): Promise<boolean> => {
-  if (!formData.name || !formData.quote) {
+  if (!formData.name || !formData.quote || !formData.email) {
     toast.error('Por favor, preencha os campos obrigatórios');
     return false;
   }
@@ -62,6 +62,7 @@ export const submitTestimonial = async (
       .from('testimonials')
       .insert({
         name: formData.name,
+        email: formData.email,
         role: formData.role || '',
         quote: formData.quote,
         image_url: imageUrl,

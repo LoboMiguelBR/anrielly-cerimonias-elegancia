@@ -7,6 +7,7 @@ interface TestimonialFormData {
   name: string;
   role: string;
   quote: string;
+  email: string;
 }
 
 interface TestimonialFormProps {
@@ -27,6 +28,22 @@ const TestimonialForm = ({ formData, onChange }: TestimonialFormProps) => {
           placeholder="Seu nome"
           required
         />
+      </div>
+      
+      <div className="grid gap-2">
+        <Label htmlFor="email">Email *</Label>
+        <Input
+          id="email"
+          name="email"
+          type="email"
+          value={formData.email}
+          onChange={onChange}
+          placeholder="seu.email@exemplo.com"
+          required
+        />
+        <p className="text-xs text-gray-500">
+          Seu email não será exibido publicamente. Será usado apenas para notificações.
+        </p>
       </div>
       
       <div className="grid gap-2">

@@ -53,6 +53,11 @@ export const sendContactNotification = async (name: string, email: string, phone
  * Send a notification for a new testimonial submission
  */
 export const sendNewTestimonialNotification = async (name: string, email: string): Promise<boolean> => {
+  if (!email) {
+    console.error('Email is required for sending testimonial notification');
+    return false;
+  }
+  
   return sendEmailNotification({
     name,
     email,
@@ -64,6 +69,11 @@ export const sendNewTestimonialNotification = async (name: string, email: string
  * Send a notification when a testimonial is approved
  */
 export const sendTestimonialApprovedNotification = async (name: string, email: string): Promise<boolean> => {
+  if (!email) {
+    console.error('Email is required for sending testimonial approval notification');
+    return false;
+  }
+  
   return sendEmailNotification({
     name,
     email,

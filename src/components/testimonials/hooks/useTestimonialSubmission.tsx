@@ -7,6 +7,7 @@ export interface TestimonialFormData {
   name: string;
   role: string;
   quote: string;
+  email: string;
 }
 
 export const useTestimonialSubmission = () => {
@@ -14,7 +15,8 @@ export const useTestimonialSubmission = () => {
   const [formData, setFormData] = useState<TestimonialFormData>({
     name: '',
     role: '',
-    quote: ''
+    quote: '',
+    email: ''
   });
   const [uploadImage, setUploadImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState('');
@@ -54,7 +56,8 @@ export const useTestimonialSubmission = () => {
     setFormData({
       name: '',
       role: '',
-      quote: ''
+      quote: '',
+      email: ''
     });
     setUploadImage(null);
     setPreviewUrl('');
@@ -76,7 +79,7 @@ export const useTestimonialSubmission = () => {
       
       if (success) {
         // Send email notification about new testimonial
-        await sendNewTestimonialNotification(formData.name, ''); // We don't collect email in testimonials form
+        await sendNewTestimonialNotification(formData.name, formData.email);
         
         resetForm();
       }
