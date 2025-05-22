@@ -8,3 +8,6 @@ export { default as PDFActions } from './PDFActions';
 export { default as PDFHeader } from './PDFHeader';
 export { default as PDFTabs } from './PDFTabs';
 export { default as EmptyPreview } from './EmptyPreview';
+export { default as PDFViewer } from './PDFViewer';
+export { default as PDFGenerator } from './PDFGenerator';
+export { proposalUtils } from './utils/proposalUtils';

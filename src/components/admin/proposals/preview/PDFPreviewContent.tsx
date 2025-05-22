@@ -1,13 +1,13 @@
 
-import React, { useState } from 'react';
-import { PDFViewer, PDFDownloadLink, pdf } from '@react-pdf/renderer';
+import React from 'react';
 import { ProposalData } from '@/components/admin/hooks/proposal';
 import { ProposalTemplateData } from '../templates/shared/types';
-import ProposalPDF from '@/components/admin/ProposalPDF';
 import LoadingState from './LoadingState';
 import ErrorState from './ErrorState';
 import IncompletePropState from './IncompletePropState';
-import { useEffect } from 'react';
+import PDFViewer from './PDFViewer';
+import PDFGenerator from './PDFGenerator';
+import { proposalUtils } from './utils/proposalUtils';
 
 interface PDFPreviewContentProps {
   proposal: ProposalData;
@@ -28,36 +28,10 @@ const PDFPreviewContent: React.FC<PDFPreviewContentProps> = ({
   onError,
   onPdfReady
 }) => {
-  const [pdfDocument, setPdfDocument] = useState<React.ReactElement | null>(null);
-  
-  // Verifica se todos os campos necessários da proposta estão preenchidos
-  const proposalIsComplete = proposal && 
-                          proposal.client_name && 
-                          proposal.event_type && 
-                          Array.isArray(proposal.services) &&
-                          proposal.services.length > 0;
+  // Check if all required proposal fields are filled
+  const proposalIsComplete = proposalUtils.isProposalComplete(proposal);
 
-  // Generate PDF blob for saving when component mounts
-  useEffect(() => {
-    const generatePdf = async () => {
-      if (proposalIsComplete && onPdfReady) {
-        try {
-          const doc = <ProposalPDF proposal={proposal} template={template} />;
-          setPdfDocument(doc);
-          
-          // Generate PDF blob
-          const blob = await pdf(doc).toBlob();
-          onPdfReady(blob);
-        } catch (error: any) {
-          console.error('Error generating PDF blob:', error);
-          onError(error.message || 'Erro ao gerar PDF');
-        }
-      }
-    };
-    
-    generatePdf();
-  }, [proposal, template, proposalIsComplete, onPdfReady, onError]);
-
+  // Handle different states
   if (pdfError) {
     return <ErrorState errorMessage={pdfError} />;
   }
@@ -70,17 +44,22 @@ const PDFPreviewContent: React.FC<PDFPreviewContentProps> = ({
     return <IncompletePropState proposal={proposal} onBack={onBack} />;
   }
 
+  // Render the PDF viewer with generated content
   return (
-    <div className="h-[800px]">
-      <PDFViewer 
-        width="100%" 
-        height="100%" 
-        className="border"
-        showToolbar={true}
-      >
-        {pdfDocument || <ProposalPDF proposal={proposal} template={template} />}
-      </PDFViewer>
-    </div>
+    <PDFGenerator
+      proposal={proposal}
+      template={template}
+      onPdfReady={onPdfReady}
+      onError={onError}
+    >
+      {(pdfDocument) => (
+        <PDFViewer
+          proposal={proposal}
+          template={template}
+          pdfDocument={pdfDocument}
+        />
+      )}
+    </PDFGenerator>
   );
 };
 

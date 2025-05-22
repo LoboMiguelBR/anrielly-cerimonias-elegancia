@@ -3,7 +3,7 @@ import React from 'react';
 import { AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft } from 'lucide-react';
-import { ProposalData } from '@/components/admin/pdf/types';
+import { ProposalData } from '@/components/admin/hooks/proposal';
 
 interface IncompletePropStateProps {
   proposal: ProposalData;
