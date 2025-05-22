@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { ProposalData, Service } from './types';
 import { Json } from '@/integrations/supabase/types';
@@ -47,15 +46,40 @@ export const saveProposal = async (proposal: Omit<ProposalData, 'id' | 'created_
   try {
     console.log('Saving proposal with template_id:', proposal.template_id);
     
-    // Handle the template_id properly - ensure it's null if empty or 'default'
+    // Check if the template_id is from an HTML template (not a valid reference for proposal_templates table)
+    // HTML template IDs should not be stored directly in the template_id field to avoid foreign key constraint errors
+    // We can identify HTML templates by checking if they exist in the 'proposal_template_html' table
     let templateId = null;
+    
+    // Only set templateId if it's a valid reference for the proposal_templates table
+    // For HTML templates, we'll keep it null to avoid the foreign key constraint error
     if (proposal.template_id && 
         proposal.template_id !== '' && 
         proposal.template_id !== 'default') {
-      templateId = proposal.template_id;
+      
+      // First check if this ID exists in the proposal_template_html table
+      const { data: htmlTemplate, error: htmlCheckError } = await supabase
+        .from('proposal_template_html')
+        .select('id')
+        .eq('id', proposal.template_id)
+        .maybeSingle();
+      
+      if (htmlCheckError) {
+        console.error('Error checking if template is HTML:', htmlCheckError);
+      }
+      
+      // If it's not an HTML template, then we can use it as a template_id reference
+      if (!htmlTemplate) {
+        templateId = proposal.template_id;
+      } else {
+        // It's an HTML template - we need to set template_id to null to avoid the foreign key constraint
+        // The actual HTML template ID is preserved in the client-side state for rendering
+        console.log('HTML template detected, setting database templateId to null');
+        templateId = null;
+      }
     }
     
-    console.log('Final templateId value:', templateId);
+    console.log('Final templateId value for database:', templateId);
     
     // Prepare proposal data
     const newProposal = {
@@ -71,7 +95,7 @@ export const saveProposal = async (proposal: Omit<ProposalData, 'id' | 'created_
       notes: proposal.notes,
       quote_request_id: proposal.quote_request_id,
       validity_date: proposal.validity_date,
-      template_id: templateId,
+      template_id: templateId, // We now use our carefully prepared templateId value
       status: proposal.status || 'draft',
     };
 
