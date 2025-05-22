@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Loader2, FileText, Save } from 'lucide-react';
-import { ProposalData } from '@/components/admin/pdf/types';
+import { ProposalData } from '@/components/admin/hooks/proposal';
 
 interface ActionButtonsProps {
   isSaving: boolean;
