@@ -29,6 +29,7 @@ const ProposalsList: React.FC<ProposalsListProps> = ({
   const {
     proposals,
     isLoading,
+    handleDelete
   } = useProposalList();
 
   const handleViewProposal = (proposal: ProposalData) => {
@@ -45,7 +46,7 @@ const ProposalsList: React.FC<ProposalsListProps> = ({
         <ProposalsTable 
           proposals={proposals} 
           onEdit={handleViewProposal}
-          onDelete={() => {}} // This functionality is now handled in the parent component
+          onDelete={handleDelete} 
         />
       )}
     </div>

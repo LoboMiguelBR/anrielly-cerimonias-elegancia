@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import { Loader2, FileText, Save } from 'lucide-react';
+import { Loader2, FileText, Save, Trash2 } from 'lucide-react';
 import { ProposalData } from '@/components/admin/hooks/proposal';
 
 interface ActionButtonsProps {
@@ -10,6 +10,7 @@ interface ActionButtonsProps {
   selectedQuote: string;
   onSave: () => Promise<string | null>;
   onGeneratePDF: () => Promise<void>;
+  onDelete?: () => void;
   proposal: ProposalData | null;
   isEditMode?: boolean;
 }
@@ -20,6 +21,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
   selectedQuote,
   onSave,
   onGeneratePDF,
+  onDelete,
   proposal,
   isEditMode = false
 }) => {
@@ -42,11 +44,22 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
       <Button 
         onClick={onGeneratePDF} 
         disabled={previewDisabled}
-        className="bg-purple-200 hover:bg-purple-300 text-primary-foreground"
+        className="bg-purple-200 hover:bg-purple-300 text-primary-foreground flex items-center"
       >
         {generatingPDF ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <FileText className="w-4 h-4 mr-2" />}
         Visualizar Proposta
       </Button>
+
+      {isEditMode && onDelete && (
+        <Button 
+          variant="destructive" 
+          onClick={onDelete} 
+          className="flex items-center"
+        >
+          <Trash2 className="w-4 h-4 mr-2" />
+          Excluir Proposta
+        </Button>
+      )}
     </>
   );
 };

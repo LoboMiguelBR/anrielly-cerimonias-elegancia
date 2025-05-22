@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { pdf } from '@react-pdf/renderer';
 import { ProposalData } from '@/components/admin/hooks/proposal';
 import { ProposalTemplateData } from '../templates/shared/types';
@@ -22,6 +22,7 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({
 }) => {
   const [pdfDocument, setPdfDocument] = useState<React.ReactElement | null>(null);
   const [hasGenerated, setHasGenerated] = useState<boolean>(false);
+  const mountedRef = useRef(true);
 
   // Generate PDF blob when component mounts
   useEffect(() => {
@@ -31,22 +32,34 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({
     const generatePdf = async () => {
       try {
         const doc = <ProposalPDF proposal={proposal} template={template} />;
+        
+        if (!mountedRef.current) return;
+        
         setPdfDocument(doc);
         setHasGenerated(true);
         
         // Generate PDF blob if callback is provided
         if (onPdfReady) {
           const blob = await pdf(doc).toBlob();
+          
+          if (!mountedRef.current) return;
+          
           onPdfReady(blob);
         }
       } catch (error: any) {
         console.error('Error generating PDF blob:', error);
-        onError(error.message || 'Erro ao gerar PDF');
+        if (mountedRef.current) {
+          onError(error.message || 'Erro ao gerar PDF');
+        }
       }
     };
     
     generatePdf();
-  }, [proposal.id, hasGenerated, onPdfReady, onError]);
+    
+    return () => {
+      mountedRef.current = false;
+    };
+  }, [proposal.id, template.id, hasGenerated, onPdfReady, onError]);
 
   return <>{children(pdfDocument)}</>;
 };
