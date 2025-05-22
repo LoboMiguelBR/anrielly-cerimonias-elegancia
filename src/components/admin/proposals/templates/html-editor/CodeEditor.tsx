@@ -1,16 +1,18 @@
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 interface CodeEditorProps {
   value: string;
   onChange: (value: string) => void;
   language: 'html' | 'css' | 'javascript';
+  onCursorPositionChange?: (position: number) => void;
 }
 
 // A simple text-based code editor with minimal syntax highlighting
 // In a real implementation, we might use a library like CodeMirror, Monaco Editor, or Ace
-const CodeEditor: React.FC<CodeEditorProps> = ({ value, onChange, language }) => {
+const CodeEditor: React.FC<CodeEditorProps> = ({ value, onChange, language, onCursorPositionChange }) => {
   const editorRef = useRef<HTMLTextAreaElement>(null);
+  const [cursorPosition, setCursorPosition] = useState<number>(0);
   
   // Sync the editor size
   useEffect(() => {
@@ -39,6 +41,16 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ value, onChange, language }) =>
     }
   };
   
+  const handleCursorChange = () => {
+    if (editorRef.current) {
+      const position = editorRef.current.selectionStart;
+      setCursorPosition(position);
+      if (onCursorPositionChange) {
+        onCursorPositionChange(position);
+      }
+    }
+  };
+  
   return (
     <div className="code-editor-container relative h-full">
       <div className="absolute top-0 right-0 bg-gray-100 text-xs px-2 py-1 rounded-bl">
@@ -48,6 +60,9 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ value, onChange, language }) =>
         ref={editorRef}
         value={value}
         onChange={handleChange}
+        onKeyUp={handleCursorChange}
+        onClick={handleCursorChange}
+        onSelect={handleCursorChange}
         className="w-full h-full min-h-[500px] p-4 font-mono text-sm border-0 focus:ring-0 focus:outline-none resize-none"
         placeholder={`Digite seu código ${language.toUpperCase()} aqui...`}
         spellCheck={false}

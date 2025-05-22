@@ -7,8 +7,15 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
-import { fetchHtmlTemplateById, saveHtmlTemplate, updateHtmlTemplate } from './templateHtmlService';
-import { defaultTemplateVariables } from './variableUtils';
+import { 
+  fetchHtmlTemplateById, 
+  saveHtmlTemplate, 
+  updateHtmlTemplate 
+} from './templateHtmlService';
+import { 
+  defaultTemplateVariables, 
+  insertVariableAtCursor 
+} from './variableUtils';
 import CodeEditor from './CodeEditor';
 import TemplatePreview from './TemplatePreview';
 import VariablesPanel from './VariablesPanel';
@@ -27,8 +34,9 @@ export const TemplateHtmlEditor: React.FC<TemplateEditorProps> = ({
   const [template, setTemplate] = useState<HtmlTemplateData | null>(null);
   const [htmlContent, setHtmlContent] = useState<string>('');
   const [cssContent, setCssContent] = useState<string>('');
-  const editorRef = useRef<HTMLDivElement>(null);
-
+  const [currentCursorPosition, setCurrentCursorPosition] = useState<number>(0);
+  const [activeEditor, setActiveEditor] = useState<'html' | 'css'>('html');
+  
   useEffect(() => {
     const loadTemplate = async () => {
       try {
@@ -157,28 +165,31 @@ export const TemplateHtmlEditor: React.FC<TemplateEditorProps> = ({
     setPreviewMode(!previewMode);
   };
 
-  const renderVariableSection = (variableName: string) => {
-    const variables = defaultTemplateVariables.filter(v => v.category === variableName);
-    if (variables.length === 0) return null;
+  const handleInsertVariable = (category: string, variableName: string) => {
+    if (activeEditor !== 'html') {
+      toast.info('Variáveis só podem ser inseridas no editor HTML');
+      return;
+    }
     
-    return (
-      <div key={variableName} className="mb-4">
-        <h3 className="text-sm font-medium mb-2 capitalize">{variableName}</h3>
-        <div className="flex flex-wrap gap-1">
-          {variables.map(variable => (
-            <Button 
-              key={`${variable.category}.${variable.name}`}
-              variant="outline" 
-              size="sm"
-              onClick={() => {/* Insert variable functionality will be implemented later */}}
-              className="text-xs"
-            >
-              {variable.name}
-            </Button>
-          ))}
-        </div>
-      </div>
+    const result = insertVariableAtCursor(
+      htmlContent,
+      currentCursorPosition,
+      category,
+      variableName
     );
+    
+    setHtmlContent(result.updatedContent);
+    setCurrentCursorPosition(result.cursorPosition);
+    
+    if (template) {
+      setTemplate({ ...template, htmlContent: result.updatedContent });
+    }
+    
+    toast.success(`Variável {{${category}.${variableName}}} inserida`);
+  };
+
+  const handleCursorPositionChange = (position: number) => {
+    setCurrentCursorPosition(position);
   };
 
   if (isLoading) {
@@ -272,7 +283,12 @@ export const TemplateHtmlEditor: React.FC<TemplateEditorProps> = ({
       ) : (
         <div className="grid grid-cols-3 gap-4">
           <div className="col-span-2">
-            <Tabs defaultValue="html" className="w-full">
+            <Tabs 
+              defaultValue="html" 
+              value={activeEditor}
+              onValueChange={(value) => setActiveEditor(value as 'html' | 'css')}
+              className="w-full"
+            >
               <TabsList className="mb-2">
                 <TabsTrigger value="html">HTML</TabsTrigger>
                 <TabsTrigger value="css">CSS</TabsTrigger>
@@ -283,6 +299,7 @@ export const TemplateHtmlEditor: React.FC<TemplateEditorProps> = ({
                   language="html"
                   value={htmlContent}
                   onChange={handleHtmlChange}
+                  onCursorPositionChange={handleCursorPositionChange}
                 />
               </TabsContent>
               
@@ -302,10 +319,9 @@ export const TemplateHtmlEditor: React.FC<TemplateEditorProps> = ({
                 <CardTitle>Variáveis</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4 max-h-[250px] overflow-y-auto">
-                <VariablesPanel onInsertVariable={(category, variable) => {
-                  // This will be implemented in a follow-up
-                  console.log(`Insert variable: ${category}.${variable}`);
-                }} />
+                <VariablesPanel 
+                  onInsertVariable={handleInsertVariable}
+                />
               </CardContent>
             </Card>
             
@@ -315,8 +331,37 @@ export const TemplateHtmlEditor: React.FC<TemplateEditorProps> = ({
               </CardHeader>
               <CardContent>
                 <AssetsPanel onSelectAsset={(asset) => {
-                  // This will be implemented in a follow-up
-                  console.log('Selected asset:', asset);
+                  // Insert asset URL at cursor position
+                  if (activeEditor === 'html') {
+                    const imageTag = `<img src="${asset.url}" alt="${asset.fileName}" />`;
+                    const result = insertVariableAtCursor(
+                      htmlContent,
+                      currentCursorPosition,
+                      '',
+                      '',
+                      imageTag
+                    );
+                    setHtmlContent(result.updatedContent);
+                    setCurrentCursorPosition(result.cursorPosition);
+                    if (template) {
+                      setTemplate({ ...template, htmlContent: result.updatedContent });
+                    }
+                    toast.success('Imagem inserida no template');
+                  } else if (activeEditor === 'css') {
+                    const cssImageUrl = `url('${asset.url}')`;
+                    const result = insertVariableAtCursor(
+                      cssContent,
+                      currentCursorPosition,
+                      '',
+                      '',
+                      cssImageUrl
+                    );
+                    setCssContent(result.updatedContent);
+                    if (template) {
+                      setTemplate({ ...template, cssContent: result.updatedContent });
+                    }
+                    toast.success('URL da imagem inserida no CSS');
+                  }
                 }} />
               </CardContent>
             </Card>

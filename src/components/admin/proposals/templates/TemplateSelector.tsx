@@ -1,146 +1,130 @@
 
 import React, { useState, useEffect } from 'react';
 import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { PlusCircle, Settings } from "lucide-react";
-import { fetchTemplates } from './shared/templateService';
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from '@/components/ui/select';
 import { ProposalTemplateData } from './shared/types';
-import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { TemplateEditor } from './TemplateEditor';
+import { defaultTemplate, fetchTemplates } from './shared/templateService';
+import { HtmlTemplateData } from './html-editor/types';
+import { fetchHtmlTemplates } from './html-editor/templateHtmlService';
 
 interface TemplateSelectorProps {
   selectedTemplateId?: string;
-  onSelectTemplate: (templateData: ProposalTemplateData) => void;
+  onSelectTemplate: (template: ProposalTemplateData) => void;
 }
 
-export const TemplateSelector: React.FC<TemplateSelectorProps> = ({ 
+const TemplateSelector: React.FC<TemplateSelectorProps> = ({ 
   selectedTemplateId = 'default',
   onSelectTemplate
 }) => {
-  const [templates, setTemplates] = useState<ProposalTemplateData[]>([]);
+  const [templates, setTemplates] = useState<ProposalTemplateData[]>([defaultTemplate]);
+  const [htmlTemplates, setHtmlTemplates] = useState<HtmlTemplateData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [showEditor, setShowEditor] = useState(false);
-  const [editingTemplate, setEditingTemplate] = useState<ProposalTemplateData | null>(null);
 
-  // Load available templates
   useEffect(() => {
     const loadTemplates = async () => {
       setIsLoading(true);
-      const availableTemplates = await fetchTemplates();
-      setTemplates(availableTemplates);
       
-      // Set the selected template or default
-      if (selectedTemplateId) {
-        const selected = availableTemplates.find(t => t.id === selectedTemplateId);
-        if (selected) {
-          onSelectTemplate(selected);
-        } else if (availableTemplates.length > 0) {
-          onSelectTemplate(availableTemplates[0]);
-        }
+      try {
+        // Load legacy templates
+        const legacyTemplates = await fetchTemplates();
+        
+        // Load HTML templates
+        const htmlTemplatesData = await fetchHtmlTemplates();
+        
+        setTemplates([defaultTemplate, ...legacyTemplates]);
+        setHtmlTemplates(htmlTemplatesData);
+      } catch (error) {
+        console.error('Error loading templates:', error);
+      } finally {
+        setIsLoading(false);
       }
-      
-      setIsLoading(false);
     };
     
     loadTemplates();
-  }, [selectedTemplateId, onSelectTemplate]);
+  }, []);
 
-  // Handle template selection
   const handleTemplateChange = (value: string) => {
-    const selected = templates.find(t => t.id === value);
-    if (selected) {
-      onSelectTemplate(selected);
+    // Check if the selected template is an HTML template
+    if (value.startsWith('html_')) {
+      const htmlTemplateId = value.replace('html_', '');
+      const selectedHtmlTemplate = htmlTemplates.find(t => t.id === htmlTemplateId);
+      
+      if (selectedHtmlTemplate) {
+        // Convert HTML template to the format expected by the proposal system
+        const htmlAsProposalTemplate: ProposalTemplateData = {
+          id: selectedHtmlTemplate.id,
+          name: selectedHtmlTemplate.name,
+          colors: {
+            primary: '#6C2BD9',
+            secondary: '#A78BFA',
+            accent: '#F472B6',
+            text: '#333333',
+            background: '#FFFFFF'
+          },
+          logo: 'https://oampddkpuybkbwqggrty.supabase.co/storage/v1/object/public/proposals/LogoAG.png',
+          isHtmlTemplate: true,
+          htmlTemplate: selectedHtmlTemplate
+        };
+        
+        onSelectTemplate(htmlAsProposalTemplate);
+        return;
+      }
+    }
+    
+    // Handle legacy templates
+    const selectedTemplate = templates.find(t => t.id === value);
+    if (selectedTemplate) {
+      onSelectTemplate(selectedTemplate);
     }
   };
 
-  // Open template editor
-  const handleEditTemplate = () => {
-    const currentTemplate = templates.find(t => t.id === selectedTemplateId) || templates[0];
-    setEditingTemplate(currentTemplate);
-    setShowEditor(true);
-  };
-
-  // Create new template
-  const handleNewTemplate = () => {
-    const currentTemplate = templates.find(t => t.id === selectedTemplateId) || templates[0];
-    // Clone the current template as a starting point but clear the ID
-    setEditingTemplate({
-      ...currentTemplate,
-      id: '',
-      name: 'Novo Template'
-    });
-    setShowEditor(true);
-  };
-
-  // After template is saved, refresh the list
-  const handleTemplateSaved = async () => {
-    setShowEditor(false);
-    setEditingTemplate(null);
-    const refreshedTemplates = await fetchTemplates();
-    setTemplates(refreshedTemplates);
-  };
-
   return (
-    <div className="flex items-center gap-2">
-      <div className="flex-grow">
-        <Select 
-          value={selectedTemplateId} 
-          onValueChange={handleTemplateChange}
-          disabled={isLoading}
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Selecione um template" />
-          </SelectTrigger>
-          <SelectContent>
-            {templates.map((template) => (
-              <SelectItem key={template.id} value={template.id}>
-                {template.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      
-      <Button 
-        variant="outline" 
-        size="icon" 
-        onClick={handleEditTemplate}
-        title="Editar template"
-      >
-        <Settings className="h-4 w-4" />
-      </Button>
-      
-      <Button 
-        variant="outline" 
-        size="icon"
-        onClick={handleNewTemplate} 
-        title="Novo template"
-      >
-        <PlusCircle className="h-4 w-4" />
-      </Button>
-      
-      <Dialog open={showEditor} onOpenChange={setShowEditor}>
-        <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>
-              {editingTemplate?.id ? `Editar Template: ${editingTemplate?.name}` : 'Novo Template'}
-            </DialogTitle>
-          </DialogHeader>
-          {editingTemplate && (
-            <TemplateEditor 
-              template={editingTemplate} 
-              onSaved={handleTemplateSaved}
-              onCancel={() => setShowEditor(false)}
-            />
+    <div>
+      <Select disabled={isLoading} onValueChange={handleTemplateChange} defaultValue={selectedTemplateId}>
+        <SelectTrigger className="w-full">
+          <SelectValue placeholder="Selecione um template">
+            {isLoading 
+              ? 'Carregando templates...' 
+              : (selectedTemplateId.startsWith('html_') 
+                ? htmlTemplates.find(t => t.id === selectedTemplateId.replace('html_', ''))?.name 
+                : templates.find(t => t.id === selectedTemplateId)?.name) || 'Template padrão'}
+          </SelectValue>
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="default">Template padrão</SelectItem>
+          
+          {htmlTemplates.length > 0 && (
+            <>
+              <div className="py-2 px-2 text-xs font-semibold text-gray-500">
+                Templates HTML
+              </div>
+              {htmlTemplates.map(template => (
+                <SelectItem key={`html_${template.id}`} value={`html_${template.id}`}>
+                  {template.name} {template.isDefault ? '(Padrão)' : ''}
+                </SelectItem>
+              ))}
+            </>
           )}
-        </DialogContent>
-      </Dialog>
+          
+          {templates.length > 1 && (
+            <>
+              <div className="py-2 px-2 text-xs font-semibold text-gray-500">
+                Templates Legados
+              </div>
+              {templates.slice(1).map(template => (
+                <SelectItem key={template.id} value={template.id}>
+                  {template.name}
+                </SelectItem>
+              ))}
+            </>
+          )}
+        </SelectContent>
+      </Select>
     </div>
   );
 };

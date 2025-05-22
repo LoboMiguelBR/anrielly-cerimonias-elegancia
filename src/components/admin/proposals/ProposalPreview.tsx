@@ -7,6 +7,7 @@ import { defaultTemplate } from './templates/shared/templateService';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { v4 as uuidv4 } from 'uuid';
+import HtmlProposalRenderer from './templates/HtmlProposalRenderer';
 
 interface ProposalPreviewProps {
   proposal: ProposalData;
@@ -26,6 +27,8 @@ const ProposalPreview: React.FC<ProposalPreviewProps> = ({
   const [pdfError, setPdfError] = useState<string | null>(null);
   const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  
+  const isHtmlTemplate = proposal.template_id && proposal.template_id !== 'default';
 
   // Handle errors in the PDF generation process
   const handleError = (error: string) => {
@@ -95,6 +98,13 @@ const ProposalPreview: React.FC<ProposalPreviewProps> = ({
     }
   };
   
+  // Automatically generate PDF if we have an HTML template
+  useEffect(() => {
+    if (isHtmlTemplate && !pdfBlob && !isLoading && !pdfError) {
+      setIsLoading(true);
+    }
+  }, [isHtmlTemplate, pdfBlob, isLoading, pdfError]);
+  
   return (
     <div className="bg-white rounded-lg shadow">
       <PDFHeader 
@@ -104,17 +114,28 @@ const ProposalPreview: React.FC<ProposalPreviewProps> = ({
         pdfBlob={pdfBlob}
       />
       
-      <PDFTabs 
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        proposal={proposal}
-        template={template}
-        isLoading={isLoading}
-        pdfError={pdfError}
-        onBack={onBack}
-        onError={handleError}
-        onPdfReady={handlePdfReady}
-      />
+      {isHtmlTemplate && !pdfBlob && !pdfError ? (
+        <div className="p-4">
+          <HtmlProposalRenderer
+            proposal={proposal}
+            templateId={proposal.template_id}
+            onPdfReady={handlePdfReady}
+            onError={handleError}
+          />
+        </div>
+      ) : (
+        <PDFTabs 
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          proposal={proposal}
+          template={template}
+          isLoading={isLoading}
+          pdfError={pdfError}
+          onBack={onBack}
+          onError={handleError}
+          onPdfReady={handlePdfReady}
+        />
+      )}
     </div>
   );
 };

@@ -40,20 +40,29 @@ export const defaultTemplateVariables: TemplateVariable[] = [
   { name: 'validity_date', category: 'proposal', description: 'Data de validade da proposta', sampleValue: '30/07/2024' }
 ];
 
-// Insert a variable at the cursor position
+// Insert a variable or custom text at the cursor position
 export function insertVariableAtCursor(
   content: string, 
   cursorPosition: number, 
   category: string,
-  variable: string
+  variable: string,
+  customText?: string
 ): VariableInsertionResult {
-  const variableText = `{{${category}.${variable}}}`;
+  let textToInsert = customText;
+  
+  // If no custom text is provided, use the variable format
+  if (!customText && category && variable) {
+    textToInsert = `{{${category}.${variable}}}`;
+  } else if (!customText) {
+    textToInsert = '';
+  }
+  
   const updatedContent = 
     content.substring(0, cursorPosition) + 
-    variableText + 
+    textToInsert + 
     content.substring(cursorPosition);
   
-  const newCursorPosition = cursorPosition + variableText.length;
+  const newCursorPosition = cursorPosition + (textToInsert?.length || 0);
   
   return {
     updatedContent,
