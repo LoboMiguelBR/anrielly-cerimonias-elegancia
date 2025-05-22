@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { HtmlTemplateData } from '../types';
 import { toast } from 'sonner';
 import { insertVariableAtCursor } from '../utils/editorUtils';
@@ -16,34 +16,44 @@ const defaultTemplate: HtmlTemplateData = {
 };
 
 export const useTemplateContent = (initialTemplate: HtmlTemplateData | null) => {
-  // Initialize with default values instead of null to avoid null checks
-  const [template, setTemplate] = useState<HtmlTemplateData>(initialTemplate || defaultTemplate);
-  const [htmlContent, setHtmlContent] = useState<string>(initialTemplate?.htmlContent || '');
-  const [cssContent, setCssContent] = useState<string>(initialTemplate?.cssContent || '');
+  // Initialize with proper default values
+  const [template, setTemplate] = useState<HtmlTemplateData>(
+    initialTemplate || defaultTemplate
+  );
+  
+  const [htmlContent, setHtmlContent] = useState<string>(
+    initialTemplate?.htmlContent || ''
+  );
+  
+  const [cssContent, setCssContent] = useState<string>(
+    initialTemplate?.cssContent || ''
+  );
+  
   const [currentCursorPosition, setCurrentCursorPosition] = useState<number>(0);
   const [activeEditor, setActiveEditor] = useState<'html' | 'css'>('html');
 
-  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Use useCallback for all handlers to prevent unnecessary rerenders
+  const handleNameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setTemplate(prev => ({ ...prev, name: e.target.value }));
-  };
+  }, []);
 
-  const handleDescriptionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleDescriptionChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setTemplate(prev => ({ ...prev, description: e.target.value }));
-  };
+  }, []);
 
-  const handleHtmlChange = (value: string) => {
+  const handleHtmlChange = useCallback((value: string) => {
     setHtmlContent(value);
-    // Update template using functional update to avoid stale state references
+    // Update template using functional update to avoid stale state
     setTemplate(prev => ({ ...prev, htmlContent: value }));
-  };
+  }, []);
 
-  const handleCssChange = (value: string) => {
+  const handleCssChange = useCallback((value: string) => {
     setCssContent(value);
-    // Update template using functional update to avoid stale state references
+    // Update template using functional update to avoid stale state
     setTemplate(prev => ({ ...prev, cssContent: value }));
-  };
+  }, []);
 
-  const handleInsertVariable = (category: string, variableName: string) => {
+  const handleInsertVariable = useCallback((category: string, variableName: string) => {
     if (activeEditor !== 'html') {
       toast.info('Variáveis só podem ser inseridas no editor HTML');
       return;
@@ -65,15 +75,22 @@ export const useTemplateContent = (initialTemplate: HtmlTemplateData | null) => 
     setTemplate(prev => ({ ...prev, htmlContent: result.updatedContent }));
     
     toast.success(`Variável {{${category}.${variableName}}} inserida`);
-  };
+  }, [activeEditor, htmlContent, currentCursorPosition]);
 
-  const handleCursorPositionChange = (position: number) => {
+  const handleCursorPositionChange = useCallback((position: number) => {
     setCurrentCursorPosition(position);
-  };
+  }, []);
+
+  // Method to update the template with new data (for when initialTemplate changes)
+  const updateTemplateData = useCallback((newTemplate: HtmlTemplateData) => {
+    setTemplate(newTemplate);
+    setHtmlContent(newTemplate.htmlContent);
+    setCssContent(newTemplate.cssContent || '');
+  }, []);
 
   return {
     template,
-    setTemplate,
+    setTemplate: updateTemplateData,
     htmlContent,
     cssContent,
     activeEditor,

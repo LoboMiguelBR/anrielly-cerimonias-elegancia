@@ -11,13 +11,15 @@ export const useTemplateLoading = (
 ) => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   
-  // Use useCallback to prevent dependency changes causing re-renders
-  const loadTemplate = useCallback(async () => {
+  // Create a stable function that won't change on renders
+  const loadTemplate = useCallback(() => {
     try {
       setIsLoading(true);
 
       if (initialTemplate) {
         console.log('Loading initial template:', initialTemplate.id);
+        
+        // Update all states at once to prevent multiple re-renders
         setTemplate(initialTemplate);
         handleHtmlChange(initialTemplate.htmlContent);
         handleCssChange(initialTemplate.cssContent || '');
@@ -33,9 +35,11 @@ export const useTemplateLoading = (
           variables: {},
           isDefault: false
         };
+        
+        // Update all states at once
         setTemplate(emptyTemplate);
         handleHtmlChange(emptyTemplate.htmlContent);
-        handleCssChange(emptyTemplate.cssContent || '');
+        handleCssChange(emptyTemplate.cssContent);
       }
     } catch (error) {
       console.error('Error loading template:', error);
@@ -45,10 +49,9 @@ export const useTemplateLoading = (
     }
   }, [initialTemplate, setTemplate, handleHtmlChange, handleCssChange]);
 
+  // Run only once on mount or when initialTemplate changes reference
   useEffect(() => {
     loadTemplate();
-    // This effect should only run once when the component mounts
-    // or when initialTemplate changes
   }, [loadTemplate]);
 
   return {

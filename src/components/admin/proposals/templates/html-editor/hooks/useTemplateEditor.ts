@@ -4,6 +4,7 @@ import { useTemplateDisplay } from './useTemplateDisplay';
 import { useTemplateContent } from './useTemplateContent';
 import { useTemplateActions } from './useTemplateActions';
 import { useTemplateLoading } from './useTemplateLoading';
+import { useCallback } from 'react';
 
 export const useTemplateEditor = (
   initialTemplate: HtmlTemplateData | undefined,
@@ -17,7 +18,7 @@ export const useTemplateEditor = (
     togglePreviewMode 
   } = useTemplateDisplay();
 
-  // Initialize content with empty template (not null)
+  // Initialize template content management
   const {
     template,
     setTemplate,
@@ -32,8 +33,9 @@ export const useTemplateEditor = (
     handleInsertVariable,
     handleCursorPositionChange,
     setActiveEditor
-  } = useTemplateContent(null);
+  } = useTemplateContent(null); // Start with null, will be set by useTemplateLoading
 
+  // Template actions (saving)
   const { 
     isSaving, 
     saveError, 
@@ -41,7 +43,7 @@ export const useTemplateEditor = (
     handleSave: saveTemplate 
   } = useTemplateActions();
 
-  // Load template using the dedicated hook
+  // Template loading - this will update the template content when initialTemplate changes
   const { isLoading } = useTemplateLoading(
     initialTemplate,
     setTemplate,
@@ -49,7 +51,8 @@ export const useTemplateEditor = (
     handleCssChange
   );
 
-  const handleSave = async () => {
+  // Wrap the save action in a stable callback
+  const handleSave = useCallback(async () => {
     if (!template) {
       console.error('No template to save');
       return;
@@ -72,7 +75,7 @@ export const useTemplateEditor = (
     } else {
       console.error('Failed to save template:', saveError);
     }
-  };
+  }, [template, htmlContent, cssContent, saveTemplate, setTemplate, onSave, saveError]);
 
   return {
     template,
