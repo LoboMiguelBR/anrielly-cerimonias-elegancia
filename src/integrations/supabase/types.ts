@@ -39,6 +39,54 @@ export type Database = {
         }
         Relationships: []
       }
+      professionals: {
+        Row: {
+          category: string
+          city: string
+          created_at: string
+          document: string | null
+          email: string
+          id: string
+          instagram: string | null
+          name: string
+          notes: string | null
+          phone: string
+          tags: string[] | null
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          category: string
+          city: string
+          created_at?: string
+          document?: string | null
+          email: string
+          id?: string
+          instagram?: string | null
+          name: string
+          notes?: string | null
+          phone: string
+          tags?: string[] | null
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          category?: string
+          city?: string
+          created_at?: string
+          document?: string | null
+          email?: string
+          id?: string
+          instagram?: string | null
+          name?: string
+          notes?: string | null
+          phone?: string
+          tags?: string[] | null
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
       proposal_assets: {
         Row: {
           created_at: string

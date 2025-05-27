@@ -12,6 +12,7 @@ const MobileAdminNav = ({ activeTab, onTabChange }: MobileAdminNavProps) => {
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: Home },
     { id: 'leads', label: 'Leads', icon: Users },
+    { id: 'professionals', label: 'Profissionais', icon: Users },
     { id: 'gallery', label: 'Galeria', icon: Image },
     { id: 'testimonials', label: 'Depoimentos', icon: MessageCircle },
     { id: 'quotes', label: 'Orçamentos', icon: FileText },

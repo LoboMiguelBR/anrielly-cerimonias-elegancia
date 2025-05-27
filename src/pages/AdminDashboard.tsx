@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -15,6 +14,7 @@ import QuestionariosTab from '@/components/admin/tabs/QuestionariosTab';
 import LeadsTab from '@/components/admin/tabs/LeadsTab';
 import { useQuoteRequests } from '@/hooks/useQuoteRequests';
 import { useMobileLayout } from '@/hooks/useMobileLayout';
+import ProfessionalsTab from '@/components/admin/tabs/ProfessionalsTab';
 
 const AdminDashboard = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -58,6 +58,7 @@ const AdminDashboard = () => {
           <h1 className="font-playfair text-xl font-bold text-gray-800">
             {activeTab === 'dashboard' && 'Dashboard'}
             {activeTab === 'leads' && 'Leads'}
+            {activeTab === 'professionals' && 'Profissionais'}
             {activeTab === 'gallery' && 'Galeria'}
             {activeTab === 'testimonials' && 'Depoimentos'}
             {activeTab === 'quotes' && 'Orçamentos'}
@@ -75,6 +76,9 @@ const AdminDashboard = () => {
               </TabsTrigger>
               <TabsTrigger value="leads" className="flex items-center min-w-fit">
                 <Users className="w-4 h-4 mr-2" /> Leads
+              </TabsTrigger>
+              <TabsTrigger value="professionals" className="flex items-center min-w-fit">
+                <Users className="w-4 h-4 mr-2" /> Profissionais
               </TabsTrigger>
               <TabsTrigger value="gallery" className="flex items-center min-w-fit">
                 <Image className="w-4 h-4 mr-2" /> Galeria
@@ -103,6 +107,10 @@ const AdminDashboard = () => {
           
           <TabsContent value="leads">
             <LeadsTab />
+          </TabsContent>
+          
+          <TabsContent value="professionals">
+            <ProfessionalsTab />
           </TabsContent>
           
           <TabsContent value="gallery">
