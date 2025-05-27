@@ -79,30 +79,7 @@ serve(async (req) => {
         )
       }
 
-      // Verificar se o link público existe
-      const { data: linkExists, error: linkError } = await supabaseClient
-        .from('questionarios_noivos')
-        .select('id')
-        .eq('link_publico', linkPublico)
-        .limit(1)
-
-      if (linkError) {
-        console.error('Erro ao verificar link:', linkError)
-        return new Response(
-          JSON.stringify({ error: 'Erro interno do servidor' }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
-        )
-      }
-
-      if (!linkExists || linkExists.length === 0) {
-        console.log('Link não encontrado:', linkPublico)
-        return new Response(
-          JSON.stringify({ error: 'Link de questionário não encontrado' }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 404 }
-        )
-      }
-
-      // Buscar questionário pelo link público e email específico
+      // Buscar questionário específico pelo link público e email
       const { data: questionario, error: questionarioError } = await supabaseClient
         .from('questionarios_noivos')
         .select('*')
@@ -163,7 +140,7 @@ serve(async (req) => {
         )
       }
 
-      // Verificar se já existe um usuário com este email para este link
+      // Verificar se já existe um usuário com este email para este link específico
       const { data: existingUser, error: existingError } = await supabaseClient
         .from('questionarios_noivos')
         .select('id')
@@ -187,7 +164,7 @@ serve(async (req) => {
         )
       }
 
-      // Verificar se existe um registro placeholder (aguardando preenchimento)
+      // Verificar se existe um registro placeholder para este link específico
       const { data: placeholderRecord, error: placeholderError } = await supabaseClient
         .from('questionarios_noivos')
         .select('*')
@@ -243,7 +220,7 @@ serve(async (req) => {
         )
       } else {
         console.log('Criando novo registro')
-        // Criar novo registro se não há placeholder
+        // Criar novo registro - agora permite múltiplas contas por link_publico
         const { data: novoQuestionario, error: insertError } = await supabaseClient
           .from('questionarios_noivos')
           .insert({
