@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { ContractData } from '../../hooks/contract/types';
 import ContractStatusBadge from '../ContractStatusBadge';
 import ContractActions from '../ContractActions';
-import { Eye, Edit, Download, Trash2 } from 'lucide-react';
+import ContractPDFGenerator from '../pdf/ContractPDFGenerator';
+import { Eye, Edit, Trash2 } from 'lucide-react';
 
 interface ContractsTableRowProps {
   contract: ContractData;
@@ -85,15 +86,8 @@ const ContractsTableRow = ({
             </Button>
           )}
           
-          {contract.pdf_url && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onDownload(contract)}
-              title="Download PDF"
-            >
-              <Download className="h-4 w-4" />
-            </Button>
+          {contract.status === 'signed' && (
+            <ContractPDFGenerator contract={contract} />
           )}
           
           <Button
