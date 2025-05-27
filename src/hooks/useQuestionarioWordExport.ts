@@ -1,6 +1,6 @@
 
 import { useState } from 'react'
-import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, BorderStyle } from 'docx'
+import { Document, Packer, Paragraph, TextRun, AlignmentType } from 'docx'
 import { useToast } from '@/hooks/use-toast'
 import { getAllQuestions } from '@/utils/questionarioSections'
 
@@ -20,21 +20,6 @@ export const useQuestionarioWordExport = () => {
       const doc = new Document({
         sections: [{
           properties: {},
-          headers: {
-            default: new Paragraph({
-              children: [
-                new TextRun({
-                  text: "Questionário de Celebração do Amor",
-                  bold: true,
-                  size: 48, // 24px equivalent
-                  color: "d9534f",
-                  font: "Playfair Display"
-                })
-              ],
-              alignment: AlignmentType.CENTER,
-              spacing: { after: 400 }
-            })
-          },
           children: [
             // Título principal
             new Paragraph({
@@ -48,7 +33,7 @@ export const useQuestionarioWordExport = () => {
                 })
               ],
               alignment: AlignmentType.CENTER,
-              spacing: { after: 200 }
+              spacing: { after: 400 }
             }),
             
             // Subtítulo
