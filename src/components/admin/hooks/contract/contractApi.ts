@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Contract, ContractFormData, ContractTemplate, ContractTemplateFormData, ContractEmailTemplate, ContractEmailTemplateFormData, ContractData } from './types';
 
@@ -15,7 +14,10 @@ export const contractApi = {
       throw error;
     }
 
-    return data || [];
+    return (data || []).map(contract => ({
+      ...contract,
+      status: contract.status as 'pending' | 'signed' | 'draft' | 'canceled'
+    }));
   },
 
   async getContractById(id: string): Promise<Contract | null> {
@@ -30,7 +32,10 @@ export const contractApi = {
       throw error;
     }
 
-    return data || null;
+    return data ? {
+      ...data,
+      status: data.status as 'pending' | 'signed' | 'draft' | 'canceled'
+    } : null;
   },
 
   async getContractByToken(token: string): Promise<ContractData | null> {
@@ -124,7 +129,10 @@ export const contractApi = {
       throw error;
     }
 
-    return data;
+    return {
+      ...data,
+      status: data.status as 'pending' | 'signed' | 'draft' | 'canceled'
+    };
   },
 
   async updateContract(id: string, contractData: Partial<ContractFormData>): Promise<Contract> {
@@ -140,7 +148,10 @@ export const contractApi = {
       throw error;
     }
 
-    return data;
+    return {
+      ...data,
+      status: data.status as 'pending' | 'signed' | 'draft' | 'canceled'
+    };
   },
 
   async deleteContract(id: string): Promise<void> {
