@@ -178,35 +178,44 @@ export const sendQuestionarioCompletionEmail = async (name: string, email: strin
 };
 
 /**
- * Send a contract for signature via email
+ * Send a contract for signature via email with enhanced audit variables
  */
 export const sendContractForSignature = async (
   clientName: string, 
   clientEmail: string, 
   contractUrl: string,
-  eventType: string
+  eventType: string,
+  contractData?: any
 ): Promise<boolean> => {
   return sendEmailNotification({
     to: clientEmail,
     name: clientName,
     contractUrl,
     eventType,
+    contractData, // Incluir dados completos do contrato para variáveis
     tipo: 'contrato-assinatura'
   });
 };
 
 /**
- * Send contract signed confirmation
+ * Send contract signed confirmation with audit data
  */
 export const sendContractSignedConfirmation = async (
   clientName: string,
   clientEmail: string,
-  contractDetails: any
+  contractDetails: any,
+  auditData?: {
+    signerIp?: string;
+    userAgent?: string;
+    contractHash?: string;
+    signedAt?: string;
+  }
 ): Promise<boolean> => {
   return sendEmailNotification({
     to: clientEmail,
     name: clientName,
     contractDetails,
+    auditData, // Incluir dados de auditoria
     tipo: 'contrato-assinado'
   });
 };

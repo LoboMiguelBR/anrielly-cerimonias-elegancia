@@ -8,9 +8,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Save, Eye, Code, Palette, HelpCircle } from 'lucide-react';
+import { ArrowLeft, Save, Eye, Code, HelpCircle } from 'lucide-react';
 import { contractApi } from '../../hooks/contract';
 import { ContractEmailTemplate, ContractEmailTemplateFormData, EMAIL_TEMPLATE_TYPES } from '../../hooks/contract/types';
+import { emailTemplateVariables } from '../../../../utils/emailVariables';
 import { toast } from 'sonner';
 
 interface ContractEmailTemplateEditorProps {
@@ -76,28 +77,12 @@ const ContractEmailTemplateEditor = ({ template, onSave, onCancel }: ContractEma
       const newContent = formData.html_content.substring(0, start) + variable + formData.html_content.substring(end);
       setFormData({ ...formData, html_content: newContent });
       
-      // Restore cursor position
       setTimeout(() => {
         textarea.selectionStart = textarea.selectionEnd = start + variable.length;
         textarea.focus();
       }, 0);
     }
   };
-
-  const emailVariables = [
-    { label: 'Nome do Cliente', value: '{NOME_CLIENTE}' },
-    { label: 'Email do Cliente', value: '{EMAIL_CLIENTE}' },
-    { label: 'Telefone do Cliente', value: '{TELEFONE_CLIENTE}' },
-    { label: 'Tipo de Evento', value: '{TIPO_EVENTO}' },
-    { label: 'Data do Evento', value: '{DATA_EVENTO}' },
-    { label: 'Local do Evento', value: '{LOCAL_EVENTO}' },
-    { label: 'Valor Total', value: '{VALOR_TOTAL}' },
-    { label: 'Link do Contrato', value: '{LINK_CONTRATO}' },
-    { label: 'Data de Assinatura', value: '{DATA_ASSINATURA}' },
-    { label: 'Nome da Empresa', value: '{NOME_EMPRESA}' },
-    { label: 'Telefone da Empresa', value: '{TELEFONE_EMPRESA}' },
-    { label: 'Email da Empresa', value: '{EMAIL_EMPRESA}' }
-  ];
 
   const getDefaultTemplate = (type: string) => {
     switch (type) {
@@ -106,12 +91,12 @@ const ContractEmailTemplateEditor = ({ template, onSave, onCancel }: ContractEma
 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
   <h2 style="color: #2563eb;">Contrato para Assinatura Digital</h2>
   
-  <p>Olá <strong>{NOME_CLIENTE}</strong>,</p>
+  <p>Olá <strong>{{NOME_CLIENTE}}</strong>,</p>
   
-  <p>Segue o link para assinatura digital do seu contrato de <strong>{TIPO_EVENTO}</strong>:</p>
+  <p>Segue o link para assinatura digital do seu contrato de <strong>{{TIPO_EVENTO}}</strong>:</p>
   
   <div style="background-color: #f0f9ff; padding: 15px; border-radius: 8px; margin: 20px 0;">
-    <a href="{LINK_CONTRATO}" style="color: #2563eb; font-weight: bold; text-decoration: none;">
+    <a href="{{LINK_CONTRATO}}" style="color: #2563eb; font-weight: bold; text-decoration: none;">
       👆 Clique aqui para assinar o contrato
     </a>
   </div>
@@ -128,9 +113,9 @@ const ContractEmailTemplateEditor = ({ template, onSave, onCancel }: ContractEma
   <p>Caso tenha alguma dúvida, entre em contato conosco.</p>
   
   <p>Atenciosamente,<br>
-  {NOME_EMPRESA}<br>
-  {TELEFONE_EMPRESA}<br>
-  {EMAIL_EMPRESA}</p>
+  {{NOME_EMPRESA}}<br>
+  {{TELEFONE_EMPRESA}}<br>
+  {{EMAIL_EMPRESA}}</p>
 </div>
         `;
       case 'signed_confirmation':
@@ -138,32 +123,39 @@ const ContractEmailTemplateEditor = ({ template, onSave, onCancel }: ContractEma
 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
   <h2 style="color: #16a34a;">Contrato Assinado com Sucesso! ✅</h2>
   
-  <p>Olá <strong>{NOME_CLIENTE}</strong>,</p>
+  <p>Olá <strong>{{NOME_CLIENTE}}</strong>,</p>
   
-  <p>Seu contrato de <strong>{TIPO_EVENTO}</strong> foi assinado digitalmente com sucesso!</p>
+  <p>Seu contrato de <strong>{{TIPO_EVENTO}}</strong> foi assinado digitalmente com sucesso!</p>
   
   <div style="background-color: #f0fdf4; padding: 15px; border-radius: 8px; margin: 20px 0;">
     <h3 style="color: #16a34a; margin-top: 0;">📋 Detalhes do Contrato:</h3>
     <ul>
-      <li><strong>Evento:</strong> {TIPO_EVENTO}</li>
-      <li><strong>Data do Evento:</strong> {DATA_EVENTO}</li>
-      <li><strong>Local:</strong> {LOCAL_EVENTO}</li>
-      <li><strong>Valor:</strong> {VALOR_TOTAL}</li>
-      <li><strong>Assinado em:</strong> {DATA_ASSINATURA}</li>
+      <li><strong>Evento:</strong> {{TIPO_EVENTO}}</li>
+      <li><strong>Data do Evento:</strong> {{DATA_EVENTO}}</li>
+      <li><strong>Local:</strong> {{LOCAL_EVENTO}}</li>
+      <li><strong>Valor:</strong> {{VALOR_TOTAL}}</li>
+      <li><strong>Assinado em:</strong> {{DATA_ASSINATURA}} às {{HORA_ASSINATURA}}</li>
     </ul>
   </div>
   
   <div style="background-color: #fef3c7; padding: 15px; border-radius: 8px; margin: 20px 0;">
-    <h3 style="color: #92400e; margin-top: 0;">⚖️ Validade Jurídica:</h3>
-    <p>Este contrato possui validade jurídica conforme Lei nº 14.063/2020, Marco Civil da Internet e Código Civil Brasileiro.</p>
+    <h3 style="color: #92400e; margin-top: 0;">🔒 Dados de Auditoria e Segurança:</h3>
+    <ul style="font-size: 12px;">
+      <li><strong>IP do Assinante:</strong> {{IP_ASSINANTE}}</li>
+      <li><strong>Dispositivo:</strong> {{USER_AGENT}}</li>
+      <li><strong>Hash do Documento:</strong> {{HASH_CONTRATO}}</li>
+    </ul>
+    <p style="margin: 5px 0; font-size: 13px;">
+      <strong>⚖️ Validade Jurídica:</strong> Este contrato possui validade jurídica conforme Lei nº 14.063/2020, Marco Civil da Internet e Código Civil Brasileiro.
+    </p>
   </div>
   
   <p>Em caso de dúvidas, entre em contato conosco.</p>
   
   <p>Atenciosamente,<br>
-  {NOME_EMPRESA}<br>
-  {TELEFONE_EMPRESA}<br>
-  {EMAIL_EMPRESA}</p>
+  {{NOME_EMPRESA}}<br>
+  {{TELEFONE_EMPRESA}}<br>
+  {{EMAIL_EMPRESA}}</p>
 </div>
         `;
       case 'reminder':
@@ -171,34 +163,39 @@ const ContractEmailTemplateEditor = ({ template, onSave, onCancel }: ContractEma
 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
   <h2 style="color: #ea580c;">Lembrete: Contrato Pendente de Assinatura</h2>
   
-  <p>Olá <strong>{NOME_CLIENTE}</strong>,</p>
+  <p>Olá <strong>{{NOME_CLIENTE}}</strong>,</p>
   
-  <p>Este é um lembrete amigável sobre o contrato de <strong>{TIPO_EVENTO}</strong> que ainda está pendente de assinatura.</p>
+  <p>Este é um lembrete amigável sobre o contrato de <strong>{{TIPO_EVENTO}}</strong> que ainda está pendente de assinatura.</p>
   
   <div style="background-color: #fff7ed; padding: 15px; border-radius: 8px; margin: 20px 0;">
     <h3 style="color: #ea580c; margin-top: 0;">📝 Detalhes do Evento:</h3>
     <ul>
-      <li><strong>Tipo:</strong> {TIPO_EVENTO}</li>
-      <li><strong>Data:</strong> {DATA_EVENTO}</li>
-      <li><strong>Local:</strong> {LOCAL_EVENTO}</li>
-      <li><strong>Valor:</strong> {VALOR_TOTAL}</li>
+      <li><strong>Tipo:</strong> {{TIPO_EVENTO}}</li>
+      <li><strong>Data:</strong> {{DATA_EVENTO}}</li>
+      <li><strong>Local:</strong> {{LOCAL_EVENTO}}</li>
+      <li><strong>Valor:</strong> {{VALOR_TOTAL}}</li>
     </ul>
   </div>
   
   <div style="background-color: #f0f9ff; padding: 15px; border-radius: 8px; margin: 20px 0;">
-    <a href="{LINK_CONTRATO}" style="color: #2563eb; font-weight: bold; text-decoration: none;">
+    <a href="{{LINK_CONTRATO}}" style="color: #2563eb; font-weight: bold; text-decoration: none;">
       👆 Clique aqui para assinar o contrato
     </a>
   </div>
   
+  <div style="background-color: #fef3c7; padding: 15px; border-radius: 8px; margin: 20px 0;">
+    <h4 style="color: #92400e; margin-top: 0;">🔒 Segurança da Assinatura Digital:</h4>
+    <p style="font-size: 12px; margin: 5px 0;">
+      Sua assinatura será registrada com: IP ({{IP_ASSINANTE}}), data/hora e hash de segurança para garantia jurídica total.
+    </p>
+  </div>
+  
   <p>A assinatura é rápida e segura, levando apenas alguns minutos.</p>
   
-  <p>Caso tenha alguma dúvida, não hesite em entrar em contato.</p>
-  
   <p>Atenciosamente,<br>
-  {NOME_EMPRESA}<br>
-  {TELEFONE_EMPRESA}<br>
-  {EMAIL_EMPRESA}</p>
+  {{NOME_EMPRESA}}<br>
+  {{TELEFONE_EMPRESA}}<br>
+  {{EMAIL_EMPRESA}}</p>
 </div>
         `;
       default:
@@ -328,15 +325,15 @@ const ContractEmailTemplateEditor = ({ template, onSave, onCancel }: ContractEma
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 gap-2 max-h-64 overflow-y-auto">
-                  {emailVariables.map((variable) => (
+                  {emailTemplateVariables.map((variable) => (
                     <Button
-                      key={variable.value}
+                      key={variable.variable}
                       variant="outline"
                       size="sm"
-                      onClick={() => insertVariable(variable.value)}
+                      onClick={() => insertVariable(variable.variable)}
                       className="justify-start text-left"
                     >
-                      <span className="text-xs font-mono text-blue-600">{variable.value}</span>
+                      <span className="text-xs font-mono text-blue-600">{variable.variable}</span>
                       <span className="ml-2 text-gray-600">- {variable.label}</span>
                     </Button>
                   ))}
@@ -374,17 +371,57 @@ const ContractEmailTemplateEditor = ({ template, onSave, onCancel }: ContractEma
                   Use as variáveis abaixo no conteúdo do seu email. Elas serão substituídas automaticamente pelos dados do contrato.
                 </p>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {emailVariables.map((variable) => (
-                    <div key={variable.value} className="border rounded-lg p-3">
-                      <div className="font-mono text-sm text-blue-600 font-medium">
-                        {variable.value}
-                      </div>
-                      <div className="text-sm text-gray-600 mt-1">
-                        {variable.label}
-                      </div>
+                <div className="space-y-6">
+                  {/* Dados do Cliente */}
+                  <div>
+                    <h4 className="font-semibold text-gray-800 mb-2">👤 Dados do Cliente</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      {emailTemplateVariables.slice(0, 6).map((variable) => (
+                        <div key={variable.variable} className="border rounded-lg p-3">
+                          <div className="font-mono text-sm text-blue-600 font-medium">
+                            {variable.variable}
+                          </div>
+                          <div className="text-sm text-gray-600 mt-1">
+                            {variable.label}
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  </div>
+
+                  {/* Dados de Auditoria (DESTAQUE ESPECIAL) */}
+                  <div>
+                    <h4 className="font-semibold text-red-600 mb-2">🔒 Dados de Auditoria e Segurança (NOVOS)</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      {emailTemplateVariables.slice(16, 21).map((variable) => (
+                        <div key={variable.variable} className="border-2 border-red-200 rounded-lg p-3 bg-red-50">
+                          <div className="font-mono text-sm text-red-700 font-bold">
+                            {variable.variable}
+                          </div>
+                          <div className="text-sm text-red-600 mt-1 font-medium">
+                            {variable.label}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Outros dados */}
+                  <div>
+                    <h4 className="font-semibold text-gray-800 mb-2">📝 Outros Dados</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      {emailTemplateVariables.slice(6, 16).concat(emailTemplateVariables.slice(21)).map((variable) => (
+                        <div key={variable.variable} className="border rounded-lg p-3">
+                          <div className="font-mono text-sm text-blue-600 font-medium">
+                            {variable.variable}
+                          </div>
+                          <div className="text-sm text-gray-600 mt-1">
+                            {variable.label}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </div>
             </CardContent>

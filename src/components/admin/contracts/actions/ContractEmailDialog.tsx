@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Send } from 'lucide-react';
 import { ContractData, ContractEmailTemplate } from '../../hooks/contract/types';
 import { contractApi } from '../../hooks/contract';
+import { replaceEmailVariables } from '../../../../utils/emailVariables';
 
 interface ContractEmailDialogProps {
   contract: ContractData;
@@ -67,7 +68,7 @@ const ContractEmailDialog = ({
     setSelectedTemplateId(templateId);
     
     if (templateId === 'custom') {
-      setEmailSubject(`Contrato para Assinatura Digital - ${contract.event_type}`);
+      setEmailSubject(`Contrato para Assinatura Digital - {{TIPO_EVENTO}}`);
       setEmailMessage('');
       return;
     }
@@ -75,8 +76,16 @@ const ContractEmailDialog = ({
     try {
       const template = await contractApi.getContractEmailTemplateById(templateId);
       if (template) {
-        setEmailSubject(replaceVariables(template.subject, contract));
-        setEmailMessage(replaceVariables(template.html_content, contract));
+        // Usar a nova função de substituição de variáveis
+        const subjectWithVariables = replaceEmailVariables(template.subject, contract, {
+          contractUrl
+        });
+        const contentWithVariables = replaceEmailVariables(template.html_content, contract, {
+          contractUrl
+        });
+        
+        setEmailSubject(subjectWithVariables);
+        setEmailMessage(contentWithVariables);
       }
     } catch (error) {
       console.error('Error loading template:', error);
@@ -148,6 +157,16 @@ const ContractEmailDialog = ({
           <div className="bg-blue-50 p-3 rounded-lg text-sm">
             <p className="font-medium text-blue-800 mb-1">Link do contrato:</p>
             <p className="text-blue-600 break-all">{contractUrl}</p>
+          </div>
+          
+          <div className="bg-yellow-50 p-3 rounded-lg text-sm">
+            <p className="font-medium text-yellow-800 mb-2">🔒 Variáveis de Auditoria Disponíveis:</p>
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <span className="font-mono text-yellow-700">{{`{IP_ASSINANTE}`}}</span>
+              <span className="font-mono text-yellow-700">{{`{USER_AGENT}`}}</span>
+              <span className="font-mono text-yellow-700">{{`{HASH_CONTRATO}`}}</span>
+              <span className="font-mono text-yellow-700">{{`{DATA_ASSINATURA}`}}</span>
+            </div>
           </div>
           
           <div className="flex gap-2 justify-end">

@@ -27,6 +27,49 @@ interface ContractSignedRequest {
   clientIP: string
 }
 
+// Função para substituir variáveis em templates de email
+const replaceEmailVariables = (template: string, contract: any, additionalData: any) => {
+  const signedDate = new Date(additionalData.timestamp || new Date());
+  
+  const variables = {
+    '{{NOME_CLIENTE}}': contract.client_name || '',
+    '{{EMAIL_CLIENTE}}': contract.client_email || '',
+    '{{TELEFONE_CLIENTE}}': contract.client_phone || '',
+    '{{ENDERECO_CLIENTE}}': contract.client_address || '',
+    '{{PROFISSAO_CLIENTE}}': contract.client_profession || '',
+    '{{ESTADO_CIVIL}}': contract.civil_status || '',
+    '{{TIPO_EVENTO}}': contract.event_type || '',
+    '{{DATA_EVENTO}}': contract.event_date ? new Date(contract.event_date).toLocaleDateString('pt-BR') : '',
+    '{{HORARIO_EVENTO}}': contract.event_time || '',
+    '{{LOCAL_EVENTO}}': contract.event_location || '',
+    '{{VALOR_TOTAL}}': contract.total_price ? `R$ ${contract.total_price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '',
+    '{{ENTRADA}}': contract.down_payment ? `R$ ${contract.down_payment.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '',
+    '{{DATA_ENTRADA}}': contract.down_payment_date ? new Date(contract.down_payment_date).toLocaleDateString('pt-BR') : '',
+    '{{VALOR_RESTANTE}}': contract.remaining_amount ? `R$ ${contract.remaining_amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '',
+    '{{DATA_PAGAMENTO_RESTANTE}}': contract.remaining_payment_date ? new Date(contract.remaining_payment_date).toLocaleDateString('pt-BR') : '',
+    '{{LINK_CONTRATO}}': additionalData.contractUrl || '',
+    
+    // NOVAS VARIÁVEIS DE AUDITORIA
+    '{{IP_ASSINANTE}}': additionalData.clientIP || '',
+    '{{USER_AGENT}}': additionalData.user_agent || '',
+    '{{HASH_CONTRATO}}': additionalData.contract_hash || '',
+    '{{DATA_ASSINATURA}}': signedDate.toLocaleDateString('pt-BR'),
+    '{{HORA_ASSINATURA}}': signedDate.toLocaleTimeString('pt-BR'),
+    
+    '{{NOME_EMPRESA}}': 'Anrielly Gomes - Mestre de Cerimônia',
+    '{{TELEFONE_EMPRESA}}': '(24) 99268-9947',
+    '{{EMAIL_EMPRESA}}': 'contato@anriellygomes.com.br',
+    '{{OBSERVACOES}}': contract.notes || ''
+  };
+
+  let result = template;
+  Object.entries(variables).forEach(([variable, value]) => {
+    result = result.replace(new RegExp(variable.replace(/[{}]/g, '\\$&'), 'g'), value);
+  });
+  
+  return result;
+};
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
@@ -64,59 +107,85 @@ serve(async (req) => {
 
     console.log('Contract updated successfully:', contract.id)
 
-    // Enviar email para o cliente
-    const clientEmailContent = `
+    // Buscar template de email de confirmação de assinatura
+    const { data: emailTemplate } = await supabaseClient
+      .from('contract_email_templates')
+      .select('*')
+      .eq('template_type', 'signed_confirmation')
+      .eq('is_default', true)
+      .maybeSingle()
+
+    // Template padrão caso não tenha no banco
+    const defaultClientTemplate = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #2563eb;">Contrato Assinado com Sucesso!</h2>
+        <h2 style="color: #16a34a;">Contrato Assinado com Sucesso! ✅</h2>
         
-        <p>Olá <strong>${contract.client_name}</strong>,</p>
+        <p>Olá <strong>{{NOME_CLIENTE}}</strong>,</p>
         
-        <p>Seu contrato de <strong>${contract.event_type}</strong> foi assinado digitalmente com sucesso!</p>
+        <p>Seu contrato de <strong>{{TIPO_EVENTO}}</strong> foi assinado digitalmente com sucesso!</p>
         
-        <div style="background-color: #f0f9ff; padding: 15px; border-radius: 8px; margin: 20px 0;">
-          <h3 style="color: #1e40af; margin-top: 0;">✅ Detalhes da Assinatura:</h3>
+        <div style="background-color: #f0fdf4; padding: 15px; border-radius: 8px; margin: 20px 0;">
+          <h3 style="color: #16a34a; margin-top: 0;">✅ Detalhes da Assinatura:</h3>
           <ul style="margin: 10px 0;">
-            <li><strong>Data/Hora:</strong> ${new Date(signatureData.timestamp).toLocaleString('pt-BR')}</li>
-            <li><strong>Evento:</strong> ${contract.event_type}</li>
-            <li><strong>Data do Evento:</strong> ${contract.event_date ? new Date(contract.event_date).toLocaleDateString('pt-BR') : 'A definir'}</li>
-            <li><strong>Local:</strong> ${contract.event_location}</li>
-            <li><strong>Valor Total:</strong> R$ ${contract.total_price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</li>
+            <li><strong>Data/Hora:</strong> {{DATA_ASSINATURA}} às {{HORA_ASSINATURA}}</li>
+            <li><strong>Evento:</strong> {{TIPO_EVENTO}}</li>
+            <li><strong>Data do Evento:</strong> {{DATA_EVENTO}}</li>
+            <li><strong>Local:</strong> {{LOCAL_EVENTO}}</li>
+            <li><strong>Valor Total:</strong> {{VALOR_TOTAL}}</li>
           </ul>
         </div>
         
         <div style="background-color: #fef3c7; padding: 15px; border-radius: 8px; margin: 20px 0;">
-          <h3 style="color: #92400e; margin-top: 0;">📋 Validade Jurídica:</h3>
-          <p style="margin: 5px 0;">Este contrato possui validade jurídica conforme:</p>
-          <ul style="margin: 10px 0;">
-            <li>Lei nº 14.063/2020 (Marco Legal das Assinaturas Eletrônicas)</li>
-            <li>Lei nº 12.965/2014 (Marco Civil da Internet)</li>
-            <li>Código Civil Brasileiro</li>
+          <h3 style="color: #92400e; margin-top: 0;">🔒 Dados de Auditoria e Segurança:</h3>
+          <ul style="font-size: 12px; margin: 10px 0;">
+            <li><strong>IP do Assinante:</strong> {{IP_ASSINANTE}}</li>
+            <li><strong>Dispositivo/Navegador:</strong> {{USER_AGENT}}</li>
+            <li><strong>Hash do Documento:</strong> {{HASH_CONTRATO}}</li>
           </ul>
           <p style="margin: 5px 0; font-size: 14px; color: #92400e;">
-            <strong>Hash do documento:</strong> ${signatureData.contract_hash.substring(0, 32)}...
+            <strong>📋 Validade Jurídica:</strong> Este contrato possui validade jurídica conforme Lei nº 14.063/2020, Marco Civil da Internet e Código Civil Brasileiro.
           </p>
         </div>
         
         <p>Em caso de dúvidas, entre em contato conosco:</p>
-        <p style="margin: 5px 0;"><strong>Anrielly Gomes - Mestre de Cerimônia</strong></p>
-        <p style="margin: 5px 0;">📞 (24) 99268-9947</p>
-        <p style="margin: 5px 0;">✉️ contato@anriellygomes.com.br</p>
+        <p style="margin: 5px 0;"><strong>{{NOME_EMPRESA}}</strong></p>
+        <p style="margin: 5px 0;">📞 {{TELEFONE_EMPRESA}}</p>
+        <p style="margin: 5px 0;">✉️ {{EMAIL_EMPRESA}}</p>
         
         <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
         <p style="font-size: 12px; color: #6b7280; text-align: center;">
           Este é um email automático. Não responda a esta mensagem.
         </p>
       </div>
-    `
+    `;
+
+    // Usar template do banco ou padrão
+    const clientEmailTemplate = emailTemplate?.html_content || defaultClientTemplate;
+    const clientSubject = emailTemplate?.subject || `Contrato Assinado - {{TIPO_EVENTO}}`;
+
+    // Substituir variáveis no template do cliente
+    const clientEmailContent = replaceEmailVariables(clientEmailTemplate, contract, {
+      clientIP,
+      user_agent: signatureData.user_agent,
+      contract_hash: signatureData.contract_hash,
+      timestamp: signatureData.timestamp
+    });
+
+    const finalClientSubject = replaceEmailVariables(clientSubject, contract, {
+      clientIP,
+      user_agent: signatureData.user_agent,
+      contract_hash: signatureData.contract_hash,
+      timestamp: signatureData.timestamp
+    });
 
     await resend.emails.send({
       from: 'Anrielly Gomes <contato@anriellygomes.com.br>',
       to: [contract.client_email],
-      subject: `Contrato Assinado - ${contract.event_type}`,
+      subject: finalClientSubject,
       html: clientEmailContent,
     })
 
-    // Enviar email para Anrielly (cópia de controle)
+    // Email para Anrielly (cópia de controle com dados de auditoria)
     const adminEmailContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #dc2626;">🎉 Novo Contrato Assinado!</h2>
@@ -137,12 +206,18 @@ serve(async (req) => {
         </div>
         
         <div style="background-color: #f0fdf4; padding: 15px; border-radius: 8px; margin: 20px 0;">
-          <h3 style="color: #166534; margin-top: 0;">Dados da Assinatura:</h3>
+          <h3 style="color: #166534; margin-top: 0;">🔒 Dados de Auditoria Completos:</h3>
           <ul style="margin: 10px 0;">
             <li><strong>Data/Hora:</strong> ${new Date(signatureData.timestamp).toLocaleString('pt-BR')}</li>
-            <li><strong>IP:</strong> ${clientIP}</li>
-            <li><strong>Navegador:</strong> ${signatureData.user_agent}</li>
-            <li><strong>Hash:</strong> ${signatureData.contract_hash.substring(0, 48)}...</li>
+            <li><strong>IP do Assinante:</strong> ${clientIP}</li>
+            <li><strong>User Agent:</strong> ${signatureData.user_agent}</li>
+            <li><strong>Hash do Contrato:</strong> ${signatureData.contract_hash}</li>
+            <li><strong>Conformidade Legal:</strong></li>
+            <ul style="margin-left: 20px;">
+              <li>Lei 14.063/2020: ${signatureData.legal_compliance?.lei_14063_2020 ? '✅' : '❌'}</li>
+              <li>Marco Civil: ${signatureData.legal_compliance?.marco_civil_internet ? '✅' : '❌'}</li>
+              <li>Código Civil: ${signatureData.legal_compliance?.codigo_civil_brasileiro ? '✅' : '❌'}</li>
+            </ul>
           </ul>
         </div>
         
@@ -157,10 +232,10 @@ serve(async (req) => {
       html: adminEmailContent,
     })
 
-    console.log('Emails sent successfully')
+    console.log('Emails sent successfully with audit data')
 
     return new Response(
-      JSON.stringify({ success: true, message: 'Contract signed and emails sent' }),
+      JSON.stringify({ success: true, message: 'Contract signed and emails sent with audit data' }),
       { 
         headers: { 
           'Content-Type': 'application/json',
