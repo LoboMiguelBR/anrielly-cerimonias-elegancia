@@ -5,7 +5,7 @@ import { Home, Image, MessageCircle, FileText, Camera, Palette, Heart, Users } f
 import AdminHeader from '@/components/admin/AdminHeader';
 import MobileAdminNav from '@/components/admin/MobileAdminNav';
 import DashboardTab from '@/components/admin/tabs/DashboardTab';
-import GalleryTab from '@/components/admin/tabs/GalleryTab';
+import AdminGalleryTab from '@/components/admin/tabs/AdminGalleryTab';
 import TestimonialsTab from '@/components/admin/tabs/TestimonialsTab';
 import QuotesTab from '@/components/admin/tabs/QuotesTab';
 import ProposalsTab from '@/components/admin/tabs/ProposalsTab';
@@ -15,7 +15,6 @@ import LeadsTab from '@/components/admin/tabs/LeadsTab';
 import { useQuoteRequests } from '@/hooks/useQuoteRequests';
 import { useMobileLayout } from '@/hooks/useMobileLayout';
 import ProfessionalsTab from '@/components/admin/tabs/ProfessionalsTab';
-import AdminGalleryTab from '@/components/admin/tabs/AdminGalleryTab';
 
 const AdminDashboard = () => {
   const [searchParams, setSearchParams] = useSearchParams();
