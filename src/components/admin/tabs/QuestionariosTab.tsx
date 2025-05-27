@@ -1,4 +1,3 @@
-
 import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -14,6 +13,9 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import useSWR from 'swr'
 import type { Database } from '@/integrations/supabase/types'
+import KPICards from './components/KPICards'
+import QuestionarioActions from './components/QuestionarioActions'
+import QuestionarioEditModal from './components/QuestionarioEditModal'
 
 type QuestionarioRow = Database['public']['Tables']['questionarios_noivos']['Row']
 
@@ -26,6 +28,7 @@ interface Questionario {
   data_criacao: string
   data_atualizacao: string
   respostas_json: Record<string, string> | null
+  total_perguntas_resp: number
 }
 
 interface QuestionarioGroup {
@@ -41,6 +44,7 @@ const QuestionariosTab = () => {
   const [newLink, setNewLink] = useState('')
   const [selectedQuestionario, setSelectedQuestionario] = useState<Questionario | null>(null)
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set())
+  const [editingQuestionario, setEditingQuestionario] = useState<Questionario | null>(null)
 
   const fetcher = async (): Promise<Questionario[]> => {
     const { data, error } = await supabase
@@ -58,7 +62,8 @@ const QuestionariosTab = () => {
       status: row.status || 'rascunho',
       data_criacao: row.data_criacao || '',
       data_atualizacao: row.data_atualizacao || '',
-      respostas_json: row.respostas_json as Record<string, string> | null
+      respostas_json: row.respostas_json as Record<string, string> | null,
+      total_perguntas_resp: row.total_perguntas_resp || 0
     }))
   }
 
@@ -76,8 +81,7 @@ const QuestionariosTab = () => {
         }, {})
       ).map(([link_publico, questionariosDoGrupo]) => {
         const totalRespostas = questionariosDoGrupo.reduce((total, q) => {
-          const respostas = q.respostas_json ? Object.values(q.respostas_json).filter(r => r && r.trim().length > 0).length : 0
-          return total + respostas
+          return total + (q.total_perguntas_resp || 0)
         }, 0)
         
         const maxPossivel = questionariosDoGrupo.length * 48 // 48 perguntas por pessoa
@@ -207,11 +211,9 @@ const QuestionariosTab = () => {
     window.open(url, '_blank')
   }
 
-  const calcularProgresso = (respostas: Record<string, string> | null) => {
-    if (!respostas) return 0
+  const calcularProgresso = (total_perguntas_resp: number) => {
     const totalPerguntas = 48
-    const respostasPreenchidas = Object.values(respostas).filter(r => r && r.trim().length > 0).length
-    return Math.round((respostasPreenchidas / totalPerguntas) * 100)
+    return Math.round((total_perguntas_resp / totalPerguntas) * 100)
   }
 
   const getQuestionarioLink = (linkPublico: string) => {
@@ -228,6 +230,31 @@ const QuestionariosTab = () => {
     setExpandedGroups(newExpanded)
   }
 
+  const handleDeleteQuestionario = async (questionario: Questionario) => {
+    try {
+      const { error } = await supabase
+        .from('questionarios_noivos')
+        .delete()
+        .eq('id', questionario.id)
+
+      if (error) throw error
+
+      toast({
+        title: "Questionário excluído!",
+        description: "O questionário foi removido com sucesso.",
+      })
+
+      mutate()
+    } catch (error) {
+      console.error('Erro ao excluir:', error)
+      toast({
+        title: "Erro ao excluir",
+        description: "Não foi possível excluir o questionário.",
+        variant: "destructive",
+      })
+    }
+  }
+
   if (error) {
     return (
       <Card>
@@ -241,6 +268,9 @@ const QuestionariosTab = () => {
   return (
     <TooltipProvider>
       <div className="space-y-6">
+        {/* KPI Cards */}
+        {questionarios && <KPICards questionarios={questionarios} />}
+
         <Card>
           <CardHeader>
             <CardTitle>Questionários de Noivos</CardTitle>
@@ -363,59 +393,28 @@ const QuestionariosTab = () => {
                                   </TableCell>
                                   <TableCell>{getStatusBadge(questionario.status)}</TableCell>
                                   <TableCell>
-                                    {calcularProgresso(questionario.respostas_json)}%
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-sm">
+                                        {calcularProgresso(questionario.total_perguntas_resp)}%
+                                      </span>
+                                      <div className="w-16 bg-gray-200 rounded-full h-2">
+                                        <div 
+                                          className="bg-rose-500 h-2 rounded-full transition-all"
+                                          style={{ width: `${calcularProgresso(questionario.total_perguntas_resp)}%` }}
+                                        />
+                                      </div>
+                                      <span className="text-xs text-gray-500">
+                                        {questionario.total_perguntas_resp}/48
+                                      </span>
+                                    </div>
                                   </TableCell>
                                   <TableCell>
-                                    {new Date(questionario.data_criacao).toLocaleDateString('pt-BR')}
-                                  </TableCell>
-                                  <TableCell>
-                                    <Dialog>
-                                      <DialogTrigger asChild>
-                                        <Tooltip>
-                                          <TooltipTrigger asChild>
-                                            <Button
-                                              size="sm"
-                                              variant="outline"
-                                              onClick={() => setSelectedQuestionario(questionario)}
-                                            >
-                                              <Eye className="w-4 h-4" />
-                                            </Button>
-                                          </TooltipTrigger>
-                                          <TooltipContent>
-                                            <p>Ver respostas</p>
-                                          </TooltipContent>
-                                        </Tooltip>
-                                      </DialogTrigger>
-                                      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-                                        <DialogHeader>
-                                          <DialogTitle>Respostas do Questionário</DialogTitle>
-                                          <DialogDescription>
-                                            {selectedQuestionario?.nome_responsavel} - {selectedQuestionario?.email}
-                                          </DialogDescription>
-                                        </DialogHeader>
-                                        
-                                        {selectedQuestionario?.respostas_json && (
-                                          <div className="space-y-4">
-                                            {Object.entries(selectedQuestionario.respostas_json).map(([perguntaIndex, resposta]) => (
-                                              <div key={perguntaIndex} className="border-b pb-4">
-                                                <p className="font-medium text-sm text-gray-600 mb-2">
-                                                  Pergunta {parseInt(perguntaIndex) + 1}
-                                                </p>
-                                                <p className="bg-gray-50 p-3 rounded text-sm">
-                                                  {resposta || 'Não respondida'}
-                                                </p>
-                                              </div>
-                                            ))}
-                                          </div>
-                                        )}
-                                        
-                                        {(!selectedQuestionario?.respostas_json || Object.keys(selectedQuestionario.respostas_json).length === 0) && (
-                                          <div className="text-center py-8 text-gray-500">
-                                            Nenhuma resposta registrada ainda
-                                          </div>
-                                        )}
-                                      </DialogContent>
-                                    </Dialog>
+                                    <QuestionarioActions
+                                      questionario={questionario}
+                                      onView={() => setSelectedQuestionario(questionario)}
+                                      onEdit={() => setEditingQuestionario(questionario)}
+                                      onDelete={() => handleDeleteQuestionario(questionario)}
+                                    />
                                   </TableCell>
                                 </TableRow>
                               ))}
@@ -438,6 +437,47 @@ const QuestionariosTab = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Modal de Visualização de Respostas */}
+        <Dialog open={!!selectedQuestionario} onOpenChange={() => setSelectedQuestionario(null)}>
+          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Respostas do Questionário</DialogTitle>
+              <DialogDescription>
+                {selectedQuestionario?.nome_responsavel} - {selectedQuestionario?.email}
+              </DialogDescription>
+            </DialogHeader>
+            
+            {selectedQuestionario?.respostas_json && (
+              <div className="space-y-4">
+                {Object.entries(selectedQuestionario.respostas_json).map(([perguntaIndex, resposta]) => (
+                  <div key={perguntaIndex} className="border-b pb-4">
+                    <p className="font-medium text-sm text-gray-600 mb-2">
+                      Pergunta {parseInt(perguntaIndex) + 1}
+                    </p>
+                    <p className="bg-gray-50 p-3 rounded text-sm">
+                      {resposta || 'Não respondida'}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+            
+            {(!selectedQuestionario?.respostas_json || Object.keys(selectedQuestionario.respostas_json).length === 0) && (
+              <div className="text-center py-8 text-gray-500">
+                Nenhuma resposta registrada ainda
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Modal de Edição */}
+        <QuestionarioEditModal
+          open={!!editingQuestionario}
+          onClose={() => setEditingQuestionario(null)}
+          questionario={editingQuestionario}
+          onSave={mutate}
+        />
       </div>
     </TooltipProvider>
   )

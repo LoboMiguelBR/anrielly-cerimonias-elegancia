@@ -218,6 +218,7 @@ export type Database = {
           respostas_json: Json | null
           senha_hash: string
           status: string | null
+          total_perguntas_resp: number | null
         }
         Insert: {
           data_atualizacao?: string | null
@@ -229,6 +230,7 @@ export type Database = {
           respostas_json?: Json | null
           senha_hash: string
           status?: string | null
+          total_perguntas_resp?: number | null
         }
         Update: {
           data_atualizacao?: string | null
@@ -240,6 +242,7 @@ export type Database = {
           respostas_json?: Json | null
           senha_hash?: string
           status?: string | null
+          total_perguntas_resp?: number | null
         }
         Relationships: []
       }
