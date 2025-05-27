@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import { contractApi } from '@/components/admin/hooks/contract';
 import { ContractData } from '@/components/admin/hooks/contract/types';
 import { toast } from 'sonner';
 import { Loader2, CheckCircle, AlertTriangle, FileText } from 'lucide-react';
+import { SignatureCanvas, ContractSignatureSection } from '@/components/admin/contracts/signing';
 
 const ContractSigning = () => {
   const { token } = useParams<{ token: string }>();
@@ -19,8 +20,6 @@ const ContractSigning = () => {
   const [signature, setSignature] = useState<string>('');
   const [isSigned, setIsSigned] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [isDrawing, setIsDrawing] = useState(false);
   const [hasDrawnSignature, setHasDrawnSignature] = useState(false);
   const [contractHash, setContractHash] = useState<string>('');
 
@@ -64,72 +63,6 @@ const ContractSigning = () => {
     const hashBuffer = await crypto.subtle.digest('SHA-256', data);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
     return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-  };
-
-  // Configurar canvas para assinatura
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (canvas) {
-      const ctx = canvas.getContext('2d');
-      if (ctx) {
-        ctx.fillStyle = 'white';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-      }
-    }
-  }, []);
-
-  const handleSignatureStart = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    setIsDrawing(true);
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    
-    const rect = canvas.getBoundingClientRect();
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    
-    ctx.strokeStyle = '#000';
-    ctx.lineWidth = 2;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    
-    ctx.beginPath();
-    ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
-    setHasDrawnSignature(true);
-  };
-
-  const handleSignatureMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!isDrawing) return;
-    
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    
-    const rect = canvas.getBoundingClientRect();
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    
-    ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
-    ctx.stroke();
-  };
-
-  const handleSignatureEnd = () => {
-    setIsDrawing(false);
-    const canvas = canvasRef.current;
-    if (canvas) {
-      setSignature(canvas.toDataURL());
-    }
-  };
-
-  const clearSignature = () => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    
-    ctx.fillStyle = 'white';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    setSignature('');
-    setHasDrawnSignature(false);
   };
 
   const handleSign = async () => {
@@ -322,9 +255,15 @@ const ContractSigning = () => {
               </AlertDescription>
             </Alert>
 
-            {/* Signature Section */}
+            {/* Signature Section with both signatures */}
+            <ContractSignatureSection 
+              contract={contract} 
+              contractHash={contractHash} 
+            />
+
+            {/* Client Signature Area */}
             <div className="space-y-4 p-6 bg-gray-50 rounded-lg">
-              <h3 className="text-lg font-semibold">Assinatura Digital</h3>
+              <h3 className="text-lg font-semibold">Confirmação e Assinatura do Cliente</h3>
               
               {/* Agreement Checkbox */}
               <div className="flex items-start space-x-3">
@@ -341,47 +280,12 @@ const ContractSigning = () => {
                 </label>
               </div>
 
-              {/* Signature Canvas - Mandatory */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium flex items-center gap-2">
-                  <span className="text-red-500">*</span>
-                  Assinatura Digital (obrigatória - desenhe no campo abaixo):
-                </label>
-                {!hasDrawnSignature && (
-                  <Alert>
-                    <AlertTriangle className="h-4 w-4" />
-                    <AlertDescription>
-                      <strong>Assinatura obrigatória:</strong> Por favor, desenhe sua assinatura no campo abaixo. 
-                      A assinatura desenhada é obrigatória para conferir validade jurídica ao contrato digital.
-                    </AlertDescription>
-                  </Alert>
-                )}
-                <div className="border-2 border-gray-300 rounded bg-white">
-                  <canvas
-                    ref={canvasRef}
-                    width={400}
-                    height={150}
-                    className="w-full cursor-crosshair"
-                    onMouseDown={handleSignatureStart}
-                    onMouseMove={handleSignatureMove}
-                    onMouseUp={handleSignatureEnd}
-                    onMouseLeave={handleSignatureEnd}
-                  />
-                </div>
-                <div className="flex gap-2">
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    size="sm"
-                    onClick={clearSignature}
-                  >
-                    Limpar Assinatura
-                  </Button>
-                  <span className="text-xs text-gray-500 flex items-center">
-                    A assinatura será registrada com timestamp e IP para validade jurídica
-                  </span>
-                </div>
-              </div>
+              {/* Signature Canvas */}
+              <SignatureCanvas
+                onSignatureChange={setSignature}
+                hasDrawnSignature={hasDrawnSignature}
+                onHasDrawnSignatureChange={setHasDrawnSignature}
+              />
 
               {/* Sign Button */}
               <Button 
