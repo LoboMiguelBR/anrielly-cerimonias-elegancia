@@ -1,7 +1,8 @@
+
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Home, Image, MessageCircle, FileText, Camera, Palette, Heart, Users } from 'lucide-react';
+import { Home, Image, MessageCircle, FileText, Camera, Palette, Heart, Users, FileSignature } from 'lucide-react';
 import AdminHeader from '@/components/admin/AdminHeader';
 import MobileAdminNav from '@/components/admin/MobileAdminNav';
 import DashboardTab from '@/components/admin/tabs/DashboardTab';
@@ -12,9 +13,10 @@ import ProposalsTab from '@/components/admin/tabs/ProposalsTab';
 import ProposalTemplatesTab from '@/components/admin/tabs/ProposalTemplatesTab';
 import QuestionariosTab from '@/components/admin/tabs/QuestionariosTab';
 import LeadsTab from '@/components/admin/tabs/LeadsTab';
+import ProfessionalsTab from '@/components/admin/tabs/ProfessionalsTab';
+import ContractsTab from '@/components/admin/tabs/ContractsTab';
 import { useQuoteRequests } from '@/hooks/useQuoteRequests';
 import { useMobileLayout } from '@/hooks/useMobileLayout';
-import ProfessionalsTab from '@/components/admin/tabs/ProfessionalsTab';
 
 const AdminDashboard = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -63,6 +65,7 @@ const AdminDashboard = () => {
             {activeTab === 'testimonials' && 'Depoimentos'}
             {activeTab === 'quotes' && 'Orçamentos'}
             {activeTab === 'proposals' && 'Propostas'}
+            {activeTab === 'contracts' && 'Contratos'}
             {activeTab === 'templates' && 'Templates'}
             {activeTab === 'questionarios' && 'Questionários'}
           </h1>
@@ -91,6 +94,9 @@ const AdminDashboard = () => {
               </TabsTrigger>
               <TabsTrigger value="proposals" className="flex items-center min-w-fit">
                 <Camera className="w-4 h-4 mr-2" /> Propostas
+              </TabsTrigger>
+              <TabsTrigger value="contracts" className="flex items-center min-w-fit">
+                <FileSignature className="w-4 h-4 mr-2" /> Contratos
               </TabsTrigger>
               <TabsTrigger value="templates" className="flex items-center min-w-fit">
                 <Palette className="w-4 h-4 mr-2" /> Templates
@@ -127,6 +133,10 @@ const AdminDashboard = () => {
           
           <TabsContent value="proposals">
             <ProposalsTab quoteRequests={quoteRequests || []} quoteIdFromUrl={quoteIdFromUrl} />
+          </TabsContent>
+          
+          <TabsContent value="contracts">
+            <ContractsTab />
           </TabsContent>
           
           <TabsContent value="templates">

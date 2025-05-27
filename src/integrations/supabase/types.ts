@@ -9,6 +9,157 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      contract_templates: {
+        Row: {
+          created_at: string
+          css_content: string | null
+          description: string | null
+          html_content: string
+          id: string
+          is_default: boolean | null
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          css_content?: string | null
+          description?: string | null
+          html_content: string
+          id?: string
+          is_default?: boolean | null
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          css_content?: string | null
+          description?: string | null
+          html_content?: string
+          id?: string
+          is_default?: boolean | null
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      contracts: {
+        Row: {
+          civil_status: string | null
+          client_address: string | null
+          client_email: string
+          client_name: string
+          client_phone: string
+          client_profession: string | null
+          created_at: string
+          down_payment: number | null
+          down_payment_date: string | null
+          event_date: string | null
+          event_location: string | null
+          event_time: string | null
+          event_type: string
+          html_content: string | null
+          id: string
+          notes: string | null
+          pdf_url: string | null
+          proposal_id: string | null
+          public_token: string
+          quote_request_id: string | null
+          remaining_amount: number | null
+          remaining_payment_date: string | null
+          signature_data: Json | null
+          signed_at: string | null
+          signer_ip: string | null
+          status: string
+          template_id: string | null
+          total_price: number
+          updated_at: string
+        }
+        Insert: {
+          civil_status?: string | null
+          client_address?: string | null
+          client_email: string
+          client_name: string
+          client_phone: string
+          client_profession?: string | null
+          created_at?: string
+          down_payment?: number | null
+          down_payment_date?: string | null
+          event_date?: string | null
+          event_location?: string | null
+          event_time?: string | null
+          event_type: string
+          html_content?: string | null
+          id?: string
+          notes?: string | null
+          pdf_url?: string | null
+          proposal_id?: string | null
+          public_token?: string
+          quote_request_id?: string | null
+          remaining_amount?: number | null
+          remaining_payment_date?: string | null
+          signature_data?: Json | null
+          signed_at?: string | null
+          signer_ip?: string | null
+          status?: string
+          template_id?: string | null
+          total_price: number
+          updated_at?: string
+        }
+        Update: {
+          civil_status?: string | null
+          client_address?: string | null
+          client_email?: string
+          client_name?: string
+          client_phone?: string
+          client_profession?: string | null
+          created_at?: string
+          down_payment?: number | null
+          down_payment_date?: string | null
+          event_date?: string | null
+          event_location?: string | null
+          event_time?: string | null
+          event_type?: string
+          html_content?: string | null
+          id?: string
+          notes?: string | null
+          pdf_url?: string | null
+          proposal_id?: string | null
+          public_token?: string
+          quote_request_id?: string | null
+          remaining_amount?: number | null
+          remaining_payment_date?: string | null
+          signature_data?: Json | null
+          signed_at?: string | null
+          signer_ip?: string | null
+          status?: string
+          template_id?: string | null
+          total_price?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contracts_proposal_id_fkey"
+            columns: ["proposal_id"]
+            isOneToOne: false
+            referencedRelation: "proposals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracts_quote_request_id_fkey"
+            columns: ["quote_request_id"]
+            isOneToOne: false
+            referencedRelation: "quote_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracts_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "proposal_template_html"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       gallery: {
         Row: {
           created_at: string
