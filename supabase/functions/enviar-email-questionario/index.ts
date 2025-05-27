@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { Resend } from "npm:resend@2.0.0"
 
@@ -26,14 +25,14 @@ const getWelcomeEmailTemplate = (name: string) => `
   <style>
     body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #fdf2f8; }
     .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
-    .header { background: linear-gradient(135deg, #f43f5e, #ec4899); color: white; padding: 30px; text-align: center; }
-    .header h1 { margin: 10px 0 0 0; font-size: 24px; font-weight: 600; }
+    .header { background: linear-gradient(135deg, #f43f5e, #ec4899); color: white; padding: 20px; text-align: center; }
+    .header h1 { margin: 5px 0 0 0; font-size: 24px; font-weight: 600; }
     .header .subtitle { margin: 5px 0 0 0; font-size: 16px; font-weight: 400; }
     .content { padding: 30px; }
     .content h2 { color: #be185d; margin-bottom: 20px; }
     .highlight { background-color: #fdf2f8; padding: 20px; border-left: 4px solid #f43f5e; margin: 20px 0; }
     .footer { background-color: #f9fafb; padding: 20px; text-align: center; font-size: 14px; color: #6b7280; }
-    .logo { width: 80px; height: 80px; margin: 0 auto 15px; border-radius: 50%; display: flex; align-items: center; justify-content: center; overflow: hidden; background-color: rgba(255,255,255,0.1); }
+    .logo { width: 60px; height: 60px; margin: 0 auto 5px; border-radius: 50%; display: flex; align-items: center; justify-content: center; overflow: hidden; background-color: rgba(255,255,255,0.1); }
     .logo img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
   </style>
 </head>
@@ -94,15 +93,17 @@ const getCompletedEmailTemplate = (name: string) => `
   <style>
     body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #fdf2f8; }
     .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
-    .header { background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 30px; text-align: center; }
-    .header h1 { margin: 10px 0 0 0; font-size: 24px; font-weight: 600; }
+    .header { background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 20px; text-align: center; }
+    .header h1 { margin: 5px 0 0 0; font-size: 24px; font-weight: 600; }
     .header .subtitle { margin: 5px 0 0 0; font-size: 16px; font-weight: 400; }
     .content { padding: 30px; }
     .content h2 { color: #059669; margin-bottom: 20px; }
     .celebration { background: linear-gradient(135deg, #fef3c7, #fbbf24); padding: 25px; border-radius: 10px; text-align: center; margin: 20px 0; }
+    .celebration h2 { color: #1f2937; margin-bottom: 15px; }
+    .celebration p { color: #374151; font-size: 18px; margin: 0; font-weight: bold; }
     .next-steps { background-color: #f0fdfa; padding: 20px; border-left: 4px solid #10b981; margin: 20px 0; }
     .footer { background-color: #f9fafb; padding: 20px; text-align: center; font-size: 14px; color: #6b7280; }
-    .logo { width: 80px; height: 80px; margin: 0 auto 15px; border-radius: 50%; display: flex; align-items: center; justify-content: center; overflow: hidden; background-color: rgba(255,255,255,0.1); }
+    .logo { width: 60px; height: 60px; margin: 0 auto 5px; border-radius: 50%; display: flex; align-items: center; justify-content: center; overflow: hidden; background-color: rgba(255,255,255,0.1); }
     .logo img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
   </style>
 </head>
@@ -119,8 +120,8 @@ const getCompletedEmailTemplate = (name: string) => `
     
     <div class="content">
       <div class="celebration">
-        <h2 style="color: #92400e; margin-bottom: 15px;">🎊 MUITO OBRIGADA! 🎊</h2>
-        <p style="font-size: 18px; margin: 0; color: #92400e;"><strong>Você é incrível!</strong></p>
+        <h2>🎊 MUITO OBRIGADA! 🎊</h2>
+        <p>Você é incrível!</p>
       </div>
       
       <p>Que alegria imensa receber o seu questionário completo! ✨</p>
