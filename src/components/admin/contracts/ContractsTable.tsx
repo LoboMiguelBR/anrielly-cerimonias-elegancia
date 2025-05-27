@@ -1,15 +1,14 @@
 
 import { useState } from 'react';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Search, Eye, Edit, Send, Download, Trash2, Plus } from 'lucide-react';
-import { ContractData, CONTRACT_STATUS_OPTIONS } from '../hooks/contract/types';
+import { ContractData } from '../hooks/contract/types';
 import ContractStatusBadge from './ContractStatusBadge';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { Eye, Edit, Send, Download, Trash2, Plus, Search, Filter } from 'lucide-react';
 
 interface ContractsTableProps {
   contracts: ContractData[];
@@ -45,22 +44,13 @@ const ContractsTable = ({
     return matchesSearch && matchesStatus;
   });
 
-  const formatDate = (dateString: string) => {
-    return format(new Date(dateString), 'dd/MM/yyyy', { locale: ptBR });
-  };
-
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
-    }).format(value);
-  };
-
   if (isLoading) {
     return (
       <Card>
-        <CardContent className="p-6">
-          <div className="text-center">Carregando contratos...</div>
+        <CardContent className="py-8">
+          <div className="text-center">
+            <p>Carregando contratos...</p>
+          </div>
         </CardContent>
       </Card>
     );
@@ -69,36 +59,36 @@ const ContractsTable = ({
   return (
     <Card>
       <CardHeader>
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-          <CardTitle>Contratos ({contracts.length})</CardTitle>
-          <Button onClick={onCreate} className="bg-purple-600 hover:bg-purple-700">
-            <Plus className="w-4 h-4 mr-2" />
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <CardTitle>Contratos ({filteredContracts.length})</CardTitle>
+          <Button onClick={onCreate} className="w-full sm:w-auto">
+            <Plus className="h-4 w-4 mr-2" />
             Novo Contrato
           </Button>
         </div>
         
-        <div className="flex flex-col lg:flex-row gap-4">
+        {/* Filters */}
+        <div className="flex flex-col sm:flex-row gap-4">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
             <Input
-              placeholder="Buscar por cliente, email ou tipo de evento..."
+              placeholder="Buscar por cliente, email ou evento..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
             />
           </div>
-          
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-48">
+            <SelectTrigger className="w-full sm:w-48">
+              <Filter className="h-4 w-4 mr-2" />
               <SelectValue placeholder="Filtrar por status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Todos os status</SelectItem>
-              {CONTRACT_STATUS_OPTIONS.map(option => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
+              <SelectItem value="all">Todos os Status</SelectItem>
+              <SelectItem value="draft">Rascunho</SelectItem>
+              <SelectItem value="sent">Enviado</SelectItem>
+              <SelectItem value="signed">Assinado</SelectItem>
+              <SelectItem value="cancelled">Cancelado</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -106,8 +96,19 @@ const ContractsTable = ({
       
       <CardContent>
         {filteredContracts.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
-            {contracts.length === 0 ? 'Nenhum contrato encontrado' : 'Nenhum contrato corresponde aos filtros aplicados'}
+          <div className="text-center py-8">
+            <p className="text-gray-500 mb-4">
+              {searchTerm || statusFilter !== 'all' 
+                ? 'Nenhum contrato encontrado com os filtros aplicados.'
+                : 'Nenhum contrato encontrado. Crie seu primeiro contrato!'
+              }
+            </p>
+            {!searchTerm && statusFilter === 'all' && (
+              <Button onClick={onCreate}>
+                <Plus className="h-4 w-4 mr-2" />
+                Criar Primeiro Contrato
+              </Button>
+            )}
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -116,7 +117,7 @@ const ContractsTable = ({
                 <TableRow>
                   <TableHead>Cliente</TableHead>
                   <TableHead>Evento</TableHead>
-                  <TableHead>Data do Evento</TableHead>
+                  <TableHead>Data</TableHead>
                   <TableHead>Valor</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Criado em</TableHead>
@@ -128,63 +129,88 @@ const ContractsTable = ({
                   <TableRow key={contract.id}>
                     <TableCell>
                       <div>
-                        <div className="font-medium">{contract.client_name}</div>
-                        <div className="text-sm text-gray-500">{contract.client_email}</div>
+                        <p className="font-medium">{contract.client_name}</p>
+                        <p className="text-sm text-gray-500">{contract.client_email}</p>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div>
-                        <div className="font-medium">{contract.event_type}</div>
-                        <div className="text-sm text-gray-500">{contract.event_location}</div>
+                        <p className="font-medium">{contract.event_type}</p>
+                        <p className="text-sm text-gray-500">{contract.event_location}</p>
                       </div>
                     </TableCell>
                     <TableCell>
-                      {contract.event_date ? formatDate(contract.event_date) : '-'}
+                      {contract.event_date ? (
+                        <div>
+                          <p>{new Date(contract.event_date).toLocaleDateString('pt-BR')}</p>
+                          {contract.event_time && (
+                            <p className="text-sm text-gray-500">{contract.event_time}</p>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-gray-400">-</span>
+                      )}
                     </TableCell>
-                    <TableCell>{formatCurrency(contract.total_price)}</TableCell>
+                    <TableCell>
+                      <p className="font-medium">
+                        {new Intl.NumberFormat('pt-BR', {
+                          style: 'currency',
+                          currency: 'BRL'
+                        }).format(contract.total_price)}
+                      </p>
+                    </TableCell>
                     <TableCell>
                       <ContractStatusBadge status={contract.status} />
                     </TableCell>
-                    <TableCell>{formatDate(contract.created_at)}</TableCell>
+                    <TableCell>
+                      {new Date(contract.created_at).toLocaleDateString('pt-BR')}
+                    </TableCell>
                     <TableCell>
                       <div className="flex items-center justify-end gap-2">
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => onView(contract)}
+                          title="Visualizar"
                         >
-                          <Eye className="w-4 h-4" />
+                          <Eye className="h-4 w-4" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => onEdit(contract)}
+                          title="Editar"
                         >
-                          <Edit className="w-4 h-4" />
+                          <Edit className="h-4 w-4" />
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => onSend(contract)}
-                          disabled={contract.status === 'signed'}
-                        >
-                          <Send className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => onDownload(contract)}
-                          disabled={!contract.pdf_url}
-                        >
-                          <Download className="w-4 h-4" />
-                        </Button>
+                        {contract.status === 'draft' && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => onSend(contract)}
+                            title="Enviar para assinatura"
+                          >
+                            <Send className="h-4 w-4" />
+                          </Button>
+                        )}
+                        {contract.pdf_url && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => onDownload(contract)}
+                            title="Download PDF"
+                          >
+                            <Download className="h-4 w-4" />
+                          </Button>
+                        )}
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => onDelete(contract)}
+                          title="Excluir"
                           className="text-red-600 hover:text-red-700"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
                     </TableCell>

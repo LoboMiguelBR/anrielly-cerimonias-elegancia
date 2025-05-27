@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { ContractData, ContractFormData, ContractTemplate } from './types';
+import { ContractData, ContractFormData, ContractTemplate, ContractStatus } from './types';
 
 export const contractApi = {
   // Fetch all contracts
@@ -15,7 +15,10 @@ export const contractApi = {
       throw error;
     }
 
-    return data || [];
+    return (data || []).map(contract => ({
+      ...contract,
+      status: contract.status as ContractStatus
+    }));
   },
 
   // Fetch single contract
@@ -31,7 +34,12 @@ export const contractApi = {
       throw error;
     }
 
-    return data;
+    if (!data) return null;
+
+    return {
+      ...data,
+      status: data.status as ContractStatus
+    };
   },
 
   // Create contract
@@ -156,7 +164,12 @@ export const contractApi = {
       throw error;
     }
 
-    return data;
+    if (!data) return null;
+
+    return {
+      ...data,
+      status: data.status as ContractStatus
+    };
   },
 
   // Sign contract

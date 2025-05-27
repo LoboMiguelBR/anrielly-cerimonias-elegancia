@@ -14,7 +14,7 @@ const ContractStatusBadge = ({ status }: ContractStatusBadgeProps) => {
       case 'sent':
         return { label: 'Enviado', variant: 'default' as const };
       case 'signed':
-        return { label: 'Assinado', variant: 'success' as const };
+        return { label: 'Assinado', variant: 'outline' as const };
       case 'cancelled':
         return { label: 'Cancelado', variant: 'destructive' as const };
       default:
@@ -25,7 +25,7 @@ const ContractStatusBadge = ({ status }: ContractStatusBadgeProps) => {
   const { label, variant } = getStatusConfig(status);
 
   return (
-    <Badge variant={variant} className="text-xs">
+    <Badge variant={variant} className={`text-xs ${status === 'signed' ? 'bg-green-100 text-green-800 border-green-300' : ''}`}>
       {label}
     </Badge>
   );
