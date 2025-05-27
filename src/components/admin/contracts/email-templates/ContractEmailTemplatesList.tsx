@@ -270,7 +270,7 @@ const ContractEmailTemplatesList = ({ onEdit, onCreate }: ContractEmailTemplates
               Excluir
             </AlertDialogAction>
           </AlertDialogFooter>
-        </AlertDialogFooter>
+        </AlertDialogContent>
       </AlertDialog>
     </div>
   );

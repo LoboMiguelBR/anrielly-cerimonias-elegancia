@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { Copy, ExternalLink } from 'lucide-react';
+import { Copy, ExternalLink, Send } from 'lucide-react';
 import { ContractData } from '../../hooks/contract/types';
 
 interface ContractActionButtonsProps {
