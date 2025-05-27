@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { Resend } from "npm:resend@2.0.0"
 
@@ -27,19 +26,24 @@ const getWelcomeEmailTemplate = (name: string) => `
     body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #fdf2f8; }
     .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
     .header { background: linear-gradient(135deg, #f43f5e, #ec4899); color: white; padding: 30px; text-align: center; }
-    .header h1 { margin: 0; font-size: 24px; font-weight: 600; }
+    .header h1 { margin: 10px 0 0 0; font-size: 24px; font-weight: 600; }
+    .header .subtitle { margin: 5px 0 0 0; font-size: 16px; font-weight: 400; }
     .content { padding: 30px; }
     .content h2 { color: #be185d; margin-bottom: 20px; }
     .highlight { background-color: #fdf2f8; padding: 20px; border-left: 4px solid #f43f5e; margin: 20px 0; }
     .footer { background-color: #f9fafb; padding: 20px; text-align: center; font-size: 14px; color: #6b7280; }
-    .logo { width: 60px; height: 60px; margin: 0 auto 15px; background-color: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; }
+    .logo { width: 80px; height: 80px; margin: 0 auto 15px; border-radius: 50%; display: flex; align-items: center; justify-content: center; overflow: hidden; background-color: rgba(255,255,255,0.1); }
+    .logo img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="header">
-      <div class="logo">💕</div>
-      <h1>Anrielly Gomes Mestre de Cerimônia</h1>
+      <div class="logo">
+        <img src="https://oampddkpuybkbwqggrty.supabase.co/storage/v1/object/public/site-images/LogoAG_512x512.png" alt="Anrielly Gomes Logo" />
+      </div>
+      <h1>Anrielly Gomes</h1>
+      <p class="subtitle">Mestre de Cerimônia</p>
       <p>Celebrando o amor de vocês</p>
     </div>
     
@@ -71,7 +75,7 @@ const getWelcomeEmailTemplate = (name: string) => `
     </div>
     
     <div class="footer">
-      <p>📧 contato@anriellygomes.com.br | 📱 (24) 99268-9947</p>
+      <p>📧 contato@anriellygomes.com.br | 📱 (24) 99268-9947 (WhatsApp)</p>
       <p>Este é um email automático, mas fique à vontade para responder se tiver dúvidas!</p>
     </div>
   </div>
@@ -90,20 +94,25 @@ const getCompletedEmailTemplate = (name: string) => `
     body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #fdf2f8; }
     .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
     .header { background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 30px; text-align: center; }
-    .header h1 { margin: 0; font-size: 24px; font-weight: 600; }
+    .header h1 { margin: 10px 0 0 0; font-size: 24px; font-weight: 600; }
+    .header .subtitle { margin: 5px 0 0 0; font-size: 16px; font-weight: 400; }
     .content { padding: 30px; }
     .content h2 { color: #059669; margin-bottom: 20px; }
     .celebration { background: linear-gradient(135deg, #fef3c7, #fbbf24); padding: 25px; border-radius: 10px; text-align: center; margin: 20px 0; }
     .next-steps { background-color: #f0fdfa; padding: 20px; border-left: 4px solid #10b981; margin: 20px 0; }
     .footer { background-color: #f9fafb; padding: 20px; text-align: center; font-size: 14px; color: #6b7280; }
-    .logo { width: 60px; height: 60px; margin: 0 auto 15px; background-color: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; }
+    .logo { width: 80px; height: 80px; margin: 0 auto 15px; border-radius: 50%; display: flex; align-items: center; justify-content: center; overflow: hidden; background-color: rgba(255,255,255,0.1); }
+    .logo img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="header">
-      <div class="logo">🎉</div>
+      <div class="logo">
+        <img src="https://oampddkpuybkbwqggrty.supabase.co/storage/v1/object/public/site-images/LogoAG_512x512.png" alt="Anrielly Gomes Logo" />
+      </div>
       <h1>Parabéns, ${name}!</h1>
+      <p class="subtitle">Anrielly Gomes - Mestre de Cerimônia</p>
       <p>Questionário finalizado com sucesso!</p>
     </div>
     
@@ -137,7 +146,7 @@ const getCompletedEmailTemplate = (name: string) => `
     </div>
     
     <div class="footer">
-      <p>📧 contato@anriellygomes.com.br | 📱 (24) 99268-9947</p>
+      <p>📧 contato@anriellygomes.com.br | 📱 (24) 99268-9947 (WhatsApp)</p>
       <p>Fique à vontade para entrar em contato se tiver alguma dúvida!</p>
     </div>
   </div>
