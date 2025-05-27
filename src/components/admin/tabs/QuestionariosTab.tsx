@@ -1,3 +1,4 @@
+
 import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -7,8 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useToast } from "@/hooks/use-toast"
 import { supabase } from "@/integrations/supabase/client"
-import { Plus, ExternalLink, Eye, Copy, Users } from 'lucide-react'
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Plus, ExternalLink, Users } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import useSWR from 'swr'
@@ -206,11 +206,6 @@ const QuestionariosTab = () => {
     return <Badge variant={config.variant}>{config.label}</Badge>
   }
 
-  const abrirQuestionario = (linkPublico: string) => {
-    const url = `${window.location.origin}/questionario/${linkPublico}`
-    window.open(url, '_blank')
-  }
-
   const calcularProgresso = (total_perguntas_resp: number) => {
     const totalPerguntas = 48
     return Math.round((total_perguntas_resp / totalPerguntas) * 100)
@@ -332,7 +327,7 @@ const QuestionariosTab = () => {
                                     copyToClipboard(getQuestionarioLink(grupo.link_publico))
                                   }}
                                 >
-                                  <Copy className="w-4 h-4" />
+                                  Copiar Link
                                 </Button>
                               </TooltipTrigger>
                               <TooltipContent>
@@ -347,7 +342,7 @@ const QuestionariosTab = () => {
                                   variant="outline"
                                   onClick={(e) => {
                                     e.stopPropagation()
-                                    abrirQuestionario(grupo.link_publico)
+                                    window.open(getQuestionarioLink(grupo.link_publico), '_blank')
                                   }}
                                 >
                                   <ExternalLink className="w-4 h-4" />
@@ -409,6 +404,9 @@ const QuestionariosTab = () => {
                                     </div>
                                   </TableCell>
                                   <TableCell>
+                                    {new Date(questionario.data_criacao).toLocaleDateString('pt-BR')}
+                                  </TableCell>
+                                  <TableCell>
                                     <QuestionarioActions
                                       questionario={questionario}
                                       onView={() => setSelectedQuestionario(questionario)}
@@ -439,37 +437,39 @@ const QuestionariosTab = () => {
         </Card>
 
         {/* Modal de Visualização de Respostas */}
-        <Dialog open={!!selectedQuestionario} onOpenChange={() => setSelectedQuestionario(null)}>
-          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Respostas do Questionário</DialogTitle>
-              <DialogDescription>
-                {selectedQuestionario?.nome_responsavel} - {selectedQuestionario?.email}
-              </DialogDescription>
-            </DialogHeader>
-            
-            {selectedQuestionario?.respostas_json && (
-              <div className="space-y-4">
-                {Object.entries(selectedQuestionario.respostas_json).map(([perguntaIndex, resposta]) => (
-                  <div key={perguntaIndex} className="border-b pb-4">
-                    <p className="font-medium text-sm text-gray-600 mb-2">
-                      Pergunta {parseInt(perguntaIndex) + 1}
-                    </p>
-                    <p className="bg-gray-50 p-3 rounded text-sm">
-                      {resposta || 'Não respondida'}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            )}
-            
-            {(!selectedQuestionario?.respostas_json || Object.keys(selectedQuestionario.respostas_json).length === 0) && (
-              <div className="text-center py-8 text-gray-500">
-                Nenhuma resposta registrada ainda
-              </div>
-            )}
-          </DialogContent>
-        </Dialog>
+        {selectedQuestionario && (
+          <Card className="max-w-4xl mx-auto">
+            <CardHeader>
+              <CardTitle>Respostas do Questionário</CardTitle>
+              <CardDescription>
+                {selectedQuestionario.nome_responsavel} - {selectedQuestionario.email}
+              </CardDescription>
+              <Button onClick={() => setSelectedQuestionario(null)} variant="outline">
+                Fechar
+              </Button>
+            </CardHeader>
+            <CardContent className="max-h-[60vh] overflow-y-auto">
+              {selectedQuestionario.respostas_json && Object.keys(selectedQuestionario.respostas_json).length > 0 ? (
+                <div className="space-y-4">
+                  {Object.entries(selectedQuestionario.respostas_json).map(([perguntaIndex, resposta]) => (
+                    <div key={perguntaIndex} className="border-b pb-4">
+                      <p className="font-medium text-sm text-gray-600 mb-2">
+                        Pergunta {parseInt(perguntaIndex) + 1}
+                      </p>
+                      <p className="bg-gray-50 p-3 rounded text-sm">
+                        {resposta || 'Não respondida'}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  Nenhuma resposta registrada ainda
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         {/* Modal de Edição */}
         <QuestionarioEditModal

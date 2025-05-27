@@ -117,20 +117,6 @@ serve(async (req) => {
         )
       }
 
-      // Verificar se o link público base existe (pelo menos um registro com este link)
-      const { data: linkExists } = await supabaseClient
-        .from('questionarios_noivos')
-        .select('id')
-        .eq('link_publico', linkPublico)
-        .limit(1)
-
-      if (!linkExists || linkExists.length === 0) {
-        return new Response(
-          JSON.stringify({ error: 'Link de questionário não encontrado' }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 404 }
-        )
-      }
-
       // Verificar se já existe um usuário com este email para este link
       const { data: existingUser } = await supabaseClient
         .from('questionarios_noivos')
@@ -146,41 +132,87 @@ serve(async (req) => {
         )
       }
 
-      // Criar novo registro para este usuário
-      const { data: novoQuestionario, error } = await supabaseClient
+      // Verificar se existe um registro placeholder (aguardando preenchimento)
+      const { data: placeholderRecord } = await supabaseClient
         .from('questionarios_noivos')
-        .insert({
-          link_publico: linkPublico,
-          nome_responsavel: nomeResponsavel,
-          email: email,
-          senha_hash: senha, // Em produção, use bcrypt
-          respostas_json: {},
-          status: 'rascunho'
-        })
-        .select()
+        .select('*')
+        .eq('link_publico', linkPublico)
+        .eq('email', 'aguardando@preenchimento.com')
         .single()
 
-      if (error) {
-        console.error('Erro ao criar questionário:', error)
+      if (placeholderRecord) {
+        // Atualizar o registro placeholder
+        const { data: updatedQuestionario, error: updateError } = await supabaseClient
+          .from('questionarios_noivos')
+          .update({
+            nome_responsavel: nomeResponsavel,
+            email: email,
+            senha_hash: senha,
+            respostas_json: {},
+            status: 'rascunho'
+          })
+          .eq('id', placeholderRecord.id)
+          .select()
+          .single()
+
+        if (updateError) {
+          console.error('Erro ao atualizar questionário:', updateError)
+          return new Response(
+            JSON.stringify({ error: 'Erro ao criar conta para este questionário' }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+          )
+        }
+
         return new Response(
-          JSON.stringify({ error: 'Erro ao criar conta para este questionário' }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+          JSON.stringify({ 
+            success: true, 
+            questionario: {
+              id: updatedQuestionario.id,
+              nomeResponsavel: updatedQuestionario.nome_responsavel,
+              email: updatedQuestionario.email,
+              respostasJson: updatedQuestionario.respostas_json || {},
+              status: updatedQuestionario.status
+            }
+          }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      } else {
+        // Criar novo registro se não há placeholder
+        const { data: novoQuestionario, error } = await supabaseClient
+          .from('questionarios_noivos')
+          .insert({
+            link_publico: linkPublico,
+            nome_responsavel: nomeResponsavel,
+            email: email,
+            senha_hash: senha,
+            respostas_json: {},
+            status: 'rascunho'
+          })
+          .select()
+          .single()
+
+        if (error) {
+          console.error('Erro ao criar questionário:', error)
+          return new Response(
+            JSON.stringify({ error: 'Erro ao criar conta para este questionário' }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+          )
+        }
+
+        return new Response(
+          JSON.stringify({ 
+            success: true, 
+            questionario: {
+              id: novoQuestionario.id,
+              nomeResponsavel: novoQuestionario.nome_responsavel,
+              email: novoQuestionario.email,
+              respostasJson: novoQuestionario.respostas_json || {},
+              status: novoQuestionario.status
+            }
+          }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
       }
-
-      return new Response(
-        JSON.stringify({ 
-          success: true, 
-          questionario: {
-            id: novoQuestionario.id,
-            nomeResponsavel: novoQuestionario.nome_responsavel,
-            email: novoQuestionario.email,
-            respostasJson: novoQuestionario.respostas_json || {},
-            status: novoQuestionario.status
-          }
-        }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
     }
 
     return new Response(
