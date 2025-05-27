@@ -38,7 +38,7 @@ const SignatureCanvas = ({
         
         // Melhorar configurações para assinatura mais sensível
         ctx.strokeStyle = '#000';
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 3;
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
         ctx.imageSmoothingEnabled = true;
@@ -69,7 +69,7 @@ const SignatureCanvas = ({
     }
   };
 
-  const handleStart = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasEvent>) => {
+  const handleStart = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
     e.preventDefault();
     setIsDrawing(true);
     const pos = getEventPos(e);

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -15,6 +14,7 @@ import QuestionariosTab from '@/components/admin/tabs/QuestionariosTab';
 import LeadsTab from '@/components/admin/tabs/LeadsTab';
 import ProfessionalsTab from '@/components/admin/tabs/ProfessionalsTab';
 import ContractsTab from '@/components/admin/tabs/ContractsTab';
+import ContractTemplatesTab from '@/components/admin/tabs/ContractTemplatesTab';
 import { useQuoteRequests } from '@/hooks/useQuoteRequests';
 import { useMobileLayout } from '@/hooks/useMobileLayout';
 
@@ -66,6 +66,7 @@ const AdminDashboard = () => {
             {activeTab === 'quotes' && 'Orçamentos'}
             {activeTab === 'proposals' && 'Propostas'}
             {activeTab === 'contracts' && 'Contratos'}
+            {activeTab === 'contract-templates' && 'Templates de Contrato'}
             {activeTab === 'templates' && 'Templates'}
             {activeTab === 'questionarios' && 'Questionários'}
           </h1>
@@ -97,6 +98,9 @@ const AdminDashboard = () => {
               </TabsTrigger>
               <TabsTrigger value="contracts" className="flex items-center min-w-fit">
                 <FileSignature className="w-4 h-4 mr-2" /> Contratos
+              </TabsTrigger>
+              <TabsTrigger value="contract-templates" className="flex items-center min-w-fit">
+                <FileText className="w-4 h-4 mr-2" /> Templates Contrato
               </TabsTrigger>
               <TabsTrigger value="templates" className="flex items-center min-w-fit">
                 <Palette className="w-4 h-4 mr-2" /> Templates
@@ -137,6 +141,10 @@ const AdminDashboard = () => {
           
           <TabsContent value="contracts">
             <ContractsTab />
+          </TabsContent>
+          
+          <TabsContent value="contract-templates">
+            <ContractTemplatesTab />
           </TabsContent>
           
           <TabsContent value="templates">
