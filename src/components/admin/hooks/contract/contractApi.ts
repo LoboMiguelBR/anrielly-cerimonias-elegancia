@@ -16,6 +16,7 @@ export const contractApi = {
 
     return (data || []).map(contract => ({
       ...contract,
+      token: contract.token || contract.id, // Ensure token is always present
       status: contract.status as 'pending' | 'signed' | 'draft' | 'canceled'
     }));
   },
@@ -34,6 +35,7 @@ export const contractApi = {
 
     return data ? {
       ...data,
+      token: data.token || data.id, // Ensure token is always present
       status: data.status as 'pending' | 'signed' | 'draft' | 'canceled'
     } : null;
   },
@@ -131,6 +133,7 @@ export const contractApi = {
 
     return {
       ...data,
+      token: data.token || data.id, // Ensure token is always present
       status: data.status as 'pending' | 'signed' | 'draft' | 'canceled'
     };
   },
@@ -150,6 +153,7 @@ export const contractApi = {
 
     return {
       ...data,
+      token: data.token || data.id, // Ensure token is always present
       status: data.status as 'pending' | 'signed' | 'draft' | 'canceled'
     };
   },
@@ -166,7 +170,7 @@ export const contractApi = {
     }
   },
 
-  // Contract Templates
+  // Contract Templates - Now using contractTemplatesApi for consistency
   async getContractTemplates(): Promise<ContractTemplate[]> {
     const { data, error } = await supabase
       .from('contract_templates')

@@ -200,7 +200,7 @@ export type Database = {
             foreignKeyName: "contracts_template_id_fkey"
             columns: ["template_id"]
             isOneToOne: false
-            referencedRelation: "proposal_template_html"
+            referencedRelation: "contract_templates"
             referencedColumns: ["id"]
           },
         ]

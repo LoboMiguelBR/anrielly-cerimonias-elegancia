@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -10,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ContractFormData, ContractData, CIVIL_STATUS_OPTIONS } from '../hooks/contract/types';
-import { contractApi } from '../hooks/contract';
+import { contractTemplatesApi } from '../hooks/contract/api/contractTemplates';
 import { useAuditData } from './hooks/useAuditData';
 import LeadSelector from './selectors/LeadSelector';
 import ProfessionalSelector from './selectors/ProfessionalSelector';
@@ -117,12 +116,12 @@ const ContractForm = ({ initialData, onSubmit, onCancel, isLoading = false }: Co
     }
   }, [totalPrice, downPayment, setValue]);
 
-  // Carregar templates
+  // Carregar templates usando a API correta
   useEffect(() => {
     const fetchTemplates = async () => {
       setIsLoadingTemplates(true);
       try {
-        const templatesData = await contractApi.getContractTemplates();
+        const templatesData = await contractTemplatesApi.getContractTemplates();
         setTemplates(templatesData);
         
         if (templatesData.length > 0 && !initialData) {
@@ -139,7 +138,6 @@ const ContractForm = ({ initialData, onSubmit, onCancel, isLoading = false }: Co
     fetchTemplates();
   }, [setValue, initialData]);
 
-  // Tratar seleção de lead
   const handleLeadSelect = (lead: any) => {
     if (lead) {
       setIsManualEntry(false);
@@ -171,7 +169,6 @@ const ContractForm = ({ initialData, onSubmit, onCancel, isLoading = false }: Co
     }
   };
 
-  // Tratar seleção de profissional
   const handleProfessionalSelect = (professional: any) => {
     if (professional) {
       setSelectedProfessionalId(professional.id);
@@ -191,7 +188,6 @@ const ContractForm = ({ initialData, onSubmit, onCancel, isLoading = false }: Co
     await onSubmit(enhancedData);
   };
 
-  // Máscara para telefone
   const formatPhone = (value: string) => {
     const cleaned = value.replace(/\D/g, '');
     const match = cleaned.match(/^(\d{2})(\d{5})(\d{4})$/);
