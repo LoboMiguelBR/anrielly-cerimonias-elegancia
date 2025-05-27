@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { ContractData, ContractFormData, ContractTemplate, ContractStatus } from './types';
 
@@ -171,14 +172,15 @@ export const contractApi = {
     };
   },
 
-  // Sign contract - updated to call edge function
+  // Sign contract - enhanced with legal compliance
   async signContract(token: string, signatureData: any, ip: string): Promise<void> {
     console.log('Signing contract with token:', token);
+    console.log('Signature data:', signatureData);
     
     // First, get the contract ID from the token
     const { data: contract, error: fetchError } = await supabase
       .from('contracts')
-      .select('id')
+      .select('id, client_name, client_email, event_type')
       .eq('public_token', token)
       .single();
 

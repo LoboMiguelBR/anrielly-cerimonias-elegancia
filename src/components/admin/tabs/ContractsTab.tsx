@@ -194,7 +194,7 @@ const ContractsTab = () => {
               Excluir
             </AlertDialogAction>
           </AlertDialogFooter>
-        </AlertDialogFooter>
+        </AlertDialogContent>
       </AlertDialog>
     </div>
   );
