@@ -4,6 +4,8 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import Index from './pages/Index';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminLogin from './pages/AdminLogin';
+import QuestionarioLogin from './pages/QuestionarioLogin';
+import QuestionarioFormulario from './pages/QuestionarioFormulario';
 import NotFound from './pages/NotFound';
 import AdminProtectedRoute from './components/AdminProtectedRoute';
 import { Toaster } from 'sonner';
@@ -17,6 +19,8 @@ function App() {
         <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
         <Route path="/admin/dashboard" element={<AdminProtectedRoute element={<AdminDashboard />} />} />
         <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path="/questionario/:linkPublico" element={<QuestionarioLogin />} />
+        <Route path="/questionario/:linkPublico/formulario" element={<QuestionarioFormulario />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       <Toaster position="top-right" richColors />

@@ -80,3 +80,31 @@ export const sendTestimonialApprovedNotification = async (name: string, email: s
     tipo: 'depoimento-aprovado'
   });
 };
+
+/**
+ * Send a notification when a questionnaire is completed
+ */
+export const sendQuestionarioCompletedNotification = async (name: string, questionarioId: string): Promise<boolean> => {
+  return sendEmailNotification({
+    name,
+    email: 'contato@anriellygomes.com.br',
+    questionarioId,
+    tipo: 'questionario-concluido'
+  });
+};
+
+/**
+ * Send a confirmation email to the couple when questionnaire is submitted
+ */
+export const sendQuestionarioConfirmationNotification = async (name: string, email: string): Promise<boolean> => {
+  if (!email) {
+    console.error('Email is required for sending questionnaire confirmation');
+    return false;
+  }
+  
+  return sendEmailNotification({
+    name,
+    email,
+    tipo: 'questionario-confirmacao'
+  });
+};

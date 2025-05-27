@@ -207,6 +207,42 @@ export type Database = {
           },
         ]
       }
+      questionarios_noivos: {
+        Row: {
+          data_atualizacao: string | null
+          data_criacao: string | null
+          email: string
+          id: string
+          link_publico: string
+          nome_responsavel: string
+          respostas_json: Json | null
+          senha_hash: string
+          status: string | null
+        }
+        Insert: {
+          data_atualizacao?: string | null
+          data_criacao?: string | null
+          email: string
+          id?: string
+          link_publico: string
+          nome_responsavel: string
+          respostas_json?: Json | null
+          senha_hash: string
+          status?: string | null
+        }
+        Update: {
+          data_atualizacao?: string | null
+          data_criacao?: string | null
+          email?: string
+          id?: string
+          link_publico?: string
+          nome_responsavel?: string
+          respostas_json?: Json | null
+          senha_hash?: string
+          status?: string | null
+        }
+        Relationships: []
+      }
       quote_requests: {
         Row: {
           created_at: string

@@ -1,7 +1,8 @@
+
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Home, Image, MessageCircle, FileText, Camera, Palette } from 'lucide-react';
+import { Home, Image, MessageCircle, FileText, Camera, Palette, Heart } from 'lucide-react';
 import AdminHeader from '@/components/admin/AdminHeader';
 import DashboardTab from '@/components/admin/tabs/DashboardTab';
 import GalleryTab from '@/components/admin/tabs/GalleryTab';
@@ -9,6 +10,7 @@ import TestimonialsTab from '@/components/admin/tabs/TestimonialsTab';
 import QuotesTab from '@/components/admin/tabs/QuotesTab';
 import ProposalsTab from '@/components/admin/tabs/ProposalsTab';
 import ProposalTemplatesTab from '@/components/admin/tabs/ProposalTemplatesTab';
+import QuestionariosTab from '@/components/admin/tabs/QuestionariosTab';
 import { useQuoteRequests } from '@/hooks/useQuoteRequests';
 
 const AdminDashboard = () => {
@@ -67,6 +69,9 @@ const AdminDashboard = () => {
             <TabsTrigger value="templates" className="flex items-center">
               <Palette className="w-4 h-4 mr-2" /> Templates
             </TabsTrigger>
+            <TabsTrigger value="questionarios" className="flex items-center">
+              <Heart className="w-4 h-4 mr-2" /> Questionários
+            </TabsTrigger>
           </TabsList>
           
           <TabsContent value="dashboard">
@@ -91,6 +96,10 @@ const AdminDashboard = () => {
           
           <TabsContent value="templates">
             <ProposalTemplatesTab />
+          </TabsContent>
+          
+          <TabsContent value="questionarios">
+            <QuestionariosTab />
           </TabsContent>
         </Tabs>
       </main>
