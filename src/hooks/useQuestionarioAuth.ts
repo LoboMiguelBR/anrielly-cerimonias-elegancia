@@ -50,8 +50,17 @@ export function useQuestionarioAuth(linkPublico: string) {
         body: { action: 'login', email, senha, linkPublico }
       })
 
-      if (error || data.error) {
-        return { success: false, error: data.error || 'Erro ao fazer login' }
+      if (error) {
+        console.error('Erro na função:', error)
+        return { success: false, error: 'Erro de conexão com o servidor' }
+      }
+
+      if (!data) {
+        return { success: false, error: 'Resposta vazia do servidor' }
+      }
+
+      if (data.error) {
+        return { success: false, error: data.error }
       }
 
       const questionarioData = data.questionario
@@ -78,8 +87,17 @@ export function useQuestionarioAuth(linkPublico: string) {
         body: { action: 'register', email, senha, nomeResponsavel, linkPublico }
       })
 
-      if (error || data.error) {
-        return { success: false, error: data.error || 'Erro ao criar conta' }
+      if (error) {
+        console.error('Erro na função:', error)
+        return { success: false, error: 'Erro de conexão com o servidor' }
+      }
+
+      if (!data) {
+        return { success: false, error: 'Resposta vazia do servidor' }
+      }
+
+      if (data.error) {
+        return { success: false, error: data.error }
       }
 
       const questionarioData = data.questionario
