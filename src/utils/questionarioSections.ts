@@ -1,103 +1,79 @@
 
-export interface QuestionSection {
-  id: string
-  title: string
-  range: [number, number]
-  questions: string[]
-}
-
-export const questionarioSections: QuestionSection[] = [
+export const questionarioSections = [
   {
-    id: 'casal',
-    title: 'Sobre o Casal',
-    range: [0, 10],
+    id: 'historia-casal',
+    title: 'História do Casal',
+    range: [0, 12],
     questions: [
-      "Como se conheceram?",
-      "Foi atração imediata?",
-      "Há quanto tempo estão juntos? (namoro, noivado, morando juntos...)",
-      "O que mais chamou sua atenção nele(a) quando se conheceram?",
-      "O que te fez escolher ele(a) entre tantas pessoas no mundo?",
-      "Sobre a admiração que sente por ele(a):",
-      "Quais os maiores desafios que já enfrentaram (se houver)?",
-      "Quais as maiores alegrias até hoje?",
-      "Momento inesquecível do início do namoro:",
-      "Melhor surpresa que já fez e a que recebeu:",
-      "A declaração de amor inesquecível (com data e local):"
+      'Como vocês se conheceram?',
+      'Qual foi a primeira impressão de um sobre o outro?',
+      'Quando souberam que era amor?',
+      'Como foi o primeiro encontro oficial?',
+      'Qual foi o momento mais marcante do namoro?',
+      'Como foi o pedido de casamento?',
+      'O que mais admiram um no outro?',
+      'Qual é a história por trás dos seus apelidos carinhosos?',
+      'Qual foi o maior desafio que superaram juntos?',
+      'O que vocês mais gostam de fazer juntos?',
+      'Qual é o sonho que mais desejam realizar juntos?',
+      'O que representa o casamento para vocês?'
     ]
   },
   {
-    id: 'familia',
-    title: 'Família e Relacionamento',
-    range: [11, 19],
+    id: 'detalhes-cerimonia',
+    title: 'Detalhes da Cerimônia',
+    range: [12, 24],
     questions: [
-      "Qual o papel de Deus na relação de vocês?",
-      "Praticam alguma religião?",
-      "Como é sua convivência com sua família?",
-      "E com a família dele(a)?",
-      "Seus pais estão vivos e casados?",
-      "Alguma viagem inesquecível? Qual e por quê?",
-      "O que significa casamento para você?",
-      "O que significa formar uma família?",
-      "O que vocês mais gostam de fazer juntos?"
+      'Por que escolheram esta data para o casamento?',
+      'Por que escolheram este local para a cerimônia?',
+      'Qual é o estilo de casamento que desejam?',
+      'Existem tradições familiares que gostariam de incluir?',
+      'Há alguma música especial que gostariam na cerimônia?',
+      'Como gostariam que fosse a entrada da noiva?',
+      'Há algum ritual especial que desejam incluir?',
+      'Qual é a expectativa de vocês para este momento?',
+      'Existe alguma decoração ou elemento especial desejado?',
+      'Como gostariam que os convidados participassem?',
+      'Há alguma surpresa planejada para a cerimônia?',
+      'O que não pode faltar na cerimônia de vocês?'
     ]
   },
   {
-    id: 'vida-comum',
-    title: 'Vida em Comum',
-    range: [20, 29],
+    id: 'familia-convidados',
+    title: 'Família e Convidados',
+    range: [24, 36],
     questions: [
-      "O que a pandemia mudou na vida ou nos planos de vocês?",
-      "Ele(a) te colocou algum apelido? Qual?",
-      "Quem é o mais amoroso?",
-      "Como é seu jeito de ser?",
-      "Como é o jeito de ser dele(a)?",
-      "Possuem algum animal de estimação? Qual?",
-      "Vocês se consideram parecidos? De que maneira?",
-      "Como você enxerga vocês enquanto casal?",
-      "Você prefere praia ou montanha?",
-      "Qual música marcou a relação de vocês?"
+      'Falem sobre suas famílias e como elas se relacionam',
+      'Quem são as pessoas mais importantes que estarão presentes?',
+      'Há alguma homenagem especial que gostariam de fazer?',
+      'Como gostariam de apresentar as famílias uma à outra?',
+      'Existem convidados vindos de longe? Como recebê-los?',
+      'Há alguma pessoa especial que não poderá estar presente?',
+      'Como gostariam que fosse a interação entre as famílias?',
+      'Existem crianças no casamento? Como incluí-las?',
+      'Há algum convidado com necessidades especiais?',
+      'Como gostariam de agradecer aos convidados?',
+      'Existe alguma dinâmica especial para integrar todos?',
+      'O que gostariam que os convidados lembrassem do dia?'
     ]
   },
   {
-    id: 'cerimonia',
-    title: 'Cerimônia e Detalhes',
-    range: [30, 39],
+    id: 'valores-significados',
+    title: 'Valores e Significados',
+    range: [36, 48],
     questions: [
-      "O que mais deseja em sua cerimônia?",
-      "Sua cor preferida:",
-      "Você cozinha? Se sim, o que ele(a) mais gosta que você faça?",
-      "Alguma mania dele(a) que te tira do sério?",
-      "E aquele jeitinho dele(a) que te mantém apaixonado(a) até hoje...",
-      "As principais qualidades dele(a):",
-      "Quais sonhos vocês sonham juntos?",
-      "Sobre sentir saudade dele(a):",
-      "Quem é o primeiro a estender a mão após uma discussão?",
-      "Qual seu pedido para o futuro?"
-    ]
-  },
-  {
-    id: 'curiosidades',
-    title: 'Curiosidades e Preferências',
-    range: [40, 47],
-    questions: [
-      "Desejam ter filhos ou já têm? (Se sim, quantos e nomes)",
-      "Pretendem se casar no civil? Quando?",
-      "Quantos casais de padrinhos terão no total?",
-      "Quem levará as alianças? (Nome, idade e parentesco)",
-      "Desejam alguma entrada diferente (Bíblia, Espírito Santo, etc)?",
-      "Já escolheram as músicas da cerimônia? Quais?",
-      "Algum detalhe, curiosidade ou fato importante sobre o relacionamento?",
-      "Algo que vocês não querem de jeito nenhum na cerimônia?"
+      'Quais valores são fundamentais para o relacionamento de vocês?',
+      'O que o casamento representa para cada um?',
+      'Como pretendem construir o lar de vocês?',
+      'Quais são os sonhos que vocês compartilham para o futuro?',
+      'Como vocês lidam com as diferenças entre vocês?',
+      'O que aprenderam um com o outro durante este tempo juntos?',
+      'Como vocês se apoiam nos momentos difíceis?',
+      'Qual é a base da confiança entre vocês?',
+      'Como vocês celebram as conquistas um do outro?',
+      'O que vocês mais valorizam na parceria que construíram?',
+      'Como vocês imaginam estar daqui a 10, 20, 50 anos?',
+      'Que mensagem gostariam de deixar para outros casais?'
     ]
   }
 ]
-
-export const getAllQuestions = (): string[] => {
-  return questionarioSections.flatMap(section => section.questions)
-}
-
-export const getSectionByQuestionIndex = (index: number): QuestionSection | undefined => {
-  return questionarioSections.find(section => 
-    index >= section.range[0] && index <= section.range[1]
-  )
-}

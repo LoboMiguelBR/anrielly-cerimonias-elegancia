@@ -3,7 +3,9 @@ import QuestionarioHeader from './QuestionarioHeader'
 import QuestionarioSidebar from './QuestionarioSidebar'
 import QuestionarioContent from './QuestionarioContent'
 import QuestionarioFooter from './QuestionarioFooter'
+import MobileQuestionarioNav from './MobileQuestionarioNav'
 import { useQuestionarioSections } from '@/hooks/useQuestionarioSections'
+import { useMobileLayout } from '@/hooks/useMobileLayout'
 
 interface QuestionarioContainerProps {
   questionario: any
@@ -37,6 +39,7 @@ const QuestionarioContainer = ({
   onLogout
 }: QuestionarioContainerProps) => {
   const { currentSection, sectionRefs, handleNavigateToSection } = useQuestionarioSections()
+  const { isMobile } = useMobileLayout()
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-rose-100">
@@ -50,13 +53,15 @@ const QuestionarioContainer = ({
         isFinalized={questionario?.status === 'concluido'}
       />
 
-      <div className="container mx-auto px-4 max-w-6xl py-8">
-        <div className="flex gap-8">
-          <QuestionarioSidebar
-            respostas={respostas}
-            onNavigateToSection={handleNavigateToSection}
-            currentSection={currentSection}
-          />
+      <div className="container mx-auto px-4 max-w-6xl py-4 lg:py-8">
+        <div className={`flex gap-8 ${isMobile ? 'flex-col' : ''}`}>
+          {!isMobile && (
+            <QuestionarioSidebar
+              respostas={respostas}
+              onNavigateToSection={handleNavigateToSection}
+              currentSection={currentSection}
+            />
+          )}
 
           <QuestionarioContent
             respostas={respostas}
@@ -66,6 +71,14 @@ const QuestionarioContainer = ({
           />
         </div>
       </div>
+
+      {isMobile && (
+        <MobileQuestionarioNav
+          respostas={respostas}
+          onNavigateToSection={handleNavigateToSection}
+          currentSection={currentSection}
+        />
+      )}
 
       <QuestionarioFooter
         isSaving={isSaving}

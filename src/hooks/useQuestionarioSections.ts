@@ -1,11 +1,24 @@
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
+import { questionarioSections } from '@/utils/questionarioSections'
 
 export const useQuestionarioSections = () => {
-  const [currentSection, setCurrentSection] = useState<string>('casal')
+  const [currentSection, setCurrentSection] = useState(questionarioSections[0]?.id || '')
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({})
 
-  // Intersection Observer for section detection
+  const handleNavigateToSection = (sectionId: string) => {
+    const element = sectionRefs.current[sectionId]
+    if (element) {
+      const headerHeight = 120 // Account for sticky header
+      const elementPosition = element.offsetTop - headerHeight
+      
+      window.scrollTo({
+        top: elementPosition,
+        behavior: 'smooth'
+      })
+    }
+  }
+
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -18,22 +31,20 @@ export const useQuestionarioSections = () => {
           }
         })
       },
-      { threshold: 0.3 }
+      {
+        rootMargin: '-20% 0px -70% 0px'
+      }
     )
 
-    Object.values(sectionRefs.current).forEach((ref) => {
-      if (ref) observer.observe(ref)
+    // Observe all section elements
+    Object.values(sectionRefs.current).forEach((element) => {
+      if (element) {
+        observer.observe(element)
+      }
     })
 
     return () => observer.disconnect()
   }, [])
-
-  const handleNavigateToSection = (sectionId: string) => {
-    const ref = sectionRefs.current[sectionId]
-    if (ref) {
-      ref.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    }
-  }
 
   return {
     currentSection,
