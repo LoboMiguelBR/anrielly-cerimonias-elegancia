@@ -46,21 +46,38 @@ export function useQuestionarioAuth(linkPublico: string) {
 
   const login = async (email: string, senha: string): Promise<{ success: boolean; error?: string }> => {
     try {
+      console.log('Tentando login:', { email, linkPublico })
+      
       const { data, error } = await supabase.functions.invoke('questionario-auth', {
         body: { action: 'login', email, senha, linkPublico }
       })
 
+      console.log('Resposta da função:', { data, error })
+
       if (error) {
         console.error('Erro na função:', error)
+        if (error.message?.includes('401')) {
+          return { success: false, error: 'Credenciais inválidas' }
+        }
+        if (error.message?.includes('404')) {
+          return { success: false, error: 'Link de questionário não encontrado' }
+        }
         return { success: false, error: 'Erro de conexão com o servidor' }
       }
 
       if (!data) {
+        console.error('Resposta vazia do servidor')
         return { success: false, error: 'Resposta vazia do servidor' }
       }
 
       if (data.error) {
+        console.error('Erro retornado pela função:', data.error)
         return { success: false, error: data.error }
+      }
+
+      if (!data.questionario) {
+        console.error('Dados do questionário não encontrados na resposta')
+        return { success: false, error: 'Dados do questionário não encontrados' }
       }
 
       const questionarioData = data.questionario
@@ -74,30 +91,48 @@ export function useQuestionarioAuth(linkPublico: string) {
         isLoading: false
       })
 
+      console.log('Login realizado com sucesso')
       return { success: true }
     } catch (error) {
-      console.error('Erro no login:', error)
-      return { success: false, error: 'Erro de conexão' }
+      console.error('Erro no login (catch):', error)
+      return { success: false, error: 'Erro de conexão. Verifique sua internet e tente novamente.' }
     }
   }
 
   const register = async (email: string, senha: string, nomeResponsavel: string): Promise<{ success: boolean; error?: string }> => {
     try {
+      console.log('Tentando registro:', { email, nomeResponsavel, linkPublico })
+      
       const { data, error } = await supabase.functions.invoke('questionario-auth', {
         body: { action: 'register', email, senha, nomeResponsavel, linkPublico }
       })
 
+      console.log('Resposta da função (register):', { data, error })
+
       if (error) {
         console.error('Erro na função:', error)
+        if (error.message?.includes('409')) {
+          return { success: false, error: 'Já existe uma conta com este email para este questionário' }
+        }
+        if (error.message?.includes('404')) {
+          return { success: false, error: 'Link de questionário não encontrado' }
+        }
         return { success: false, error: 'Erro de conexão com o servidor' }
       }
 
       if (!data) {
+        console.error('Resposta vazia do servidor')
         return { success: false, error: 'Resposta vazia do servidor' }
       }
 
       if (data.error) {
+        console.error('Erro retornado pela função:', data.error)
         return { success: false, error: data.error }
+      }
+
+      if (!data.questionario) {
+        console.error('Dados do questionário não encontrados na resposta')
+        return { success: false, error: 'Dados do questionário não encontrados' }
       }
 
       const questionarioData = data.questionario
@@ -111,10 +146,11 @@ export function useQuestionarioAuth(linkPublico: string) {
         isLoading: false
       })
 
+      console.log('Registro realizado com sucesso')
       return { success: true }
     } catch (error) {
-      console.error('Erro no registro:', error)
-      return { success: false, error: 'Erro de conexão' }
+      console.error('Erro no registro (catch):', error)
+      return { success: false, error: 'Erro de conexão. Verifique sua internet e tente novamente.' }
     }
   }
 

@@ -5,17 +5,26 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useToast } from "@/hooks/use-toast"
 import { supabase } from "@/integrations/supabase/client"
-import { Plus, ExternalLink, Users } from 'lucide-react'
+import { Plus, ExternalLink, Users, Eye, Edit, Trash2, Download, Copy } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import useSWR from 'swr'
 import type { Database } from '@/integrations/supabase/types'
 import KPICards from './components/KPICards'
-import QuestionarioActions from './components/QuestionarioActions'
 import QuestionarioEditModal from './components/QuestionarioEditModal'
+import { useQuestionarioExport } from '@/hooks/useQuestionarioExport'
 
 type QuestionarioRow = Database['public']['Tables']['questionarios_noivos']['Row']
 
@@ -40,11 +49,13 @@ interface QuestionarioGroup {
 
 const QuestionariosTab = () => {
   const { toast } = useToast()
+  const { exportQuestionario, isExporting } = useQuestionarioExport()
   const [isCreating, setIsCreating] = useState(false)
   const [newLink, setNewLink] = useState('')
   const [selectedQuestionario, setSelectedQuestionario] = useState<Questionario | null>(null)
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set())
   const [editingQuestionario, setEditingQuestionario] = useState<Questionario | null>(null)
+  const [deletingQuestionario, setDeletingQuestionario] = useState<Questionario | null>(null)
 
   const fetcher = async (): Promise<Questionario[]> => {
     const { data, error } = await supabase
@@ -225,12 +236,14 @@ const QuestionariosTab = () => {
     setExpandedGroups(newExpanded)
   }
 
-  const handleDeleteQuestionario = async (questionario: Questionario) => {
+  const handleDeleteQuestionario = async () => {
+    if (!deletingQuestionario) return
+
     try {
       const { error } = await supabase
         .from('questionarios_noivos')
         .delete()
-        .eq('id', questionario.id)
+        .eq('id', deletingQuestionario.id)
 
       if (error) throw error
 
@@ -240,6 +253,7 @@ const QuestionariosTab = () => {
       })
 
       mutate()
+      setDeletingQuestionario(null)
     } catch (error) {
       console.error('Erro ao excluir:', error)
       toast({
@@ -248,6 +262,10 @@ const QuestionariosTab = () => {
         variant: "destructive",
       })
     }
+  }
+
+  const handleExport = async (questionario: Questionario, format: 'pdf' | 'word') => {
+    await exportQuestionario(questionario.id, format)
   }
 
   if (error) {
@@ -327,11 +345,12 @@ const QuestionariosTab = () => {
                                     copyToClipboard(getQuestionarioLink(grupo.link_publico))
                                   }}
                                 >
+                                  <Copy className="w-4 h-4 mr-1" />
                                   Copiar Link
                                 </Button>
                               </TooltipTrigger>
                               <TooltipContent>
-                                <p>Copiar link</p>
+                                <p>Copiar link do questionário</p>
                               </TooltipContent>
                             </Tooltip>
                             
@@ -359,65 +378,112 @@ const QuestionariosTab = () => {
                     
                     <CollapsibleContent>
                       <CardContent className="pt-0">
-                        <div className="border rounded-lg overflow-x-auto">
-                          <Table>
-                            <TableHeader>
-                              <TableRow>
-                                <TableHead>Responsável</TableHead>
-                                <TableHead>Email</TableHead>
-                                <TableHead>Status</TableHead>
-                                <TableHead>Progresso</TableHead>
-                                <TableHead>Criado em</TableHead>
-                                <TableHead>Ações</TableHead>
-                              </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                              {grupo.questionarios.map((questionario) => (
-                                <TableRow key={questionario.id}>
-                                  <TableCell className="font-medium">
-                                    {questionario.nome_responsavel === 'Aguardando preenchimento' ? 
-                                      <span className="text-gray-500 italic">Não preenchido</span> : 
-                                      questionario.nome_responsavel
-                                    }
-                                  </TableCell>
-                                  <TableCell>
-                                    {questionario.email === 'aguardando@preenchimento.com' ? 
-                                      <span className="text-gray-500">-</span> : 
-                                      questionario.email
-                                    }
-                                  </TableCell>
-                                  <TableCell>{getStatusBadge(questionario.status)}</TableCell>
-                                  <TableCell>
-                                    <div className="flex items-center gap-2">
-                                      <span className="text-sm">
-                                        {calcularProgresso(questionario.total_perguntas_resp)}%
-                                      </span>
-                                      <div className="w-16 bg-gray-200 rounded-full h-2">
-                                        <div 
-                                          className="bg-rose-500 h-2 rounded-full transition-all"
-                                          style={{ width: `${calcularProgresso(questionario.total_perguntas_resp)}%` }}
-                                        />
-                                      </div>
-                                      <span className="text-xs text-gray-500">
-                                        {questionario.total_perguntas_resp}/48
-                                      </span>
+                        <div className="space-y-4">
+                          {grupo.questionarios.map((questionario) => (
+                            <div key={questionario.id} className="border rounded-lg p-4 bg-white">
+                              <div className="flex items-center justify-between">
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-4 mb-2">
+                                    <div>
+                                      <p className="font-medium">
+                                        {questionario.nome_responsavel === 'Aguardando preenchimento' ? 
+                                          <span className="text-gray-500 italic">Não preenchido</span> : 
+                                          questionario.nome_responsavel
+                                        }
+                                      </p>
+                                      <p className="text-sm text-gray-600">
+                                        {questionario.email === 'aguardando@preenchimento.com' ? 
+                                          <span className="text-gray-500">Email não definido</span> : 
+                                          questionario.email
+                                        }
+                                      </p>
                                     </div>
-                                  </TableCell>
-                                  <TableCell>
-                                    {new Date(questionario.data_criacao).toLocaleDateString('pt-BR')}
-                                  </TableCell>
-                                  <TableCell>
-                                    <QuestionarioActions
-                                      questionario={questionario}
-                                      onView={() => setSelectedQuestionario(questionario)}
-                                      onEdit={() => setEditingQuestionario(questionario)}
-                                      onDelete={() => handleDeleteQuestionario(questionario)}
-                                    />
-                                  </TableCell>
-                                </TableRow>
-                              ))}
-                            </TableBody>
-                          </Table>
+                                    <div className="flex items-center gap-2">
+                                      {getStatusBadge(questionario.status)}
+                                    </div>
+                                  </div>
+                                  
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <span className="text-sm">
+                                      Progresso: {calcularProgresso(questionario.total_perguntas_resp)}%
+                                    </span>
+                                    <div className="w-32 bg-gray-200 rounded-full h-2">
+                                      <div 
+                                        className="bg-rose-500 h-2 rounded-full transition-all"
+                                        style={{ width: `${calcularProgresso(questionario.total_perguntas_resp)}%` }}
+                                      />
+                                    </div>
+                                    <span className="text-xs text-gray-500">
+                                      {questionario.total_perguntas_resp}/48
+                                    </span>
+                                  </div>
+                                  
+                                  <p className="text-xs text-gray-500">
+                                    Criado em: {new Date(questionario.data_criacao).toLocaleDateString('pt-BR')}
+                                  </p>
+                                </div>
+                                
+                                <div className="flex items-center gap-1">
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() => setSelectedQuestionario(questionario)}
+                                        className="h-8 w-8 p-0"
+                                      >
+                                        <Eye className="h-4 w-4" />
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>Ver respostas</TooltipContent>
+                                  </Tooltip>
+
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() => setEditingQuestionario(questionario)}
+                                        className="h-8 w-8 p-0"
+                                      >
+                                        <Edit className="h-4 w-4" />
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>Editar</TooltipContent>
+                                  </Tooltip>
+
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() => handleExport(questionario, 'pdf')}
+                                        disabled={isExporting}
+                                        className="h-8 w-8 p-0"
+                                      >
+                                        <Download className="h-4 w-4" />
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>Exportar PDF</TooltipContent>
+                                  </Tooltip>
+
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() => setDeletingQuestionario(questionario)}
+                                        className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
+                                      >
+                                        <Trash2 className="h-4 w-4" />
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>Excluir</TooltipContent>
+                                  </Tooltip>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
                         </div>
                       </CardContent>
                     </CollapsibleContent>
@@ -478,6 +544,26 @@ const QuestionariosTab = () => {
           questionario={editingQuestionario}
           onSave={mutate}
         />
+
+        {/* Dialog de Confirmação de Exclusão */}
+        <AlertDialog open={!!deletingQuestionario} onOpenChange={(open) => !open && setDeletingQuestionario(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Excluir Questionário</AlertDialogTitle>
+              <AlertDialogDescription>
+                Tem certeza que deseja excluir o questionário de{' '}
+                <strong>{deletingQuestionario?.nome_responsavel}</strong>?
+                Esta ação não pode ser desfeita.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDeleteQuestionario} className="bg-red-600 hover:bg-red-700">
+                Excluir
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </TooltipProvider>
   )

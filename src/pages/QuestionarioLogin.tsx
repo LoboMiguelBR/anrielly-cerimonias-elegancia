@@ -7,6 +7,8 @@ import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { AlertCircle } from 'lucide-react'
 import { useQuestionarioAuth } from '@/hooks/useQuestionarioAuth'
 
 const QuestionarioLogin = () => {
@@ -17,6 +19,7 @@ const QuestionarioLogin = () => {
   const [loginData, setLoginData] = useState({ email: '', senha: '' })
   const [registerData, setRegisterData] = useState({ email: '', senha: '', nomeResponsavel: '' })
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState('')
 
   if (isLoading) {
     return (
@@ -32,8 +35,10 @@ const QuestionarioLogin = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
+    setError('')
     setIsSubmitting(true)
 
+    console.log('Iniciando login...')
     const result = await login(loginData.email, loginData.senha)
     
     if (result.success) {
@@ -42,6 +47,8 @@ const QuestionarioLogin = () => {
         description: "Redirecionando para o questionário...",
       })
     } else {
+      console.error('Erro no login:', result.error)
+      setError(result.error || 'Erro desconhecido no login')
       toast({
         title: "Erro no login",
         description: result.error,
@@ -54,8 +61,10 @@ const QuestionarioLogin = () => {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
+    setError('')
     setIsSubmitting(true)
 
+    console.log('Iniciando registro...')
     const result = await register(registerData.email, registerData.senha, registerData.nomeResponsavel)
     
     if (result.success) {
@@ -64,6 +73,8 @@ const QuestionarioLogin = () => {
         description: "Redirecionando para o questionário...",
       })
     } else {
+      console.error('Erro no registro:', result.error)
+      setError(result.error || 'Erro desconhecido no registro')
       toast({
         title: "Erro ao criar conta",
         description: result.error,
@@ -128,6 +139,13 @@ const QuestionarioLogin = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {error && (
+              <Alert variant="destructive" className="mb-4">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+            
             <Tabs defaultValue="login" className="w-full">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="login">Entrar</TabsTrigger>
@@ -142,7 +160,10 @@ const QuestionarioLogin = () => {
                       id="login-email"
                       type="email"
                       value={loginData.email}
-                      onChange={(e) => setLoginData(prev => ({ ...prev, email: e.target.value }))}
+                      onChange={(e) => {
+                        setError('')
+                        setLoginData(prev => ({ ...prev, email: e.target.value }))
+                      }}
                       placeholder="seu@email.com"
                       required
                     />
@@ -153,7 +174,10 @@ const QuestionarioLogin = () => {
                       id="login-senha"
                       type="password"
                       value={loginData.senha}
-                      onChange={(e) => setLoginData(prev => ({ ...prev, senha: e.target.value }))}
+                      onChange={(e) => {
+                        setError('')
+                        setLoginData(prev => ({ ...prev, senha: e.target.value }))
+                      }}
                       placeholder="Sua senha"
                       required
                     />
@@ -172,7 +196,10 @@ const QuestionarioLogin = () => {
                       id="register-nome"
                       type="text"
                       value={registerData.nomeResponsavel}
-                      onChange={(e) => setRegisterData(prev => ({ ...prev, nomeResponsavel: e.target.value }))}
+                      onChange={(e) => {
+                        setError('')
+                        setRegisterData(prev => ({ ...prev, nomeResponsavel: e.target.value }))
+                      }}
                       placeholder="Seu nome completo"
                       required
                     />
@@ -183,7 +210,10 @@ const QuestionarioLogin = () => {
                       id="register-email"
                       type="email"
                       value={registerData.email}
-                      onChange={(e) => setRegisterData(prev => ({ ...prev, email: e.target.value }))}
+                      onChange={(e) => {
+                        setError('')
+                        setRegisterData(prev => ({ ...prev, email: e.target.value }))
+                      }}
                       placeholder="seu@email.com"
                       required
                     />
@@ -194,7 +224,10 @@ const QuestionarioLogin = () => {
                       id="register-senha"
                       type="password"
                       value={registerData.senha}
-                      onChange={(e) => setRegisterData(prev => ({ ...prev, senha: e.target.value }))}
+                      onChange={(e) => {
+                        setError('')
+                        setRegisterData(prev => ({ ...prev, senha: e.target.value }))
+                      }}
                       placeholder="Escolha uma senha"
                       required
                       minLength={6}
