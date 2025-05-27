@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { Resend } from "npm:resend@2.0.0"
 
@@ -40,7 +41,7 @@ const getWelcomeEmailTemplate = (name: string) => `
   <div class="container">
     <div class="header">
       <div class="logo">
-        <img src="https://oampddkpuybkbwqggrty.supabase.co/storage/v1/object/public/site-images/LogoAG_512x512.png" alt="Anrielly Gomes Logo" />
+        <img src="https://544e400e-7788-4e91-b981-e8bcbb39dd2f.lovableproject.com/LogoAG_512x512.png" alt="Anrielly Gomes Logo" onerror="this.style.display='none'; this.parentElement.innerHTML='💕';" />
       </div>
       <h1>Anrielly Gomes</h1>
       <p class="subtitle">Mestre de Cerimônia</p>
@@ -109,7 +110,7 @@ const getCompletedEmailTemplate = (name: string) => `
   <div class="container">
     <div class="header">
       <div class="logo">
-        <img src="https://oampddkpuybkbwqggrty.supabase.co/storage/v1/object/public/site-images/LogoAG_512x512.png" alt="Anrielly Gomes Logo" />
+        <img src="https://544e400e-7788-4e91-b981-e8bcbb39dd2f.lovableproject.com/LogoAG_512x512.png" alt="Anrielly Gomes Logo" onerror="this.style.display='none'; this.parentElement.innerHTML='🎉';" />
       </div>
       <h1>Parabéns, ${name}!</h1>
       <p class="subtitle">Anrielly Gomes - Mestre de Cerimônia</p>
@@ -162,6 +163,8 @@ serve(async (req) => {
   try {
     const { name, email, type, questionarioId }: EmailRequest = await req.json()
 
+    console.log('Email request received:', { name, email, type, questionarioId })
+
     if (!name || !email || !type) {
       return new Response(
         JSON.stringify({ error: 'Nome, email e tipo são obrigatórios' }),
@@ -185,6 +188,7 @@ serve(async (req) => {
       )
     }
 
+    // Enviar email para o cliente
     const emailResponse = await resend.emails.send({
       from: 'Anrielly Gomes <contato@anriellygomes.com.br>',
       to: [email],
@@ -192,7 +196,28 @@ serve(async (req) => {
       html
     })
 
-    console.log('Email enviado com sucesso:', emailResponse)
+    console.log('Email enviado para cliente:', emailResponse)
+
+    // Se for email de finalização, enviar também para contato@anriellygomes.com.br
+    if (type === 'completed') {
+      const notificationSubject = `🔔 Questionário Finalizado - ${name}`
+      const notificationHtml = `
+        <h2>Novo questionário finalizado!</h2>
+        <p><strong>Cliente:</strong> ${name}</p>
+        <p><strong>Email:</strong> ${email}</p>
+        <p><strong>ID do Questionário:</strong> ${questionarioId || 'N/A'}</p>
+        <p>Acesse o painel administrativo para visualizar as respostas completas.</p>
+      `
+
+      const notificationResponse = await resend.emails.send({
+        from: 'Sistema <contato@anriellygomes.com.br>',
+        to: ['contato@anriellygomes.com.br'],
+        subject: notificationSubject,
+        html: notificationHtml
+      })
+
+      console.log('Email de notificação enviado:', notificationResponse)
+    }
 
     return new Response(
       JSON.stringify({ success: true, emailId: emailResponse.data?.id }),

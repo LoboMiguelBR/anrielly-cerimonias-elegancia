@@ -26,6 +26,8 @@ serve(async (req) => {
 
     const { questionarioId, respostas, finalizar = false } = await req.json() as SaveRequest
 
+    console.log('Salvando respostas:', { questionarioId, finalizar, totalRespostas: Object.keys(respostas).length })
+
     // Determinar o novo status
     const novoStatus = finalizar ? 'preenchido' : 'rascunho'
 
@@ -48,30 +50,7 @@ serve(async (req) => {
       )
     }
 
-    // Se finalizou, enviar emails de notificação
-    if (finalizar) {
-      try {
-        await supabaseClient.functions.invoke('enviar-email', {
-          body: {
-            name: data.nome_responsavel,
-            email: 'contato@anriellygomes.com.br',
-            tipo: 'questionario-concluido',
-            questionarioId: data.id
-          }
-        })
-
-        await supabaseClient.functions.invoke('enviar-email', {
-          body: {
-            name: data.nome_responsavel,
-            email: data.email,
-            tipo: 'questionario-confirmacao'
-          }
-        })
-      } catch (emailError) {
-        console.error('Erro ao enviar emails:', emailError)
-        // Não falha a operação se o email der erro
-      }
-    }
+    console.log('Respostas salvas com sucesso:', { questionarioId, status: novoStatus })
 
     return new Response(
       JSON.stringify({ 
