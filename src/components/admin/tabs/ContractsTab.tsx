@@ -15,7 +15,8 @@ const ContractsTab = () => {
     createContract,
     updateContract,
     deleteContract,
-    updateContractStatus
+    updateContractStatus,
+    refetch
   } = useContracts();
 
   const [currentView, setCurrentView] = useState<'list' | 'create' | 'edit' | 'view'>('list');
@@ -36,15 +37,6 @@ const ContractsTab = () => {
   const handleView = (contract: ContractData) => {
     setSelectedContract(contract);
     setCurrentView('view');
-  };
-
-  const handleSend = async (contract: ContractData) => {
-    const success = await updateContractStatus(contract.id, 'sent');
-    if (success) {
-      const publicUrl = `${window.location.origin}/contrato/${contract.public_token}`;
-      navigator.clipboard.writeText(publicUrl);
-      toast.success('Status atualizado para "Enviado" e link copiado para área de transferência');
-    }
   };
 
   const handleDownload = (contract: ContractData) => {
@@ -181,10 +173,10 @@ const ContractsTab = () => {
         isLoading={isLoading}
         onView={handleView}
         onEdit={handleEdit}
-        onSend={handleSend}
         onDownload={handleDownload}
         onDelete={handleDelete}
         onCreate={handleCreate}
+        onRefresh={refetch}
       />
 
       <AlertDialog open={!!contractToDelete} onOpenChange={() => setContractToDelete(null)}>
@@ -202,7 +194,7 @@ const ContractsTab = () => {
               Excluir
             </AlertDialogAction>
           </AlertDialogFooter>
-        </AlertDialogContent>
+        </AlertDialogFooter>
       </AlertDialog>
     </div>
   );

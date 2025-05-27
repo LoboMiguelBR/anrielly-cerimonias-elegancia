@@ -8,7 +8,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { contractApi } from '@/components/admin/hooks/contract';
 import { ContractData } from '@/components/admin/hooks/contract/types';
 import { toast } from 'sonner';
-import { Loader2, CheckCircle } from 'lucide-react';
+import { Loader2, CheckCircle, AlertTriangle } from 'lucide-react';
 
 const ContractSigning = () => {
   const { token } = useParams<{ token: string }>();
@@ -21,6 +21,7 @@ const ContractSigning = () => {
   const [error, setError] = useState<string | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
+  const [hasDrawnSignature, setHasDrawnSignature] = useState(false);
 
   useEffect(() => {
     const fetchContract = async () => {
@@ -60,8 +61,14 @@ const ContractSigning = () => {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
     
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    
     ctx.beginPath();
     ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+    setHasDrawnSignature(true);
   };
 
   const handleSignatureMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -95,6 +102,7 @@ const ContractSigning = () => {
     
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     setSignature('');
+    setHasDrawnSignature(false);
   };
 
   const handleSign = async () => {
@@ -103,17 +111,22 @@ const ContractSigning = () => {
       return;
     }
 
+    if (!hasDrawnSignature) {
+      toast.error('A assinatura é obrigatória. Por favor, desenhe sua assinatura no campo indicado.');
+      return;
+    }
+
     if (!contract || !token) return;
 
     setIsSigning(true);
     try {
-      // Get user's IP (simplified for demo)
+      // Get user's IP
       const ipResponse = await fetch('https://api.ipify.org?format=json');
       const { ip } = await ipResponse.json();
 
       const signatureData = {
         agreed: hasAgreed,
-        signature: signature || null,
+        signature: signature,
         timestamp: new Date().toISOString(),
         client_name: contract.client_name
       };
@@ -132,7 +145,7 @@ const ContractSigning = () => {
   };
 
   const renderContractContent = (contract: ContractData) => {
-    let content = `
+    return `
       <div class="contract">
         <h1>CONTRATO DE PRESTAÇÃO DE SERVIÇOS DE CERIMONIAL</h1>
         
@@ -156,8 +169,6 @@ const ContractSigning = () => {
         <p>E por estarem assim justas e contratadas, as partes assinam o presente instrumento em duas vias de igual teor.</p>
       </div>
     `;
-
-    return content;
   };
 
   if (isLoading) {
@@ -227,7 +238,7 @@ const ContractSigning = () => {
 
             {/* Signature Section */}
             <div className="space-y-4 p-6 bg-gray-50 rounded-lg">
-              <h3 className="text-lg font-semibold">Assinatura</h3>
+              <h3 className="text-lg font-semibold">Assinatura Digital</h3>
               
               {/* Agreement Checkbox */}
               <div className="flex items-start space-x-3">
@@ -243,12 +254,21 @@ const ContractSigning = () => {
                 </label>
               </div>
 
-              {/* Signature Canvas */}
+              {/* Signature Canvas - Required */}
               <div className="space-y-2">
-                <label className="text-sm font-medium">
-                  Assinatura (opcional - desenhe no campo abaixo):
+                <label className="text-sm font-medium flex items-center gap-2">
+                  <span className="text-red-500">*</span>
+                  Assinatura (obrigatória - desenhe no campo abaixo):
                 </label>
-                <div className="border border-gray-300 rounded">
+                {!hasDrawnSignature && (
+                  <Alert>
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertDescription>
+                      Por favor, desenhe sua assinatura no campo abaixo. A assinatura é obrigatória para finalizar o contrato.
+                    </AlertDescription>
+                  </Alert>
+                )}
+                <div className="border-2 border-gray-300 rounded bg-white">
                   <canvas
                     ref={canvasRef}
                     width={400}
@@ -273,7 +293,7 @@ const ContractSigning = () => {
               {/* Sign Button */}
               <Button 
                 onClick={handleSign}
-                disabled={!hasAgreed || isSigning}
+                disabled={!hasAgreed || !hasDrawnSignature || isSigning}
                 className="w-full"
                 size="lg"
               >
@@ -286,6 +306,14 @@ const ContractSigning = () => {
                   'Assinar Contrato'
                 )}
               </Button>
+              
+              {(!hasAgreed || !hasDrawnSignature) && (
+                <p className="text-sm text-red-600 text-center">
+                  {!hasAgreed && !hasDrawnSignature && "Você deve concordar com os termos e desenhar sua assinatura"}
+                  {!hasAgreed && hasDrawnSignature && "Você deve concordar com os termos do contrato"}
+                  {hasAgreed && !hasDrawnSignature && "Você deve desenhar sua assinatura"}
+                </p>
+              )}
             </div>
 
             {/* Footer */}

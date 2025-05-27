@@ -2,23 +2,23 @@
 import { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ContractData } from '../hooks/contract/types';
 import ContractStatusBadge from './ContractStatusBadge';
-import { Eye, Edit, Send, Download, Trash2, Plus, Search, Filter } from 'lucide-react';
+import ContractActions from './ContractActions';
+import { Eye, Edit, Download, Trash2, Plus, Search, Filter } from 'lucide-react';
 
 interface ContractsTableProps {
   contracts: ContractData[];
   isLoading: boolean;
   onView: (contract: ContractData) => void;
   onEdit: (contract: ContractData) => void;
-  onSend: (contract: ContractData) => void;
   onDownload: (contract: ContractData) => void;
   onDelete: (contract: ContractData) => void;
   onCreate: () => void;
+  onRefresh?: () => void;
 }
 
 const ContractsTable = ({
@@ -26,10 +26,10 @@ const ContractsTable = ({
   isLoading,
   onView,
   onEdit,
-  onSend,
   onDownload,
   onDelete,
-  onCreate
+  onCreate,
+  onRefresh
 }: ContractsTableProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -166,7 +166,7 @@ const ContractsTable = ({
                       {new Date(contract.created_at).toLocaleDateString('pt-BR')}
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center justify-end gap-2">
+                      <div className="flex items-center justify-end gap-2 flex-wrap">
                         <Button
                           variant="ghost"
                           size="sm"
@@ -175,24 +175,18 @@ const ContractsTable = ({
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => onEdit(contract)}
-                          title="Editar"
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        {contract.status === 'draft' && (
+                        
+                        {contract.status !== 'signed' && (
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => onSend(contract)}
-                            title="Enviar para assinatura"
+                            onClick={() => onEdit(contract)}
+                            title="Editar"
                           >
-                            <Send className="h-4 w-4" />
+                            <Edit className="h-4 w-4" />
                           </Button>
                         )}
+                        
                         {contract.pdf_url && (
                           <Button
                             variant="ghost"
@@ -203,6 +197,7 @@ const ContractsTable = ({
                             <Download className="h-4 w-4" />
                           </Button>
                         )}
+                        
                         <Button
                           variant="ghost"
                           size="sm"
@@ -212,6 +207,11 @@ const ContractsTable = ({
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
+                        
+                        <ContractActions 
+                          contract={contract} 
+                          onStatusUpdate={onRefresh}
+                        />
                       </div>
                     </TableCell>
                   </TableRow>

@@ -1,4 +1,3 @@
-
 /**
  * Utility to send email notifications via the Supabase Edge Function
  */
@@ -176,4 +175,38 @@ export const sendQuestionarioCompletionEmail = async (name: string, email: strin
     console.error('Failed to send completion email:', error);
     return false;
   }
+};
+
+/**
+ * Send a contract for signature via email
+ */
+export const sendContractForSignature = async (
+  clientName: string, 
+  clientEmail: string, 
+  contractUrl: string,
+  eventType: string
+): Promise<boolean> => {
+  return sendEmailNotification({
+    to: clientEmail,
+    name: clientName,
+    contractUrl,
+    eventType,
+    tipo: 'contrato-assinatura'
+  });
+};
+
+/**
+ * Send contract signed confirmation
+ */
+export const sendContractSignedConfirmation = async (
+  clientName: string,
+  clientEmail: string,
+  contractDetails: any
+): Promise<boolean> => {
+  return sendEmailNotification({
+    to: clientEmail,
+    name: clientName,
+    contractDetails,
+    tipo: 'contrato-assinado'
+  });
 };
