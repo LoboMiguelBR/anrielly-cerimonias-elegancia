@@ -21,7 +21,7 @@ interface ProfessionalSelectorProps {
 }
 
 const ProfessionalSelector = ({ onProfessionalSelect, selectedProfessionalId }: ProfessionalSelectorProps) => {
-  const { data: professionals = [], isLoading } = useProfessionals();
+  const { professionals, isLoading } = useProfessionals(); // Changed from data to professionals
   const [searchTerm, setSearchTerm] = useState('');
 
   const filteredProfessionals = professionals.filter(prof =>

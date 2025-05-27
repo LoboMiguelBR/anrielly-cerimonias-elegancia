@@ -84,7 +84,7 @@ export interface Contract {
   quote_request_id?: string;
   proposal_id?: string;
   status: 'pending' | 'signed' | 'draft' | 'canceled';
-  token?: string;
+  token: string; // Changed from optional to required to match ContractData
   public_token?: string;
   pdf_url?: string;
   html_content?: string;
@@ -141,4 +141,10 @@ export const CIVIL_STATUS_OPTIONS = [
   { value: 'divorciado', label: 'Divorciado(a)' },
   { value: 'viuvo', label: 'Viúvo(a)' },
   { value: 'uniao_estavel', label: 'União Estável' }
+];
+
+export const EMAIL_TEMPLATE_TYPES = [
+  { value: 'signature', label: 'Solicitação de Assinatura' },
+  { value: 'signed_confirmation', label: 'Confirmação de Assinatura' },
+  { value: 'reminder', label: 'Lembrete de Assinatura' }
 ];
