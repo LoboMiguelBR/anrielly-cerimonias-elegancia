@@ -1,64 +1,14 @@
-import { useState, useEffect } from 'react'
+
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, Navigate } from 'react-router-dom'
 import { useToast } from '@/components/ui/use-toast'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Textarea } from '@/components/ui/textarea'
-import { Progress } from '@/components/ui/progress'
 import { useQuestionarioAuth } from '@/hooks/useQuestionarioAuth'
 import { supabase } from '@/integrations/supabase/client'
-import { LogOut, Save, Send } from 'lucide-react'
-
-const perguntas = [
-  "Como se conheceram?",
-  "Foi atração imediata?",
-  "Há quanto tempo estão juntos? (namoro, noivado, morando juntos...)",
-  "O que mais chamou sua atenção nele(a) quando se conheceram?",
-  "O que te fez escolher ele(a) entre tantas pessoas no mundo?",
-  "Sobre a admiração que sente por ele(a):",
-  "Quais os maiores desafios que já enfrentaram (se houver)?",
-  "Quais as maiores alegrias até hoje?",
-  "Momento inesquecível do início do namoro:",
-  "Melhor surpresa que já fez e a que recebeu:",
-  "A declaração de amor inesquecível (com data e local):",
-  "Qual o papel de Deus na relação de vocês?",
-  "Praticam alguma religião?",
-  "Como é sua convivência com sua família?",
-  "E com a família dele(a)?",
-  "Seus pais estão vivos e casados?",
-  "Alguma viagem inesquecível? Qual e por quê?",
-  "O que significa casamento para você?",
-  "O que significa formar uma família?",
-  "O que vocês mais gostam de fazer juntos?",
-  "O que a pandemia mudou na vida ou nos planos de vocês?",
-  "Ele(a) te colocou algum apelido? Qual?",
-  "Quem é o mais amoroso?",
-  "Como é seu jeito de ser?",
-  "Como é o jeito de ser dele(a)?",
-  "Possuem algum animal de estimação? Qual?",
-  "Vocês se consideram parecidos? De que maneira?",
-  "Como você enxerga vocês enquanto casal?",
-  "Você prefere praia ou montanha?",
-  "Qual música marcou a relação de vocês?",
-  "O que mais deseja em sua cerimônia?",
-  "Sua cor preferida:",
-  "Você cozinha? Se sim, o que ele(a) mais gosta que você faça?",
-  "Alguma mania dele(a) que te tira do sério?",
-  "E aquele jeitinho dele(a) que te mantém apaixonado(a) até hoje...",
-  "As principais qualidades dele(a):",
-  "Quais sonhos vocês sonham juntos?",
-  "Sobre sentir saudade dele(a):",
-  "Quem é o primeiro a estender a mão após uma discussão?",
-  "Qual seu pedido para o futuro?",
-  "Desejam ter filhos ou já têm? (Se sim, quantos e nomes)",
-  "Pretendem se casar no civil? Quando?",
-  "Quantos casais de padrinhos terão no total?",
-  "Quem levará as alianças? (Nome, idade e parentesco)",
-  "Desejam alguma entrada diferente (Bíblia, Espírito Santo, etc)?",
-  "Já escolheram as músicas da cerimônia? Quais?",
-  "Algum detalhe, curiosidade ou fato importante sobre o relacionamento?",
-  "Algo que vocês não querem de jeito nenhum na cerimônia?"
-]
+import QuestionarioHeader from '@/components/questionario/QuestionarioHeader'
+import PerguntaCard from '@/components/questionario/PerguntaCard'
+import QuestionarioNavigation from '@/components/questionario/QuestionarioNavigation'
+import QuestionarioFooter from '@/components/questionario/QuestionarioFooter'
+import { questionarioSections, getAllQuestions, getSectionByQuestionIndex } from '@/utils/questionarioSections'
 
 const QuestionarioFormulario = () => {
   const { linkPublico } = useParams<{ linkPublico: string }>()
@@ -68,6 +18,11 @@ const QuestionarioFormulario = () => {
   const [respostas, setRespostas] = useState<Record<string, string>>({})
   const [isSaving, setIsSaving] = useState(false)
   const [lastSaved, setLastSaved] = useState<Date | null>(null)
+  const [currentSection, setCurrentSection] = useState<string>('casal')
+  const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({})
+  const autoSaveTimeoutRef = useRef<NodeJS.Timeout>()
+
+  const perguntas = getAllQuestions()
 
   useEffect(() => {
     if (questionario?.respostasJson) {
@@ -75,10 +30,47 @@ const QuestionarioFormulario = () => {
     }
   }, [questionario])
 
+  // Auto-save implementation with debounce
+  const debouncedSave = useCallback(
+    (newRespostas: Record<string, string>) => {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current)
+      }
+      
+      autoSaveTimeoutRef.current = setTimeout(() => {
+        salvarRespostas(false, newRespostas)
+      }, 60000) // Auto-save after 60 seconds of inactivity
+    },
+    []
+  )
+
+  // Intersection Observer for section detection
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const sectionId = entry.target.getAttribute('data-section-id')
+            if (sectionId) {
+              setCurrentSection(sectionId)
+            }
+          }
+        })
+      },
+      { threshold: 0.3 }
+    )
+
+    Object.values(sectionRefs.current).forEach((ref) => {
+      if (ref) observer.observe(ref)
+    })
+
+    return () => observer.disconnect()
+  }, [])
+
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-rose-50 to-pink-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-rose-500"></div>
       </div>
     )
   }
@@ -91,13 +83,28 @@ const QuestionarioFormulario = () => {
   const progresso = (respostasPreenchidas / perguntas.length) * 100
 
   const handleRespostaChange = (index: number, valor: string) => {
-    setRespostas(prev => ({
-      ...prev,
+    const newRespostas = {
+      ...respostas,
       [index]: valor
-    }))
+    }
+    setRespostas(newRespostas)
+    debouncedSave(newRespostas)
+
+    // Auto-scroll to next question if current one is answered
+    if (valor.trim().length > 50) {
+      setTimeout(() => {
+        const nextIndex = index + 1
+        if (nextIndex < perguntas.length) {
+          const nextElement = document.getElementById(`pergunta-${nextIndex}`)
+          if (nextElement) {
+            nextElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          }
+        }
+      }, 1000)
+    }
   }
 
-  const salvarRespostas = async (finalizar = false) => {
+  const salvarRespostas = async (finalizar = false, respostasToSave = respostas) => {
     if (!questionario) return
 
     setIsSaving(true)
@@ -105,7 +112,7 @@ const QuestionarioFormulario = () => {
       const { data, error } = await supabase.functions.invoke('questionario-respostas', {
         body: {
           questionarioId: questionario.id,
-          respostas,
+          respostas: respostasToSave,
           finalizar
         }
       })
@@ -117,14 +124,22 @@ const QuestionarioFormulario = () => {
       setLastSaved(new Date())
       updateQuestionario({
         ...questionario,
-        respostasJson: respostas,
+        respostasJson: respostasToSave,
         status: data.status
       })
 
-      toast({
-        title: finalizar ? "Questionário finalizado!" : "Respostas salvas!",
-        description: data.message,
-      })
+      if (finalizar) {
+        toast({
+          title: "🎉 Parabéns!",
+          description: "Seu questionário foi enviado com sucesso. Gratidão por compartilhar sua história!",
+          duration: 5000,
+        })
+      } else {
+        toast({
+          title: "✓ Respostas salvas!",
+          description: `Salvo às ${new Date().toLocaleTimeString()}`,
+        })
+      }
 
     } catch (error) {
       console.error('Erro ao salvar:', error)
@@ -138,100 +153,85 @@ const QuestionarioFormulario = () => {
     }
   }
 
+  const handleNavigateToSection = (sectionId: string) => {
+    const ref = sectionRefs.current[sectionId]
+    if (ref) {
+      ref.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }
+
   const podeEditar = questionario?.status !== 'concluido'
+  const canFinalize = respostasPreenchidas >= perguntas.length * 0.8
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-rose-50 to-pink-50 py-8">
-      <div className="container mx-auto px-4 max-w-4xl">
-        {/* Header com Logo */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-          <div className="flex flex-col md:flex-row justify-between items-center mb-4">
-            <div className="flex items-center gap-4 mb-4 md:mb-0">
-              <img 
-                src="/LogoAG_192x192.png" 
-                alt="Anrielly Gomes Cerimonialista" 
-                className="w-12 h-12"
-              />
-              <div>
-                <h1 className="text-2xl md:text-3xl font-playfair text-gray-800">Questionário de Noivos</h1>
-                <p className="text-gray-600">Olá, {questionario?.nomeResponsavel}!</p>
+    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-rose-100">
+      <QuestionarioHeader
+        nomeResponsavel={questionario?.nomeResponsavel || ''}
+        progresso={progresso}
+        respostasPreenchidas={respostasPreenchidas}
+        totalPerguntas={perguntas.length}
+        lastSaved={lastSaved}
+        onLogout={logout}
+        isFinalized={questionario?.status === 'concluido'}
+      />
+
+      <div className="container mx-auto px-4 max-w-6xl py-8">
+        <div className="flex gap-8">
+          {/* Navigation Sidebar */}
+          <div className="hidden lg:block w-80 sticky top-32 h-fit">
+            <QuestionarioNavigation
+              respostas={respostas}
+              onNavigateToSection={handleNavigateToSection}
+              currentSection={currentSection}
+            />
+          </div>
+
+          {/* Main Content */}
+          <div className="flex-1 space-y-8">
+            {questionarioSections.map((section, sectionIndex) => (
+              <div
+                key={section.id}
+                ref={(el) => (sectionRefs.current[section.id] = el)}
+                data-section-id={section.id}
+                className="space-y-6"
+              >
+                <div className="text-center py-6">
+                  <h2 className="text-2xl md:text-3xl font-bold font-playfair text-gray-800 mb-2">
+                    {section.title}
+                  </h2>
+                  <div className="w-24 h-1 bg-gradient-to-r from-rose-400 to-pink-400 rounded-full mx-auto"></div>
+                </div>
+
+                <div className="space-y-6">
+                  {section.questions.map((pergunta, questionIndex) => {
+                    const globalIndex = section.range[0] + questionIndex
+                    return (
+                      <div key={globalIndex} id={`pergunta-${globalIndex}`}>
+                        <PerguntaCard
+                          pergunta={pergunta}
+                          index={globalIndex}
+                          valor={respostas[globalIndex] || ''}
+                          onChange={(valor) => handleRespostaChange(globalIndex, valor)}
+                          disabled={!podeEditar}
+                          isEven={globalIndex % 2 === 0}
+                        />
+                      </div>
+                    )
+                  })}
+                </div>
               </div>
-            </div>
-            <Button variant="outline" onClick={logout}>
-              <LogOut className="w-4 h-4 mr-2" />
-              Sair
-            </Button>
+            ))}
           </div>
-
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm text-gray-600">
-              <span>Progresso: {respostasPreenchidas} de {perguntas.length} perguntas</span>
-              <span>{Math.round(progresso)}%</span>
-            </div>
-            <Progress value={progresso} className="h-2" />
-          </div>
-
-          {lastSaved && (
-            <p className="text-sm text-green-600 mt-2">
-              Última atualização: {lastSaved.toLocaleTimeString()}
-            </p>
-          )}
-
-          {questionario?.status === 'concluido' && (
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4 mt-4">
-              <p className="text-green-800 font-medium">
-                ✅ Questionário finalizado e enviado com sucesso!
-              </p>
-            </div>
-          )}
         </div>
-
-        {/* Formulário */}
-        <div className="space-y-6">
-          {perguntas.map((pergunta, index) => (
-            <Card key={index} className="hover:shadow-md transition-shadow">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg font-medium text-gray-800">
-                  {index + 1}. {pergunta}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Textarea
-                  value={respostas[index] || ''}
-                  onChange={(e) => handleRespostaChange(index, e.target.value)}
-                  placeholder="Digite sua resposta aqui..."
-                  className="min-h-[100px] resize-y"
-                  disabled={!podeEditar}
-                />
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        {/* Botões de ação */}
-        {podeEditar && (
-          <div className="sticky bottom-0 bg-white border-t shadow-lg p-4 mt-8">
-            <div className="container mx-auto max-w-4xl flex gap-4 justify-end">
-              <Button
-                variant="outline"
-                onClick={() => salvarRespostas(false)}
-                disabled={isSaving}
-              >
-                <Save className="w-4 h-4 mr-2" />
-                {isSaving ? 'Salvando...' : 'Salvar'}
-              </Button>
-              
-              <Button
-                onClick={() => salvarRespostas(true)}
-                disabled={isSaving || respostasPreenchidas < perguntas.length * 0.8}
-              >
-                <Send className="w-4 h-4 mr-2" />
-                Finalizar e Enviar
-              </Button>
-            </div>
-          </div>
-        )}
       </div>
+
+      <QuestionarioFooter
+        isSaving={isSaving}
+        canFinalize={canFinalize}
+        podeEditar={podeEditar}
+        onSave={() => salvarRespostas(false)}
+        onFinalize={() => salvarRespostas(true)}
+      />
     </div>
   )
 }
