@@ -1,4 +1,5 @@
 
+
 import { useState } from 'react'
 import { Document, Packer, Paragraph, TextRun, AlignmentType } from 'docx'
 import { useToast } from '@/hooks/use-toast'
@@ -114,8 +115,8 @@ export const useQuestionarioWordExport = () => {
         }]
       })
 
-      // Gerar o arquivo
-      const buffer = await Packer.toBuffer(doc)
+      // Gerar o arquivo usando toBlob() em vez de toBuffer()
+      const blob = await Packer.toBlob(doc)
       
       // Criar nome do arquivo
       const nomeFormatado = questionario.nome_responsavel
@@ -128,10 +129,6 @@ export const useQuestionarioWordExport = () => {
       const nomeArquivo = `questionario-${nomeFormatado}-${dataAtual}.docx`
       
       // Fazer download
-      const blob = new Blob([buffer], { 
-        type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' 
-      })
-      
       const url = window.URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
@@ -164,3 +161,4 @@ export const useQuestionarioWordExport = () => {
     isExporting
   }
 }
+
