@@ -3,13 +3,15 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useToast } from '@/components/ui/use-toast'
 import { supabase } from '@/integrations/supabase/client'
 import { getAllQuestions } from '@/utils/questionarioSections'
+import { sendQuestionarioCompletionEmail } from '@/utils/emailUtils'
 
 interface UseQuestionarioFormProps {
   questionario: any
   updateQuestionario: (data: any) => void
+  logout?: () => void
 }
 
-export const useQuestionarioForm = ({ questionario, updateQuestionario }: UseQuestionarioFormProps) => {
+export const useQuestionarioForm = ({ questionario, updateQuestionario, logout }: UseQuestionarioFormProps) => {
   const { toast } = useToast()
   const [respostas, setRespostas] = useState<Record<string, string>>({})
   const [isSaving, setIsSaving] = useState(false)
@@ -49,11 +51,29 @@ export const useQuestionarioForm = ({ questionario, updateQuestionario }: UseQue
       })
 
       if (finalizar) {
+        // Enviar email de finalização
+        try {
+          await sendQuestionarioCompletionEmail(
+            questionario.nomeResponsavel,
+            questionario.email,
+            questionario.id
+          )
+        } catch (emailError) {
+          console.error('Erro ao enviar email de finalização:', emailError)
+        }
+
         toast({
           title: "🎉 Parabéns!",
-          description: "Seu questionário foi enviado com sucesso. Gratidão por compartilhar sua história!",
+          description: "Seu questionário foi enviado com sucesso. Gratidão por compartilhar sua história! Um email de confirmação foi enviado.",
           duration: 5000,
         })
+
+        // Logout automático após 3 segundos
+        setTimeout(() => {
+          if (logout) {
+            logout()
+          }
+        }, 3000)
       } else {
         toast({
           title: "✓ Respostas salvas!",

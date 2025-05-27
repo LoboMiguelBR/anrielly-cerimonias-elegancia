@@ -19,7 +19,7 @@ const QuestionarioFormulario = () => {
     perguntas,
     handleRespostaChange,
     salvarRespostas
-  } = useQuestionarioForm({ questionario, updateQuestionario })
+  } = useQuestionarioForm({ questionario, updateQuestionario, logout })
 
   if (isLoading) {
     return (

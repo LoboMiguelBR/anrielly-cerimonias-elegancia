@@ -108,3 +108,72 @@ export const sendQuestionarioConfirmationNotification = async (name: string, ema
     tipo: 'questionario-confirmacao'
   });
 };
+
+/**
+ * Send a welcome email when creating a new questionnaire account
+ */
+export const sendQuestionarioWelcomeEmail = async (name: string, email: string): Promise<boolean> => {
+  if (!email) {
+    console.error('Email is required for sending welcome email');
+    return false;
+  }
+
+  try {
+    const response = await fetch('https://oampddkpuybkbwqggrty.supabase.co/functions/v1/enviar-email-questionario', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        name,
+        email,
+        type: 'welcome'
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error sending welcome email: ${response.statusText}`);
+    }
+
+    console.log('Welcome email sent successfully');
+    return true;
+  } catch (error) {
+    console.error('Failed to send welcome email:', error);
+    return false;
+  }
+};
+
+/**
+ * Send a completion email when questionnaire is finalized
+ */
+export const sendQuestionarioCompletionEmail = async (name: string, email: string, questionarioId: string): Promise<boolean> => {
+  if (!email) {
+    console.error('Email is required for sending completion email');
+    return false;
+  }
+
+  try {
+    const response = await fetch('https://oampddkpuybkbwqggrty.supabase.co/functions/v1/enviar-email-questionario', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        name,
+        email,
+        type: 'completed',
+        questionarioId
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error sending completion email: ${response.statusText}`);
+    }
+
+    console.log('Completion email sent successfully');
+    return true;
+  } catch (error) {
+    console.error('Failed to send completion email:', error);
+    return false;
+  }
+};

@@ -16,6 +16,9 @@ export const useQuestionarioExport = () => {
         body: {
           questionarioId,
           format
+        },
+        headers: {
+          'Content-Type': 'application/json',
         }
       })
 
@@ -24,54 +27,49 @@ export const useQuestionarioExport = () => {
         throw new Error(error.message || 'Erro ao gerar exportação')
       }
 
-      // Para formatos binários (PDF e Word), a resposta vem diretamente como blob
-      if (format === 'pdf' || format === 'word') {
-        if (!data || !(data instanceof ArrayBuffer || data instanceof Blob)) {
-          throw new Error('Resposta inválida do servidor para formato binário')
-        }
-
-        // Converter para blob se necessário
-        const blob = data instanceof Blob ? data : new Blob([data])
-        
-        // Definir tipo MIME correto
-        const mimeType = format === 'pdf' 
-          ? 'application/pdf' 
-          : 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-        
-        const finalBlob = new Blob([blob], { type: mimeType })
-        
-        // Criar URL e fazer download
-        const url = window.URL.createObjectURL(finalBlob)
-        const link = document.createElement('a')
-        link.href = url
-        
-        // Gerar nome do arquivo baseado no timestamp
-        const timestamp = Date.now()
-        const extension = format === 'pdf' ? 'pdf' : 'docx'
-        link.download = `questionario_${timestamp}.${extension}`
-        
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
-        window.URL.revokeObjectURL(url)
-
-      } else if (format === 'txt') {
-        // Para TXT, manter lógica existente
-        if (!data || typeof data !== 'string') {
-          throw new Error('Resposta inválida do servidor para formato texto')
-        }
-
-        const blob = new Blob([data], { type: 'text/plain;charset=utf-8' })
-        const url = window.URL.createObjectURL(blob)
-        const link = document.createElement('a')
-        link.href = url
-        link.download = `questionario_${Date.now()}.txt`
-        
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
-        window.URL.revokeObjectURL(url)
+      if (!data) {
+        throw new Error('Nenhum dado retornado do servidor')
       }
+
+      let blob: Blob
+      let filename: string
+      let mimeType: string
+
+      if (format === 'txt') {
+        // Para TXT, os dados vêm como string
+        if (typeof data !== 'string') {
+          throw new Error('Formato de resposta inválido para TXT')
+        }
+        blob = new Blob([data], { type: 'text/plain;charset=utf-8' })
+        filename = `questionario_${Date.now()}.txt`
+        mimeType = 'text/plain'
+      } else {
+        // Para PDF e Word, os dados vêm como ArrayBuffer
+        if (!(data instanceof ArrayBuffer)) {
+          throw new Error('Formato de resposta inválido para arquivo binário')
+        }
+        
+        if (format === 'pdf') {
+          mimeType = 'application/pdf'
+          filename = `questionario_${Date.now()}.pdf`
+        } else { // word
+          mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+          filename = `questionario_${Date.now()}.docx`
+        }
+        
+        blob = new Blob([data], { type: mimeType })
+      }
+
+      // Criar URL e fazer download
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = filename
+      
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
 
       const formatLabels = {
         pdf: 'PDF',

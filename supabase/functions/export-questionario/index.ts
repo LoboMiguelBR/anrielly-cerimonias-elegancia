@@ -73,7 +73,6 @@ async function generatePDF(questionario: any) {
   const margin = 20
   let yPosition = margin
 
-  // Função para adicionar nova página se necessário
   const checkPageBreak = (neededHeight: number) => {
     if (yPosition + neededHeight > pageHeight - margin) {
       doc.addPage()
@@ -83,7 +82,6 @@ async function generatePDF(questionario: any) {
     return false
   }
 
-  // Função para quebrar texto longo
   const splitText = (text: string, maxWidth: number) => {
     return doc.splitTextToSize(text, maxWidth)
   }
@@ -165,7 +163,7 @@ async function generatePDF(questionario: any) {
   yPosition += 4
   doc.text('Tel: (11) 99999-9999 | Email: contato@anriellygomes.com.br', pageWidth / 2, yPosition, { align: 'center' })
 
-  return doc.output('arraybuffer')
+  return new Uint8Array(doc.output('arraybuffer'))
 }
 
 // Função para gerar Word
@@ -176,7 +174,6 @@ async function generateWord(questionario: any) {
   const dataAtual = new Date().toLocaleDateString('pt-BR')
 
   const children = [
-    // Cabeçalho
     new Paragraph({
       children: [
         new TextRun({
@@ -202,7 +199,6 @@ async function generateWord(questionario: any) {
       spacing: { after: 400 },
     }),
 
-    // Dados do responsável
     new Paragraph({
       children: [
         new TextRun({
@@ -265,7 +261,6 @@ async function generateWord(questionario: any) {
       spacing: { after: 400 },
     }),
 
-    // Perguntas e respostas
     new Paragraph({
       children: [
         new TextRun({
@@ -279,7 +274,6 @@ async function generateWord(questionario: any) {
     }),
   ]
 
-  // Adicionar perguntas e respostas
   perguntas.forEach((pergunta, index) => {
     const resposta = respostas[index] || 'Não respondida'
     
@@ -306,7 +300,6 @@ async function generateWord(questionario: any) {
     )
   })
 
-  // Rodapé
   children.push(
     new Paragraph({
       children: [
@@ -348,7 +341,7 @@ async function generateWord(questionario: any) {
     }],
   })
 
-  return await Packer.toBuffer(doc)
+  return new Uint8Array(await Packer.toBuffer(doc))
 }
 
 serve(async (req) => {
@@ -371,7 +364,6 @@ serve(async (req) => {
       )
     }
 
-    // Buscar questionário
     const { data: questionario, error } = await supabaseClient
       .from('questionarios_noivos')
       .select('*')
@@ -414,7 +406,6 @@ serve(async (req) => {
     }
 
     if (format === 'txt') {
-      // Manter funcionalidade existente para TXT
       let conteudo = `QUESTIONÁRIO DE NOIVOS\n`
       conteudo += `Anrielly Gomes Cerimonialista\n\n`
       conteudo += `Responsável: ${questionario.nome_responsavel}\n`

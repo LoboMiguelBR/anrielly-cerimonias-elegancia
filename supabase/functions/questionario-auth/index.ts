@@ -20,6 +20,31 @@ interface RegisterRequest {
   linkPublico: string
 }
 
+const sendWelcomeEmail = async (name: string, email: string) => {
+  try {
+    const response = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/enviar-email-questionario`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${Deno.env.get('SUPABASE_ANON_KEY')}`
+      },
+      body: JSON.stringify({
+        name,
+        email,
+        type: 'welcome'
+      })
+    })
+
+    if (!response.ok) {
+      console.error('Erro ao enviar email de boas-vindas:', await response.text())
+    } else {
+      console.log('Email de boas-vindas enviado com sucesso')
+    }
+  } catch (error) {
+    console.error('Erro ao enviar email de boas-vindas:', error)
+  }
+}
+
 serve(async (req) => {
   console.log('Function called with method:', req.method)
   
@@ -180,6 +205,8 @@ serve(async (req) => {
         )
       }
 
+      let resultQuestionario
+
       if (placeholderRecord) {
         console.log('Atualizando registro placeholder')
         // Atualizar o registro placeholder
@@ -204,20 +231,8 @@ serve(async (req) => {
           )
         }
 
+        resultQuestionario = updatedQuestionario
         console.log('Registro atualizado com sucesso')
-        return new Response(
-          JSON.stringify({ 
-            success: true, 
-            questionario: {
-              id: updatedQuestionario.id,
-              nomeResponsavel: updatedQuestionario.nome_responsavel,
-              email: updatedQuestionario.email,
-              respostasJson: updatedQuestionario.respostas_json || {},
-              status: updatedQuestionario.status
-            }
-          }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        )
       } else {
         console.log('Criando novo registro')
         // Criar novo registro - agora permite múltiplas contas por link_publico
@@ -242,21 +257,31 @@ serve(async (req) => {
           )
         }
 
+        resultQuestionario = novoQuestionario
         console.log('Novo registro criado com sucesso')
-        return new Response(
-          JSON.stringify({ 
-            success: true, 
-            questionario: {
-              id: novoQuestionario.id,
-              nomeResponsavel: novoQuestionario.nome_responsavel,
-              email: novoQuestionario.email,
-              respostasJson: novoQuestionario.respostas_json || {},
-              status: novoQuestionario.status
-            }
-          }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        )
       }
+
+      // Enviar email de boas-vindas
+      try {
+        await sendWelcomeEmail(nomeResponsavel, email)
+      } catch (emailError) {
+        console.error('Erro ao enviar email de boas-vindas:', emailError)
+        // Não falha a requisição por causa do email
+      }
+
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          questionario: {
+            id: resultQuestionario.id,
+            nomeResponsavel: resultQuestionario.nome_responsavel,
+            email: resultQuestionario.email,
+            respostasJson: resultQuestionario.respostas_json || {},
+            status: resultQuestionario.status
+          }
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
     }
 
     console.log('Ação não reconhecida:', action)
