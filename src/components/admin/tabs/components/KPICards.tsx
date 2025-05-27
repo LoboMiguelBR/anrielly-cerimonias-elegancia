@@ -11,10 +11,18 @@ interface KPICardsProps {
 
 const KPICards = ({ questionarios }: KPICardsProps) => {
   const total = questionarios.length
-  const concluidos = questionarios.filter(q => q.status === 'concluido').length
-  const emAndamento = questionarios.filter(q => 
-    q.status === 'rascunho' || q.status === 'preenchido'
+  
+  // Considerar tanto 'concluido' quanto 'preenchido' como finalizados
+  const concluidos = questionarios.filter(q => 
+    q.status === 'concluido' || q.status === 'preenchido'
   ).length
+  
+  // Em andamento: tem algumas respostas mas não está finalizado
+  const emAndamento = questionarios.filter(q => 
+    q.status === 'rascunho' && q.total_perguntas_resp && q.total_perguntas_resp > 0
+  ).length
+  
+  // Aguardando início: não tem respostas ou tem status rascunho sem respostas
   const aguardando = questionarios.filter(q => 
     !q.total_perguntas_resp || q.total_perguntas_resp === 0
   ).length

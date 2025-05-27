@@ -130,13 +130,13 @@ const QuestionarioActions = ({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => handleExport('pdf')}>
-              <FileText className="mr-2 h-4 w-4" />
-              Exportar PDF
-            </DropdownMenuItem>
             <DropdownMenuItem onClick={() => handleExport('word')}>
               <FileText className="mr-2 h-4 w-4" />
               Exportar Word
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleExport('pdf')}>
+              <FileText className="mr-2 h-4 w-4" />
+              Exportar PDF
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => handleExport('txt')}>

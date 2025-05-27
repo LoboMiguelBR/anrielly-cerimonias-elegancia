@@ -1,4 +1,3 @@
-
 import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -7,7 +6,7 @@ import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
 import { supabase } from "@/integrations/supabase/client"
-import { Plus, ExternalLink, Users, Eye, Edit, Trash2, Download, Copy } from 'lucide-react'
+import { Plus, ExternalLink, Users, Eye, Edit, Trash2, FileText, Copy } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import {
@@ -457,14 +456,14 @@ const QuestionariosTab = () => {
                                       <Button
                                         size="sm"
                                         variant="outline"
-                                        onClick={() => handleExport(questionario, 'pdf')}
+                                        onClick={() => handleExport(questionario, 'word')}
                                         disabled={isExporting}
                                         className="h-8 w-8 p-0"
                                       >
-                                        <Download className="h-4 w-4" />
+                                        <FileText className="h-4 w-4" />
                                       </Button>
                                     </TooltipTrigger>
-                                    <TooltipContent>Exportar PDF</TooltipContent>
+                                    <TooltipContent>Exportar Word</TooltipContent>
                                   </Tooltip>
 
                                   <Tooltip>

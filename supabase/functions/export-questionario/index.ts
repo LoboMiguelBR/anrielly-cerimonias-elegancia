@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -166,35 +165,27 @@ async function generatePDF(questionario: any) {
   return new Uint8Array(doc.output('arraybuffer'))
 }
 
-// Função para gerar Word
+// Função para gerar Word com identidade visual
 async function generateWord(questionario: any) {
-  const { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType } = await import('https://esm.sh/docx@8.2.2')
+  const { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, BorderStyle, Table, TableRow, TableCell, WidthType } = await import('https://esm.sh/docx@8.2.2')
   
   const respostas = questionario.respostas_json || {}
   const dataAtual = new Date().toLocaleDateString('pt-BR')
+  const nomeArquivo = `questionario-${questionario.nome_responsavel.replace(/\s+/g, '-').toLowerCase()}-${new Date().toISOString().split('T')[0]}`
 
   const children = [
+    // Cabeçalho com identidade visual
     new Paragraph({
       children: [
         new TextRun({
-          text: "QUESTIONÁRIO DE NOIVOS",
+          text: "QUESTIONÁRIO DE CELEBRAÇÃO DO AMOR",
           bold: true,
-          size: 32,
+          size: 48,
+          color: "d9534f",
+          font: "Playfair Display",
         }),
       ],
       heading: HeadingLevel.TITLE,
-      alignment: AlignmentType.CENTER,
-      spacing: { after: 200 },
-    }),
-
-    new Paragraph({
-      children: [
-        new TextRun({
-          text: "Anrielly Gomes Cerimonialista",
-          size: 24,
-          italics: true,
-        }),
-      ],
       alignment: AlignmentType.CENTER,
       spacing: { after: 400 },
     }),
@@ -202,9 +193,38 @@ async function generateWord(questionario: any) {
     new Paragraph({
       children: [
         new TextRun({
-          text: "DADOS DO RESPONSÁVEL",
+          text: `Preenchido por: ${questionario.nome_responsavel}`,
+          size: 32,
+          color: "555555",
+          font: "Arial",
+        }),
+      ],
+      alignment: AlignmentType.CENTER,
+      spacing: { after: 600 },
+    }),
+
+    // Linha divisória
+    new Paragraph({
+      children: [
+        new TextRun({
+          text: "━".repeat(50),
+          color: "d9534f",
+          size: 20,
+        }),
+      ],
+      alignment: AlignmentType.CENTER,
+      spacing: { after: 400 },
+    }),
+
+    // Dados do responsável
+    new Paragraph({
+      children: [
+        new TextRun({
+          text: "INFORMAÇÕES DO RESPONSÁVEL",
           bold: true,
-          size: 24,
+          size: 28,
+          color: "d9534f",
+          font: "Playfair Display",
         }),
       ],
       heading: HeadingLevel.HEADING_1,
@@ -214,8 +234,17 @@ async function generateWord(questionario: any) {
     new Paragraph({
       children: [
         new TextRun({
-          text: `Nome: ${questionario.nome_responsavel}`,
-          size: 20,
+          text: `Nome: `,
+          bold: true,
+          size: 24,
+          color: "555555",
+          font: "Arial",
+        }),
+        new TextRun({
+          text: questionario.nome_responsavel,
+          size: 24,
+          color: "555555",
+          font: "Arial",
         }),
       ],
       spacing: { after: 100 },
@@ -224,8 +253,17 @@ async function generateWord(questionario: any) {
     new Paragraph({
       children: [
         new TextRun({
-          text: `Email: ${questionario.email}`,
-          size: 20,
+          text: `Email: `,
+          bold: true,
+          size: 24,
+          color: "555555",
+          font: "Arial",
+        }),
+        new TextRun({
+          text: questionario.email,
+          size: 24,
+          color: "555555",
+          font: "Arial",
         }),
       ],
       spacing: { after: 100 },
@@ -234,8 +272,17 @@ async function generateWord(questionario: any) {
     new Paragraph({
       children: [
         new TextRun({
-          text: `Status: ${questionario.status}`,
-          size: 20,
+          text: `Status: `,
+          bold: true,
+          size: 24,
+          color: "555555",
+          font: "Arial",
+        }),
+        new TextRun({
+          text: questionario.status,
+          size: 24,
+          color: "555555",
+          font: "Arial",
         }),
       ],
       spacing: { after: 100 },
@@ -244,8 +291,17 @@ async function generateWord(questionario: any) {
     new Paragraph({
       children: [
         new TextRun({
-          text: `Data de Exportação: ${dataAtual}`,
-          size: 20,
+          text: `Data de Exportação: `,
+          bold: true,
+          size: 24,
+          color: "555555",
+          font: "Arial",
+        }),
+        new TextRun({
+          text: dataAtual,
+          size: 24,
+          color: "555555",
+          font: "Arial",
         }),
       ],
       spacing: { after: 100 },
@@ -254,10 +310,32 @@ async function generateWord(questionario: any) {
     new Paragraph({
       children: [
         new TextRun({
-          text: `Progresso: ${questionario.total_perguntas_resp || 0}/48 perguntas respondidas`,
+          text: `Progresso: `,
+          bold: true,
+          size: 24,
+          color: "555555",
+          font: "Arial",
+        }),
+        new TextRun({
+          text: `${questionario.total_perguntas_resp || 0}/48 perguntas respondidas`,
+          size: 24,
+          color: "555555",
+          font: "Arial",
+        }),
+      ],
+      spacing: { after: 400 },
+    }),
+
+    // Linha divisória antes das perguntas
+    new Paragraph({
+      children: [
+        new TextRun({
+          text: "━".repeat(50),
+          color: "d9534f",
           size: 20,
         }),
       ],
+      alignment: AlignmentType.CENTER,
       spacing: { after: 400 },
     }),
 
@@ -266,16 +344,18 @@ async function generateWord(questionario: any) {
         new TextRun({
           text: "PERGUNTAS E RESPOSTAS",
           bold: true,
-          size: 24,
+          size: 28,
+          color: "d9534f",
+          font: "Playfair Display",
         }),
       ],
       heading: HeadingLevel.HEADING_1,
-      spacing: { before: 400, after: 200 },
+      spacing: { before: 400, after: 300 },
     }),
   ]
 
   perguntas.forEach((pergunta, index) => {
-    const resposta = respostas[index] || 'Não respondida'
+    const resposta = respostas[index] || 'Resposta não informada.'
     
     children.push(
       new Paragraph({
@@ -283,51 +363,73 @@ async function generateWord(questionario: any) {
           new TextRun({
             text: `${index + 1}. ${pergunta}`,
             bold: true,
-            size: 20,
+            size: 26,
+            color: "555555",
+            font: "Arial",
           }),
         ],
-        spacing: { before: 300, after: 100 },
+        spacing: { before: 300, after: 150 },
       }),
       new Paragraph({
         children: [
           new TextRun({
-            text: `R: ${resposta}`,
-            size: 18,
+            text: `Resposta: ${resposta}`,
+            size: 24,
+            color: "555555",
+            font: "Arial",
           }),
         ],
+        spacing: { after: 250 },
+      }),
+      // Linha sutil entre perguntas
+      new Paragraph({
+        children: [
+          new TextRun({
+            text: "─".repeat(30),
+            color: "cccccc",
+            size: 16,
+          }),
+        ],
+        alignment: AlignmentType.CENTER,
         spacing: { after: 200 },
       })
     )
   })
 
+  // Rodapé final
   children.push(
     new Paragraph({
       children: [
         new TextRun({
-          text: `Questionário exportado em ${dataAtual}`,
+          text: "━".repeat(50),
+          color: "d9534f",
+          size: 20,
+        }),
+      ],
+      alignment: AlignmentType.CENTER,
+      spacing: { before: 600, after: 300 },
+    }),
+    new Paragraph({
+      children: [
+        new TextRun({
+          text: "Documento gerado automaticamente pelo sistema Anrielly Gomes Cerimonialista.",
           italics: true,
-          size: 16,
+          size: 20,
+          color: "888888",
+          font: "Arial",
         }),
       ],
       alignment: AlignmentType.CENTER,
-      spacing: { before: 600, after: 100 },
+      spacing: { after: 100 },
     }),
     new Paragraph({
       children: [
         new TextRun({
-          text: "Anrielly Gomes Cerimonialista",
-          bold: true,
-          size: 16,
-        }),
-      ],
-      alignment: AlignmentType.CENTER,
-      spacing: { after: 50 },
-    }),
-    new Paragraph({
-      children: [
-        new TextRun({
-          text: "Tel: (11) 99999-9999 | Email: contato@anriellygomes.com.br",
-          size: 14,
+          text: `Gerado em: ${dataAtual}`,
+          italics: true,
+          size: 18,
+          color: "888888",
+          font: "Arial",
         }),
       ],
       alignment: AlignmentType.CENTER,
@@ -377,7 +479,8 @@ serve(async (req) => {
       )
     }
 
-    const nomeArquivo = `questionario_${questionario.nome_responsavel.replace(/\s+/g, '_')}_${Date.now()}`
+    const dataAtual = new Date().toISOString().split('T')[0]
+    const nomeArquivo = `questionario-${questionario.nome_responsavel.replace(/\s+/g, '-').toLowerCase()}-${dataAtual}`
 
     if (format === 'pdf') {
       console.log('Gerando PDF...')
@@ -393,7 +496,7 @@ serve(async (req) => {
     }
 
     if (format === 'word') {
-      console.log('Gerando Word...')
+      console.log('Gerando Word com identidade visual...')
       const wordBuffer = await generateWord(questionario)
       
       return new Response(wordBuffer, {
@@ -406,9 +509,9 @@ serve(async (req) => {
     }
 
     if (format === 'txt') {
-      let conteudo = `QUESTIONÁRIO DE NOIVOS\n`
+      let conteudo = `QUESTIONÁRIO DE CELEBRAÇÃO DO AMOR\n`
       conteudo += `Anrielly Gomes Cerimonialista\n\n`
-      conteudo += `Responsável: ${questionario.nome_responsavel}\n`
+      conteudo += `Preenchido por: ${questionario.nome_responsavel}\n`
       conteudo += `Email: ${questionario.email}\n`
       conteudo += `Status: ${questionario.status}\n`
       conteudo += `Data de Exportação: ${new Date().toLocaleDateString('pt-BR')}\n`
@@ -417,14 +520,14 @@ serve(async (req) => {
 
       const respostas = questionario.respostas_json || {}
       perguntas.forEach((pergunta, index) => {
-        const resposta = respostas[index] || 'Não respondida'
+        const resposta = respostas[index] || 'Resposta não informada.'
         conteudo += `${index + 1}. ${pergunta}\n`
-        conteudo += `R: ${resposta}\n\n`
+        conteudo += `Resposta: ${resposta}\n\n`
       })
 
       conteudo += `${'='.repeat(80)}\n`
-      conteudo += `Questionário exportado em ${new Date().toLocaleDateString('pt-BR')}\n`
-      conteudo += `Anrielly Gomes Cerimonialista`
+      conteudo += `Documento gerado automaticamente pelo sistema Anrielly Gomes Cerimonialista.\n`
+      conteudo += `Gerado em ${new Date().toLocaleDateString('pt-BR')}`
 
       return new Response(conteudo, {
         headers: {
