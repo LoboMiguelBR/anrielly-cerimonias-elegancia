@@ -32,6 +32,9 @@ export interface ContractData {
   signature_data?: any;
 }
 
+// Export Contract as an alias for ContractData for backward compatibility
+export type Contract = ContractData;
+
 export interface ContractFormData {
   client_name: string;
   client_email: string;
@@ -69,6 +72,14 @@ export interface ContractTemplate {
   is_default?: boolean;
   created_at: string;
   updated_at: string;
+}
+
+export interface ContractTemplateFormData {
+  name: string;
+  description?: string;
+  html_content: string;
+  css_content?: string;
+  is_default?: boolean;
 }
 
 export interface ContractEmailTemplate {
