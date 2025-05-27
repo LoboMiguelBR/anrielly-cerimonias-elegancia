@@ -8,9 +8,10 @@ import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useToast } from "@/hooks/use-toast"
 import { supabase } from "@/integrations/supabase/client"
-import { Plus, ExternalLink, Eye, Copy } from 'lucide-react'
+import { Plus, ExternalLink, Eye, Copy, Users } from 'lucide-react'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import useSWR from 'swr'
 import type { Database } from '@/integrations/supabase/types'
 
@@ -27,11 +28,19 @@ interface Questionario {
   respostas_json: Record<string, string> | null
 }
 
+interface QuestionarioGroup {
+  link_publico: string
+  questionarios: Questionario[]
+  totalRespostas: number
+  progresso: number
+}
+
 const QuestionariosTab = () => {
   const { toast } = useToast()
   const [isCreating, setIsCreating] = useState(false)
   const [newLink, setNewLink] = useState('')
   const [selectedQuestionario, setSelectedQuestionario] = useState<Questionario | null>(null)
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set())
 
   const fetcher = async (): Promise<Questionario[]> => {
     const { data, error } = await supabase
@@ -54,6 +63,34 @@ const QuestionariosTab = () => {
   }
 
   const { data: questionarios, error, mutate } = useSWR('questionarios_noivos', fetcher)
+
+  // Agrupar questionários por link_publico
+  const groupedQuestionarios: QuestionarioGroup[] = questionarios 
+    ? Object.entries(
+        questionarios.reduce((groups: Record<string, Questionario[]>, questionario) => {
+          if (!groups[questionario.link_publico]) {
+            groups[questionario.link_publico] = []
+          }
+          groups[questionario.link_publico].push(questionario)
+          return groups
+        }, {})
+      ).map(([link_publico, questionariosDoGrupo]) => {
+        const totalRespostas = questionariosDoGrupo.reduce((total, q) => {
+          const respostas = q.respostas_json ? Object.values(q.respostas_json).filter(r => r && r.trim().length > 0).length : 0
+          return total + respostas
+        }, 0)
+        
+        const maxPossivel = questionariosDoGrupo.length * 48 // 48 perguntas por pessoa
+        const progresso = maxPossivel > 0 ? Math.round((totalRespostas / maxPossivel) * 100) : 0
+
+        return {
+          link_publico,
+          questionarios: questionariosDoGrupo,
+          totalRespostas,
+          progresso
+        }
+      })
+    : []
 
   const generateUniqueLink = () => {
     const timestamp = Date.now()
@@ -95,9 +132,9 @@ const QuestionariosTab = () => {
         .from('questionarios_noivos')
         .select('id')
         .eq('link_publico', newLink)
-        .maybeSingle()
+        .limit(1)
 
-      if (existing) {
+      if (existing && existing.length > 0) {
         toast({
           title: "Erro",
           description: "Já existe um questionário com este link",
@@ -106,7 +143,7 @@ const QuestionariosTab = () => {
         return
       }
 
-      // Criar um registro temporário no banco para reservar o link
+      // Criar um registro inicial para reservar o link
       const { error: insertError } = await supabase
         .from('questionarios_noivos')
         .insert({
@@ -181,6 +218,16 @@ const QuestionariosTab = () => {
     return `${window.location.origin}/questionario/${linkPublico}`
   }
 
+  const toggleGroupExpansion = (linkPublico: string) => {
+    const newExpanded = new Set(expandedGroups)
+    if (newExpanded.has(linkPublico)) {
+      newExpanded.delete(linkPublico)
+    } else {
+      newExpanded.add(linkPublico)
+    }
+    setExpandedGroups(newExpanded)
+  }
+
   if (error) {
     return (
       <Card>
@@ -198,7 +245,7 @@ const QuestionariosTab = () => {
           <CardHeader>
             <CardTitle>Questionários de Noivos</CardTitle>
             <CardDescription>
-              Gerencie os questionários de noivos e visualize as respostas
+              Gerencie os questionários de noivos e visualize as respostas. Agora suporta múltiplas pessoas por link (noivo e noiva).
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -223,146 +270,171 @@ const QuestionariosTab = () => {
               </div>
             </div>
 
-            <div className="border rounded-lg overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Responsável</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Link</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Progresso</TableHead>
-                    <TableHead>Criado em</TableHead>
-                    <TableHead>Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {questionarios?.map((questionario) => (
-                    <TableRow key={questionario.id}>
-                      <TableCell className="font-medium">
-                        {questionario.nome_responsavel === 'Aguardando preenchimento' ? 
-                          <span className="text-gray-500 italic">Não preenchido</span> : 
-                          questionario.nome_responsavel
-                        }
-                      </TableCell>
-                      <TableCell>
-                        {questionario.email === 'aguardando@preenchimento.com' ? 
-                          <span className="text-gray-500">-</span> : 
-                          questionario.email
-                        }
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2 max-w-xs">
-                          <a 
-                            href={getQuestionarioLink(questionario.link_publico)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-600 hover:text-blue-800 underline truncate"
-                          >
-                            /{questionario.link_publico}
-                          </a>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                className="h-6 w-6 p-0"
-                                onClick={() => copyToClipboard(getQuestionarioLink(questionario.link_publico))}
-                              >
-                                <Copy className="w-3 h-3" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>Copiar link</p>
-                            </TooltipContent>
-                          </Tooltip>
+            <div className="space-y-4">
+              {groupedQuestionarios.map((grupo) => (
+                <Card key={grupo.link_publico} className="border-l-4 border-l-rose-200">
+                  <Collapsible 
+                    open={expandedGroups.has(grupo.link_publico)}
+                    onOpenChange={() => toggleGroupExpansion(grupo.link_publico)}
+                  >
+                    <CollapsibleTrigger asChild>
+                      <CardHeader className="cursor-pointer hover:bg-gray-50 transition-colors">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-4">
+                            <Users className="w-5 h-5 text-rose-500" />
+                            <div>
+                              <CardTitle className="text-lg">
+                                Questionário: {grupo.link_publico}
+                              </CardTitle>
+                              <CardDescription>
+                                {grupo.questionarios.length} pessoa(s) cadastrada(s) • Progresso geral: {grupo.progresso}%
+                              </CardDescription>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    copyToClipboard(getQuestionarioLink(grupo.link_publico))
+                                  }}
+                                >
+                                  <Copy className="w-4 h-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Copiar link</p>
+                              </TooltipContent>
+                            </Tooltip>
+                            
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    abrirQuestionario(grupo.link_publico)
+                                  }}
+                                >
+                                  <ExternalLink className="w-4 h-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Abrir questionário</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </div>
                         </div>
-                      </TableCell>
-                      <TableCell>{getStatusBadge(questionario.status)}</TableCell>
-                      <TableCell>
-                        {calcularProgresso(questionario.respostas_json)}%
-                      </TableCell>
-                      <TableCell>
-                        {new Date(questionario.data_criacao).toLocaleDateString('pt-BR')}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => abrirQuestionario(questionario.link_publico)}
-                              >
-                                <ExternalLink className="w-4 h-4" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>Abrir questionário</p>
-                            </TooltipContent>
-                          </Tooltip>
-                          
-                          <Dialog>
-                            <DialogTrigger asChild>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => setSelectedQuestionario(questionario)}
-                                  >
-                                    <Eye className="w-4 h-4" />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>Ver respostas</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </DialogTrigger>
-                            <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-                              <DialogHeader>
-                                <DialogTitle>Respostas do Questionário</DialogTitle>
-                                <DialogDescription>
-                                  {selectedQuestionario?.nome_responsavel} - {selectedQuestionario?.email}
-                                </DialogDescription>
-                              </DialogHeader>
-                              
-                              {selectedQuestionario?.respostas_json && (
-                                <div className="space-y-4">
-                                  {Object.entries(selectedQuestionario.respostas_json).map(([perguntaIndex, resposta]) => (
-                                    <div key={perguntaIndex} className="border-b pb-4">
-                                      <p className="font-medium text-sm text-gray-600 mb-2">
-                                        Pergunta {parseInt(perguntaIndex) + 1}
-                                      </p>
-                                      <p className="bg-gray-50 p-3 rounded text-sm">
-                                        {resposta || 'Não respondida'}
-                                      </p>
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
-                              
-                              {(!selectedQuestionario?.respostas_json || Object.keys(selectedQuestionario.respostas_json).length === 0) && (
-                                <div className="text-center py-8 text-gray-500">
-                                  Nenhuma resposta registrada ainda
-                                </div>
-                              )}
-                            </DialogContent>
-                          </Dialog>
+                      </CardHeader>
+                    </CollapsibleTrigger>
+                    
+                    <CollapsibleContent>
+                      <CardContent className="pt-0">
+                        <div className="border rounded-lg overflow-x-auto">
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead>Responsável</TableHead>
+                                <TableHead>Email</TableHead>
+                                <TableHead>Status</TableHead>
+                                <TableHead>Progresso</TableHead>
+                                <TableHead>Criado em</TableHead>
+                                <TableHead>Ações</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {grupo.questionarios.map((questionario) => (
+                                <TableRow key={questionario.id}>
+                                  <TableCell className="font-medium">
+                                    {questionario.nome_responsavel === 'Aguardando preenchimento' ? 
+                                      <span className="text-gray-500 italic">Não preenchido</span> : 
+                                      questionario.nome_responsavel
+                                    }
+                                  </TableCell>
+                                  <TableCell>
+                                    {questionario.email === 'aguardando@preenchimento.com' ? 
+                                      <span className="text-gray-500">-</span> : 
+                                      questionario.email
+                                    }
+                                  </TableCell>
+                                  <TableCell>{getStatusBadge(questionario.status)}</TableCell>
+                                  <TableCell>
+                                    {calcularProgresso(questionario.respostas_json)}%
+                                  </TableCell>
+                                  <TableCell>
+                                    {new Date(questionario.data_criacao).toLocaleDateString('pt-BR')}
+                                  </TableCell>
+                                  <TableCell>
+                                    <Dialog>
+                                      <DialogTrigger asChild>
+                                        <Tooltip>
+                                          <TooltipTrigger asChild>
+                                            <Button
+                                              size="sm"
+                                              variant="outline"
+                                              onClick={() => setSelectedQuestionario(questionario)}
+                                            >
+                                              <Eye className="w-4 h-4" />
+                                            </Button>
+                                          </TooltipTrigger>
+                                          <TooltipContent>
+                                            <p>Ver respostas</p>
+                                          </TooltipContent>
+                                        </Tooltip>
+                                      </DialogTrigger>
+                                      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                                        <DialogHeader>
+                                          <DialogTitle>Respostas do Questionário</DialogTitle>
+                                          <DialogDescription>
+                                            {selectedQuestionario?.nome_responsavel} - {selectedQuestionario?.email}
+                                          </DialogDescription>
+                                        </DialogHeader>
+                                        
+                                        {selectedQuestionario?.respostas_json && (
+                                          <div className="space-y-4">
+                                            {Object.entries(selectedQuestionario.respostas_json).map(([perguntaIndex, resposta]) => (
+                                              <div key={perguntaIndex} className="border-b pb-4">
+                                                <p className="font-medium text-sm text-gray-600 mb-2">
+                                                  Pergunta {parseInt(perguntaIndex) + 1}
+                                                </p>
+                                                <p className="bg-gray-50 p-3 rounded text-sm">
+                                                  {resposta || 'Não respondida'}
+                                                </p>
+                                              </div>
+                                            ))}
+                                          </div>
+                                        )}
+                                        
+                                        {(!selectedQuestionario?.respostas_json || Object.keys(selectedQuestionario.respostas_json).length === 0) && (
+                                          <div className="text-center py-8 text-gray-500">
+                                            Nenhuma resposta registrada ainda
+                                          </div>
+                                        )}
+                                      </DialogContent>
+                                    </Dialog>
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
                         </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  
-                  {questionarios?.length === 0 && (
-                    <TableRow>
-                      <TableCell colSpan={7} className="text-center py-8 text-gray-500">
-                        Nenhum questionário criado ainda
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
+                      </CardContent>
+                    </CollapsibleContent>
+                  </Collapsible>
+                </Card>
+              ))}
+              
+              {groupedQuestionarios.length === 0 && (
+                <Card>
+                  <CardContent className="text-center py-8 text-gray-500">
+                    Nenhum questionário criado ainda
+                  </CardContent>
+                </Card>
+              )}
             </div>
           </CardContent>
         </Card>

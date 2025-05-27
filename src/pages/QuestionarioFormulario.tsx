@@ -5,7 +5,6 @@ import { useToast } from '@/components/ui/use-toast'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
-import { Label } from '@/components/ui/label'
 import { Progress } from '@/components/ui/progress'
 import { useQuestionarioAuth } from '@/hooks/useQuestionarioAuth'
 import { supabase } from '@/integrations/supabase/client'
@@ -145,12 +144,19 @@ const QuestionarioFormulario = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-rose-50 to-pink-50 py-8">
       <div className="container mx-auto px-4 max-w-4xl">
-        {/* Header */}
+        {/* Header com Logo */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-          <div className="flex justify-between items-center mb-4">
-            <div>
-              <h1 className="text-3xl font-playfair text-gray-800">Questionário de Noivos</h1>
-              <p className="text-gray-600">Olá, {questionario?.nomeResponsavel}!</p>
+          <div className="flex flex-col md:flex-row justify-between items-center mb-4">
+            <div className="flex items-center gap-4 mb-4 md:mb-0">
+              <img 
+                src="/LogoAG_192x192.png" 
+                alt="Anrielly Gomes Cerimonialista" 
+                className="w-12 h-12"
+              />
+              <div>
+                <h1 className="text-2xl md:text-3xl font-playfair text-gray-800">Questionário de Noivos</h1>
+                <p className="text-gray-600">Olá, {questionario?.nomeResponsavel}!</p>
+              </div>
             </div>
             <Button variant="outline" onClick={logout}>
               <LogOut className="w-4 h-4 mr-2" />

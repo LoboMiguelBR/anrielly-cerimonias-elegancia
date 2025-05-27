@@ -60,16 +60,16 @@ serve(async (req) => {
         .from('questionarios_noivos')
         .select('id')
         .eq('link_publico', linkPublico)
-        .single()
+        .limit(1)
 
-      if (!linkExists) {
+      if (!linkExists || linkExists.length === 0) {
         return new Response(
           JSON.stringify({ error: 'Link de questionário não encontrado' }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 404 }
         )
       }
 
-      // Buscar questionário pelo link público e email
+      // Buscar questionário pelo link público e email específico
       const { data: questionario, error } = await supabaseClient
         .from('questionarios_noivos')
         .select('*')
@@ -84,8 +84,7 @@ serve(async (req) => {
         )
       }
 
-      // Para simplificar, vamos usar uma verificação básica de senha
-      // Em produção, você deve usar bcrypt ou similar
+      // Verificar senha
       if (questionario.senha_hash !== senha) {
         return new Response(
           JSON.stringify({ error: 'Credenciais inválidas' }),
@@ -118,46 +117,53 @@ serve(async (req) => {
         )
       }
 
-      // Verificar se o link público existe
-      const { data: linkData } = await supabaseClient
+      // Verificar se o link público base existe (pelo menos um registro com este link)
+      const { data: linkExists } = await supabaseClient
         .from('questionarios_noivos')
-        .select('*')
+        .select('id')
         .eq('link_publico', linkPublico)
-        .single()
+        .limit(1)
 
-      if (!linkData) {
+      if (!linkExists || linkExists.length === 0) {
         return new Response(
           JSON.stringify({ error: 'Link de questionário não encontrado' }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 404 }
         )
       }
 
-      // Verificar se já existe um questionário preenchido para este link
-      if (linkData.email !== 'aguardando@preenchimento.com') {
+      // Verificar se já existe um usuário com este email para este link
+      const { data: existingUser } = await supabaseClient
+        .from('questionarios_noivos')
+        .select('id')
+        .eq('link_publico', linkPublico)
+        .eq('email', email)
+        .single()
+
+      if (existingUser) {
         return new Response(
-          JSON.stringify({ error: 'Este questionário já foi preenchido' }),
+          JSON.stringify({ error: 'Já existe uma conta com este email para este questionário' }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 409 }
         )
       }
 
-      // Atualizar o registro existente com os dados do usuário
-      const { data: questionarioAtualizado, error } = await supabaseClient
+      // Criar novo registro para este usuário
+      const { data: novoQuestionario, error } = await supabaseClient
         .from('questionarios_noivos')
-        .update({
+        .insert({
+          link_publico: linkPublico,
           nome_responsavel: nomeResponsavel,
           email: email,
           senha_hash: senha, // Em produção, use bcrypt
           respostas_json: {},
           status: 'rascunho'
         })
-        .eq('id', linkData.id)
         .select()
         .single()
 
       if (error) {
-        console.error('Erro ao atualizar questionário:', error)
+        console.error('Erro ao criar questionário:', error)
         return new Response(
-          JSON.stringify({ error: 'Erro ao criar questionário' }),
+          JSON.stringify({ error: 'Erro ao criar conta para este questionário' }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
         )
       }
@@ -166,11 +172,11 @@ serve(async (req) => {
         JSON.stringify({ 
           success: true, 
           questionario: {
-            id: questionarioAtualizado.id,
-            nomeResponsavel: questionarioAtualizado.nome_responsavel,
-            email: questionarioAtualizado.email,
-            respostasJson: questionarioAtualizado.respostas_json || {},
-            status: questionarioAtualizado.status
+            id: novoQuestionario.id,
+            nomeResponsavel: novoQuestionario.nome_responsavel,
+            email: novoQuestionario.email,
+            respostasJson: novoQuestionario.respostas_json || {},
+            status: novoQuestionario.status
           }
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
