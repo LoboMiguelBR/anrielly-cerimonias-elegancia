@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -24,10 +23,10 @@ const contractSchema = z.object({
   event_date: z.string().optional(),
   event_time: z.string().optional(),
   event_location: z.string().optional(),
-  total_price: z.string().min(1, 'Valor total é obrigatório'),
-  down_payment: z.string().optional(),
+  total_price: z.number().min(0, 'Valor total deve ser positivo'),
+  down_payment: z.number().optional(),
   down_payment_date: z.string().optional(),
-  remaining_amount: z.string().optional(),
+  remaining_amount: z.number().optional(),
   remaining_payment_date: z.string().optional(),
   template_id: z.string().optional(),
   notes: z.string().optional(),
@@ -65,10 +64,10 @@ const ContractForm = ({ initialData, onSubmit, onCancel, isLoading = false }: Co
       event_date: initialData.event_date || '',
       event_time: initialData.event_time || '',
       event_location: initialData.event_location || '',
-      total_price: initialData.total_price.toString(),
-      down_payment: initialData.down_payment?.toString() || '',
+      total_price: initialData.total_price,
+      down_payment: initialData.down_payment,
       down_payment_date: initialData.down_payment_date || '',
-      remaining_amount: initialData.remaining_amount?.toString() || '',
+      remaining_amount: initialData.remaining_amount,
       remaining_payment_date: initialData.remaining_payment_date || '',
       template_id: initialData.template_id || '',
       notes: initialData.notes || '',
@@ -85,10 +84,10 @@ const ContractForm = ({ initialData, onSubmit, onCancel, isLoading = false }: Co
       event_date: '',
       event_time: '',
       event_location: '',
-      total_price: '',
-      down_payment: '',
+      total_price: 0,
+      down_payment: 0,
       down_payment_date: '',
-      remaining_amount: '',
+      remaining_amount: 0,
       remaining_payment_date: '',
       template_id: '',
       notes: '',
@@ -121,10 +120,10 @@ const ContractForm = ({ initialData, onSubmit, onCancel, isLoading = false }: Co
 
   useEffect(() => {
     if (totalPrice && downPayment) {
-      const total = parseFloat(totalPrice) || 0;
-      const down = parseFloat(downPayment) || 0;
+      const total = Number(totalPrice) || 0;
+      const down = Number(downPayment) || 0;
       const remaining = total - down;
-      setValue('remaining_amount', remaining > 0 ? remaining.toString() : '');
+      setValue('remaining_amount', remaining > 0 ? remaining : 0);
     }
   }, [totalPrice, downPayment, setValue]);
 
@@ -257,7 +256,7 @@ const ContractForm = ({ initialData, onSubmit, onCancel, isLoading = false }: Co
                   id="total_price"
                   type="number"
                   step="0.01"
-                  {...register('total_price')}
+                  {...register('total_price', { valueAsNumber: true })}
                   className={errors.total_price ? 'border-red-500' : ''}
                 />
                 {errors.total_price && (
@@ -271,7 +270,7 @@ const ContractForm = ({ initialData, onSubmit, onCancel, isLoading = false }: Co
                   id="down_payment"
                   type="number"
                   step="0.01"
-                  {...register('down_payment')}
+                  {...register('down_payment', { valueAsNumber: true })}
                 />
               </div>
 
@@ -290,7 +289,7 @@ const ContractForm = ({ initialData, onSubmit, onCancel, isLoading = false }: Co
                   id="remaining_amount"
                   type="number"
                   step="0.01"
-                  {...register('remaining_amount')}
+                  {...register('remaining_amount', { valueAsNumber: true })}
                   readOnly
                 />
               </div>

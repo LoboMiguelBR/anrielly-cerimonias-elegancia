@@ -20,7 +20,7 @@ export interface ContractData {
   status: 'pending' | 'signed' | 'draft' | 'canceled';
   created_at: string;
   updated_at: string;
-  token: string;
+  token?: string; // Tornando opcional para compatibilidade
   public_token?: string;
   signed_at?: string;
   template_id?: string;
@@ -43,10 +43,10 @@ export interface ContractFormData {
   event_date: string;
   event_time?: string;
   event_location?: string;
-  total_price: number;
-  down_payment?: number;
+  total_price: number; // Mudando para number
+  down_payment?: number; // Mudando para number
   down_payment_date?: string;
-  remaining_amount?: number;
+  remaining_amount?: number; // Mudando para number
   remaining_payment_date?: string;
   notes?: string;
   template_id?: string;

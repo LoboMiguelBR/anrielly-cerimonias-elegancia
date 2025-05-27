@@ -19,7 +19,10 @@ export const contractCrudApi = {
     return data.map(contract => ({
       ...contract,
       token: contract.token || contract.id, // fallback to id if token is missing
-      status: contract.status as ContractStatus
+      status: contract.status as ContractStatus,
+      total_price: Number(contract.total_price),
+      down_payment: contract.down_payment ? Number(contract.down_payment) : undefined,
+      remaining_amount: contract.remaining_amount ? Number(contract.remaining_amount) : undefined
     }));
   },
 
@@ -41,7 +44,10 @@ export const contractCrudApi = {
     return {
       ...data,
       token: data.token || data.id, // fallback to id if token is missing
-      status: data.status as ContractStatus
+      status: data.status as ContractStatus,
+      total_price: Number(data.total_price),
+      down_payment: data.down_payment ? Number(data.down_payment) : undefined,
+      remaining_amount: data.remaining_amount ? Number(data.remaining_amount) : undefined
     };
   },
 
@@ -75,7 +81,11 @@ export const contractCrudApi = {
 
     return {
       ...data,
-      status: data.status as ContractStatus
+      status: data.status as ContractStatus,
+      token: data.token || data.id,
+      total_price: Number(data.total_price),
+      down_payment: data.down_payment ? Number(data.down_payment) : undefined,
+      remaining_amount: data.remaining_amount ? Number(data.remaining_amount) : undefined
     };
   },
 
@@ -103,7 +113,11 @@ export const contractCrudApi = {
 
     return {
       ...data,
-      status: data.status as ContractStatus
+      status: data.status as ContractStatus,
+      token: data.token || data.id,
+      total_price: Number(data.total_price),
+      down_payment: data.down_payment ? Number(data.down_payment) : undefined,
+      remaining_amount: data.remaining_amount ? Number(data.remaining_amount) : undefined
     };
   },
 

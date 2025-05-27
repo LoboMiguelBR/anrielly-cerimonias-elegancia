@@ -1,161 +1,197 @@
-import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+
+import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Home, Image, MessageCircle, FileText, Camera, Palette, Heart, Users, FileSignature } from 'lucide-react';
-import AdminHeader from '@/components/admin/AdminHeader';
-import MobileAdminNav from '@/components/admin/MobileAdminNav';
-import DashboardTab from '@/components/admin/tabs/DashboardTab';
-import AdminGalleryTab from '@/components/admin/tabs/AdminGalleryTab';
-import TestimonialsTab from '@/components/admin/tabs/TestimonialsTab';
-import QuotesTab from '@/components/admin/tabs/QuotesTab';
-import ProposalsTab from '@/components/admin/tabs/ProposalsTab';
-import ProposalTemplatesTab from '@/components/admin/tabs/ProposalTemplatesTab';
-import QuestionariosTab from '@/components/admin/tabs/QuestionariosTab';
-import LeadsTab from '@/components/admin/tabs/LeadsTab';
-import ProfessionalsTab from '@/components/admin/tabs/ProfessionalsTab';
-import ContractsTab from '@/components/admin/tabs/ContractsTab';
-import ContractTemplatesTab from '@/components/admin/tabs/ContractTemplatesTab';
-import { useQuoteRequests } from '@/hooks/useQuoteRequests';
-import { useMobileLayout } from '@/hooks/useMobileLayout';
+import AdminHeader from "@/components/admin/AdminHeader";
+import MobileAdminNav from "@/components/admin/MobileAdminNav";
+import { Separator } from "@/components/ui/separator";
+import { 
+  BarChart3, 
+  Users, 
+  UserPlus, 
+  Calculator, 
+  FileText, 
+  FileTemplate,
+  ScrollText,
+  ClipboardList,
+  Mail,
+  ImageIcon,
+  MessageSquare,
+  HelpCircle
+} from "lucide-react";
+
+// Import tabs
+import DashboardTab from "@/components/admin/tabs/DashboardTab";
+import LeadsTab from "@/components/admin/tabs/LeadsTab";
+import ProfessionalsTab from "@/components/admin/tabs/ProfessionalsTab";
+import QuotesTab from "@/components/admin/tabs/QuotesTab";
+import ProposalsTab from "@/components/admin/tabs/ProposalsTab";
+import ProposalTemplatesTab from "@/components/admin/tabs/ProposalTemplatesTab";
+import ContractsTab from "@/components/admin/tabs/ContractsTab";
+import ContractTemplatesTab from "@/components/admin/tabs/ContractTemplatesTab";
+import ContractEmailTemplatesTab from "@/components/admin/tabs/ContractEmailTemplatesTab";
+import AdminGalleryTab from "@/components/admin/tabs/AdminGalleryTab";
+import TestimonialsTab from "@/components/admin/tabs/TestimonialsTab";
+import QuestionariosTab from "@/components/admin/tabs/QuestionariosTab";
 
 const AdminDashboard = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const tabFromUrl = searchParams.get('tab');
-  const quoteIdFromUrl = searchParams.get('quoteId');
-  const { isMobile } = useMobileLayout();
-  
-  const [activeTab, setActiveTab] = useState(tabFromUrl || "dashboard");
-  const { data: quoteRequests } = useQuoteRequests();
+  const [activeTab, setActiveTab] = useState("dashboard");
 
-  // Format quote requests for the dashboard
-  const formattedQuoteRequests = quoteRequests?.map(request => ({
-    id: request.id,
-    name: request.name,
-    date: request.event_date || '',
-    eventType: request.event_type,
-    phone: request.phone,
-    status: request.status,
-    email: request.email,
-    eventLocation: request.event_location
-  })) || [];
-
-  // Update URL when tab changes
-  useEffect(() => {
-    const newParams = new URLSearchParams(searchParams);
-    newParams.set('tab', activeTab);
-    setSearchParams(newParams);
-  }, [activeTab, setSearchParams, searchParams]);
-
-  const handleTabChange = (value: string) => {
-    setActiveTab(value);
-  };
+  const menuSections = [
+    {
+      title: "📊 DASHBOARD",
+      items: [
+        { id: "dashboard", label: "Dashboard Principal", icon: BarChart3 }
+      ]
+    },
+    {
+      title: "👥 LEADS & CLIENTES",
+      items: [
+        { id: "leads", label: "Leads", icon: Users },
+        { id: "professionals", label: "Profissionais", icon: UserPlus }
+      ]
+    },
+    {
+      title: "💰 VENDAS",
+      items: [
+        { id: "quotes", label: "Orçamentos", icon: Calculator },
+        { id: "proposals", label: "Propostas", icon: FileText },
+        { id: "proposal-templates", label: "Templates de Propostas", icon: FileTemplate }
+      ]
+    },
+    {
+      title: "📝 CONTRATOS",
+      items: [
+        { id: "contracts", label: "Contratos", icon: ScrollText },
+        { id: "contract-templates", label: "Templates de Contratos", icon: ClipboardList },
+        { id: "contract-email-templates", label: "Templates de Email", icon: Mail }
+      ]
+    },
+    {
+      title: "🎨 CONTEÚDO",
+      items: [
+        { id: "gallery", label: "Galeria", icon: ImageIcon },
+        { id: "testimonials", label: "Depoimentos", icon: MessageSquare },
+        { id: "questionarios", label: "Questionários", icon: HelpCircle }
+      ]
+    }
+  ];
 
   return (
     <div className="min-h-screen bg-gray-50">
       <AdminHeader />
       
-      <main className="container mx-auto px-4 py-4 lg:py-8">
-        <div className="flex items-center gap-4 mb-6 lg:hidden">
-          <MobileAdminNav activeTab={activeTab} onTabChange={handleTabChange} />
-          <h1 className="font-playfair text-xl font-bold text-gray-800">
-            {activeTab === 'dashboard' && 'Dashboard'}
-            {activeTab === 'leads' && 'Leads'}
-            {activeTab === 'professionals' && 'Profissionais'}
-            {activeTab === 'gallery' && 'Galeria'}
-            {activeTab === 'testimonials' && 'Depoimentos'}
-            {activeTab === 'quotes' && 'Orçamentos'}
-            {activeTab === 'proposals' && 'Propostas'}
-            {activeTab === 'contracts' && 'Contratos'}
-            {activeTab === 'contract-templates' && 'Templates de Contrato'}
-            {activeTab === 'templates' && 'Templates'}
-            {activeTab === 'questionarios' && 'Questionários'}
-          </h1>
-        </div>
+      <div className="flex">
+        {/* Desktop Sidebar */}
+        <aside className="hidden lg:block w-80 bg-white shadow-sm border-r h-[calc(100vh-80px)] overflow-y-auto">
+          <div className="p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-6">Menu de Navegação</h2>
+            
+            <div className="space-y-6">
+              {menuSections.map((section, sectionIndex) => (
+                <div key={section.title}>
+                  <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-3">
+                    {section.title}
+                  </h3>
+                  
+                  <div className="space-y-1">
+                    {section.items.map((item) => {
+                      const Icon = item.icon;
+                      return (
+                        <button
+                          key={item.id}
+                          onClick={() => setActiveTab(item.id)}
+                          className={`w-full flex items-center px-3 py-2 text-sm rounded-lg transition-colors ${
+                            activeTab === item.id
+                              ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                              : 'text-gray-700 hover:bg-gray-50'
+                          }`}
+                        >
+                          <Icon className="h-4 w-4 mr-3" />
+                          {item.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  
+                  {sectionIndex < menuSections.length - 1 && (
+                    <Separator className="mt-4" />
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </aside>
 
-        <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4 lg:space-y-8">
-          {!isMobile && (
-            <TabsList className="bg-white p-1 border rounded-md w-full flex overflow-x-auto">
-              <TabsTrigger value="dashboard" className="flex items-center min-w-fit">
-                <Home className="w-4 h-4 mr-2" /> Dashboard
-              </TabsTrigger>
-              <TabsTrigger value="leads" className="flex items-center min-w-fit">
-                <Users className="w-4 h-4 mr-2" /> Leads
-              </TabsTrigger>
-              <TabsTrigger value="professionals" className="flex items-center min-w-fit">
-                <Users className="w-4 h-4 mr-2" /> Profissionais
-              </TabsTrigger>
-              <TabsTrigger value="gallery" className="flex items-center min-w-fit">
-                <Image className="w-4 h-4 mr-2" /> Galeria
-              </TabsTrigger>
-              <TabsTrigger value="testimonials" className="flex items-center min-w-fit">
-                <MessageCircle className="w-4 h-4 mr-2" /> Depoimentos
-              </TabsTrigger>
-              <TabsTrigger value="quotes" className="flex items-center min-w-fit">
-                <FileText className="w-4 h-4 mr-2" /> Orçamentos
-              </TabsTrigger>
-              <TabsTrigger value="proposals" className="flex items-center min-w-fit">
-                <Camera className="w-4 h-4 mr-2" /> Propostas
-              </TabsTrigger>
-              <TabsTrigger value="contracts" className="flex items-center min-w-fit">
-                <FileSignature className="w-4 h-4 mr-2" /> Contratos
-              </TabsTrigger>
-              <TabsTrigger value="contract-templates" className="flex items-center min-w-fit">
-                <FileText className="w-4 h-4 mr-2" /> Templates Contrato
-              </TabsTrigger>
-              <TabsTrigger value="templates" className="flex items-center min-w-fit">
-                <Palette className="w-4 h-4 mr-2" /> Templates
-              </TabsTrigger>
-              <TabsTrigger value="questionarios" className="flex items-center min-w-fit">
-                <Heart className="w-4 h-4 mr-2" /> Questionários
-              </TabsTrigger>
-            </TabsList>
-          )}
-          
-          <TabsContent value="dashboard">
-            <DashboardTab quoteRequests={formattedQuoteRequests} />
-          </TabsContent>
-          
-          <TabsContent value="leads">
-            <LeadsTab />
-          </TabsContent>
-          
-          <TabsContent value="professionals">
-            <ProfessionalsTab />
-          </TabsContent>
-          
-          <TabsContent value="gallery">
-            <AdminGalleryTab />
-          </TabsContent>
-          
-          <TabsContent value="testimonials">
-            <TestimonialsTab />
-          </TabsContent>
-          
-          <TabsContent value="quotes">
-            <QuotesTab />
-          </TabsContent>
-          
-          <TabsContent value="proposals">
-            <ProposalsTab quoteRequests={quoteRequests || []} quoteIdFromUrl={quoteIdFromUrl} />
-          </TabsContent>
-          
-          <TabsContent value="contracts">
-            <ContractsTab />
-          </TabsContent>
-          
-          <TabsContent value="contract-templates">
-            <ContractTemplatesTab />
-          </TabsContent>
-          
-          <TabsContent value="templates">
-            <ProposalTemplatesTab />
-          </TabsContent>
-          
-          <TabsContent value="questionarios">
-            <QuestionariosTab />
-          </TabsContent>
-        </Tabs>
-      </main>
+        {/* Mobile Navigation */}
+        <MobileAdminNav />
+
+        {/* Main Content */}
+        <main className="flex-1 lg:pl-0">
+          <div className="p-6">
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              {/* Hidden TabsList for accessibility */}
+              <TabsList className="hidden">
+                {menuSections.flatMap(section => 
+                  section.items.map(item => (
+                    <TabsTrigger key={item.id} value={item.id}>
+                      {item.label}
+                    </TabsTrigger>
+                  ))
+                )}
+              </TabsList>
+
+              {/* Tab Contents */}
+              <TabsContent value="dashboard">
+                <DashboardTab />
+              </TabsContent>
+
+              <TabsContent value="leads">
+                <LeadsTab />
+              </TabsContent>
+
+              <TabsContent value="professionals">
+                <ProfessionalsTab />
+              </TabsContent>
+
+              <TabsContent value="quotes">
+                <QuotesTab />
+              </TabsContent>
+
+              <TabsContent value="proposals">
+                <ProposalsTab />
+              </TabsContent>
+
+              <TabsContent value="proposal-templates">
+                <ProposalTemplatesTab />
+              </TabsContent>
+
+              <TabsContent value="contracts">
+                <ContractsTab />
+              </TabsContent>
+
+              <TabsContent value="contract-templates">
+                <ContractTemplatesTab />
+              </TabsContent>
+
+              <TabsContent value="contract-email-templates">
+                <ContractEmailTemplatesTab />
+              </TabsContent>
+
+              <TabsContent value="gallery">
+                <AdminGalleryTab />
+              </TabsContent>
+
+              <TabsContent value="testimonials">
+                <TestimonialsTab />
+              </TabsContent>
+
+              <TabsContent value="questionarios">
+                <QuestionariosTab />
+              </TabsContent>
+            </Tabs>
+          </div>
+        </main>
+      </div>
     </div>
   );
 };

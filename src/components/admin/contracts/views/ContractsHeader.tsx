@@ -1,15 +1,40 @@
 
+import { Button } from "@/components/ui/button";
+import { Plus, RefreshCw } from "lucide-react";
+
 interface ContractsHeaderProps {
-  // No props needed for static header
+  onCreate?: () => void;
+  onRefresh?: () => void;
 }
 
-const ContractsHeader = ({}: ContractsHeaderProps) => {
+const ContractsHeader = ({ onCreate, onRefresh }: ContractsHeaderProps) => {
   return (
-    <div className="p-6 bg-white rounded-lg shadow-sm border-l-4 border-l-blue-200">
-      <h2 className="text-2xl font-playfair font-semibold mb-2">Gestão de Contratos</h2>
-      <p className="text-gray-500">
-        Crie, gerencie e envie contratos digitais para seus clientes com assinatura eletrônica.
-      </p>
+    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">Contratos</h1>
+        <p className="text-gray-600 mt-1">
+          Gerencie todos os contratos digitais dos seus clientes
+        </p>
+      </div>
+      
+      <div className="flex gap-2">
+        {onRefresh && (
+          <Button
+            variant="outline"
+            onClick={onRefresh}
+            title="Atualizar lista"
+          >
+            <RefreshCw className="h-4 w-4" />
+          </Button>
+        )}
+        
+        {onCreate && (
+          <Button onClick={onCreate}>
+            <Plus className="h-4 w-4 mr-2" />
+            Novo Contrato
+          </Button>
+        )}
+      </div>
     </div>
   );
 };

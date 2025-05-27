@@ -9,6 +9,42 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      contract_email_templates: {
+        Row: {
+          created_at: string
+          description: string | null
+          html_content: string
+          id: string
+          is_default: boolean | null
+          name: string
+          subject: string
+          template_type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          html_content: string
+          id?: string
+          is_default?: boolean | null
+          name: string
+          subject: string
+          template_type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          html_content?: string
+          id?: string
+          is_default?: boolean | null
+          name?: string
+          subject?: string
+          template_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       contract_templates: {
         Row: {
           created_at: string
@@ -71,6 +107,7 @@ export type Database = {
           signer_ip: string | null
           status: string
           template_id: string | null
+          token: string
           total_price: number
           updated_at: string
         }
@@ -102,6 +139,7 @@ export type Database = {
           signer_ip?: string | null
           status?: string
           template_id?: string | null
+          token?: string
           total_price: number
           updated_at?: string
         }
@@ -133,6 +171,7 @@ export type Database = {
           signer_ip?: string | null
           status?: string
           template_id?: string | null
+          token?: string
           total_price?: number
           updated_at?: string
         }
