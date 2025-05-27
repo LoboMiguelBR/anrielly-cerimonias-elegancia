@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,9 +6,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Save, ArrowLeft, Plus, Trash2, Eye, Edit } from 'lucide-react';
+import { Save, ArrowLeft, Plus, Eye, Edit } from 'lucide-react';
 import { contractApi } from '../../hooks/contract';
 import { ContractTemplate } from '../../hooks/contract/types';
+import { getAvailableVariables } from '@/utils/contractVariables';
 import { toast } from 'sonner';
 
 interface ContractTemplateEditorProps {
@@ -50,9 +50,9 @@ const ContractTemplateEditor = ({ template, onSave, onCancel }: ContractTemplate
     
     <div class="clause">
       <h2>CLÁUSULA SEGUNDA – DO PREÇO E CONDIÇÕES DE PAGAMENTO</h2>
-      <p>O valor total dos serviços contratados é de R$ {{total_price}}, a ser pago da seguinte forma:</p>
-      <p>a) Entrada: R$ {{down_payment}}, a ser paga até {{down_payment_date}};</p>
-      <p>b) Saldo: R$ {{remaining_amount}}, a ser pago até {{remaining_payment_date}}.</p>
+      <p>O valor total dos serviços contratados é de {{total_price}} ({{total_price_extenso}}), a ser pago da seguinte forma:</p>
+      <p>a) Entrada: {{down_payment}}, a ser paga até {{down_payment_date}};</p>
+      <p>b) Saldo: {{remaining_amount}}, a ser pago até {{remaining_payment_date}}.</p>
     </div>
     
     <div class="clause">
@@ -73,8 +73,21 @@ const ContractTemplateEditor = ({ template, onSave, onCancel }: ContractTemplate
   
   <div class="signatures">
     <div class="signature-area">
-      <p>Data: {{current_date}}</p>
+      <p>Data: {{current_date}} às {{current_time}}</p>
       <p>{{notes}}</p>
+      <div class="signature-section">
+        <div class="client-signature">
+          <p>Assinatura do Cliente:</p>
+          {{client_signature}}
+        </div>
+        <div class="company-signature">
+          <p>Assinatura da Contratada:</p>
+          {{company_signature}}
+        </div>
+      </div>
+      <div class="audit-info">
+        <p><small>Documento assinado digitalmente. IP: {{ip_address}} | Hash: {{document_hash}}</small></p>
+      </div>
     </div>
   </div>
 </div>
@@ -140,6 +153,27 @@ const ContractTemplateEditor = ({ template, onSave, onCancel }: ContractTemplate
 .signature-area p {
   margin-bottom: 10px;
 }
+
+.signature-section {
+  display: flex;
+  justify-content: space-between;
+  margin: 30px 0;
+}
+
+.client-signature, .company-signature {
+  width: 45%;
+  border-bottom: 1px solid #333;
+  padding-bottom: 10px;
+  min-height: 60px;
+}
+
+.audit-info {
+  margin-top: 20px;
+  padding: 10px;
+  background-color: #f5f5f5;
+  border-left: 3px solid #007bff;
+  font-size: 12px;
+}
   `;
 
   useEffect(() => {
@@ -181,13 +215,7 @@ const ContractTemplateEditor = ({ template, onSave, onCancel }: ContractTemplate
     }
   };
 
-  const variables = [
-    '{{client_name}}', '{{client_email}}', '{{client_phone}}', '{{civil_status}}',
-    '{{client_profession}}', '{{client_address}}', '{{event_type}}', '{{event_date}}',
-    '{{event_time}}', '{{event_location}}', '{{total_price}}', '{{down_payment}}',
-    '{{down_payment_date}}', '{{remaining_amount}}', '{{remaining_payment_date}}',
-    '{{current_date}}', '{{notes}}'
-  ];
+  const availableVariables = getAvailableVariables();
 
   const insertVariable = (variable: string) => {
     const textarea = document.getElementById('html-content') as HTMLTextAreaElement;
@@ -325,8 +353,8 @@ const ContractTemplateEditor = ({ template, onSave, onCancel }: ContractTemplate
                   </AlertDescription>
                 </Alert>
                 
-                <div className="space-y-2">
-                  {variables.map((variable) => (
+                <div className="space-y-2 max-h-96 overflow-y-auto">
+                  {availableVariables.map((variable) => (
                     <Button
                       key={variable}
                       variant="outline"

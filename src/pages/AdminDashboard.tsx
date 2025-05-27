@@ -10,9 +10,8 @@ import {
   UserPlus, 
   Calculator, 
   FileText, 
-  FileTemplate,
-  ScrollText,
   ClipboardList,
+  ScrollText,
   Mail,
   ImageIcon,
   MessageSquare,
@@ -55,7 +54,7 @@ const AdminDashboard = () => {
       items: [
         { id: "quotes", label: "Orçamentos", icon: Calculator },
         { id: "proposals", label: "Propostas", icon: FileText },
-        { id: "proposal-templates", label: "Templates de Propostas", icon: FileTemplate }
+        { id: "proposal-templates", label: "Templates de Propostas", icon: FileText }
       ]
     },
     {
@@ -108,7 +107,7 @@ const AdminDashboard = () => {
                         >
                           <Icon className="h-4 w-4 mr-3" />
                           {item.label}
-                        </button>
+                        </Button>
                       );
                     })}
                   </div>
@@ -123,7 +122,7 @@ const AdminDashboard = () => {
         </aside>
 
         {/* Mobile Navigation */}
-        <MobileAdminNav />
+        <MobileAdminNav activeTab={activeTab} onTabChange={setActiveTab} />
 
         {/* Main Content */}
         <main className="flex-1 lg:pl-0">

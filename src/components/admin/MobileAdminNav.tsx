@@ -10,9 +10,8 @@ import {
   UserPlus, 
   Calculator, 
   FileText, 
-  FileTemplate,
-  ScrollText,
   ClipboardList,
+  ScrollText,
   Mail,
   ImageIcon,
   MessageSquare,
@@ -46,7 +45,7 @@ const MobileAdminNav = ({ activeTab = "dashboard", onTabChange }: MobileAdminNav
       items: [
         { id: "quotes", label: "Orçamentos", icon: Calculator },
         { id: "proposals", label: "Propostas", icon: FileText },
-        { id: "proposal-templates", label: "Templates de Propostas", icon: FileTemplate }
+        { id: "proposal-templates", label: "Templates de Propostas", icon: FileText }
       ]
     },
     {

@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { ContractEmailTemplate, ContractEmailTemplateFormData } from '../types';
 
 export const contractEmailTemplatesApi = {
-  // Get all email templates
+  // Get all contract email templates
   async getContractEmailTemplates(): Promise<ContractEmailTemplate[]> {
     const { data, error } = await supabase
       .from('contract_email_templates')
@@ -15,45 +15,15 @@ export const contractEmailTemplatesApi = {
       throw error;
     }
 
-    return data || [];
+    return (data || []).map(template => ({
+      ...template,
+      template_type: template.template_type as 'signature' | 'signed_confirmation' | 'reminder'
+    }));
   },
 
-  // Get email template by ID
-  async getContractEmailTemplateById(id: string): Promise<ContractEmailTemplate | null> {
-    const { data, error } = await supabase
-      .from('contract_email_templates')
-      .select('*')
-      .eq('id', id)
-      .maybeSingle();
-
-    if (error) {
-      console.error('Error fetching contract email template by ID:', error);
-      throw error;
-    }
-
-    return data;
-  },
-
-  // Get default email template by type
-  async getDefaultEmailTemplate(type: string): Promise<ContractEmailTemplate | null> {
-    const { data, error } = await supabase
-      .from('contract_email_templates')
-      .select('*')
-      .eq('template_type', type)
-      .eq('is_default', true)
-      .maybeSingle();
-
-    if (error) {
-      console.error('Error fetching default email template:', error);
-      throw error;
-    }
-
-    return data;
-  },
-
-  // Create email template
+  // Create contract email template
   async createContractEmailTemplate(templateData: ContractEmailTemplateFormData): Promise<ContractEmailTemplate> {
-    // If this is being set as default, first remove default flag from others of same type
+    // Se for marcado como padrão, desmarcar outros templates do mesmo tipo
     if (templateData.is_default) {
       await supabase
         .from('contract_email_templates')
@@ -72,26 +42,21 @@ export const contractEmailTemplatesApi = {
       throw error;
     }
 
-    return data;
+    return {
+      ...data,
+      template_type: data.template_type as 'signature' | 'signed_confirmation' | 'reminder'
+    };
   },
 
-  // Update email template
+  // Update contract email template
   async updateContractEmailTemplate(id: string, templateData: Partial<ContractEmailTemplateFormData>): Promise<ContractEmailTemplate> {
-    // If this is being set as default, first remove default flag from others of same type
-    if (templateData.is_default) {
-      const { data: currentTemplate } = await supabase
+    // Se for marcado como padrão, desmarcar outros templates do mesmo tipo
+    if (templateData.is_default && templateData.template_type) {
+      await supabase
         .from('contract_email_templates')
-        .select('template_type')
-        .eq('id', id)
-        .single();
-
-      if (currentTemplate) {
-        await supabase
-          .from('contract_email_templates')
-          .update({ is_default: false })
-          .eq('template_type', currentTemplate.template_type)
-          .neq('id', id);
-      }
+        .update({ is_default: false })
+        .eq('template_type', templateData.template_type)
+        .neq('id', id);
     }
 
     const { data, error } = await supabase
@@ -106,10 +71,13 @@ export const contractEmailTemplatesApi = {
       throw error;
     }
 
-    return data;
+    return {
+      ...data,
+      template_type: data.template_type as 'signature' | 'signed_confirmation' | 'reminder'
+    };
   },
 
-  // Delete email template
+  // Delete contract email template
   async deleteContractEmailTemplate(id: string): Promise<void> {
     const { error } = await supabase
       .from('contract_email_templates')
@@ -120,5 +88,46 @@ export const contractEmailTemplatesApi = {
       console.error('Error deleting contract email template:', error);
       throw error;
     }
+  },
+
+  // Get default template by type
+  async getDefaultTemplateByType(type: 'signature' | 'signed_confirmation' | 'reminder'): Promise<ContractEmailTemplate | null> {
+    const { data, error } = await supabase
+      .from('contract_email_templates')
+      .select('*')
+      .eq('template_type', type)
+      .eq('is_default', true)
+      .maybeSingle();
+
+    if (error) {
+      console.error('Error fetching default template by type:', error);
+      throw error;
+    }
+
+    if (!data) return null;
+
+    return {
+      ...data,
+      template_type: data.template_type as 'signature' | 'signed_confirmation' | 'reminder'
+    };
+  },
+
+  // Get templates by type
+  async getTemplatesByType(type: 'signature' | 'signed_confirmation' | 'reminder'): Promise<ContractEmailTemplate[]> {
+    const { data, error } = await supabase
+      .from('contract_email_templates')
+      .select('*')
+      .eq('template_type', type)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching templates by type:', error);
+      throw error;
+    }
+
+    return (data || []).map(template => ({
+      ...template,
+      template_type: template.template_type as 'signature' | 'signed_confirmation' | 'reminder'
+    }));
   }
 };
