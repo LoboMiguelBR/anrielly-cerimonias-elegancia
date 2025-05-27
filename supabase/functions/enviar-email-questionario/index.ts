@@ -39,7 +39,7 @@ const getWelcomeEmailTemplate = (name: string) => `
   <div class="container">
     <div class="header">
       <div class="logo">💕</div>
-      <h1>Anrielly Gomes Cerimonialista</h1>
+      <h1>Anrielly Gomes Mestre de Cerimônia</h1>
       <p>Celebrando o amor de vocês</p>
     </div>
     
@@ -58,7 +58,7 @@ const getWelcomeEmailTemplate = (name: string) => `
       <p><strong>Dicas importantes:</strong></p>
       <ul>
         <li>🕰️ Não tenha pressa! Responda no seu tempo</li>
-        <li>💾 Suas respostas são salvas automaticamente</li>
+        <li>💾 Suas respostas são salvas automaticamente a cada 60"</li>
         <li>🔄 Você pode voltar a qualquer momento para continuar</li>
         <li>❤️ Seja sincero(a) e verdadeiro(a) - isso nos ajuda muito!</li>
       </ul>
@@ -67,11 +67,11 @@ const getWelcomeEmailTemplate = (name: string) => `
       
       <p>Com carinho,<br>
       <strong>Anrielly Gomes</strong><br>
-      Cerimonialista</p>
+      Mestre de Cerimônia</p>
     </div>
     
     <div class="footer">
-      <p>📧 contato@anriellygomes.com.br | 📱 (11) 99999-9999</p>
+      <p>📧 contato@anriellygomes.com.br | 📱 (24) 99268-9947</p>
       <p>Este é um email automático, mas fique à vontade para responder se tiver dúvidas!</p>
     </div>
   </div>
@@ -110,12 +110,12 @@ const getCompletedEmailTemplate = (name: string) => `
     <div class="content">
       <div class="celebration">
         <h2 style="color: #92400e; margin-bottom: 15px;">🎊 MUITO OBRIGADA! 🎊</h2>
-        <p style="font-size: 18px; margin: 0; color: #92400e;"><strong>Vocês são incríveis!</strong></p>
+        <p style="font-size: 18px; margin: 0; color: #92400e;"><strong>Você é incrível!</strong></p>
       </div>
       
-      <p>Que alegria imensa receber o questionário de vocês completo! ✨</p>
+      <p>Que alegria imensa receber o seu questionário completo! ✨</p>
       
-      <p>Cada palavra, cada resposta, cada detalhe que vocês compartilharam conosco é um tesouro que nos ajudará a criar uma cerimônia verdadeiramente única e especial para vocês.</p>
+      <p>Cada palavra, cada resposta, cada detalhe que você compartilhou conosco é um tesouro que nos ajudará a criar uma cerimônia verdadeiramente única e especial para vocês.</p>
       
       <div class="next-steps">
         <h3>🌟 Próximos passos:</h3>
@@ -133,11 +133,11 @@ const getCompletedEmailTemplate = (name: string) => `
       
       <p>Até breve!<br>
       <strong>Anrielly Gomes</strong><br>
-      Cerimonialista</p>
+      Mestre de Cerimônia</p>
     </div>
     
     <div class="footer">
-      <p>📧 contato@anriellygomes.com.br | 📱 (11) 99999-9999</p>
+      <p>📧 contato@anriellygomes.com.br | 📱 (24) 99268-9947</p>
       <p>Fique à vontade para entrar em contato se tiver alguma dúvida!</p>
     </div>
   </div>
