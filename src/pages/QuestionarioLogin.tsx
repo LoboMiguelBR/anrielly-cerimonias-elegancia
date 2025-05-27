@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { AlertCircle } from 'lucide-react'
+import { AlertCircle, Shield } from 'lucide-react'
 import { useQuestionarioAuth } from '@/hooks/useQuestionarioAuth'
 
 const QuestionarioLogin = () => {
@@ -141,35 +141,32 @@ const QuestionarioLogin = () => {
           </h1>
         </div>
 
-        {/* Mensagem de Boas-vindas */}
-        <Card className="bg-white border border-rose-100 rounded-2xl shadow-sm">
+        {/* Card de Cadastro Essencial */}
+        <Card className="bg-rose-50 border border-rose-200 rounded-2xl shadow-sm">
           <CardContent className="p-6">
-            <h2 className="text-lg font-playfair text-center text-gray-800 mb-4">
-              📝 Mensagem de Boas-vindas ao Questionário
-            </h2>
-            <div className="text-sm text-gray-700 space-y-3">
-              <p>
-                Olá! Seja muito bem-vindo(a) ao nosso <strong>Questionário de Celebração do Amor</strong>.
-              </p>
-              <p>
-                Queremos te lembrar que este não é um simples formulário... é um momento especial para você refletir, reviver memórias e contar a linda história de vocês, com todo carinho, verdade e coração.
-              </p>
-              <p className="text-rose-600 font-medium">
-                💖 Não tenha pressa!
-              </p>
-              <p>
-                Sinta-se totalmente à vontade para responder no seu tempo, com toda sinceridade e tranquilidade.
-              </p>
-              <p>
-                Você pode salvar suas respostas a qualquer momento e, sempre que desejar, retornar para continuar de onde parou. Basta usar o seu email e senha cadastrados no início do preenchimento.
-              </p>
-              <p>
-                Nosso maior desejo é que esse questionário seja uma experiência leve, divertida e cheia de amor. Afinal, cada detalhe que você compartilha nos ajuda a tornar a cerimônia ainda mais única, verdadeira e especial.
-              </p>
+            <div className="flex items-start gap-3">
+              <Shield className="w-6 h-6 text-rose-600 mt-1 flex-shrink-0" />
+              <div>
+                <h2 className="text-lg font-medium text-gray-700 mb-3">
+                  🔐 Cadastro Essencial para sua Segurança
+                </h2>
+                <div className="text-sm font-medium text-gray-700 space-y-3">
+                  <p>
+                    Para garantir que cada noivo(a) tenha um <strong>acesso exclusivo, seguro e individual</strong>, é necessário realizar um cadastro antes de preencher o questionário.
+                  </p>
+                  <p>
+                    ✅ Isso assegura que suas respostas fiquem salvas com total privacidade, permitindo que você preencha no seu tempo, com tranquilidade, e possa retornar sempre que desejar.
+                  </p>
+                  <p>
+                    🔒 O cadastro é essencial para manter a <strong>confiabilidade, autenticidade e segurança</strong> das informações, além de garantir que cada história seja tratada com o carinho e o cuidado que ela merece.
+                  </p>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
 
+        {/* Formulários de Login/Cadastro */}
         <Card className="rounded-2xl shadow-md hover:shadow-lg transition-shadow bg-white">
           <CardHeader className="text-center p-8">
             <CardTitle className="text-2xl font-playfair font-bold text-gray-800">
@@ -321,6 +318,35 @@ const QuestionarioLogin = () => {
                 </form>
               </TabsContent>
             </Tabs>
+          </CardContent>
+        </Card>
+
+        {/* Mensagem de Boas-vindas */}
+        <Card className="bg-white border border-rose-100 rounded-2xl shadow-sm">
+          <CardContent className="p-6">
+            <h2 className="text-lg font-playfair text-center text-gray-800 mb-4">
+              📝 Mensagem de Boas-vindas ao Questionário
+            </h2>
+            <div className="text-sm text-gray-700 space-y-3">
+              <p>
+                Olá! Seja muito bem-vindo(a) ao nosso <strong>Questionário de Celebração do Amor</strong>.
+              </p>
+              <p>
+                Queremos te lembrar que este não é um simples formulário... é um momento especial para você refletir, reviver memórias e contar a linda história de vocês, com todo carinho, verdade e coração.
+              </p>
+              <p className="text-rose-600 font-medium">
+                💖 Não tenha pressa!
+              </p>
+              <p>
+                Sinta-se totalmente à vontade para responder no seu tempo, com toda sinceridade e tranquilidade.
+              </p>
+              <p>
+                Você pode salvar suas respostas a qualquer momento e, sempre que desejar, retornar para continuar de onde parou. Basta usar o seu email e senha cadastrados no início do preenchimento.
+              </p>
+              <p>
+                Nosso maior desejo é que esse questionário seja uma experiência leve, divertida e cheia de amor. Afinal, cada detalhe que você compartilha nos ajuda a tornar a cerimônia ainda mais única, verdadeira e especial.
+              </p>
+            </div>
           </CardContent>
         </Card>
       </div>
