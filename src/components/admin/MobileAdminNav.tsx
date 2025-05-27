@@ -4,19 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
 import { Menu } from "lucide-react";
-import { 
-  BarChart3, 
-  Users, 
-  UserPlus, 
-  Calculator, 
-  FileText, 
-  ClipboardList,
-  ScrollText,
-  Mail,
-  ImageIcon,
-  MessageSquare,
-  HelpCircle
-} from "lucide-react";
+import { menuSections, MenuItem } from "./config/menuConfig";
 
 interface MobileAdminNavProps {
   activeTab?: string;
@@ -25,46 +13,6 @@ interface MobileAdminNavProps {
 
 const MobileAdminNav = ({ activeTab = "dashboard", onTabChange }: MobileAdminNavProps) => {
   const [isOpen, setIsOpen] = useState(false);
-
-  const menuSections = [
-    {
-      title: "📊 DASHBOARD",
-      items: [
-        { id: "dashboard", label: "Dashboard Principal", icon: BarChart3 }
-      ]
-    },
-    {
-      title: "👥 LEADS & CLIENTES",
-      items: [
-        { id: "leads", label: "Leads", icon: Users },
-        { id: "professionals", label: "Profissionais", icon: UserPlus }
-      ]
-    },
-    {
-      title: "💰 VENDAS",
-      items: [
-        { id: "quotes", label: "Orçamentos", icon: Calculator },
-        { id: "proposals", label: "Propostas", icon: FileText },
-        { id: "proposal-templates", label: "Templates de Propostas", icon: FileText }
-      ]
-    },
-    {
-      title: "📝 CONTRATOS",
-      items: [
-        { id: "contracts", label: "Contratos", icon: ScrollText },
-        { id: "contract-templates", label: "Templates de Contratos", icon: ClipboardList },
-        { id: "contract-email-templates", label: "Templates de Email", icon: Mail }
-      ]
-    },
-    {
-      title: "🎨 CONTEÚDO",
-      items: [
-        { id: "gallery", label: "Galeria", icon: ImageIcon },
-        { id: "testimonials", label: "Depoimentos", icon: MessageSquare },
-        { id: "questionarios", label: "Questionários", icon: HelpCircle }
-      ]
-    }
-  ];
 
   const handleTabSelect = (tabId: string) => {
     onTabChange?.(tabId);
@@ -92,7 +40,7 @@ const MobileAdminNav = ({ activeTab = "dashboard", onTabChange }: MobileAdminNav
                   </h3>
                   
                   <div className="space-y-1">
-                    {section.items.map((item) => {
+                    {section.items.map((item: MenuItem) => {
                       const Icon = item.icon;
                       return (
                         <button
