@@ -6,11 +6,15 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { useToast } from "@/components/ui/use-toast"
+import { useToast } from "@/hooks/use-toast"
 import { supabase } from "@/integrations/supabase/client"
-import { Plus, ExternalLink, Download, Eye } from 'lucide-react'
+import { Plus, ExternalLink, Eye, Copy } from 'lucide-react'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import useSWR from 'swr'
+import type { Database } from '@/integrations/supabase/types'
+
+type QuestionarioRow = Database['public']['Tables']['questionarios_noivos']['Row']
 
 interface Questionario {
   id: string
@@ -20,7 +24,7 @@ interface Questionario {
   status: string
   data_criacao: string
   data_atualizacao: string
-  respostas_json: Record<string, string>
+  respostas_json: Record<string, string> | null
 }
 
 const QuestionariosTab = () => {
@@ -36,7 +40,17 @@ const QuestionariosTab = () => {
       .order('data_criacao', { ascending: false })
       
     if (error) throw error
-    return data || []
+    
+    return (data || []).map((row: QuestionarioRow): Questionario => ({
+      id: row.id,
+      link_publico: row.link_publico,
+      nome_responsavel: row.nome_responsavel,
+      email: row.email,
+      status: row.status || 'rascunho',
+      data_criacao: row.data_criacao || '',
+      data_atualizacao: row.data_atualizacao || '',
+      respostas_json: row.respostas_json as Record<string, string> | null
+    }))
   }
 
   const { data: questionarios, error, mutate } = useSWR('questionarios_noivos', fetcher)
@@ -44,7 +58,24 @@ const QuestionariosTab = () => {
   const generateUniqueLink = () => {
     const timestamp = Date.now()
     const random = Math.random().toString(36).substring(2, 8)
-    return `noivos-${timestamp}-${random}`
+    const generated = `noivos-${timestamp}-${random}`
+    setNewLink(generated)
+  }
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text)
+      toast({
+        title: "Copiado!",
+        description: "Link copiado para a área de transferência",
+      })
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível copiar o link",
+        variant: "destructive",
+      })
+    }
   }
 
   const criarNovoQuestionario = async () => {
@@ -64,7 +95,7 @@ const QuestionariosTab = () => {
         .from('questionarios_noivos')
         .select('id')
         .eq('link_publico', newLink)
-        .single()
+        .maybeSingle()
 
       if (existing) {
         toast({
@@ -75,17 +106,40 @@ const QuestionariosTab = () => {
         return
       }
 
+      // Criar um registro temporário no banco para reservar o link
+      const { error: insertError } = await supabase
+        .from('questionarios_noivos')
+        .insert({
+          link_publico: newLink,
+          nome_responsavel: 'Aguardando preenchimento',
+          email: 'aguardando@preenchimento.com',
+          senha_hash: 'temp_hash_will_be_replaced_on_first_login'
+        })
+
+      if (insertError) {
+        console.error('Erro ao criar questionário:', insertError)
+        toast({
+          title: "Erro",
+          description: "Erro ao criar questionário no banco de dados",
+          variant: "destructive",
+        })
+        return
+      }
+
       const linkCompleto = `${window.location.origin}/questionario/${newLink}`
       
       toast({
         title: "Link criado com sucesso!",
-        description: `Link: ${linkCompleto}`,
+        description: `Link criado e salvo no banco de dados`,
       })
 
       setNewLink('')
       
+      // Atualizar a lista
+      mutate()
+      
       // Copiar para clipboard
-      navigator.clipboard.writeText(linkCompleto)
+      copyToClipboard(linkCompleto)
       
     } catch (error) {
       console.error('Erro ao criar questionário:', error)
@@ -116,10 +170,15 @@ const QuestionariosTab = () => {
     window.open(url, '_blank')
   }
 
-  const calcularProgresso = (respostas: Record<string, string>) => {
+  const calcularProgresso = (respostas: Record<string, string> | null) => {
+    if (!respostas) return 0
     const totalPerguntas = 48
     const respostasPreenchidas = Object.values(respostas).filter(r => r && r.trim().length > 0).length
     return Math.round((respostasPreenchidas / totalPerguntas) * 100)
+  }
+
+  const getQuestionarioLink = (linkPublico: string) => {
+    return `${window.location.origin}/questionario/${linkPublico}`
   }
 
   if (error) {
@@ -133,126 +192,182 @@ const QuestionariosTab = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Questionários de Noivos</CardTitle>
-          <CardDescription>
-            Gerencie os questionários de noivos e visualize as respostas
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex gap-4 mb-6">
-            <div className="flex-1">
-              <Label htmlFor="new-link">Identificador do Link</Label>
-              <Input
-                id="new-link"
-                value={newLink}
-                onChange={(e) => setNewLink(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
-                placeholder="ex: casamento-joao-maria"
-              />
+    <TooltipProvider>
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Questionários de Noivos</CardTitle>
+            <CardDescription>
+              Gerencie os questionários de noivos e visualize as respostas
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col sm:flex-row gap-4 mb-6">
+              <div className="flex-1">
+                <Label htmlFor="new-link">Identificador do Link</Label>
+                <Input
+                  id="new-link"
+                  value={newLink}
+                  onChange={(e) => setNewLink(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                  placeholder="ex: casamento-joao-maria"
+                />
+              </div>
+              <div className="flex flex-col sm:flex-row items-end gap-2">
+                <Button onClick={generateUniqueLink} variant="outline">
+                  Gerar Automático
+                </Button>
+                <Button onClick={criarNovoQuestionario} disabled={isCreating}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  {isCreating ? 'Criando...' : 'Criar Link'}
+                </Button>
+              </div>
             </div>
-            <div className="flex items-end">
-              <Button onClick={generateUniqueLink} variant="outline" className="mr-2">
-                Gerar Automático
-              </Button>
-              <Button onClick={criarNovoQuestionario} disabled={isCreating}>
-                <Plus className="w-4 h-4 mr-2" />
-                {isCreating ? 'Criando...' : 'Criar Link'}
-              </Button>
-            </div>
-          </div>
 
-          <div className="border rounded-lg">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Responsável</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Progresso</TableHead>
-                  <TableHead>Criado em</TableHead>
-                  <TableHead>Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {questionarios?.map((questionario) => (
-                  <TableRow key={questionario.id}>
-                    <TableCell className="font-medium">
-                      {questionario.nome_responsavel || 'Não preenchido'}
-                    </TableCell>
-                    <TableCell>{questionario.email || '-'}</TableCell>
-                    <TableCell>{getStatusBadge(questionario.status)}</TableCell>
-                    <TableCell>
-                      {questionario.respostas_json ? 
-                        `${calcularProgresso(questionario.respostas_json)}%` : '0%'
-                      }
-                    </TableCell>
-                    <TableCell>
-                      {new Date(questionario.data_criacao).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => abrirQuestionario(questionario.link_publico)}
-                        >
-                          <ExternalLink className="w-4 h-4" />
-                        </Button>
-                        
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => setSelectedQuestionario(questionario)}
-                            >
-                              <Eye className="w-4 h-4" />
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-                            <DialogHeader>
-                              <DialogTitle>Respostas do Questionário</DialogTitle>
-                              <DialogDescription>
-                                {selectedQuestionario?.nome_responsavel} - {selectedQuestionario?.email}
-                              </DialogDescription>
-                            </DialogHeader>
-                            
-                            {selectedQuestionario?.respostas_json && (
-                              <div className="space-y-4">
-                                {Object.entries(selectedQuestionario.respostas_json).map(([perguntaIndex, resposta]) => (
-                                  <div key={perguntaIndex} className="border-b pb-4">
-                                    <p className="font-medium text-sm text-gray-600 mb-2">
-                                      Pergunta {parseInt(perguntaIndex) + 1}
-                                    </p>
-                                    <p className="bg-gray-50 p-3 rounded text-sm">
-                                      {resposta || 'Não respondida'}
-                                    </p>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-                          </DialogContent>
-                        </Dialog>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-                
-                {questionarios?.length === 0 && (
+            <div className="border rounded-lg overflow-x-auto">
+              <Table>
+                <TableHeader>
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-gray-500">
-                      Nenhum questionário criado ainda
-                    </TableCell>
+                    <TableHead>Responsável</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Link</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Progresso</TableHead>
+                    <TableHead>Criado em</TableHead>
+                    <TableHead>Ações</TableHead>
                   </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+                </TableHeader>
+                <TableBody>
+                  {questionarios?.map((questionario) => (
+                    <TableRow key={questionario.id}>
+                      <TableCell className="font-medium">
+                        {questionario.nome_responsavel === 'Aguardando preenchimento' ? 
+                          <span className="text-gray-500 italic">Não preenchido</span> : 
+                          questionario.nome_responsavel
+                        }
+                      </TableCell>
+                      <TableCell>
+                        {questionario.email === 'aguardando@preenchimento.com' ? 
+                          <span className="text-gray-500">-</span> : 
+                          questionario.email
+                        }
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2 max-w-xs">
+                          <a 
+                            href={getQuestionarioLink(questionario.link_publico)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:text-blue-800 underline truncate"
+                          >
+                            /{questionario.link_publico}
+                          </a>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-6 w-6 p-0"
+                                onClick={() => copyToClipboard(getQuestionarioLink(questionario.link_publico))}
+                              >
+                                <Copy className="w-3 h-3" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Copiar link</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </div>
+                      </TableCell>
+                      <TableCell>{getStatusBadge(questionario.status)}</TableCell>
+                      <TableCell>
+                        {calcularProgresso(questionario.respostas_json)}%
+                      </TableCell>
+                      <TableCell>
+                        {new Date(questionario.data_criacao).toLocaleDateString('pt-BR')}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => abrirQuestionario(questionario.link_publico)}
+                              >
+                                <ExternalLink className="w-4 h-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Abrir questionário</p>
+                            </TooltipContent>
+                          </Tooltip>
+                          
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => setSelectedQuestionario(questionario)}
+                                  >
+                                    <Eye className="w-4 h-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Ver respostas</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                              <DialogHeader>
+                                <DialogTitle>Respostas do Questionário</DialogTitle>
+                                <DialogDescription>
+                                  {selectedQuestionario?.nome_responsavel} - {selectedQuestionario?.email}
+                                </DialogDescription>
+                              </DialogHeader>
+                              
+                              {selectedQuestionario?.respostas_json && (
+                                <div className="space-y-4">
+                                  {Object.entries(selectedQuestionario.respostas_json).map(([perguntaIndex, resposta]) => (
+                                    <div key={perguntaIndex} className="border-b pb-4">
+                                      <p className="font-medium text-sm text-gray-600 mb-2">
+                                        Pergunta {parseInt(perguntaIndex) + 1}
+                                      </p>
+                                      <p className="bg-gray-50 p-3 rounded text-sm">
+                                        {resposta || 'Não respondida'}
+                                      </p>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                              
+                              {(!selectedQuestionario?.respostas_json || Object.keys(selectedQuestionario.respostas_json).length === 0) && (
+                                <div className="text-center py-8 text-gray-500">
+                                  Nenhuma resposta registrada ainda
+                                </div>
+                              )}
+                            </DialogContent>
+                          </Dialog>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  
+                  {questionarios?.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                        Nenhum questionário criado ainda
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </TooltipProvider>
   )
 }
 
