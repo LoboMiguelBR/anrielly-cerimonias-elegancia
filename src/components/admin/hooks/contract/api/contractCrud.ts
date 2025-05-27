@@ -65,8 +65,13 @@ export const contractCrudApi = {
       remaining_amount: contractData.remaining_amount ? Number(contractData.remaining_amount) : null,
       token,
       public_token: publicToken,
-      status: 'draft' as ContractStatus
+      status: 'draft' as ContractStatus,
+      // Include audit data
+      ip_address: contractData.ip_address || null,
+      user_agent: contractData.user_agent || null,
     };
+
+    console.log('Creating contract with data:', formattedData);
 
     const { data, error } = await supabase
       .from('contracts')
@@ -97,7 +102,12 @@ export const contractCrudApi = {
       total_price: contractData.total_price ? Number(contractData.total_price) : undefined,
       down_payment: contractData.down_payment ? Number(contractData.down_payment) : undefined,
       remaining_amount: contractData.remaining_amount ? Number(contractData.remaining_amount) : undefined,
+      // Include audit data for updates
+      ip_address: contractData.ip_address || undefined,
+      user_agent: contractData.user_agent || undefined,
     };
+
+    console.log('Updating contract with data:', formattedData);
 
     const { data, error } = await supabase
       .from('contracts')

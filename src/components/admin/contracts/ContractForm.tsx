@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -10,7 +11,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ContractFormData, ContractData, CIVIL_STATUS_OPTIONS } from '../hooks/contract/types';
 import { contractApi } from '../hooks/contract';
-import { Loader2 } from 'lucide-react';
+import { useAuditData } from './hooks/useAuditData';
+import LeadSelector from './selectors/LeadSelector';
+import ProfessionalSelector from './selectors/ProfessionalSelector';
+import { Loader2, AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const contractSchema = z.object({
   client_name: z.string().min(1, 'Nome é obrigatório'),
@@ -44,12 +49,17 @@ interface ContractFormProps {
 const ContractForm = ({ initialData, onSubmit, onCancel, isLoading = false }: ContractFormProps) => {
   const [templates, setTemplates] = useState<any[]>([]);
   const [isLoadingTemplates, setIsLoadingTemplates] = useState(false);
+  const [selectedLeadId, setSelectedLeadId] = useState<string | undefined>(initialData?.quote_request_id);
+  const [selectedProfessionalId, setSelectedProfessionalId] = useState<string | undefined>();
+  const [isManualEntry, setIsManualEntry] = useState(!initialData?.quote_request_id);
+  const auditData = useAuditData();
 
   const {
     register,
     handleSubmit,
     setValue,
     watch,
+    reset,
     formState: { errors }
   } = useForm<ContractFormData>({
     resolver: zodResolver(contractSchema),
@@ -97,6 +107,17 @@ const ContractForm = ({ initialData, onSubmit, onCancel, isLoading = false }: Co
   const totalPrice = watch('total_price');
   const downPayment = watch('down_payment');
 
+  // Auto-calcular valor restante
+  useEffect(() => {
+    if (totalPrice && downPayment) {
+      const total = Number(totalPrice) || 0;
+      const down = Number(downPayment) || 0;
+      const remaining = total - down;
+      setValue('remaining_amount', remaining > 0 ? remaining : 0);
+    }
+  }, [totalPrice, downPayment, setValue]);
+
+  // Carregar templates
   useEffect(() => {
     const fetchTemplates = async () => {
       setIsLoadingTemplates(true);
@@ -118,14 +139,67 @@ const ContractForm = ({ initialData, onSubmit, onCancel, isLoading = false }: Co
     fetchTemplates();
   }, [setValue, initialData]);
 
-  useEffect(() => {
-    if (totalPrice && downPayment) {
-      const total = Number(totalPrice) || 0;
-      const down = Number(downPayment) || 0;
-      const remaining = total - down;
-      setValue('remaining_amount', remaining > 0 ? remaining : 0);
+  // Tratar seleção de lead
+  const handleLeadSelect = (lead: any) => {
+    if (lead) {
+      setIsManualEntry(false);
+      setSelectedLeadId(lead.id);
+      
+      // Auto-preencher campos do formulário
+      setValue('client_name', lead.name);
+      setValue('client_email', lead.email);
+      setValue('client_phone', lead.phone);
+      setValue('event_type', lead.event_type);
+      setValue('event_location', lead.event_location || '');
+      setValue('quote_request_id', lead.id);
+      
+      if (lead.event_date) {
+        setValue('event_date', lead.event_date);
+      }
+    } else {
+      setIsManualEntry(true);
+      setSelectedLeadId(undefined);
+      setValue('quote_request_id', '');
+      
+      // Limpar campos do cliente para entrada manual
+      setValue('client_name', '');
+      setValue('client_email', '');
+      setValue('client_phone', '');
+      setValue('event_type', '');
+      setValue('event_location', '');
+      setValue('event_date', '');
     }
-  }, [totalPrice, downPayment, setValue]);
+  };
+
+  // Tratar seleção de profissional
+  const handleProfessionalSelect = (professional: any) => {
+    if (professional) {
+      setSelectedProfessionalId(professional.id);
+    } else {
+      setSelectedProfessionalId(undefined);
+    }
+  };
+
+  const handleFormSubmit = async (formData: ContractFormData) => {
+    // Adicionar dados de auditoria
+    const enhancedData = {
+      ...formData,
+      ip_address: auditData.ip_address,
+      user_agent: auditData.user_agent,
+    };
+
+    await onSubmit(enhancedData);
+  };
+
+  // Máscara para telefone
+  const formatPhone = (value: string) => {
+    const cleaned = value.replace(/\D/g, '');
+    const match = cleaned.match(/^(\d{2})(\d{5})(\d{4})$/);
+    if (match) {
+      return `(${match[1]}) ${match[2]}-${match[3]}`;
+    }
+    return value;
+  };
 
   return (
     <Card className="w-full max-w-4xl mx-auto">
@@ -135,10 +209,37 @@ const ContractForm = ({ initialData, onSubmit, onCancel, isLoading = false }: Co
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          {/* Client Information */}
+        <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
+          {/* Seleção de Lead/Cliente */}
+          {!initialData && (
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Selecionar Cliente</h3>
+              <LeadSelector 
+                onLeadSelect={handleLeadSelect}
+                selectedLeadId={selectedLeadId}
+              />
+              
+              {/* Seleção de Profissional */}
+              <ProfessionalSelector 
+                onProfessionalSelect={handleProfessionalSelect}
+                selectedProfessionalId={selectedProfessionalId}
+              />
+            </div>
+          )}
+
+          {/* Dados do Cliente */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">Dados do Cliente</h3>
+            
+            {!isManualEntry && selectedLeadId && (
+              <Alert>
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  Dados preenchidos automaticamente do lead selecionado. Você pode editá-los se necessário.
+                </AlertDescription>
+              </Alert>
+            )}
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="client_name">Nome Completo *</Label>
@@ -171,6 +272,11 @@ const ContractForm = ({ initialData, onSubmit, onCancel, isLoading = false }: Co
                   id="client_phone"
                   {...register('client_phone')}
                   className={errors.client_phone ? 'border-red-500' : ''}
+                  placeholder="(11) 99999-9999"
+                  onChange={(e) => {
+                    const formatted = formatPhone(e.target.value);
+                    setValue('client_phone', formatted);
+                  }}
                 />
                 {errors.client_phone && (
                   <p className="text-red-500 text-sm mt-1">{errors.client_phone.message}</p>
@@ -205,7 +311,7 @@ const ContractForm = ({ initialData, onSubmit, onCancel, isLoading = false }: Co
             </div>
           </div>
 
-          {/* Event Information */}
+          {/* Dados do Evento */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">Dados do Evento</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -246,16 +352,17 @@ const ContractForm = ({ initialData, onSubmit, onCancel, isLoading = false }: Co
             </div>
           </div>
 
-          {/* Financial Information */}
+          {/* Informações Financeiras */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">Informações Financeiras</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="total_price">Valor Total *</Label>
+                <Label htmlFor="total_price">Valor Total * (R$)</Label>
                 <Input
                   id="total_price"
                   type="number"
                   step="0.01"
+                  min="0"
                   {...register('total_price', { valueAsNumber: true })}
                   className={errors.total_price ? 'border-red-500' : ''}
                 />
@@ -265,11 +372,12 @@ const ContractForm = ({ initialData, onSubmit, onCancel, isLoading = false }: Co
               </div>
 
               <div>
-                <Label htmlFor="down_payment">Valor da Entrada</Label>
+                <Label htmlFor="down_payment">Valor da Entrada (R$)</Label>
                 <Input
                   id="down_payment"
                   type="number"
                   step="0.01"
+                  min="0"
                   {...register('down_payment', { valueAsNumber: true })}
                 />
               </div>
@@ -284,13 +392,15 @@ const ContractForm = ({ initialData, onSubmit, onCancel, isLoading = false }: Co
               </div>
 
               <div>
-                <Label htmlFor="remaining_amount">Valor Restante</Label>
+                <Label htmlFor="remaining_amount">Valor Restante (R$)</Label>
                 <Input
                   id="remaining_amount"
                   type="number"
                   step="0.01"
+                  min="0"
                   {...register('remaining_amount', { valueAsNumber: true })}
                   readOnly
+                  className="bg-gray-50"
                 />
               </div>
 
@@ -305,38 +415,41 @@ const ContractForm = ({ initialData, onSubmit, onCancel, isLoading = false }: Co
             </div>
           </div>
 
-          {/* Template Selection */}
+          {/* Template e Observações */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Template</h3>
+            <h3 className="text-lg font-semibold">Template e Observações</h3>
+            
             <div>
               <Label htmlFor="template_id">Template do Contrato</Label>
-              <Select onValueChange={(value) => setValue('template_id', value)}>
+              <Select 
+                onValueChange={(value) => setValue('template_id', value)}
+                disabled={isLoadingTemplates}
+              >
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecione um template" />
+                  <SelectValue placeholder={isLoadingTemplates ? "Carregando..." : "Selecione um template"} />
                 </SelectTrigger>
                 <SelectContent>
                   {templates.map((template) => (
                     <SelectItem key={template.id} value={template.id}>
-                      {template.name}
+                      {template.name} {template.is_default && "(Padrão)"}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
+
+            <div>
+              <Label htmlFor="notes">Observações</Label>
+              <Textarea
+                id="notes"
+                {...register('notes')}
+                rows={3}
+                placeholder="Observações adicionais sobre o contrato..."
+              />
+            </div>
           </div>
 
-          {/* Notes */}
-          <div>
-            <Label htmlFor="notes">Observações</Label>
-            <Textarea
-              id="notes"
-              {...register('notes')}
-              rows={3}
-              placeholder="Observações adicionais sobre o contrato..."
-            />
-          </div>
-
-          {/* Actions */}
+          {/* Ações */}
           <div className="flex gap-4 pt-6">
             <Button
               type="submit"

@@ -95,6 +95,7 @@ export type Database = {
           event_type: string
           html_content: string | null
           id: string
+          ip_address: string | null
           notes: string | null
           pdf_url: string | null
           proposal_id: string | null
@@ -110,6 +111,7 @@ export type Database = {
           token: string
           total_price: number
           updated_at: string
+          user_agent: string | null
         }
         Insert: {
           civil_status?: string | null
@@ -127,6 +129,7 @@ export type Database = {
           event_type: string
           html_content?: string | null
           id?: string
+          ip_address?: string | null
           notes?: string | null
           pdf_url?: string | null
           proposal_id?: string | null
@@ -142,6 +145,7 @@ export type Database = {
           token?: string
           total_price: number
           updated_at?: string
+          user_agent?: string | null
         }
         Update: {
           civil_status?: string | null
@@ -159,6 +163,7 @@ export type Database = {
           event_type?: string
           html_content?: string | null
           id?: string
+          ip_address?: string | null
           notes?: string | null
           pdf_url?: string | null
           proposal_id?: string | null
@@ -174,6 +179,7 @@ export type Database = {
           token?: string
           total_price?: number
           updated_at?: string
+          user_agent?: string | null
         }
         Relationships: [
           {
