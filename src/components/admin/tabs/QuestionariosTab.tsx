@@ -23,7 +23,7 @@ import useSWR from 'swr'
 import type { Database } from '@/integrations/supabase/types'
 import KPICards from './components/KPICards'
 import QuestionarioEditModal from './components/QuestionarioEditModal'
-import { useQuestionarioExport } from '@/hooks/useQuestionarioExport'
+import { useQuestionarioWordExport } from '@/hooks/useQuestionarioWordExport'
 
 type QuestionarioRow = Database['public']['Tables']['questionarios_noivos']['Row']
 
@@ -48,7 +48,7 @@ interface QuestionarioGroup {
 
 const QuestionariosTab = () => {
   const { toast } = useToast()
-  const { exportQuestionario, isExporting } = useQuestionarioExport()
+  const { exportQuestionario: exportWord, isExporting } = useQuestionarioWordExport()
   const [isCreating, setIsCreating] = useState(false)
   const [newLink, setNewLink] = useState('')
   const [selectedQuestionario, setSelectedQuestionario] = useState<Questionario | null>(null)
@@ -263,8 +263,8 @@ const QuestionariosTab = () => {
     }
   }
 
-  const handleExport = async (questionario: Questionario, format: 'pdf' | 'word') => {
-    await exportQuestionario(questionario.id, format)
+  const handleExport = async (questionario: Questionario) => {
+    await exportWord(questionario)
   }
 
   if (error) {
@@ -456,7 +456,7 @@ const QuestionariosTab = () => {
                                       <Button
                                         size="sm"
                                         variant="outline"
-                                        onClick={() => handleExport(questionario, 'word')}
+                                        onClick={() => handleExport(questionario)}
                                         disabled={isExporting}
                                         className="h-8 w-8 p-0"
                                       >

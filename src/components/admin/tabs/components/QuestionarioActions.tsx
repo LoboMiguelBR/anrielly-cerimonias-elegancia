@@ -6,19 +6,11 @@ import {
   Edit, 
   Copy, 
   FileText, 
-  Download,
   Trash2,
   ExternalLink 
 } from 'lucide-react'
 import { useToast } from "@/hooks/use-toast"
-import { useQuestionarioExport } from '@/hooks/useQuestionarioExport'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+import { useQuestionarioWordExport } from '@/hooks/useQuestionarioWordExport'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -35,6 +27,7 @@ interface QuestionarioActionsProps {
     id: string
     link_publico: string
     nome_responsavel: string
+    respostas_json?: Record<string, string>
   }
   onView: () => void
   onEdit?: () => void
@@ -48,7 +41,7 @@ const QuestionarioActions = ({
   onDelete 
 }: QuestionarioActionsProps) => {
   const { toast } = useToast()
-  const { exportQuestionario, isExporting } = useQuestionarioExport()
+  const { exportQuestionario, isExporting } = useQuestionarioWordExport()
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
   const copyLink = async () => {
@@ -73,8 +66,8 @@ const QuestionarioActions = ({
     window.open(url, '_blank')
   }
 
-  const handleExport = async (format: 'pdf' | 'word' | 'txt') => {
-    await exportQuestionario(questionario.id, format)
+  const handleWordExport = async () => {
+    await exportQuestionario(questionario)
   }
 
   const handleDelete = () => {
@@ -117,34 +110,16 @@ const QuestionarioActions = ({
           <ExternalLink className="h-4 w-4" />
         </Button>
 
-        {/* Dropdown de Exportação */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              size="sm"
-              variant="outline"
-              disabled={isExporting}
-              className="h-8 w-8 p-0"
-            >
-              <Download className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => handleExport('word')}>
-              <FileText className="mr-2 h-4 w-4" />
-              Exportar Word
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleExport('pdf')}>
-              <FileText className="mr-2 h-4 w-4" />
-              Exportar PDF
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => handleExport('txt')}>
-              <FileText className="mr-2 h-4 w-4" />
-              Exportar TXT
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        {/* Botão Exportar Word */}
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={handleWordExport}
+          disabled={isExporting}
+          className="h-8 w-8 p-0"
+        >
+          <FileText className="h-4 w-4" />
+        </Button>
 
         {/* Botão Copiar Link */}
         <Button
