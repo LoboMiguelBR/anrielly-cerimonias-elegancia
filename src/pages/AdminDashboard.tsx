@@ -107,7 +107,7 @@ const AdminDashboard = () => {
                         >
                           <Icon className="h-4 w-4 mr-3" />
                           {item.label}
-                        </Button>
+                        </button>
                       );
                     })}
                   </div>
