@@ -162,10 +162,10 @@ const ContractEmailDialog = ({
           <div className="bg-yellow-50 p-3 rounded-lg text-sm">
             <p className="font-medium text-yellow-800 mb-2">🔒 Variáveis de Auditoria Disponíveis:</p>
             <div className="grid grid-cols-2 gap-2 text-xs">
-              <span className="font-mono text-yellow-700">{{`{IP_ASSINANTE}`}}</span>
-              <span className="font-mono text-yellow-700">{{`{USER_AGENT}`}}</span>
-              <span className="font-mono text-yellow-700">{{`{HASH_CONTRATO}`}}</span>
-              <span className="font-mono text-yellow-700">{{`{DATA_ASSINATURA}`}}</span>
+              <span className="font-mono text-yellow-700">{'{{IP_ASSINANTE}}'}</span>
+              <span className="font-mono text-yellow-700">{'{{USER_AGENT}}'}</span>
+              <span className="font-mono text-yellow-700">{'{{HASH_CONTRATO}}'}</span>
+              <span className="font-mono text-yellow-700">{'{{DATA_ASSINATURA}}'}</span>
             </div>
           </div>
           
