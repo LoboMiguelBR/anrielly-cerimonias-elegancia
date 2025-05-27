@@ -5,6 +5,7 @@ import QuoteRequestsTable from '../QuoteRequestsTable';
 import { Loader2 } from 'lucide-react';
 import { useGallery } from '../hooks/useGallery';
 import { useTestimonials } from '../hooks/useTestimonials';
+import { useQuestionarios } from '@/hooks/useQuestionarios';
 
 interface DashboardTabProps {
   quoteRequests: Array<{
@@ -23,6 +24,7 @@ const DashboardTab = ({ quoteRequests }: DashboardTabProps) => {
   // Get real data for gallery and testimonials counts
   const { galleryImages } = useGallery();
   const { testimonials } = useTestimonials();
+  const { stats: questionariosStats } = useQuestionarios();
 
   // Transform Supabase data to match the expected format
   const formattedQuoteRequests = quoteRequests.map(request => ({
@@ -47,6 +49,7 @@ const DashboardTab = ({ quoteRequests }: DashboardTabProps) => {
         proposalsCount={proposalsCount}
         galleryCount={galleryImages.length}
         testimonialsCount={testimonials.length}
+        questionariosCount={questionariosStats?.total || 0}
       />
       
       <div className="mt-8">
