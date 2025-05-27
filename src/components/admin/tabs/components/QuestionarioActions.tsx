@@ -73,7 +73,7 @@ const QuestionarioActions = ({
     window.open(url, '_blank')
   }
 
-  const handleExport = async (format: 'pdf' | 'word') => {
+  const handleExport = async (format: 'pdf' | 'word' | 'txt') => {
     await exportQuestionario(questionario.id, format)
   }
 
@@ -137,6 +137,11 @@ const QuestionarioActions = ({
             <DropdownMenuItem onClick={() => handleExport('word')}>
               <FileText className="mr-2 h-4 w-4" />
               Exportar Word
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => handleExport('txt')}>
+              <FileText className="mr-2 h-4 w-4" />
+              Exportar TXT
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
