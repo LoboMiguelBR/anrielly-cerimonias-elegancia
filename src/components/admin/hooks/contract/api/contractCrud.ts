@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { ContractData, ContractFormData, ContractStatus } from '../types';
 
 export const contractCrudApi = {
-  // Fetch all contracts
+  // Get all contracts
   async getContracts(): Promise<ContractData[]> {
     const { data, error } = await supabase
       .from('contracts')
@@ -15,14 +15,16 @@ export const contractCrudApi = {
       throw error;
     }
 
-    return (data || []).map(contract => ({
+    // Ensure all required fields are present
+    return data.map(contract => ({
       ...contract,
+      token: contract.token || contract.id, // fallback to id if token is missing
       status: contract.status as ContractStatus
     }));
   },
 
-  // Fetch single contract
-  async getContract(id: string): Promise<ContractData | null> {
+  // Get contract by ID
+  async getContractById(id: string): Promise<ContractData | null> {
     const { data, error } = await supabase
       .from('contracts')
       .select('*')
@@ -30,7 +32,7 @@ export const contractCrudApi = {
       .maybeSingle();
 
     if (error) {
-      console.error('Error fetching contract:', error);
+      console.error('Error fetching contract by ID:', error);
       throw error;
     }
 
@@ -38,36 +40,32 @@ export const contractCrudApi = {
 
     return {
       ...data,
+      token: data.token || data.id, // fallback to id if token is missing
       status: data.status as ContractStatus
     };
   },
 
   // Create contract
-  async createContract(contractData: ContractFormData): Promise<string> {
+  async createContract(contractData: ContractFormData): Promise<ContractData> {
+    // Generate tokens for the contract
+    const token = crypto.randomUUID();
+    const publicToken = crypto.randomUUID();
+
+    // Convert number fields to ensure proper types
+    const formattedData = {
+      ...contractData,
+      total_price: Number(contractData.total_price),
+      down_payment: contractData.down_payment ? Number(contractData.down_payment) : null,
+      remaining_amount: contractData.remaining_amount ? Number(contractData.remaining_amount) : null,
+      token,
+      public_token: publicToken,
+      status: 'draft' as ContractStatus
+    };
+
     const { data, error } = await supabase
       .from('contracts')
-      .insert({
-        client_name: contractData.client_name,
-        client_email: contractData.client_email,
-        client_phone: contractData.client_phone,
-        client_address: contractData.client_address,
-        client_profession: contractData.client_profession,
-        civil_status: contractData.civil_status,
-        event_type: contractData.event_type,
-        event_date: contractData.event_date || null,
-        event_time: contractData.event_time || null,
-        event_location: contractData.event_location,
-        total_price: parseFloat(contractData.total_price),
-        down_payment: contractData.down_payment ? parseFloat(contractData.down_payment) : null,
-        down_payment_date: contractData.down_payment_date || null,
-        remaining_amount: contractData.remaining_amount ? parseFloat(contractData.remaining_amount) : null,
-        remaining_payment_date: contractData.remaining_payment_date || null,
-        template_id: contractData.template_id || null,
-        notes: contractData.notes || null,
-        quote_request_id: contractData.quote_request_id || null,
-        proposal_id: contractData.proposal_id || null
-      })
-      .select('id')
+      .insert(formattedData)
+      .select()
       .single();
 
     if (error) {
@@ -75,39 +73,38 @@ export const contractCrudApi = {
       throw error;
     }
 
-    return data.id;
+    return {
+      ...data,
+      status: data.status as ContractStatus
+    };
   },
 
   // Update contract
-  async updateContract(id: string, contractData: Partial<ContractFormData>): Promise<void> {
-    const updateData: any = {};
+  async updateContract(id: string, contractData: Partial<ContractFormData>): Promise<ContractData> {
+    // Convert number fields to ensure proper types
+    const formattedData = {
+      ...contractData,
+      total_price: contractData.total_price ? Number(contractData.total_price) : undefined,
+      down_payment: contractData.down_payment ? Number(contractData.down_payment) : undefined,
+      remaining_amount: contractData.remaining_amount ? Number(contractData.remaining_amount) : undefined,
+    };
 
-    if (contractData.client_name !== undefined) updateData.client_name = contractData.client_name;
-    if (contractData.client_email !== undefined) updateData.client_email = contractData.client_email;
-    if (contractData.client_phone !== undefined) updateData.client_phone = contractData.client_phone;
-    if (contractData.client_address !== undefined) updateData.client_address = contractData.client_address;
-    if (contractData.client_profession !== undefined) updateData.client_profession = contractData.client_profession;
-    if (contractData.civil_status !== undefined) updateData.civil_status = contractData.civil_status;
-    if (contractData.event_type !== undefined) updateData.event_type = contractData.event_type;
-    if (contractData.event_date !== undefined) updateData.event_date = contractData.event_date || null;
-    if (contractData.event_time !== undefined) updateData.event_time = contractData.event_time || null;
-    if (contractData.event_location !== undefined) updateData.event_location = contractData.event_location;
-    if (contractData.total_price !== undefined) updateData.total_price = parseFloat(contractData.total_price);
-    if (contractData.down_payment !== undefined) updateData.down_payment = contractData.down_payment ? parseFloat(contractData.down_payment) : null;
-    if (contractData.down_payment_date !== undefined) updateData.down_payment_date = contractData.down_payment_date || null;
-    if (contractData.remaining_amount !== undefined) updateData.remaining_amount = contractData.remaining_amount ? parseFloat(contractData.remaining_amount) : null;
-    if (contractData.remaining_payment_date !== undefined) updateData.remaining_payment_date = contractData.remaining_payment_date || null;
-    if (contractData.notes !== undefined) updateData.notes = contractData.notes || null;
-
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('contracts')
-      .update(updateData)
-      .eq('id', id);
+      .update(formattedData)
+      .eq('id', id)
+      .select()
+      .single();
 
     if (error) {
       console.error('Error updating contract:', error);
       throw error;
     }
+
+    return {
+      ...data,
+      status: data.status as ContractStatus
+    };
   },
 
   // Delete contract

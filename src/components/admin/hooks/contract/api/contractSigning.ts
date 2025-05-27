@@ -20,6 +20,7 @@ export const contractSigningApi = {
 
     return {
       ...data,
+      token: data.token || data.id, // fallback to id if token is missing
       status: data.status as ContractStatus
     };
   },

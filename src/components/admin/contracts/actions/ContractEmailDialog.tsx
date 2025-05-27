@@ -1,11 +1,14 @@
 
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Send } from 'lucide-react';
-import { ContractData } from '../../hooks/contract/types';
+import { ContractData, ContractEmailTemplate } from '../../hooks/contract/types';
+import { contractApi } from '../../hooks/contract';
 
 interface ContractEmailDialogProps {
   contract: ContractData;
@@ -17,7 +20,10 @@ interface ContractEmailDialogProps {
   setEmailMessage: (message: string) => void;
   contractUrl: string;
   isSending: boolean;
+  selectedTemplateId: string;
+  setSelectedTemplateId: (id: string) => void;
   onSendEmail: () => void;
+  replaceVariables: (content: string, contract: ContractData) => string;
 }
 
 const ContractEmailDialog = ({
@@ -30,8 +36,53 @@ const ContractEmailDialog = ({
   setEmailMessage,
   contractUrl,
   isSending,
-  onSendEmail
+  selectedTemplateId,
+  setSelectedTemplateId,
+  onSendEmail,
+  replaceVariables
 }: ContractEmailDialogProps) => {
+  const [templates, setTemplates] = useState<ContractEmailTemplate[]>([]);
+  const [isLoadingTemplates, setIsLoadingTemplates] = useState(false);
+
+  const loadTemplates = async () => {
+    setIsLoadingTemplates(true);
+    try {
+      const data = await contractApi.getContractEmailTemplates();
+      const signatureTemplates = data.filter(t => t.template_type === 'signature');
+      setTemplates(signatureTemplates);
+    } catch (error) {
+      console.error('Error loading email templates:', error);
+    } finally {
+      setIsLoadingTemplates(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isOpen) {
+      loadTemplates();
+    }
+  }, [isOpen]);
+
+  const handleTemplateChange = async (templateId: string) => {
+    setSelectedTemplateId(templateId);
+    
+    if (templateId === 'custom') {
+      setEmailSubject(`Contrato para Assinatura Digital - ${contract.event_type}`);
+      setEmailMessage('');
+      return;
+    }
+
+    try {
+      const template = await contractApi.getContractEmailTemplateById(templateId);
+      if (template) {
+        setEmailSubject(replaceVariables(template.subject, contract));
+        setEmailMessage(replaceVariables(template.html_content, contract));
+      }
+    } catch (error) {
+      console.error('Error loading template:', error);
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
@@ -40,19 +91,38 @@ const ContractEmailDialog = ({
           Enviar Email
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Enviar Contrato para Assinatura Digital</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
-          <div>
-            <Label htmlFor="email">Para:</Label>
-            <Input 
-              id="email" 
-              value={contract.client_email} 
-              disabled 
-              className="bg-gray-50"
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="email">Para:</Label>
+              <Input 
+                id="email" 
+                value={contract.client_email} 
+                disabled 
+                className="bg-gray-50"
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="template">Template:</Label>
+              <Select value={selectedTemplateId} onValueChange={handleTemplateChange} disabled={isLoadingTemplates}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione um template" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="custom">✏️ Personalizado</SelectItem>
+                  {templates.map((template) => (
+                    <SelectItem key={template.id} value={template.id}>
+                      {template.is_default ? '⭐ ' : ''}{template.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           
           <div>
@@ -70,12 +140,9 @@ const ContractEmailDialog = ({
               id="message" 
               value={emailMessage}
               onChange={(e) => setEmailMessage(e.target.value)}
-              rows={12}
-              className="text-sm"
+              rows={16}
+              className="text-sm font-mono"
             />
-            <p className="text-xs text-gray-500 mt-1">
-              Use {"{LINK_CONTRATO}"} onde o link deve aparecer na mensagem
-            </p>
           </div>
           
           <div className="bg-blue-50 p-3 rounded-lg text-sm">

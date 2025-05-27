@@ -9,24 +9,24 @@ interface ContractStatusBadgeProps {
 const ContractStatusBadge = ({ status }: ContractStatusBadgeProps) => {
   const getStatusConfig = (status: ContractStatus) => {
     switch (status) {
-      case 'draft':
-        return { label: 'Rascunho', variant: 'secondary' as const };
-      case 'sent':
-        return { label: 'Enviado', variant: 'default' as const };
       case 'signed':
-        return { label: 'Assinado', variant: 'outline' as const };
-      case 'cancelled':
-        return { label: 'Cancelado', variant: 'destructive' as const };
+        return { label: 'Assinado', variant: 'default' as const, className: 'bg-green-100 text-green-800' };
+      case 'pending':
+        return { label: 'Pendente', variant: 'secondary' as const, className: 'bg-yellow-100 text-yellow-800' };
+      case 'draft':
+        return { label: 'Rascunho', variant: 'outline' as const, className: 'bg-gray-100 text-gray-800' };
+      case 'canceled':
+        return { label: 'Cancelado', variant: 'destructive' as const, className: 'bg-red-100 text-red-800' };
       default:
-        return { label: 'Desconhecido', variant: 'secondary' as const };
+        return { label: 'Desconhecido', variant: 'outline' as const, className: 'bg-gray-100 text-gray-800' };
     }
   };
 
-  const { label, variant } = getStatusConfig(status);
+  const config = getStatusConfig(status);
 
   return (
-    <Badge variant={variant} className={`text-xs ${status === 'signed' ? 'bg-green-100 text-green-800 border-green-300' : ''}`}>
-      {label}
+    <Badge variant={config.variant} className={config.className}>
+      {config.label}
     </Badge>
   );
 };

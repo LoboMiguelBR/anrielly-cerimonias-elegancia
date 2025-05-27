@@ -17,9 +17,13 @@ const ContractActions = ({ contract, onStatusUpdate }: ContractActionsProps) => 
     setEmailMessage,
     isSending,
     contractUrl,
+    selectedTemplateId,
+    setSelectedTemplateId,
     copyToClipboard,
     openContractLink,
-    sendContractEmail
+    openEmailDialog,
+    sendContractEmail,
+    replaceVariables
   } = useContractActions(contract, onStatusUpdate);
 
   return (
@@ -28,6 +32,7 @@ const ContractActions = ({ contract, onStatusUpdate }: ContractActionsProps) => 
         contract={contract}
         onCopyToClipboard={copyToClipboard}
         onOpenContractLink={openContractLink}
+        onOpenEmailDialog={openEmailDialog}
       />
       
       {contract.status !== 'signed' && (
@@ -41,7 +46,10 @@ const ContractActions = ({ contract, onStatusUpdate }: ContractActionsProps) => 
           setEmailMessage={setEmailMessage}
           contractUrl={contractUrl}
           isSending={isSending}
+          selectedTemplateId={selectedTemplateId}
+          setSelectedTemplateId={setSelectedTemplateId}
           onSendEmail={sendContractEmail}
+          replaceVariables={replaceVariables}
         />
       )}
     </div>

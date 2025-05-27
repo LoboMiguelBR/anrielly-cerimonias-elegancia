@@ -71,10 +71,37 @@ export interface ContractTemplate {
   updated_at: string;
 }
 
+export interface ContractEmailTemplate {
+  id: string;
+  name: string;
+  description?: string;
+  subject: string;
+  html_content: string;
+  template_type: 'signature' | 'signed_confirmation' | 'reminder';
+  is_default?: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ContractEmailTemplateFormData {
+  name: string;
+  description?: string;
+  subject: string;
+  html_content: string;
+  template_type: 'signature' | 'signed_confirmation' | 'reminder';
+  is_default?: boolean;
+}
+
 export const CIVIL_STATUS_OPTIONS = [
   { value: 'solteiro', label: 'Solteiro(a)' },
   { value: 'casado', label: 'Casado(a)' },
   { value: 'divorciado', label: 'Divorciado(a)' },
   { value: 'viuvo', label: 'Viúvo(a)' },
   { value: 'uniao_estavel', label: 'União Estável' }
+] as const;
+
+export const EMAIL_TEMPLATE_TYPES = [
+  { value: 'signature', label: 'Para Assinatura' },
+  { value: 'signed_confirmation', label: 'Confirmação de Assinatura' },
+  { value: 'reminder', label: 'Lembrete' }
 ] as const;

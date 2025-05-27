@@ -2,17 +2,61 @@
 import { useState } from 'react';
 import { ContractData } from '../../hooks/contract/types';
 import { sendEmailNotification } from '@/utils/emailUtils';
+import { contractApi } from '../../hooks/contract';
 import { toast } from 'sonner';
 
 export const useContractActions = (contract: ContractData, onStatusUpdate?: () => void) => {
   const [isEmailDialogOpen, setIsEmailDialogOpen] = useState(false);
-  const [emailSubject, setEmailSubject] = useState(`Contrato para Assinatura Digital - ${contract.event_type}`);
-  const [emailMessage, setEmailMessage] = useState(`
-Olá ${contract.client_name},
+  const [emailSubject, setEmailSubject] = useState('');
+  const [emailMessage, setEmailMessage] = useState('');
+  const [isSending, setIsSending] = useState(false);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
+
+  const contractUrl = `${window.location.origin}/contrato/${contract.public_token}`;
+
+  // Load default template when dialog opens
+  const loadDefaultTemplate = async () => {
+    try {
+      const defaultTemplate = await contractApi.getDefaultEmailTemplate('signature');
+      if (defaultTemplate) {
+        setSelectedTemplateId(defaultTemplate.id);
+        setEmailSubject(replaceVariables(defaultTemplate.subject, contract));
+        setEmailMessage(replaceVariables(defaultTemplate.html_content, contract));
+      } else {
+        // Fallback to default content
+        setEmailSubject(`Contrato para Assinatura Digital - ${contract.event_type}`);
+        setEmailMessage(getDefaultEmailContent(contract));
+      }
+    } catch (error) {
+      console.error('Error loading default template:', error);
+      setEmailSubject(`Contrato para Assinatura Digital - ${contract.event_type}`);
+      setEmailMessage(getDefaultEmailContent(contract));
+    }
+  };
+
+  const replaceVariables = (content: string, contractData: ContractData): string => {
+    return content
+      .replace(/{NOME_CLIENTE}/g, contractData.client_name)
+      .replace(/{EMAIL_CLIENTE}/g, contractData.client_email)
+      .replace(/{TELEFONE_CLIENTE}/g, contractData.client_phone)
+      .replace(/{TIPO_EVENTO}/g, contractData.event_type)
+      .replace(/{DATA_EVENTO}/g, contractData.event_date ? new Date(contractData.event_date).toLocaleDateString('pt-BR') : 'A definir')
+      .replace(/{LOCAL_EVENTO}/g, contractData.event_location || 'A definir')
+      .replace(/{VALOR_TOTAL}/g, new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(contractData.total_price))
+      .replace(/{LINK_CONTRATO}/g, contractUrl)
+      .replace(/{DATA_ASSINATURA}/g, contractData.signed_at ? new Date(contractData.signed_at).toLocaleString('pt-BR') : 'Não assinado')
+      .replace(/{NOME_EMPRESA}/g, 'Anrielly Gomes - Mestre de Cerimônia')
+      .replace(/{TELEFONE_EMPRESA}/g, '(24) 99268-9947')
+      .replace(/{EMAIL_EMPRESA}/g, 'contato@anriellygomes.com.br');
+  };
+
+  const getDefaultEmailContent = (contractData: ContractData): string => {
+    return `
+Olá ${contractData.client_name},
 
 Segue o link para assinatura digital do seu contrato de prestação de serviços de cerimonial:
 
-{LINK_CONTRATO}
+${contractUrl}
 
 ✅ SOBRE A ASSINATURA DIGITAL:
 • Possui validade jurídica conforme Lei nº 14.063/2020
@@ -34,10 +78,8 @@ Atenciosamente,
 Anrielly Gomes - Mestre de Cerimônia
 (24) 99268-9947
 contato@anriellygomes.com.br
-  `.trim());
-  const [isSending, setIsSending] = useState(false);
-
-  const contractUrl = `${window.location.origin}/contrato/${contract.public_token}`;
+    `.trim();
+  };
 
   const copyToClipboard = async () => {
     try {
@@ -52,16 +94,19 @@ contato@anriellygomes.com.br
     window.open(contractUrl, '_blank');
   };
 
+  const openEmailDialog = () => {
+    setIsEmailDialogOpen(true);
+    loadDefaultTemplate();
+  };
+
   const sendContractEmail = async () => {
     setIsSending(true);
     try {
-      const messageWithLink = emailMessage.replace('{LINK_CONTRATO}', contractUrl);
-      
       const success = await sendEmailNotification({
         to: contract.client_email,
         name: contract.client_name,
         subject: emailSubject,
-        message: messageWithLink,
+        message: emailMessage,
         tipo: 'contrato-assinatura',
         contractUrl: contractUrl,
         eventType: contract.event_type
@@ -91,8 +136,13 @@ contato@anriellygomes.com.br
     setEmailMessage,
     isSending,
     contractUrl,
+    selectedTemplateId,
+    setSelectedTemplateId,
     copyToClipboard,
     openContractLink,
-    sendContractEmail
+    openEmailDialog,
+    sendContractEmail,
+    replaceVariables,
+    loadDefaultTemplate
   };
 };
