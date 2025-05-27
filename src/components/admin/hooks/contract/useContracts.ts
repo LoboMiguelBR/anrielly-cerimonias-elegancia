@@ -59,10 +59,26 @@ export const useContracts = () => {
     isLoading,
     error,
     refetch,
-    createContract: createMutation.mutateAsync,
-    updateContract: ({ id, data }: { id: string; data: Partial<ContractFormData> }) =>
-      updateMutation.mutateAsync({ id, data }),
-    deleteContract: deleteMutation.mutateAsync,
+    createContract: async (data: ContractFormData): Promise<string> => {
+      const result = await createMutation.mutateAsync(data);
+      return result.id;
+    },
+    updateContract: async (id: string, data: Partial<ContractFormData>): Promise<boolean> => {
+      try {
+        await updateMutation.mutateAsync({ id, data });
+        return true;
+      } catch (error) {
+        return false;
+      }
+    },
+    deleteContract: async (id: string): Promise<boolean> => {
+      try {
+        await deleteMutation.mutateAsync(id);
+        return true;
+      } catch (error) {
+        return false;
+      }
+    },
     isCreating: createMutation.isPending,
     isUpdating: updateMutation.isPending,
     isDeleting: deleteMutation.isPending

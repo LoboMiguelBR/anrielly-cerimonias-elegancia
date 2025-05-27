@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AdminHeader from "@/components/admin/AdminHeader";
 import MobileAdminNav from "@/components/admin/MobileAdminNav";
 import { Separator } from "@/components/ui/separator";
+import { useQuoteRequests } from "@/hooks/useQuoteRequests";
 import { 
   BarChart3, 
   Users, 
@@ -34,6 +35,19 @@ import QuestionariosTab from "@/components/admin/tabs/QuestionariosTab";
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
+  const { data: quoteRequests = [], isLoading } = useQuoteRequests();
+
+  // Transform quote requests data to match expected format
+  const transformedQuoteRequests = quoteRequests.map(request => ({
+    id: request.id,
+    name: request.name,
+    date: request.event_date || new Date().toISOString().split('T')[0],
+    eventType: request.event_type,
+    phone: request.phone,
+    status: request.status,
+    email: request.email,
+    eventLocation: request.event_location
+  }));
 
   const menuSections = [
     {
@@ -141,7 +155,7 @@ const AdminDashboard = () => {
 
               {/* Tab Contents */}
               <TabsContent value="dashboard">
-                <DashboardTab />
+                <DashboardTab quoteRequests={transformedQuoteRequests} />
               </TabsContent>
 
               <TabsContent value="leads">
@@ -157,7 +171,7 @@ const AdminDashboard = () => {
               </TabsContent>
 
               <TabsContent value="proposals">
-                <ProposalsTab />
+                <ProposalsTab quoteRequests={transformedQuoteRequests} />
               </TabsContent>
 
               <TabsContent value="proposal-templates">
