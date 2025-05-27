@@ -77,3 +77,21 @@ export const questionarioSections = [
     ]
   }
 ]
+
+// Function to get all questions from all sections in a flat array
+export const getAllQuestions = (): string[] => {
+  return questionarioSections.flatMap(section => section.questions)
+}
+
+// Function to get a specific question by index
+export const getQuestionByIndex = (index: number): string | undefined => {
+  const allQuestions = getAllQuestions()
+  return allQuestions[index]
+}
+
+// Function to get section by question index
+export const getSectionByQuestionIndex = (questionIndex: number) => {
+  return questionarioSections.find(section => 
+    questionIndex >= section.range[0] && questionIndex < section.range[1]
+  )
+}
