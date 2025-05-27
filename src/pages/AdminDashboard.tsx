@@ -15,6 +15,7 @@ import LeadsTab from '@/components/admin/tabs/LeadsTab';
 import { useQuoteRequests } from '@/hooks/useQuoteRequests';
 import { useMobileLayout } from '@/hooks/useMobileLayout';
 import ProfessionalsTab from '@/components/admin/tabs/ProfessionalsTab';
+import AdminGalleryTab from '@/components/admin/tabs/AdminGalleryTab';
 
 const AdminDashboard = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -114,7 +115,7 @@ const AdminDashboard = () => {
           </TabsContent>
           
           <TabsContent value="gallery">
-            <GalleryTab />
+            <AdminGalleryTab />
           </TabsContent>
           
           <TabsContent value="testimonials">
