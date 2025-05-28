@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,22 +5,24 @@ import { Badge } from '@/components/ui/badge';
 import { Eye, RefreshCw, Sparkles, Users, Calendar, Heart } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import QuestionarioHistoryViewer from './QuestionarioHistoryViewer';
+import { Json } from '@/integrations/supabase/types';
 import ModalPersonalizacao from './ModalPersonalizacao';
 import { usePersonalizacaoIA } from '@/hooks/usePersonalizacaoIA';
+import QuestionarioHistoryModal from './QuestionarioHistoryModal';
 
 interface QuestionarioCasal {
   id: string;
   link_publico: string;
   nome_responsavel: string;
   email: string;
-  status: string;
+  status: string | null;
   historia_gerada: string | null;
-  historia_processada: boolean;
-  data_criacao: string;
-  data_atualizacao: string;
-  total_perguntas_resp: number;
-  respostas_json: Record<string, string>;
+  historia_processada: boolean | null;
+  data_criacao: string | null;
+  data_atualizacao: string | null;
+  total_perguntas_resp: number | null;
+  respostas_json: Json | null;
+  senha_hash: string;
   temPersonalizacao?: boolean;
 }
 
@@ -101,7 +102,7 @@ const HistoriasCasaisManager = () => {
           noivos: questionarios.map(q => ({
             nome: q.nome_responsavel,
             email: q.email,
-            respostas: q.respostas_json
+            respostas: q.respostas_json as Record<string, string> || {}
           }))
         }
       });
@@ -134,11 +135,12 @@ const HistoriasCasaisManager = () => {
     return casais.find(casal => casal.link_publico === linkPublico);
   };
 
-  const formatarData = (data: string) => {
+  const formatarData = (data: string | null) => {
+    if (!data) return 'N/A';
     return new Date(data).toLocaleDateString('pt-BR');
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: string | null) => {
     switch (status) {
       case 'preenchido': return 'bg-green-100 text-green-800';
       case 'rascunho': return 'bg-yellow-100 text-yellow-800';
@@ -196,7 +198,7 @@ const HistoriasCasaisManager = () => {
                       </CardTitle>
                       <div className="flex items-center space-x-2 mt-1">
                         <Badge variant="outline" className={getStatusColor(primeiroDoGrupo.status)}>
-                          {primeiroDoGrupo.status}
+                          {primeiroDoGrupo.status || 'N/A'}
                         </Badge>
                         {temPersonalizacao && (
                           <Badge variant="outline" className="bg-purple-100 text-purple-800">
@@ -221,7 +223,7 @@ const HistoriasCasaisManager = () => {
                         <div className="font-medium text-gray-900">{casal.nome_responsavel}</div>
                         <div className="text-sm text-gray-600">{casal.email}</div>
                         <div className="text-xs text-gray-500 mt-1">
-                          {casal.total_perguntas_resp} respostas • Atualizado em {formatarData(casal.data_atualizacao)}
+                          {casal.total_perguntas_resp || 0} respostas • Atualizado em {formatarData(casal.data_atualizacao)}
                         </div>
                       </div>
                     ))}
@@ -295,7 +297,7 @@ const HistoriasCasaisManager = () => {
 
       {/* Modal de Visualização da História */}
       {showHistory && (
-        <QuestionarioHistoryViewer
+        <QuestionarioHistoryModal
           isOpen={!!showHistory}
           onClose={() => setShowHistory(null)}
           questionario={obterCasalPorLink(showHistory)}
