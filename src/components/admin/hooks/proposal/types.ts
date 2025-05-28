@@ -7,7 +7,7 @@ export interface Service {
   description?: string;
   price: number;
   quantity?: number;
-  included?: boolean; // Adicionando a propriedade included que estava faltando
+  included: boolean; // Making this required to fix the type error
 }
 
 export interface ProposalData {
@@ -39,11 +39,12 @@ export interface ProposalData {
 export interface QuoteRequest {
   id: string;
   name: string;
-  email: string;
-  phone: string;
-  event_type: string;
+  email?: string; // Making optional to match the data structure
+  phone?: string; // Making optional to match the data structure
+  event_type?: string;
+  eventType?: string; // Adding this variant as well
   event_date?: string;
-  event_location: string;
+  event_location?: string;
   message?: string;
   status?: string;
   created_at?: string;
@@ -53,5 +54,5 @@ export interface QuoteRequest {
 export interface ProposalFormData extends Omit<ProposalData, 'id' | 'created_at' | 'total_price'> {
   id?: string;
   total_price: string; // String para facilitar edição no formulário
-  customService?: string; // Adicionando propriedade que estava faltando
+  customService?: string;
 }

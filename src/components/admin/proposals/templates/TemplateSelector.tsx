@@ -7,7 +7,7 @@ import {
   SelectTrigger, 
   SelectValue 
 } from '@/components/ui/select';
-import { proposalTemplatesApi, ProposalTemplateData } from '../api/proposalTemplates';
+import { proposalTemplatesApi, ProposalTemplateData } from '../../hooks/proposal/api/proposalTemplates';
 
 interface TemplateSelectorProps {
   selectedTemplateId?: string;
