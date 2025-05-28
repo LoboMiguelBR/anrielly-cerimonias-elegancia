@@ -1,8 +1,9 @@
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import AvatarUpload from './AvatarUpload';
-import TestimonialForm from './TestimonialForm';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import useTestimonialSubmission from '../hooks/useTestimonialSubmission';
 
 interface TestimonialSubmissionModalProps {
@@ -12,20 +13,20 @@ interface TestimonialSubmissionModalProps {
 
 const TestimonialSubmissionModal = ({ isOpen, onClose }: TestimonialSubmissionModalProps) => {
   const { 
-    formData, 
-    isSubmitting, 
-    previewUrl, 
-    handleInputChange, 
-    handleImageChange, 
-    clearImage, 
-    handleSubmit 
+    name,
+    setName,
+    email,
+    setEmail,
+    message,
+    setMessage,
+    isSubmitting,
+    handleSubmit
   } = useTestimonialSubmission();
 
-  const onSubmit = async () => {
-    const success = await handleSubmit();
-    if (success) {
-      onClose();
-    }
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await handleSubmit(e);
+    onClose();
   };
 
   return (
@@ -39,18 +40,42 @@ const TestimonialSubmissionModal = ({ isOpen, onClose }: TestimonialSubmissionMo
           Seu depoimento será exibido após análise e aprovação.
         </div>
         
-        <div className="grid gap-4">
-          <AvatarUpload 
-            previewUrl={previewUrl} 
-            onImageChange={handleImageChange}
-            onClearImage={clearImage}
-          />
+        <form onSubmit={onSubmit} className="space-y-4">
+          <div>
+            <Label htmlFor="name">Nome *</Label>
+            <Input
+              id="name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Seu nome completo"
+              required
+            />
+          </div>
 
-          <TestimonialForm 
-            formData={formData}
-            onChange={handleInputChange}
-          />
-        </div>
+          <div>
+            <Label htmlFor="email">Email *</Label>
+            <Input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="seu@email.com"
+              required
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="message">Depoimento *</Label>
+            <Textarea
+              id="message"
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder="Conte sobre sua experiência..."
+              rows={4}
+              required
+            />
+          </div>
+        </form>
         
         <DialogFooter>
           <Button 

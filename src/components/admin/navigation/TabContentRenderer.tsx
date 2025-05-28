@@ -19,10 +19,15 @@ interface TabContentRendererProps {
 }
 
 const TabContentRenderer = ({ transformedQuoteRequests }: TabContentRendererProps) => {
+  const handleNavigate = (tab: string) => {
+    // This would be handled by the parent component
+    console.log('Navigate to:', tab);
+  };
+
   return (
     <>
       <TabsContent value="dashboard">
-        <DashboardTab quoteRequests={transformedQuoteRequests} />
+        <DashboardTab onNavigate={handleNavigate} />
       </TabsContent>
 
       <TabsContent value="quotes">

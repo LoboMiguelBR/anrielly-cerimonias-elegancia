@@ -1,7 +1,7 @@
 
 import { useParams, Navigate } from 'react-router-dom'
 import { useQuestionarioAuth } from '@/hooks/useQuestionarioAuth'
-import { useQuestionarioForm } from '@/hooks/useQuestionarioForm'
+import useQuestionarioForm from '@/hooks/useQuestionarioForm'
 import QuestionarioContainer from '@/components/questionario/QuestionarioContainer'
 
 const QuestionarioFormulario = () => {
