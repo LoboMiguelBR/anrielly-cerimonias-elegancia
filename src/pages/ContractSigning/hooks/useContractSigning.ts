@@ -64,51 +64,52 @@ export const useContractSigning = (contract: ContractData | null, setContract: (
     setIsSubmitting(true);
     try {
       // Obter IP do cliente
-      let ip = 'unknown';
+      let ipAddress = 'unknown';
       try {
         const ipResponse = await fetch('https://api.ipify.org?format=json');
         if (ipResponse.ok) {
           const ipData = await ipResponse.json();
-          ip = ipData.ip;
+          ipAddress = ipData.ip;
         }
       } catch (ipError) {
         console.warn('Failed to get IP address:', ipError);
       }
 
-      // Capturar dados completos do dispositivo
+      // Capturar dados do dispositivo
       const userAgent = navigator.userAgent;
       const signedAt = new Date().toISOString();
 
-      // Dados completos de auditoria
-      const auditData = {
-        signature: signatureUrl,
-        signed_at: signedAt,
-        signer_ip: ip,
-        user_agent: userAgent,
-        client_name: clientName,
-        client_email: clientEmail,
-        timestamp: Date.now(),
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
-      };
-
       console.log('Confirmando assinatura definitiva:', {
         contractId: contract.id,
-        hasPreviewSignature: !!contract.preview_signature_url
+        hasPreviewSignature: !!contract.preview_signature_url,
+        signatureUrl
       });
 
-      // Chamar edge function para processar assinatura definitiva
+      // Chamar edge function com dados no formato correto
       const { error } = await supabase.functions.invoke('contract-signed', {
         body: {
           contractId: contract.id,
           signature: signatureUrl,
           clientName,
           clientEmail,
-          ipAddress: ip,
-          signatureData: auditData
+          ipAddress,
+          signatureData: {
+            signature: signatureUrl,
+            signed_at: signedAt,
+            signer_ip: ipAddress,
+            user_agent: userAgent,
+            client_name: clientName,
+            client_email: clientEmail,
+            timestamp: Date.now(),
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+          }
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Edge function error:', error);
+        throw error;
+      }
 
       toast.success('Contrato assinado com sucesso!');
       

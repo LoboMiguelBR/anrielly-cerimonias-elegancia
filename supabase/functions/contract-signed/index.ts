@@ -10,26 +10,25 @@ const corsHeaders = {
 
 interface ContractSignedRequest {
   contractId: string
-  signatureData: {
-    agreed: boolean
+  signature: string
+  clientName: string
+  clientEmail: string
+  ipAddress: string
+  signatureData?: {
     signature: string
-    timestamp: string
-    client_name: string
-    ip_address: string
+    signed_at: string
+    signer_ip: string
     user_agent: string
-    contract_hash: string
-    legal_compliance: {
-      lei_14063_2020: boolean
-      marco_civil_internet: boolean
-      codigo_civil_brasileiro: boolean
-    }
+    client_name: string
+    client_email: string
+    timestamp: number
+    timezone: string
   }
-  clientIP: string
 }
 
 // Função para substituir variáveis em templates de email
 const replaceEmailVariables = (template: string, contract: any, additionalData: any) => {
-  const signedDate = new Date(additionalData.timestamp || new Date());
+  const signedDate = new Date(additionalData.signed_at || new Date());
   
   const variables = {
     '{{NOME_CLIENTE}}': contract.client_name || '',
@@ -49,10 +48,10 @@ const replaceEmailVariables = (template: string, contract: any, additionalData: 
     '{{DATA_PAGAMENTO_RESTANTE}}': contract.remaining_payment_date ? new Date(contract.remaining_payment_date).toLocaleDateString('pt-BR') : '',
     '{{LINK_CONTRATO}}': additionalData.contractUrl || '',
     
-    // NOVAS VARIÁVEIS DE AUDITORIA
-    '{{IP_ASSINANTE}}': additionalData.clientIP || '',
-    '{{USER_AGENT}}': additionalData.user_agent || '',
-    '{{HASH_CONTRATO}}': additionalData.contract_hash || '',
+    // VARIÁVEIS DE AUDITORIA
+    '{{IP_ASSINANTE}}': additionalData.ipAddress || 'Não disponível',
+    '{{USER_AGENT}}': additionalData.user_agent || 'Não disponível',
+    '{{HASH_CONTRATO}}': additionalData.contract_hash || 'Não disponível',
     '{{DATA_ASSINATURA}}': signedDate.toLocaleDateString('pt-BR'),
     '{{HORA_ASSINATURA}}': signedDate.toLocaleTimeString('pt-BR'),
     
@@ -83,18 +82,34 @@ serve(async (req) => {
 
     const resend = new Resend(Deno.env.get('RESEND_API_KEY'))
 
-    const { contractId, signatureData, clientIP }: ContractSignedRequest = await req.json()
+    const { contractId, signature, clientName, clientEmail, ipAddress, signatureData }: ContractSignedRequest = await req.json()
 
-    console.log('Processing contract signature:', { contractId, clientIP })
+    console.log('Processing contract signature:', { contractId, ipAddress, hasSignature: !!signature })
 
-    // Atualizar contrato no banco de dados
+    // Criar timestamp no formato ISO correto
+    const signedAt = new Date().toISOString()
+
+    // Preparar dados de auditoria simplificados
+    const auditData = {
+      signature: signature,
+      signed_at: signedAt,
+      signer_ip: ipAddress || 'unknown',
+      user_agent: signatureData?.user_agent || 'unknown',
+      client_name: clientName,
+      client_email: clientEmail,
+      timezone: signatureData?.timezone || 'America/Sao_Paulo'
+    }
+
+    // Atualizar contrato no banco de dados com timestamp correto
     const { data: contract, error: updateError } = await supabaseClient
       .from('contracts')
       .update({
         status: 'signed',
-        signed_at: signatureData.timestamp,
-        signer_ip: clientIP,
-        signature_data: signatureData
+        signed_at: signedAt, // Usar ISO string em vez de timestamp numérico
+        signer_ip: ipAddress || 'unknown',
+        signature_data: auditData,
+        client_name: clientName,
+        client_email: clientEmail
       })
       .eq('id', contractId)
       .select()
@@ -139,8 +154,6 @@ serve(async (req) => {
           <h3 style="color: #92400e; margin-top: 0;">🔒 Dados de Auditoria e Segurança:</h3>
           <ul style="font-size: 12px; margin: 10px 0;">
             <li><strong>IP do Assinante:</strong> {{IP_ASSINANTE}}</li>
-            <li><strong>Dispositivo/Navegador:</strong> {{USER_AGENT}}</li>
-            <li><strong>Hash do Documento:</strong> {{HASH_CONTRATO}}</li>
           </ul>
           <p style="margin: 5px 0; font-size: 14px; color: #92400e;">
             <strong>📋 Validade Jurídica:</strong> Este contrato possui validade jurídica conforme Lei nº 14.063/2020, Marco Civil da Internet e Código Civil Brasileiro.
@@ -165,19 +178,19 @@ serve(async (req) => {
 
     // Substituir variáveis no template do cliente
     const clientEmailContent = replaceEmailVariables(clientEmailTemplate, contract, {
-      clientIP,
-      user_agent: signatureData.user_agent,
-      contract_hash: signatureData.contract_hash,
-      timestamp: signatureData.timestamp
+      ipAddress: ipAddress || 'unknown',
+      user_agent: auditData.user_agent,
+      contract_hash: 'hash-placeholder',
+      signed_at: signedAt
     });
 
     const finalClientSubject = replaceEmailVariables(clientSubject, contract, {
-      clientIP,
-      user_agent: signatureData.user_agent,
-      contract_hash: signatureData.contract_hash,
-      timestamp: signatureData.timestamp
+      ipAddress: ipAddress || 'unknown',
+      user_agent: auditData.user_agent,
+      signed_at: signedAt
     });
 
+    // Enviar email para o cliente
     await resend.emails.send({
       from: 'Anrielly Gomes <contato@anriellygomes.com.br>',
       to: [contract.client_email],
@@ -185,7 +198,7 @@ serve(async (req) => {
       html: clientEmailContent,
     })
 
-    // Email para Anrielly (cópia de controle com dados de auditoria)
+    // Email para Anrielly (cópia de controle)
     const adminEmailContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #dc2626;">🎉 Novo Contrato Assinado!</h2>
@@ -206,18 +219,11 @@ serve(async (req) => {
         </div>
         
         <div style="background-color: #f0fdf4; padding: 15px; border-radius: 8px; margin: 20px 0;">
-          <h3 style="color: #166534; margin-top: 0;">🔒 Dados de Auditoria Completos:</h3>
+          <h3 style="color: #166534; margin-top: 0;">🔒 Dados de Auditoria:</h3>
           <ul style="margin: 10px 0;">
-            <li><strong>Data/Hora:</strong> ${new Date(signatureData.timestamp).toLocaleString('pt-BR')}</li>
-            <li><strong>IP do Assinante:</strong> ${clientIP}</li>
-            <li><strong>User Agent:</strong> ${signatureData.user_agent}</li>
-            <li><strong>Hash do Contrato:</strong> ${signatureData.contract_hash}</li>
-            <li><strong>Conformidade Legal:</strong></li>
-            <ul style="margin-left: 20px;">
-              <li>Lei 14.063/2020: ${signatureData.legal_compliance?.lei_14063_2020 ? '✅' : '❌'}</li>
-              <li>Marco Civil: ${signatureData.legal_compliance?.marco_civil_internet ? '✅' : '❌'}</li>
-              <li>Código Civil: ${signatureData.legal_compliance?.codigo_civil_brasileiro ? '✅' : '❌'}</li>
-            </ul>
+            <li><strong>Data/Hora:</strong> ${new Date(signedAt).toLocaleString('pt-BR')}</li>
+            <li><strong>IP do Assinante:</strong> ${ipAddress || 'unknown'}</li>
+            <li><strong>User Agent:</strong> ${auditData.user_agent}</li>
           </ul>
         </div>
         
@@ -232,10 +238,10 @@ serve(async (req) => {
       html: adminEmailContent,
     })
 
-    console.log('Emails sent successfully with audit data')
+    console.log('Emails sent successfully')
 
     return new Response(
-      JSON.stringify({ success: true, message: 'Contract signed and emails sent with audit data' }),
+      JSON.stringify({ success: true, message: 'Contract signed and emails sent successfully' }),
       { 
         headers: { 
           'Content-Type': 'application/json',
