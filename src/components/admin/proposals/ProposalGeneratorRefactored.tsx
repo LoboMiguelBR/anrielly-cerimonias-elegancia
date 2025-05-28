@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -172,7 +173,7 @@ const ProposalGeneratorRefactored: React.FC<ProposalGeneratorRefactoredProps> = 
       template_id: selectedTemplate?.id || null
     };
 
-    // Convert API template data to preview format with correct font property
+    // Convert API template data to preview format with correct properties
     const previewTemplate = selectedTemplate ? {
       id: selectedTemplate.id,
       name: selectedTemplate.name,
@@ -366,7 +367,26 @@ const ProposalGeneratorRefactored: React.FC<ProposalGeneratorRefactoredProps> = 
       {/* PDF and Email Action Buttons */}
       <ProposalActionButtons
         proposal={proposal}
-        template={selectedTemplate}
+        template={selectedTemplate ? {
+          id: selectedTemplate.id,
+          name: selectedTemplate.name,
+          colors: {
+            primary: '#8A2BE2',
+            secondary: '#F2AE30',
+            accent: '#E57373',
+            text: '#333333',
+            background: '#FFFFFF'
+          },
+          fonts: {
+            title: 'Playfair Display, serif',
+            body: 'Inter, sans-serif'
+          },
+          logo: "https://oampddkpuybkbwqggrty.supabase.co/storage/v1/object/public/proposals/LogoAG.png",
+          showQrCode: true,
+          showTestimonials: true,
+          showDifferentials: true,
+          showAboutSection: true
+        } : null}
         isFormValid={isFormValid}
         onSave={handleSaveProposal}
         isSaving={isSaving}

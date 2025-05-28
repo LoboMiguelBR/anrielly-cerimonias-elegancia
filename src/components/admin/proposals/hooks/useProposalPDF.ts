@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { ProposalData } from '../../hooks/proposal/types';
 import { ProposalTemplateData } from '../templates/shared/types';
-import ProposalPDF from '../../ProposalPDF';
+import ProposalDocument from '../../pdf/ProposalDocument';
 import { savePdfUrl } from '../../hooks/proposal/proposalApi';
 import React from 'react';
 
@@ -23,8 +23,8 @@ export const useProposalPDF = () => {
     try {
       console.log('Generating PDF for proposal:', proposal.id);
       
-      // Generate PDF blob using React.createElement instead of JSX
-      const pdfComponent = React.createElement(ProposalPDF, { proposal, template });
+      // Generate PDF blob using ProposalDocument (which is a proper Document component)
+      const pdfComponent = React.createElement(ProposalDocument, { proposal, template });
       const blob = await pdf(pdfComponent).toBlob();
       
       // Create file name
