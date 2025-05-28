@@ -1,3 +1,4 @@
+
 import { useRef, useState } from 'react';
 import useTestimonialsData from './testimonials/useTestimonialsData';
 import EnhancedTestimonialCarousel from './testimonials/EnhancedTestimonialCarousel';
@@ -18,7 +19,7 @@ const Testimonials = () => {
     status: testimonial.status
   }));
 
-  console.log('[Testimonials] Renderizando componente com', mappedTestimonials.length, 'depoimentos');
+  console.log('[Testimonials] Renderizando componente com', mappedTestimonials.length, 'depoimentos randomizados');
   console.log('[Testimonials] Estado:', { isLoading, hasError: !!error, testimonialCount: mappedTestimonials.length });
 
   return (

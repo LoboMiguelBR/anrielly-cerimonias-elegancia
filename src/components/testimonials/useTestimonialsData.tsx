@@ -1,9 +1,10 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { getStaticTestimonials } from './StaticTestimonials';
 import { fetchApprovedTestimonials } from '@/components/admin/hooks/testimonials/api';
+import { shuffleArray } from '@/utils/arrayUtils';
 
 export interface Testimonial {
   id: string;
@@ -18,8 +19,9 @@ export const useTestimonialsData = () => {
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
   
-  const fetchTestimonials = async () => {
+  const fetchTestimonials = useCallback(async (shouldRandomize: boolean = false) => {
     try {
       setIsLoading(true);
       setError(null);
@@ -31,8 +33,10 @@ export const useTestimonialsData = () => {
       
       console.log('[useTestimonialsData] Depoimentos aprovados carregados:', data?.length);
       
+      let finalTestimonials: Testimonial[] = [];
+      
       if (data && data.length > 0) {
-        setTestimonials(data);
+        finalTestimonials = data;
         console.log('[useTestimonialsData] Usando depoimentos aprovados do banco:', data);
       } else {
         // Fallback para depoimentos estáticos quando não há dados aprovados no banco
@@ -46,8 +50,17 @@ export const useTestimonialsData = () => {
           status: 'approved' as const
         }));
         console.log('[useTestimonialsData] Dados estáticos:', staticData);
-        setTestimonials(staticData);
+        finalTestimonials = staticData;
       }
+      
+      // Aplicar randomização apenas no carregamento inicial
+      if (shouldRandomize && isInitialLoad) {
+        console.log('[useTestimonialsData] Aplicando randomização nos depoimentos');
+        finalTestimonials = shuffleArray(finalTestimonials);
+        setIsInitialLoad(false);
+      }
+      
+      setTestimonials(finalTestimonials);
     } catch (error: any) {
       console.error('[useTestimonialsData] Erro ao carregar depoimentos:', error);
       setError(error.message || 'Erro ao carregar depoimentos');
@@ -62,8 +75,18 @@ export const useTestimonialsData = () => {
         image_url: item.imageUrl,
         status: 'approved' as const
       }));
-      console.log('[useTestimonialsData] Dados estáticos de fallback:', staticData);
-      setTestimonials(staticData);
+      
+      let finalTestimonials = staticData;
+      
+      // Aplicar randomização apenas no carregamento inicial, mesmo em caso de erro
+      if (shouldRandomize && isInitialLoad) {
+        console.log('[useTestimonialsData] Aplicando randomização nos depoimentos estáticos de fallback');
+        finalTestimonials = shuffleArray(staticData);
+        setIsInitialLoad(false);
+      }
+      
+      console.log('[useTestimonialsData] Dados estáticos de fallback:', finalTestimonials);
+      setTestimonials(finalTestimonials);
       
       toast.error('Erro ao carregar depoimentos', {
         description: error.message
@@ -71,11 +94,11 @@ export const useTestimonialsData = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [isInitialLoad]);
 
   useEffect(() => {
     console.log('[useTestimonialsData] Inicializando hook');
-    fetchTestimonials();
+    fetchTestimonials(true); // Randomizar no carregamento inicial
     
     // Set up realtime subscription with better error handling
     const channel = supabase
@@ -89,7 +112,7 @@ export const useTestimonialsData = () => {
         },
         (payload) => {
           console.log('[useTestimonialsData] Recebeu alteração em tempo real:', payload);
-          fetchTestimonials();
+          fetchTestimonials(false); // Não randomizar em atualizações em tempo real
         }
       )
       .subscribe((status) => {
@@ -106,13 +129,22 @@ export const useTestimonialsData = () => {
       console.log('[useTestimonialsData] Limpando inscrição em tempo real');
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [fetchTestimonials]);
+
+  // Função para forçar uma nova randomização (caso necessário)
+  const randomizeTestimonials = useCallback(() => {
+    if (testimonials.length > 0) {
+      console.log('[useTestimonialsData] Forçando nova randomização');
+      setTestimonials(shuffleArray(testimonials));
+    }
+  }, [testimonials]);
 
   return {
     testimonials,
     isLoading,
     error,
-    fetchTestimonials
+    fetchTestimonials: () => fetchTestimonials(false),
+    randomizeTestimonials
   };
 };
 

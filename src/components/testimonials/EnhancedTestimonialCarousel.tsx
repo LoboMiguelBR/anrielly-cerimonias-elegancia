@@ -12,7 +12,7 @@ interface EnhancedTestimonialCarouselProps {
 }
 
 const EnhancedTestimonialCarousel: FC<EnhancedTestimonialCarouselProps> = ({ testimonials }) => {
-  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true });
+  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, startIndex: 0 });
   const [activeIndex, setActiveIndex] = useState(0);
   const [mounted, setMounted] = useState(false);
   
@@ -25,6 +25,15 @@ const EnhancedTestimonialCarousel: FC<EnhancedTestimonialCarouselProps> = ({ tes
       setMounted(false);
     };
   }, []);
+
+  // Reset to first slide when testimonials change (after randomization)
+  useEffect(() => {
+    if (emblaApi && testimonials.length > 0) {
+      console.log('[EnhancedTestimonialCarousel] Reiniciando carrossel para o primeiro slide após mudança nos depoimentos');
+      emblaApi.scrollTo(0, false); // Scroll to first slide without animation
+      setActiveIndex(0);
+    }
+  }, [emblaApi, testimonials]);
 
   // Update active index when slide changes
   useEffect(() => {
