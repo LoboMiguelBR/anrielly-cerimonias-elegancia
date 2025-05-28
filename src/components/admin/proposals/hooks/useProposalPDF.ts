@@ -1,11 +1,14 @@
 
 import { useState } from 'react';
-import { pdf } from '@react-pdf/renderer';
+import { pdf, Document } from '@react-pdf/renderer';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { ProposalData } from '../../hooks/proposal/types';
 import { ProposalTemplateData } from '../templates/shared/types';
-import ProposalDocument from '../../pdf/ProposalDocument';
+import { CoverPage } from '../../pdf/pages/CoverPage';
+import { MainContentPage } from '../../pdf/pages/MainContentPage';
+import { ServicesAndPricingPage } from '../../pdf/pages/ServicesAndPricingPage';
+import { TestimonialsAndSignaturePage } from '../../pdf/pages/TestimonialsAndSignaturePage';
 import { savePdfUrl } from '../../hooks/proposal/proposalApi';
 import React from 'react';
 
@@ -13,6 +16,28 @@ export const useProposalPDF = () => {
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [isSendingEmail, setIsSendingEmail] = useState(false);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+
+  // Default template inline
+  const defaultTemplate: ProposalTemplateData = {
+    id: 'default',
+    name: 'Template Padrão',
+    colors: {
+      primary: '#8A2BE2',
+      secondary: '#F2AE30',
+      accent: '#E57373',
+      text: '#333333',
+      background: '#FFFFFF'
+    },
+    fonts: {
+      title: 'Playfair Display, serif',
+      body: 'Inter, sans-serif'
+    },
+    logo: "https://oampddkpuybkbwqggrty.supabase.co/storage/v1/object/public/proposals/LogoAG.png",
+    showQrCode: true,
+    showTestimonials: true,
+    showDifferentials: true,
+    showAboutSection: true
+  };
 
   const generateAndSavePDF = async (
     proposal: ProposalData,
@@ -23,9 +48,33 @@ export const useProposalPDF = () => {
     try {
       console.log('Generating PDF for proposal:', proposal.id);
       
-      // Generate PDF blob using ProposalDocument (which is a proper Document component)
-      const pdfComponent = React.createElement(ProposalDocument, { proposal, template });
-      const blob = await pdf(pdfComponent).toBlob();
+      const safeTemplate = template || defaultTemplate;
+      
+      // Create Document element directly with all pages
+      const pdfDocument = React.createElement(Document, {}, [
+        React.createElement(CoverPage, { 
+          key: 'cover',
+          proposal, 
+          template: safeTemplate 
+        }),
+        React.createElement(MainContentPage, { 
+          key: 'main',
+          proposal, 
+          template: safeTemplate 
+        }),
+        React.createElement(ServicesAndPricingPage, { 
+          key: 'services',
+          proposal, 
+          template: safeTemplate 
+        }),
+        React.createElement(TestimonialsAndSignaturePage, { 
+          key: 'testimonials',
+          proposal, 
+          template: safeTemplate 
+        })
+      ]);
+      
+      const blob = await pdf(pdfDocument).toBlob();
       
       // Create file name
       const fileName = `proposta_${proposal.id}_${Date.now()}.pdf`;
