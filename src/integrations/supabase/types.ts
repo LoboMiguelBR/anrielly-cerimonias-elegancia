@@ -99,6 +99,7 @@ export type Database = {
           ip_address: string | null
           notes: string | null
           pdf_url: string | null
+          preview_signature_url: string | null
           proposal_id: string | null
           public_slug: string | null
           public_token: string
@@ -106,6 +107,7 @@ export type Database = {
           remaining_amount: number | null
           remaining_payment_date: string | null
           signature_data: Json | null
+          signature_drawn_at: string | null
           signed_at: string | null
           signer_ip: string | null
           status: string
@@ -137,6 +139,7 @@ export type Database = {
           ip_address?: string | null
           notes?: string | null
           pdf_url?: string | null
+          preview_signature_url?: string | null
           proposal_id?: string | null
           public_slug?: string | null
           public_token?: string
@@ -144,6 +147,7 @@ export type Database = {
           remaining_amount?: number | null
           remaining_payment_date?: string | null
           signature_data?: Json | null
+          signature_drawn_at?: string | null
           signed_at?: string | null
           signer_ip?: string | null
           status?: string
@@ -175,6 +179,7 @@ export type Database = {
           ip_address?: string | null
           notes?: string | null
           pdf_url?: string | null
+          preview_signature_url?: string | null
           proposal_id?: string | null
           public_slug?: string | null
           public_token?: string
@@ -182,6 +187,7 @@ export type Database = {
           remaining_amount?: number | null
           remaining_payment_date?: string | null
           signature_data?: Json | null
+          signature_drawn_at?: string | null
           signed_at?: string | null
           signer_ip?: string | null
           status?: string

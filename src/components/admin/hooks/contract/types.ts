@@ -1,11 +1,12 @@
 
 export type ContractStatus = 
-  | 'draft'     // Rascunho
-  | 'sent'      // Enviado para assinatura
-  | 'signed'    // Assinado
-  | 'cancelled' // Cancelado
-  | 'expired'   // Expirado
-  | 'pending';  // Pendente
+  | 'draft'        // Rascunho
+  | 'sent'         // Enviado para assinatura
+  | 'draft_signed' // Assinatura desenhada (pré-visualização)
+  | 'signed'       // Assinado definitivamente
+  | 'cancelled'    // Cancelado
+  | 'expired'      // Expirado
+  | 'pending';     // Pendente
 
 export interface ContractData {
   id: string;
@@ -34,6 +35,8 @@ export interface ContractData {
   notes?: string;
   status: ContractStatus;
   signature_data?: any;
+  preview_signature_url?: string; // Nova: URL da assinatura de preview
+  signature_drawn_at?: string;    // Nova: Timestamp quando assinatura foi desenhada
   signed_at?: string;
   signer_ip?: string;
   ip_address?: string;

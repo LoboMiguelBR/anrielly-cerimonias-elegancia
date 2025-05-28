@@ -11,10 +11,53 @@ export const useContractSigning = (contract: ContractData | null, setContract: (
   const [hasDrawnSignature, setHasDrawnSignature] = useState(false);
   const [clientName, setClientName] = useState(contract?.client_name || '');
   const [clientEmail, setClientEmail] = useState(contract?.client_email || '');
+  const [isInPreviewMode, setIsInPreviewMode] = useState(contract?.status === 'draft_signed');
 
-  const handleSignContract = async () => {
+  // Função para salvar assinatura como preview (primeira etapa)
+  const handleSaveSignaturePreview = async () => {
     if (!contract || !signature || !hasDrawnSignature || !signatureUrl) {
       toast.error('Por favor, desenhe e salve sua assinatura antes de continuar');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      // Atualizar contrato com assinatura de preview
+      const { data, error } = await supabase
+        .from('contracts')
+        .update({
+          status: 'draft_signed',
+          preview_signature_url: signatureUrl,
+          signature_drawn_at: new Date().toISOString(),
+          client_name: clientName,
+          client_email: clientEmail
+        })
+        .eq('id', contract.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Atualizar estado local
+      setContract({
+        ...data,
+        status: data.status as ContractData['status']
+      });
+      
+      setIsInPreviewMode(true);
+      toast.success('Assinatura salva! Revise o contrato antes de confirmar.');
+    } catch (error) {
+      console.error('Error saving signature preview:', error);
+      toast.error('Erro ao salvar assinatura');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Função para confirmar assinatura definitiva (segunda etapa)
+  const handleConfirmSignature = async () => {
+    if (!contract || !signatureUrl) {
+      toast.error('Erro: assinatura não encontrada');
       return;
     }
 
@@ -38,7 +81,7 @@ export const useContractSigning = (contract: ContractData | null, setContract: (
 
       // Dados completos de auditoria
       const auditData = {
-        signature: signatureUrl, // Usar URL da assinatura salva
+        signature: signatureUrl,
         signed_at: signedAt,
         signer_ip: ip,
         user_agent: userAgent,
@@ -48,14 +91,12 @@ export const useContractSigning = (contract: ContractData | null, setContract: (
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
       };
 
-      console.log('Capturando dados de auditoria completos:', {
-        ip,
-        userAgent: userAgent.substring(0, 50) + '...',
-        signedAt,
-        hasSignature: !!signatureUrl,
-        signatureUrl: signatureUrl.substring(0, 50) + '...'
+      console.log('Confirmando assinatura definitiva:', {
+        contractId: contract.id,
+        hasPreviewSignature: !!contract.preview_signature_url
       });
 
+      // Chamar edge function para processar assinatura definitiva
       const { error } = await supabase.functions.invoke('contract-signed', {
         body: {
           contractId: contract.id,
@@ -83,13 +124,25 @@ export const useContractSigning = (contract: ContractData | null, setContract: (
           ...updatedData,
           status: updatedData.status as ContractData['status']
         });
+        setIsInPreviewMode(false);
       }
     } catch (error) {
-      console.error('Error signing contract:', error);
-      toast.error('Erro ao assinar contrato');
+      console.error('Error confirming contract signature:', error);
+      toast.error('Erro ao confirmar assinatura do contrato');
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  // Função para voltar à edição da assinatura
+  const handleEditSignature = () => {
+    setIsInPreviewMode(false);
+    setHasDrawnSignature(false);
+    setSignature('');
+    setSignatureUrl('');
+    
+    // Opcional: limpar preview do banco (manter por segurança)
+    // Usuário pode querer voltar ao preview sem redesenhar
   };
 
   return {
@@ -104,6 +157,9 @@ export const useContractSigning = (contract: ContractData | null, setContract: (
     setClientName,
     clientEmail,
     setClientEmail,
-    handleSignContract
+    isInPreviewMode,
+    handleSaveSignaturePreview,
+    handleConfirmSignature,
+    handleEditSignature
   };
 };

@@ -62,34 +62,41 @@ export const getSecureCompanySignatureUrl = async (): Promise<string> => {
 
 /**
  * Formata a assinatura do cliente para exibição
+ * Prioriza preview_signature_url para status draft_signed, signature_data para signed
  */
-export const formatClientSignature = (signatureData?: any): string => {
-  if (!signatureData) {
-    return '<span style="color: #666; font-style: italic;">Aguardando assinatura</span>';
+export const formatClientSignature = (contract: ContractData): string => {
+  // Se está em modo de preview (draft_signed), usar preview_signature_url
+  if (contract.status === 'draft_signed' && contract.preview_signature_url) {
+    return `<img src="${contract.preview_signature_url}" alt="Assinatura do Cliente (Preview)" style="max-width: 200px; max-height: 80px; border: 1px solid #ddd; padding: 5px; background: white;" />`;
   }
   
-  // Se signatureData é uma string (URL direta)
-  if (typeof signatureData === 'string') {
-    if (signatureData.includes('supabase.co/storage/v1/object/public/signatures/') || 
-        signatureData.startsWith('data:image') || 
-        signatureData.startsWith('http')) {
-      return `<img src="${signatureData}" alt="Assinatura do Cliente" style="max-width: 200px; max-height: 80px; border: 1px solid #ddd; padding: 5px; background: white;" />`;
+  // Se está assinado definitivamente, usar signature_data
+  if (contract.status === 'signed' && contract.signature_data) {
+    const signatureData = contract.signature_data;
+    
+    // Se signatureData é uma string (URL direta)
+    if (typeof signatureData === 'string') {
+      if (signatureData.includes('supabase.co/storage/v1/object/public/signatures/') || 
+          signatureData.startsWith('data:image') || 
+          signatureData.startsWith('http')) {
+        return `<img src="${signatureData}" alt="Assinatura do Cliente" style="max-width: 200px; max-height: 80px; border: 1px solid #ddd; padding: 5px; background: white;" />`;
+      }
     }
-  }
-  
-  // Se signatureData é um objeto com propriedade signature
-  if (signatureData.signature) {
-    const signature = signatureData.signature;
-    if (typeof signature === 'string') {
-      if (signature.includes('supabase.co/storage/v1/object/public/signatures/') || 
-          signature.startsWith('data:image') || 
-          signature.startsWith('http')) {
-        return `<img src="${signature}" alt="Assinatura do Cliente" style="max-width: 200px; max-height: 80px; border: 1px solid #ddd; padding: 5px; background: white;" />`;
+    
+    // Se signatureData é um objeto com propriedade signature
+    if (signatureData.signature) {
+      const signature = signatureData.signature;
+      if (typeof signature === 'string') {
+        if (signature.includes('supabase.co/storage/v1/object/public/signatures/') || 
+            signature.startsWith('data:image') || 
+            signature.startsWith('http')) {
+          return `<img src="${signature}" alt="Assinatura do Cliente" style="max-width: 200px; max-height: 80px; border: 1px solid #ddd; padding: 5px; background: white;" />`;
+        }
       }
     }
   }
   
-  return '<span style="color: #666; font-style: italic;">Assinatura inválida</span>';
+  return '<span style="color: #666; font-style: italic;">Aguardando assinatura</span>';
 };
 
 /**

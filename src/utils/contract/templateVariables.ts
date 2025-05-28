@@ -1,4 +1,3 @@
-
 import { ContractData } from '@/components/admin/hooks/contract/types';
 import { 
   generateContractHash, 
@@ -73,12 +72,8 @@ export const createVariableMapping = async (contract: ContractData): Promise<Rec
   // Aguardar a assinatura da empresa de forma async
   const companySignature = await formatCompanySignature();
   
-  // Formatar assinatura do cliente corretamente
-  let clientSignature = '<span style="color: #666; font-style: italic;">Aguardando assinatura</span>';
-  
-  if (contract.signature_data) {
-    clientSignature = formatClientSignature(contract.signature_data);
-  }
+  // Formatar assinatura do cliente usando a nova função que suporta preview
+  const clientSignature = formatClientSignature(contract);
   
   return {
     // Dados básicos do cliente
@@ -116,7 +111,7 @@ export const createVariableMapping = async (contract: ContractData): Promise<Rec
     '{DISPOSITIVO}': formatDeviceInfo(contract.user_agent),
     '{HASH_DOCUMENTO}': contractHash,
     
-    // Assinaturas (agora retornando as imagens corretas)
+    // Assinaturas (agora suportando preview e final)
     '{ASSINATURA_CLIENTE}': clientSignature,
     '{ASSINATURA_CONTRATADA}': companySignature,
     
