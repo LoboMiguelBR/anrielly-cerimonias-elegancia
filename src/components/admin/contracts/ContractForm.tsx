@@ -16,6 +16,7 @@ import ProfessionalSelector from './selectors/ProfessionalSelector';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
+// Updated schema with better date/time validation
 const contractSchema = z.object({
   client_name: z.string().min(1, 'Nome é obrigatório'),
   client_email: z.string().email('Email inválido'),
@@ -24,14 +25,14 @@ const contractSchema = z.object({
   client_profession: z.string().optional(),
   civil_status: z.string().optional(),
   event_type: z.string().min(1, 'Tipo de evento é obrigatório'),
-  event_date: z.string().optional(),
-  event_time: z.string().optional(),
+  event_date: z.string().optional().transform(val => val === '' ? undefined : val),
+  event_time: z.string().optional().transform(val => val === '' ? undefined : val),
   event_location: z.string().optional(),
   total_price: z.number().min(0, 'Valor total deve ser positivo'),
   down_payment: z.number().optional(),
-  down_payment_date: z.string().optional(),
+  down_payment_date: z.string().optional().transform(val => val === '' ? undefined : val),
   remaining_amount: z.number().optional(),
-  remaining_payment_date: z.string().optional(),
+  remaining_payment_date: z.string().optional().transform(val => val === '' ? undefined : val),
   template_id: z.string().optional(),
   notes: z.string().optional(),
   quote_request_id: z.string().optional(),
@@ -178,14 +179,19 @@ const ContractForm = ({ initialData, onSubmit, onCancel, isLoading = false }: Co
   };
 
   const handleFormSubmit = async (formData: ContractFormData) => {
-    // Adicionar dados de auditoria
-    const enhancedData = {
+    // Clean up empty strings for date/time fields before submission
+    const cleanedData = {
       ...formData,
+      event_date: formData.event_date === '' ? undefined : formData.event_date,
+      event_time: formData.event_time === '' ? undefined : formData.event_time,
+      down_payment_date: formData.down_payment_date === '' ? undefined : formData.down_payment_date,
+      remaining_payment_date: formData.remaining_payment_date === '' ? undefined : formData.remaining_payment_date,
+      // Add audit data
       ip_address: auditData.ip_address,
       user_agent: auditData.user_agent,
     };
 
-    await onSubmit(enhancedData);
+    await onSubmit(cleanedData);
   };
 
   const formatPhone = (value: string) => {
@@ -329,6 +335,7 @@ const ContractForm = ({ initialData, onSubmit, onCancel, isLoading = false }: Co
                   id="event_date"
                   type="date"
                   {...register('event_date')}
+                  placeholder="Deixe vazio se não definido"
                 />
               </div>
 
@@ -338,6 +345,7 @@ const ContractForm = ({ initialData, onSubmit, onCancel, isLoading = false }: Co
                   id="event_time"
                   type="time"
                   {...register('event_time')}
+                  placeholder="Deixe vazio se não definido"
                 />
               </div>
 
@@ -384,6 +392,7 @@ const ContractForm = ({ initialData, onSubmit, onCancel, isLoading = false }: Co
                   id="down_payment_date"
                   type="date"
                   {...register('down_payment_date')}
+                  placeholder="Deixe vazio se não definido"
                 />
               </div>
 
@@ -406,6 +415,7 @@ const ContractForm = ({ initialData, onSubmit, onCancel, isLoading = false }: Co
                   id="remaining_payment_date"
                   type="date"
                   {...register('remaining_payment_date')}
+                  placeholder="Deixe vazio se não definido"
                 />
               </div>
             </div>

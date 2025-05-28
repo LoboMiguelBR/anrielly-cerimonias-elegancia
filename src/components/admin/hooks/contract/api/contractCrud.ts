@@ -2,6 +2,19 @@
 import { supabase } from '@/integrations/supabase/client';
 import { ContractData, ContractFormData, ContractStatus } from '../types';
 
+// Helper function to sanitize date and time fields
+const sanitizeDateTimeFields = (data: any) => {
+  const sanitized = { ...data };
+  
+  // Convert empty strings to null for date/time fields
+  if (sanitized.event_date === '') sanitized.event_date = null;
+  if (sanitized.event_time === '') sanitized.event_time = null;
+  if (sanitized.down_payment_date === '') sanitized.down_payment_date = null;
+  if (sanitized.remaining_payment_date === '') sanitized.remaining_payment_date = null;
+  
+  return sanitized;
+};
+
 export const contractCrudApi = {
   // Get all contracts
   async getContracts(): Promise<ContractData[]> {
@@ -57,9 +70,11 @@ export const contractCrudApi = {
     const token = crypto.randomUUID();
     const publicToken = crypto.randomUUID();
 
-    // Convert number fields to ensure proper types
+    // Sanitize date/time fields and convert number fields to ensure proper types
+    const sanitizedData = sanitizeDateTimeFields(contractData);
+    
     const formattedData = {
-      ...contractData,
+      ...sanitizedData,
       total_price: Number(contractData.total_price),
       down_payment: contractData.down_payment ? Number(contractData.down_payment) : null,
       remaining_amount: contractData.remaining_amount ? Number(contractData.remaining_amount) : null,
@@ -96,9 +111,11 @@ export const contractCrudApi = {
 
   // Update contract
   async updateContract(id: string, contractData: Partial<ContractFormData>): Promise<ContractData> {
-    // Convert number fields to ensure proper types
+    // Sanitize date/time fields and convert number fields to ensure proper types
+    const sanitizedData = sanitizeDateTimeFields(contractData);
+    
     const formattedData = {
-      ...contractData,
+      ...sanitizedData,
       total_price: contractData.total_price ? Number(contractData.total_price) : undefined,
       down_payment: contractData.down_payment ? Number(contractData.down_payment) : undefined,
       remaining_amount: contractData.remaining_amount ? Number(contractData.remaining_amount) : undefined,
