@@ -51,12 +51,18 @@ const ProposalsMain: React.FC<ProposalsMainProps> = ({
     setProposalToDelete
   } = useProposalActions({ refetch });
 
+  // Enhanced handleCloseModal to ensure refetch is called
+  const handleCloseModalWithRefetch = () => {
+    handleCloseModal();
+    refetch(); // Always refetch when closing the modal
+  };
+
   if (currentView === 'view' && selectedProposal) {
     return (
       <ProposalGeneratorRefactored 
         quoteRequests={quoteRequests}
         initialProposalId={selectedProposal.id}
-        onClose={handleCloseModal}
+        onClose={handleCloseModalWithRefetch}
       />
     );
   }
@@ -73,7 +79,7 @@ const ProposalsMain: React.FC<ProposalsMainProps> = ({
       />
 
       {/* Create/Edit Proposal Modal */}
-      <Dialog open={showCreateModal || showEditModal} onOpenChange={handleCloseModal}>
+      <Dialog open={showCreateModal || showEditModal} onOpenChange={handleCloseModalWithRefetch}>
         <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
@@ -91,7 +97,7 @@ const ProposalsMain: React.FC<ProposalsMainProps> = ({
             quoteRequests={quoteRequests}
             quoteIdFromUrl={quoteIdFromUrl}
             initialProposalId={showEditModal ? selectedProposal?.id : undefined}
-            onClose={handleCloseModal}
+            onClose={handleCloseModalWithRefetch}
           />
         </DialogContent>
       </Dialog>

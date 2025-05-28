@@ -1,8 +1,50 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { ProposalData, Service } from './types';
 import { Json } from '@/integrations/supabase/types';
 import { toast } from 'sonner';
+
+// Fetch all proposals
+export const fetchProposals = async (): Promise<ProposalData[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('proposals')
+      .select('*')
+      .order('created_at', { ascending: false });
+      
+    if (error) throw error;
+    if (!data) return [];
+    
+    return data.map(item => ({
+      id: item.id,
+      client_name: item.client_name,
+      client_email: item.client_email,
+      client_phone: item.client_phone,
+      event_type: item.event_type,
+      event_date: item.event_date,
+      event_location: item.event_location,
+      services: (item.services as unknown) as Service[],
+      total_price: item.total_price,
+      payment_terms: item.payment_terms,
+      notes: item.notes,
+      quote_request_id: item.quote_request_id,
+      validity_date: item.validity_date,
+      created_at: item.created_at,
+      template_id: item.template_id || null,
+      status: item.status,
+      pdf_url: item.pdf_url,
+      html_content: item.html_content,
+      css_content: item.css_content,
+      version: item.version || 1,
+      version_timestamp: item.version_timestamp,
+      public_slug: item.public_slug,
+      public_token: item.public_token
+    }));
+  } catch (error) {
+    console.error('Error fetching proposals:', error);
+    toast.error('Erro ao carregar propostas');
+    return [];
+  }
+};
 
 // Fetch a specific proposal
 export const fetchProposal = async (id: string): Promise<ProposalData | null> => {

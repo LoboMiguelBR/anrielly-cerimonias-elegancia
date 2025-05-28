@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { ProposalData } from './proposal/types';
-import { fetchProposal, deleteProposal } from './proposal/proposalApi';
+import { fetchProposals, deleteProposal } from './proposal/proposalApi';
 
 export interface UseProposalListReturn {
   proposals: ProposalData[];
@@ -33,8 +33,8 @@ export const useProposalList = (): UseProposalListReturn => {
   const loadProposals = async () => {
     setIsLoading(true);
     try {
-      // For now, return empty array - this will be implemented when the API is ready
-      setProposals([]);
+      const fetchedProposals = await fetchProposals();
+      setProposals(fetchedProposals);
     } catch (error) {
       console.error('Error loading proposals:', error);
       toast.error('Erro ao carregar propostas');
