@@ -1,4 +1,5 @@
-import { useState, forwardRef, useImperativeHandle } from 'react';
+
+import { useState, forwardRef, useImperativeHandle, useCallback } from 'react';
 import { Button } from "@/components/ui/button";
 import { ContractData } from '../../hooks/contract/types';
 import { Download, Eye, FileText, Loader2 } from 'lucide-react';
@@ -20,7 +21,7 @@ const ContractPDFGenerator = forwardRef<ContractPDFGeneratorRef, ContractPDFGene
     const [isGenerating, setIsGenerating] = useState(false);
     const [isViewing, setIsViewing] = useState(false);
 
-    const generateContractHTML = (contract: ContractData) => {
+    const generateContractHTML = useCallback((contract: ContractData) => {
       const clientSignature = contract.signature_data?.signature || contract.preview_signature_url;
       const signedAt = contract.signed_at || contract.signature_drawn_at;
       const auditData = contract.signature_data || {};
@@ -50,60 +51,52 @@ const ContractPDFGenerator = forwardRef<ContractPDFGeneratorRef, ContractPDFGene
             <style>
               @page {
                 size: A4;
-                margin: 2cm 1.5cm;
+                margin: 1.5cm;
+              }
+
+              * {
+                -webkit-print-color-adjust: exact !important;
+                color-adjust: exact !important;
+                print-color-adjust: exact !important;
               }
 
               body {
                 font-family: 'Segoe UI', 'Arial', sans-serif;
-                background-color: #FFFFFF;
+                background-color: #FAFAFC;
                 color: #222222;
                 margin: 0;
-                padding: 0;
-                line-height: 1.4;
-                font-size: 14px;
+                padding: 20px;
+                line-height: 1.6;
+                font-size: 16px;
               }
 
               .contract {
-                max-width: 100%;
-                margin: 0;
+                max-width: 850px;
+                margin: 0 auto;
                 background-color: #FFFFFF;
-                padding: 0;
-              }
-
-              /* === PÁGINA 1: CABEÇALHO E PARTES === */
-              .page-header {
-                text-align: center;
-                margin-bottom: 25px;
-                page-break-after: avoid;
+                padding: 40px;
+                border: 2px solid #C6257E;
+                border-radius: 12px;
+                box-shadow: 0 0 15px rgba(198, 37, 126, 0.15);
+                -webkit-box-decoration-break: clone;
+                box-decoration-break: clone;
               }
 
               .contract h1 {
                 color: #C6257E;
                 text-align: center;
-                border-bottom: 3px solid #C6257E;
-                padding-bottom: 10px;
-                margin-bottom: 15px;
+                border-bottom: 2px solid #C6257E;
+                padding-bottom: 12px;
+                margin-bottom: 25px;
                 font-weight: bold;
                 font-size: 20px;
                 page-break-after: avoid;
               }
 
-              .contract-intro {
-                margin-bottom: 20px;
-                font-size: 14px;
-                page-break-after: avoid;
-              }
-
-              /* === SEÇÕES DE PARTES === */
-              .parties-section {
-                margin-bottom: 25px;
-                page-break-inside: avoid;
-              }
-
               .contract h2 {
                 color: #C6257E;
-                margin-top: 20px;
-                margin-bottom: 10px;
+                margin-top: 30px;
+                margin-bottom: 15px;
                 border-left: 5px solid #E2C572;
                 padding-left: 12px;
                 font-size: 16px;
@@ -111,53 +104,61 @@ const ContractPDFGenerator = forwardRef<ContractPDFGeneratorRef, ContractPDFGene
               }
 
               .contract p {
-                line-height: 1.5;
-                margin-bottom: 10px;
+                line-height: 1.8;
+                margin-bottom: 15px;
                 color: #222222;
-                font-size: 14px;
-              }
-
-              /* === QUEBRA ANTES DAS CLÁUSULAS === */
-              .clauses-start {
-                page-break-before: always;
-                margin-top: 0;
-              }
-
-              /* === CLÁUSULAS === */
-              .clause-section {
-                margin-bottom: 20px;
-                page-break-inside: avoid;
-              }
-
-              .clause-section h2 {
-                margin-top: 15px;
-                margin-bottom: 8px;
+                font-size: 16px;
               }
 
               .contract ul {
-                margin: 8px 0 15px 20px;
-                padding-left: 0;
+                margin: 10px 0 20px 25px;
+                page-break-inside: avoid;
               }
 
               .contract ul li {
-                margin-bottom: 4px;
-                line-height: 1.4;
-                font-size: 13px;
+                margin-bottom: 6px;
+                line-height: 1.6;
+              }
+
+              /* === CONTROLE DE QUEBRAS DE PÁGINA === */
+              .page-break-before {
+                page-break-before: always;
+              }
+
+              .page-break-after {
+                page-break-after: always;
+              }
+
+              .no-break {
+                page-break-inside: avoid;
+              }
+
+              /* === SEÇÕES ESPECÍFICAS === */
+              .contract-intro {
+                margin-bottom: 25px;
+                page-break-after: avoid;
+              }
+
+              .parties-section {
+                margin-bottom: 30px;
+                page-break-inside: avoid;
+              }
+
+              .clause-section {
+                margin-bottom: 25px;
+                page-break-inside: avoid;
+              }
+
+              .clause-section:nth-child(4) {
+                page-break-before: always;
               }
 
               /* === SEÇÃO DE ASSINATURAS === */
-              .signatures-section {
-                page-break-before: auto;
-                page-break-inside: avoid;
-                margin-top: 30px;
-                margin-bottom: 20px;
-              }
-
               .signatures {
                 display: flex;
                 justify-content: space-between;
-                margin-top: 25px;
-                gap: 20px;
+                margin-top: 50px;
+                gap: 30px;
                 page-break-inside: avoid;
               }
 
@@ -165,16 +166,16 @@ const ContractPDFGenerator = forwardRef<ContractPDFGeneratorRef, ContractPDFGene
                 width: 48%;
                 text-align: center;
                 border-top: 2px solid #C6257E;
-                padding-top: 10px;
+                padding-top: 12px;
               }
 
               .signature-box p {
-                margin: 4px 0;
-                font-size: 12px;
+                margin: 5px 0;
+                font-size: 14px;
               }
 
               .signature-image {
-                margin-top: 10px;
+                margin-top: 12px;
                 min-height: 60px;
                 display: flex;
                 align-items: center;
@@ -182,128 +183,133 @@ const ContractPDFGenerator = forwardRef<ContractPDFGeneratorRef, ContractPDFGene
               }
 
               .signature-image img {
-                max-width: 180px;
-                max-height: 60px;
+                max-width: 200px;
+                max-height: 70px;
                 border: 1px solid #ccc;
                 border-radius: 4px;
                 background: #fafafa;
               }
 
               .signature-placeholder {
-                width: 180px;
-                height: 50px;
+                width: 200px;
+                height: 60px;
                 border: 1px dashed #ccc;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 color: #666;
-                font-size: 11px;
+                font-size: 12px;
                 margin: 0 auto;
               }
 
               /* === SEÇÃO DE AUDITORIA === */
               .auth-footer {
-                margin-top: 25px;
-                padding: 12px;
+                margin-top: 50px;
+                padding: 15px;
                 background-color: #FAFAFC;
                 border: 1px solid #E2C572;
-                border-radius: 6px;
-                font-size: 11px;
+                border-radius: 8px;
+                font-size: 13px;
                 color: #666;
                 page-break-inside: avoid;
               }
 
               .auth-footer p {
-                margin: 3px 0;
-                font-size: 11px;
+                margin: 4px 0;
+                font-size: 13px;
               }
 
               .auth-footer .version-info {
-                margin-top: 8px;
+                margin-top: 10px;
                 color: #999;
-                font-size: 10px;
+                font-size: 12px;
                 border-top: 1px solid #E2C572;
                 padding-top: 8px;
-              }
-
-              /* === CONTROLE DE QUEBRAS ESPECÍFICAS === */
-              .no-break {
-                page-break-inside: avoid;
-              }
-
-              .break-before {
-                page-break-before: always;
-              }
-
-              .break-after {
-                page-break-after: always;
               }
 
               /* === IMPRESSÃO === */
               @media print {
                 body { 
                   margin: 0;
-                  padding: 0;
-                  font-size: 13px;
+                  padding: 15px;
+                  font-size: 15px;
+                  background: white;
                 }
                 
                 .contract {
                   margin: 0;
-                  padding: 0;
+                  padding: 35px;
                   box-shadow: none;
-                  border: none;
+                  border: 2px solid #C6257E !important;
+                  border-radius: 12px;
+                  background-color: #FFFFFF !important;
+                  -webkit-print-color-adjust: exact !important;
+                  color-adjust: exact !important;
                 }
                 
                 .signatures, .auth-footer, .clause-section {
                   page-break-inside: avoid;
                 }
                 
-                .clauses-start {
-                  page-break-before: always;
-                }
-                
                 h1, h2 {
                   page-break-after: avoid;
+                  color: #C6257E !important;
+                }
+
+                h2 {
+                  border-left: 5px solid #E2C572 !important;
                 }
                 
                 p {
                   orphans: 2;
                   widows: 2;
                 }
+
+                .signature-box {
+                  border-top: 2px solid #C6257E !important;
+                }
+
+                .auth-footer {
+                  background-color: #FAFAFC !important;
+                  border: 1px solid #E2C572 !important;
+                }
               }
 
               /* === RESPONSIVIDADE === */
               @media (max-width: 768px) {
-                .contract {
+                body {
                   padding: 10px;
+                }
+                .contract {
+                  padding: 20px;
                 }
                 .contract h1 {
                   font-size: 18px;
                 }
                 .signatures {
                   flex-direction: column;
-                  gap: 15px;
+                  gap: 20px;
                 }
                 .signature-box {
                   width: 100%;
                 }
                 .signature-image img {
-                  max-width: 150px;
-                  max-height: 50px;
+                  max-width: 180px;
+                  max-height: 60px;
                 }
               }
             </style>
           </head>
           <body>
             <div class="contract">
-              <!-- PÁGINA 1: CABEÇALHO E PARTES -->
-              <div class="page-header">
-                <h1>CONTRATO DE PRESTAÇÃO DE SERVIÇOS DE MESTRE DE CERIMÔNIA</h1>
-                <div class="contract-intro">
-                  <p>Pelo presente instrumento particular, as partes abaixo qualificadas:</p>
-                </div>
+              <!-- CABEÇALHO -->
+              <h1>CONTRATO DE PRESTAÇÃO DE SERVIÇOS DE MESTRE DE CERIMÔNIA</h1>
+              
+              <div class="contract-intro">
+                <p>Pelo presente instrumento particular, as partes abaixo qualificadas:</p>
               </div>
 
+              <!-- SEÇÃO DE PARTES -->
               <div class="parties-section no-break">
                 <h2>CONTRATANTE</h2>
                 <p>
@@ -328,8 +334,8 @@ const ContractPDFGenerator = forwardRef<ContractPDFGeneratorRef, ContractPDFGene
                 </p>
               </div>
 
-              <!-- PÁGINA 2: CLÁUSULAS 1-4 -->
-              <div class="clause-section clauses-start">
+              <!-- CLÁUSULAS -->
+              <div class="clause-section">
                 <h2>CLÁUSULA 1ª – DO OBJETO</h2>
                 <p>
                   Prestação de serviços de Mestre de Cerimônia para o evento do(a) CONTRATANTE, no dia 
@@ -368,7 +374,7 @@ const ContractPDFGenerator = forwardRef<ContractPDFGeneratorRef, ContractPDFGene
                 </ul>
               </div>
 
-              <div class="clause-section no-break">
+              <div class="clause-section page-break-before">
                 <h2>CLÁUSULA 4ª – DA RESCISÃO</h2>
                 <p>
                   Qualquer das partes pode rescindir este contrato com 30 dias de antecedência. 
@@ -377,8 +383,7 @@ const ContractPDFGenerator = forwardRef<ContractPDFGeneratorRef, ContractPDFGene
                 </p>
               </div>
 
-              <!-- PÁGINA 3: CLÁUSULAS 5-7, ASSINATURAS E AUDITORIA -->
-              <div class="clause-section break-before">
+              <div class="clause-section no-break">
                 <h2>CLÁUSULA 5ª – DAS DISPOSIÇÕES GERAIS</h2>
                 <ul>
                   <li>🔒 Sigilo total sobre informações do CONTRATANTE;</li>
@@ -416,26 +421,24 @@ const ContractPDFGenerator = forwardRef<ContractPDFGeneratorRef, ContractPDFGene
               </div>
 
               <!-- SEÇÃO DE ASSINATURAS -->
-              <div class="signatures-section no-break">
-                <div class="signatures">
-                  <div class="signature-box">
-                    <p>Local e data: ${contract.event_location || 'Local do evento'}, ${signatureDate}</p>
-                    <p><strong>CONTRATANTE:</strong></p>
-                    <p>${contract.client_name}</p>
-                    <div class="signature-image">
-                      ${clientSignature ? 
-                        `<img src="${clientSignature}" alt="Assinatura do Cliente" />` : 
-                        '<div class="signature-placeholder">Aguardando assinatura</div>'
-                      }
-                    </div>
+              <div class="signatures no-break">
+                <div class="signature-box">
+                  <p>Local e data: ${contract.event_location || 'Local do evento'}, ${signatureDate}</p>
+                  <p><strong>CONTRATANTE:</strong></p>
+                  <p>${contract.client_name}</p>
+                  <div class="signature-image">
+                    ${clientSignature ? 
+                      `<img src="${clientSignature}" alt="Assinatura do Cliente" />` : 
+                      '<div class="signature-placeholder">Aguardando assinatura</div>'
+                    }
                   </div>
+                </div>
 
-                  <div class="signature-box">
-                    <p><strong>CONTRATADA:</strong></p>
-                    <p>Anrielly Cristina Costa Gomes</p>
-                    <div class="signature-image">
-                      <img src="/lovable-uploads/2fff881d-0a84-498f-bea5-b9adc67af1bd.png" alt="Assinatura da Contratada" />
-                    </div>
+                <div class="signature-box">
+                  <p><strong>CONTRATADA:</strong></p>
+                  <p>Anrielly Cristina Costa Gomes</p>
+                  <div class="signature-image">
+                    <img src="/lovable-uploads/2fff881d-0a84-498f-bea5-b9adc67af1bd.png" alt="Assinatura da Contratada" />
                   </div>
                 </div>
               </div>
@@ -457,9 +460,14 @@ const ContractPDFGenerator = forwardRef<ContractPDFGeneratorRef, ContractPDFGene
           </body>
         </html>
       `;
-    };
+    }, []);
 
-    const generatePDF = async () => {
+    const generatePDF = useCallback(async () => {
+      if (!contract) {
+        toast.error('Contrato não encontrado');
+        return;
+      }
+
       setIsGenerating(true);
       try {
         const htmlContent = generateContractHTML(contract);
@@ -484,9 +492,14 @@ const ContractPDFGenerator = forwardRef<ContractPDFGeneratorRef, ContractPDFGene
       } finally {
         setIsGenerating(false);
       }
-    };
+    }, [contract, generateContractHTML, onPDFGenerated]);
 
-    const viewPDF = async () => {
+    const viewPDF = useCallback(async () => {
+      if (!contract) {
+        toast.error('Contrato não encontrado');
+        return;
+      }
+
       setIsViewing(true);
       try {
         const htmlContent = generateContractHTML(contract);
@@ -503,12 +516,12 @@ const ContractPDFGenerator = forwardRef<ContractPDFGeneratorRef, ContractPDFGene
       } finally {
         setIsViewing(false);
       }
-    };
+    }, [contract, generateContractHTML]);
 
     useImperativeHandle(ref, () => ({
       generatePDF,
       viewPDF
-    }));
+    }), [generatePDF, viewPDF]);
 
     if (compact) {
       return (

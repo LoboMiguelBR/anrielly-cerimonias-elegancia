@@ -12,7 +12,7 @@ import ContractActions from '../ContractActions';
 import ContractPDFGenerator from '../pdf/ContractPDFGenerator';
 import { Eye, Edit, Trash2, MoreHorizontal, Copy, ExternalLink, Send, Download, FileText } from 'lucide-react';
 import { useContractActions } from '../actions';
-import { useState } from 'react';
+import { useRef } from 'react';
 
 interface ContractsTableActionsProps {
   contract: ContractData;
@@ -29,7 +29,7 @@ const ContractsTableActions = ({
   onDelete,
   onRefresh
 }: ContractsTableActionsProps) => {
-  const [pdfRef, setPdfRef] = useState<{ generatePDF: () => void; viewPDF: () => void } | null>(null);
+  const pdfRef = useRef<{ generatePDF: () => void; viewPDF: () => void } | null>(null);
   
   const {
     copyToClipboard,
@@ -40,14 +40,14 @@ const ContractsTableActions = ({
   const isSignedContract = contract.status === 'signed';
 
   const handleDownloadPDF = () => {
-    if (pdfRef) {
-      pdfRef.generatePDF();
+    if (pdfRef.current) {
+      pdfRef.current.generatePDF();
     }
   };
 
   const handleViewPDF = () => {
-    if (pdfRef) {
-      pdfRef.viewPDF();
+    if (pdfRef.current) {
+      pdfRef.current.viewPDF();
     }
   };
 
@@ -139,14 +139,7 @@ const ContractsTableActions = ({
         <ContractPDFGenerator
           contract={contract}
           compact={true}
-          ref={(ref: any) => {
-            if (ref) {
-              setPdfRef({
-                generatePDF: ref.generatePDF,
-                viewPDF: ref.viewPDF
-              });
-            }
-          }}
+          ref={pdfRef}
         />
       </div>
     </div>
