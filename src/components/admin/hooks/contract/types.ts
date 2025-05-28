@@ -4,7 +4,8 @@ export type ContractStatus =
   | 'sent'      // Enviado para assinatura
   | 'signed'    // Assinado
   | 'cancelled' // Cancelado
-  | 'expired';  // Expirado
+  | 'expired'   // Expirado
+  | 'pending';  // Pendente (added missing status)
 
 export interface ContractData {
   id: string;
@@ -98,6 +99,14 @@ export interface ContractTemplate {
   is_default?: boolean;
   created_at: string;
   updated_at: string;
+}
+
+export interface ContractTemplateFormData {
+  name: string;
+  html_content: string;
+  css_content?: string;
+  description?: string;
+  is_default?: boolean;
 }
 
 export interface SignatureCanvasProps {

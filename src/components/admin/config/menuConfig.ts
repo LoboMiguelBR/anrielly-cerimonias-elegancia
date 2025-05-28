@@ -1,69 +1,125 @@
 
 import { 
   BarChart3, 
+  MessageSquare, 
   Users, 
-  UserPlus, 
-  Calculator, 
   FileText, 
-  ClipboardList,
-  ScrollText,
+  Image, 
+  Star,
+  FileContract,
   Mail,
-  ImageIcon,
-  MessageSquare,
-  HelpCircle
-} from "lucide-react";
+  FileImage,
+  UserCheck,
+  Heart,
+  Sparkles
+} from 'lucide-react';
 
 export interface MenuItem {
   id: string;
   label: string;
   icon: any;
+  description?: string;
 }
 
-export interface MenuSection {
-  title: string;
-  items: MenuItem[];
-}
+export const dashboardMenuItems: MenuItem[] = [
+  {
+    id: "dashboard",
+    label: "Dashboard",
+    icon: BarChart3,
+    description: "Visão geral e estatísticas"
+  }
+];
 
-export const menuSections: MenuSection[] = [
+export const businessMenuItems: MenuItem[] = [
   {
-    title: "📊 DASHBOARD",
-    items: [
-      { id: "dashboard", label: "Dashboard Principal", icon: BarChart3 }
-    ]
+    id: "quotes",
+    label: "Solicitações",
+    icon: MessageSquare,
+    description: "Solicitações de orçamento"
   },
   {
-    title: "👥 LEADS & CLIENTES",
-    items: [
-      { id: "leads", label: "Leads", icon: Users },
-      { id: "professionals", label: "Profissionais", icon: UserPlus }
-    ]
+    id: "proposals",
+    label: "Propostas",
+    icon: FileText,
+    description: "Geração e envio de propostas"
   },
   {
-    title: "💰 VENDAS",
-    items: [
-      { id: "quotes", label: "Orçamentos", icon: Calculator },
-      { id: "proposals", label: "Propostas", icon: FileText },
-      { id: "proposal-templates", label: "Templates de Propostas", icon: FileText }
-    ]
+    id: "contracts",
+    label: "Contratos",
+    icon: FileContract,
+    description: "Contratos e assinaturas"
+  }
+];
+
+export const contentMenuItems: MenuItem[] = [
+  {
+    id: "gallery",
+    label: "Galeria",
+    icon: Image,
+    description: "Gerenciar fotos da galeria"
   },
   {
-    title: "📝 CONTRATOS",
-    items: [
-      { id: "contracts", label: "Contratos", icon: ScrollText },
-      { id: "contract-templates", label: "Templates de Contratos", icon: ClipboardList },
-      { id: "contract-email-templates", label: "Templates de Email", icon: Mail }
-    ]
+    id: "testimonials",
+    label: "Depoimentos",
+    icon: Star,
+    description: "Gerenciar depoimentos"
   },
   {
-    title: "🎨 CONTEÚDO",
-    items: [
-      { id: "gallery", label: "Galeria", icon: ImageIcon },
-      { id: "testimonials", label: "Depoimentos", icon: MessageSquare },
-      { id: "questionarios", label: "Questionários", icon: HelpCircle }
-    ]
+    id: "questionarios",
+    label: "Questionários",
+    icon: Heart,
+    description: "Questionários de noivos"
+  },
+  {
+    id: "historias-casais",
+    label: "Histórias IA",
+    icon: Sparkles,
+    description: "Histórias dos casais geradas por IA"
+  }
+];
+
+export const managementMenuItems: MenuItem[] = [
+  {
+    id: "leads",
+    label: "Leads",
+    icon: Users,
+    description: "Gerenciar leads e clientes"
+  },
+  {
+    id: "professionals",
+    label: "Profissionais",
+    icon: UserCheck,
+    description: "Rede de profissionais"
+  }
+];
+
+export const templatesMenuItems: MenuItem[] = [
+  {
+    id: "proposal-templates",
+    label: "Templates Propostas",
+    icon: FileImage,
+    description: "Templates para propostas"
+  },
+  {
+    id: "contract-templates",
+    label: "Templates Contratos",
+    icon: FileContract,
+    description: "Templates para contratos"
+  },
+  {
+    id: "contract-email-templates",
+    label: "Templates Email",
+    icon: Mail,
+    description: "Templates de email"
   }
 ];
 
 export const getAllMenuItems = (): MenuItem[] => {
-  return menuSections.flatMap(section => section.items);
+  return [
+    ...dashboardMenuItems,
+    ...businessMenuItems,
+    ...contentMenuItems,
+    ...managementMenuItems,
+    ...templatesMenuItems
+  ];
 };
