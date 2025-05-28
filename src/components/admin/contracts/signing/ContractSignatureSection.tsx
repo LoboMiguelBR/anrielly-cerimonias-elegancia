@@ -10,6 +10,7 @@ import { AlertCircle, CheckCircle, Calendar, MapPin, DollarSign, User, FileText 
 import { ContractData } from '../../hooks/contract/types';
 import ContractStatusBadge from '../ContractStatusBadge';
 import SignatureCanvas from './SignatureCanvas';
+import { combineHtmlWithCss, replaceContractVariables } from '@/utils/contractTemplateUtils';
 
 interface ContractSignatureSectionProps {
   contract: ContractData;
@@ -39,6 +40,19 @@ const ContractSignatureSection: React.FC<ContractSignatureSectionProps> = ({
   onSubmit
 }) => {
   const isAlreadySigned = contract.status === 'signed';
+
+  // Combinar HTML com CSS do template
+  const renderContractContent = () => {
+    if (!contract.html_content) return null;
+    
+    let processedContent = replaceContractVariables(contract.html_content, contract);
+    
+    if (contract.css_content) {
+      processedContent = combineHtmlWithCss(processedContent, contract.css_content);
+    }
+    
+    return processedContent;
+  };
 
   return (
     <div className="space-y-4 md:space-y-6">
@@ -94,7 +108,7 @@ const ContractSignatureSection: React.FC<ContractSignatureSectionProps> = ({
           <CardContent>
             <div 
               className="prose max-w-none text-sm md:text-base"
-              dangerouslySetInnerHTML={{ __html: contract.html_content }}
+              dangerouslySetInnerHTML={{ __html: renderContractContent() || '' }}
             />
           </CardContent>
         </Card>

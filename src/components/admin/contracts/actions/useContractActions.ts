@@ -1,8 +1,6 @@
 
 import { useState } from 'react';
 import { ContractData } from '../../hooks/contract/types';
-import { sendEmailNotification } from '@/utils/emailUtils';
-import { contractApi } from '../../hooks/contract';
 import { toast } from 'sonner';
 
 export const useContractActions = (contract: ContractData, onStatusUpdate?: () => void) => {
@@ -17,16 +15,8 @@ export const useContractActions = (contract: ContractData, onStatusUpdate?: () =
   // Load default template when dialog opens
   const loadDefaultTemplate = async () => {
     try {
-      const defaultTemplate = await contractApi.getDefaultEmailTemplate('signature');
-      if (defaultTemplate) {
-        setSelectedTemplateId(defaultTemplate.id);
-        setEmailSubject(replaceVariables(defaultTemplate.subject, contract));
-        setEmailMessage(replaceVariables(defaultTemplate.html_content, contract));
-      } else {
-        // Fallback to default content
-        setEmailSubject(`Contrato para Assinatura Digital - ${contract.event_type}`);
-        setEmailMessage(getDefaultEmailContent(contract));
-      }
+      setEmailSubject(`Contrato para Assinatura Digital - ${contract.event_type}`);
+      setEmailMessage(getDefaultEmailContent(contract));
     } catch (error) {
       console.error('Error loading default template:', error);
       setEmailSubject(`Contrato para Assinatura Digital - ${contract.event_type}`);
@@ -66,7 +56,7 @@ ${contractUrl}
 📋 PARA ASSINAR:
 • Clique no link acima
 • Leia o contrato completo
-• Marque o checkbox de concordância
+• Preencha seus dados pessoais
 • Desenhe sua assinatura no campo indicado (obrigatório)
 • Clique em "Assinar Contrato Digitalmente"
 
@@ -102,23 +92,37 @@ contato@anriellygomes.com.br
   const sendContractEmail = async () => {
     setIsSending(true);
     try {
-      const success = await sendEmailNotification({
-        to: contract.client_email,
-        name: contract.client_name,
-        subject: emailSubject,
-        message: emailMessage,
-        tipo: 'contrato-assinatura',
-        contractUrl: contractUrl,
-        eventType: contract.event_type
+      console.log('Sending contract email via edge function...');
+      
+      const response = await fetch('https://oampddkpuybkbwqggrty.supabase.co/functions/v1/enviar-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          to: contract.client_email,
+          name: contract.client_name,
+          subject: emailSubject,
+          message: emailMessage,
+          contractUrl: contractUrl,
+          eventType: contract.event_type,
+          contractData: contract,
+          tipo: 'contrato-assinatura'
+        })
       });
 
-      if (success) {
-        toast.success('Email enviado com sucesso!');
-        setIsEmailDialogOpen(false);
-        onStatusUpdate?.();
-      } else {
-        toast.error('Erro ao enviar email');
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Error response from email function:', errorData);
+        throw new Error(`Error sending email: ${response.statusText}`);
       }
+
+      const result = await response.json();
+      console.log('Email sent successfully:', result);
+
+      toast.success('Email enviado com sucesso!');
+      setIsEmailDialogOpen(false);
+      onStatusUpdate?.();
     } catch (error) {
       console.error('Error sending contract email:', error);
       toast.error('Erro ao enviar email');

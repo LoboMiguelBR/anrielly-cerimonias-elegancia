@@ -2,6 +2,8 @@
 import { supabase } from '@/integrations/supabase/client';
 import { ContractData, ContractFormData, ContractStatus } from '../types';
 import { contractSlugApi } from './contractSlug';
+import { sendContractForSignature } from '@/utils/emailUtils';
+import { toast } from 'sonner';
 
 // Helper function to sanitize date and time fields
 const sanitizeDateTimeFields = (data: any) => {
@@ -113,14 +115,39 @@ export const contractCrudApi = {
       console.warn('Failed to generate slug, continuing without it:', slugError);
     }
 
-    return {
+    const contractResult = {
       ...data,
       status: data.status as ContractStatus,
       token: data.token || data.id,
       total_price: Number(data.total_price),
       down_payment: data.down_payment ? Number(data.down_payment) : undefined,
       remaining_amount: data.remaining_amount ? Number(data.remaining_amount) : undefined
-    } as ContractData; // Explicit cast to ensure type compatibility
+    } as ContractData;
+
+    // Enviar email automaticamente após criação do contrato
+    try {
+      console.log('Sending automatic contract email...');
+      const success = await sendContractForSignature(
+        contractResult.client_name,
+        contractResult.client_email,
+        `${window.location.origin}/contrato/${contractResult.public_token}`,
+        contractResult.event_type,
+        contractResult
+      );
+
+      if (success) {
+        console.log('Contract email sent successfully');
+        toast.success('Contrato criado e email enviado com sucesso!');
+      } else {
+        console.warn('Contract created but email failed to send');
+        toast.warning('Contrato criado, mas falha no envio do email');
+      }
+    } catch (emailError) {
+      console.error('Error sending contract email:', emailError);
+      toast.warning('Contrato criado, mas falha no envio do email');
+    }
+
+    return contractResult;
   },
 
   // Update contract
