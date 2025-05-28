@@ -10,6 +10,7 @@ export interface UseProposalListReturn {
   selectedProposal: ProposalData | null;
   showAddEditDialog: boolean;
   showDeleteDialog: boolean;
+  refetch: () => void;
   handleAddNew: () => void;
   handleEdit: (proposal: ProposalData) => void;
   handleDelete: (proposal: ProposalData) => void;
@@ -40,6 +41,10 @@ export const useProposalList = (): UseProposalListReturn => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const refetch = () => {
+    loadProposals();
   };
 
   const handleAddNew = () => {
@@ -80,6 +85,7 @@ export const useProposalList = (): UseProposalListReturn => {
     selectedProposal,
     showAddEditDialog,
     showDeleteDialog,
+    refetch,
     handleAddNew,
     handleEdit,
     handleDelete,
