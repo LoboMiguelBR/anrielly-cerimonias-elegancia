@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { fetchTemplateAssets, uploadTemplateAsset, deleteTemplateAsset } from './templateHtmlService';
+import { fetchTemplateAssets, uploadTemplateAsset, deleteTemplateAsset } from './htmlTemplateService';
 import { TemplateAsset } from './types';
 import { Upload, Image, File, Trash2, RefreshCw, Copy } from 'lucide-react';
 import { toast } from 'sonner';

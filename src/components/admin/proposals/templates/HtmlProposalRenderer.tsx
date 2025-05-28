@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ProposalData } from '../../hooks/proposal';
 import { HtmlTemplateData } from './html-editor/types';
-import { fetchHtmlTemplateById } from './html-editor/templateHtmlService';
+import { fetchHtmlTemplateById } from './html-editor/services';
 import { replaceVariablesInTemplate } from './html-editor/variableUtils';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';

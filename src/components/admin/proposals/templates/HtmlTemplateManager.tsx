@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   fetchHtmlTemplates, 
   deleteHtmlTemplate
-} from './html-editor/templateHtmlService';
+} from './html-editor/services';
 import { HtmlTemplateData } from './html-editor/types';
 import { Dialog } from '@/components/ui/dialog';
 import { toast } from 'sonner';

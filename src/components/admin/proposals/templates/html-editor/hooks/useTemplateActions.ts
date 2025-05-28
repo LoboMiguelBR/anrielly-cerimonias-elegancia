@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { HtmlTemplateData } from '../types';
 import { toast } from 'sonner';
-import { saveHtmlTemplate, updateHtmlTemplate } from '../templateHtmlService';
+import { saveHtmlTemplate, updateHtmlTemplate } from '../services';
 
 export const useTemplateActions = () => {
   const [isSaving, setIsSaving] = useState<boolean>(false);
