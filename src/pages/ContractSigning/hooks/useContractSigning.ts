@@ -7,8 +7,8 @@ import { ContractData } from '@/components/admin/hooks/contract/types';
 export const useContractSigning = (contract: ContractData | null, setContract: (contract: ContractData) => void) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [signature, setSignature] = useState('');
-  const [signatureUrl, setSignatureUrl] = useState('');
-  const [hasDrawnSignature, setHasDrawnSignature] = useState(false);
+  const [signatureUrl, setSignatureUrl] = useState(contract?.preview_signature_url || '');
+  const [hasDrawnSignature, setHasDrawnSignature] = useState(!!contract?.preview_signature_url);
   const [clientName, setClientName] = useState(contract?.client_name || '');
   const [clientEmail, setClientEmail] = useState(contract?.client_email || '');
   const [isInPreviewMode, setIsInPreviewMode] = useState(contract?.status === 'draft_signed');
@@ -20,8 +20,25 @@ export const useContractSigning = (contract: ContractData | null, setContract: (
       return;
     }
 
+    if (!clientName.trim()) {
+      toast.error('Por favor, preencha seu nome completo');
+      return;
+    }
+
+    if (!clientEmail.trim() || !clientEmail.includes('@')) {
+      toast.error('Por favor, digite um email válido');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
+      console.log('Salvando preview da assinatura:', {
+        contractId: contract.id,
+        hasSignature: !!signatureUrl,
+        clientName,
+        clientEmail
+      });
+
       // Atualizar contrato com assinatura de preview
       const { data, error } = await supabase
         .from('contracts')
@@ -36,7 +53,10 @@ export const useContractSigning = (contract: ContractData | null, setContract: (
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erro ao salvar preview:', error);
+        throw error;
+      }
 
       // Atualizar estado local
       setContract({
@@ -56,10 +76,25 @@ export const useContractSigning = (contract: ContractData | null, setContract: (
 
   // Função para confirmar assinatura definitiva (segunda etapa)
   const handleConfirmSignature = async () => {
-    if (!contract || !signatureUrl) {
-      toast.error('Erro: assinatura não encontrada');
+    if (!contract) {
+      toast.error('Erro: contrato não encontrado');
       return;
     }
+
+    // Usar a URL da assinatura salva no banco (preview) ou a local como fallback
+    const finalSignatureUrl = contract.preview_signature_url || signatureUrl;
+    
+    if (!finalSignatureUrl) {
+      toast.error('Erro: assinatura não encontrada. Por favor, desenhe sua assinatura novamente.');
+      return;
+    }
+
+    console.log('Confirmando assinatura definitiva:', {
+      contractId: contract.id,
+      hasPreviewSignature: !!contract.preview_signature_url,
+      hasLocalSignature: !!signatureUrl,
+      finalSignatureUrl: !!finalSignatureUrl
+    });
 
     setIsSubmitting(true);
     try {
@@ -79,30 +114,16 @@ export const useContractSigning = (contract: ContractData | null, setContract: (
       const userAgent = navigator.userAgent;
       const signedAt = new Date().toISOString();
 
-      console.log('Confirmando assinatura definitiva:', {
-        contractId: contract.id,
-        hasPreviewSignature: !!contract.preview_signature_url,
-        signatureUrl
-      });
-
       // Chamar edge function com dados no formato correto
       const { error } = await supabase.functions.invoke('contract-signed', {
         body: {
           contractId: contract.id,
-          signature: signatureUrl,
+          signature: finalSignatureUrl,
           clientName,
           clientEmail,
           ipAddress,
-          signatureData: {
-            signature: signatureUrl,
-            signed_at: signedAt,
-            signer_ip: ipAddress,
-            user_agent: userAgent,
-            client_name: clientName,
-            client_email: clientEmail,
-            timestamp: Date.now(),
-            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
-          }
+          userAgent,
+          signedAt
         }
       });
 
@@ -129,21 +150,56 @@ export const useContractSigning = (contract: ContractData | null, setContract: (
       }
     } catch (error) {
       console.error('Error confirming contract signature:', error);
-      toast.error('Erro ao confirmar assinatura do contrato');
+      toast.error('Erro ao confirmar assinatura do contrato. Tente novamente.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   // Função para voltar à edição da assinatura
-  const handleEditSignature = () => {
-    setIsInPreviewMode(false);
-    setHasDrawnSignature(false);
-    setSignature('');
-    setSignatureUrl('');
+  const handleEditSignature = async () => {
+    if (!contract) {
+      toast.error('Erro: contrato não encontrado');
+      return;
+    }
+
+    console.log('Editando assinatura - removendo preview do banco');
     
-    // Opcional: limpar preview do banco (manter por segurança)
-    // Usuário pode querer voltar ao preview sem redesenhar
+    try {
+      // Atualizar banco para remover status de preview
+      const { data, error } = await supabase
+        .from('contracts')
+        .update({
+          status: 'sent', // Voltar para status enviado
+          preview_signature_url: null,
+          signature_drawn_at: null
+        })
+        .eq('id', contract.id)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Erro ao limpar preview da assinatura:', error);
+        throw error;
+      }
+
+      // Atualizar estado local
+      setContract({
+        ...data,
+        status: data.status as ContractData['status']
+      });
+
+      // Resetar estados locais
+      setIsInPreviewMode(false);
+      setHasDrawnSignature(false);
+      setSignature('');
+      setSignatureUrl('');
+
+      toast.success('Voltando para edição da assinatura');
+    } catch (error) {
+      console.error('Error editing signature:', error);
+      toast.error('Erro ao editar assinatura');
+    }
   };
 
   return {

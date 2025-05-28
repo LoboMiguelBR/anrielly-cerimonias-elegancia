@@ -14,21 +14,13 @@ interface ContractSignedRequest {
   clientName: string
   clientEmail: string
   ipAddress: string
-  signatureData?: {
-    signature: string
-    signed_at: string
-    signer_ip: string
-    user_agent: string
-    client_name: string
-    client_email: string
-    timestamp: number
-    timezone: string
-  }
+  userAgent?: string
+  signedAt: string
 }
 
 // Função para substituir variáveis em templates de email
 const replaceEmailVariables = (template: string, contract: any, additionalData: any) => {
-  const signedDate = new Date(additionalData.signed_at || new Date());
+  const signedDate = new Date(additionalData.signedAt || new Date());
   
   const variables = {
     '{{NOME_CLIENTE}}': contract.client_name || '',
@@ -50,7 +42,7 @@ const replaceEmailVariables = (template: string, contract: any, additionalData: 
     
     // VARIÁVEIS DE AUDITORIA
     '{{IP_ASSINANTE}}': additionalData.ipAddress || 'Não disponível',
-    '{{USER_AGENT}}': additionalData.user_agent || 'Não disponível',
+    '{{USER_AGENT}}': additionalData.userAgent || 'Não disponível',
     '{{HASH_CONTRATO}}': additionalData.contract_hash || 'Não disponível',
     '{{DATA_ASSINATURA}}': signedDate.toLocaleDateString('pt-BR'),
     '{{HORA_ASSINATURA}}': signedDate.toLocaleTimeString('pt-BR'),
@@ -82,30 +74,39 @@ serve(async (req) => {
 
     const resend = new Resend(Deno.env.get('RESEND_API_KEY'))
 
-    const { contractId, signature, clientName, clientEmail, ipAddress, signatureData }: ContractSignedRequest = await req.json()
+    const body: ContractSignedRequest = await req.json()
+    const { contractId, signature, clientName, clientEmail, ipAddress, userAgent, signedAt } = body
 
-    console.log('Processing contract signature:', { contractId, ipAddress, hasSignature: !!signature })
+    console.log('Processing contract signature:', { 
+      contractId, 
+      ipAddress, 
+      hasSignature: !!signature,
+      clientName,
+      clientEmail
+    })
 
-    // Criar timestamp no formato ISO correto
-    const signedAt = new Date().toISOString()
+    // Validar dados obrigatórios
+    if (!contractId || !signature || !clientName || !clientEmail) {
+      throw new Error('Dados obrigatórios não fornecidos')
+    }
 
-    // Preparar dados de auditoria simplificados
+    // Preparar dados de auditoria
     const auditData = {
       signature: signature,
       signed_at: signedAt,
       signer_ip: ipAddress || 'unknown',
-      user_agent: signatureData?.user_agent || 'unknown',
+      user_agent: userAgent || 'unknown',
       client_name: clientName,
       client_email: clientEmail,
-      timezone: signatureData?.timezone || 'America/Sao_Paulo'
+      timezone: 'America/Sao_Paulo'
     }
 
-    // Atualizar contrato no banco de dados com timestamp correto
+    // Atualizar contrato no banco de dados
     const { data: contract, error: updateError } = await supabaseClient
       .from('contracts')
       .update({
         status: 'signed',
-        signed_at: signedAt, // Usar ISO string em vez de timestamp numérico
+        signed_at: signedAt,
         signer_ip: ipAddress || 'unknown',
         signature_data: auditData,
         client_name: clientName,
@@ -179,20 +180,20 @@ serve(async (req) => {
     // Substituir variáveis no template do cliente
     const clientEmailContent = replaceEmailVariables(clientEmailTemplate, contract, {
       ipAddress: ipAddress || 'unknown',
-      user_agent: auditData.user_agent,
+      userAgent: userAgent || 'unknown',
       contract_hash: 'hash-placeholder',
-      signed_at: signedAt
+      signedAt: signedAt
     });
 
     const finalClientSubject = replaceEmailVariables(clientSubject, contract, {
       ipAddress: ipAddress || 'unknown',
-      user_agent: auditData.user_agent,
-      signed_at: signedAt
+      userAgent: userAgent || 'unknown',
+      signedAt: signedAt
     });
 
     // Enviar email para o cliente
     await resend.emails.send({
-      from: 'Anrielly Gomes <contato@anriellygomes.com.br>',
+      from: 'Anrielly Gomes <contrato@anriellygomes.com.br>',
       to: [contract.client_email],
       subject: finalClientSubject,
       html: clientEmailContent,
@@ -223,7 +224,7 @@ serve(async (req) => {
           <ul style="margin: 10px 0;">
             <li><strong>Data/Hora:</strong> ${new Date(signedAt).toLocaleString('pt-BR')}</li>
             <li><strong>IP do Assinante:</strong> ${ipAddress || 'unknown'}</li>
-            <li><strong>User Agent:</strong> ${auditData.user_agent}</li>
+            <li><strong>User Agent:</strong> ${userAgent || 'unknown'}</li>
           </ul>
         </div>
         
@@ -232,7 +233,7 @@ serve(async (req) => {
     `
 
     await resend.emails.send({
-      from: 'Sistema de Contratos <contato@anriellygomes.com.br>',
+      from: 'Sistema de Contratos <contrato@anriellygomes.com.br>',
       to: ['contato@anriellygomes.com.br'],
       subject: `Novo Contrato Assinado - ${contract.client_name}`,
       html: adminEmailContent,

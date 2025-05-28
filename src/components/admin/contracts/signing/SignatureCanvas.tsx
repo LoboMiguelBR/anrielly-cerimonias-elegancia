@@ -143,6 +143,7 @@ const SignatureCanvas: React.FC<SignatureCanvasProps> = ({
       setSignatureSaved(true);
       onSignatureUrlChange(url);
       
+      console.log('Assinatura salva com URL:', url);
       toast.success('Assinatura salva com sucesso!');
     } catch (error) {
       console.error('Erro ao salvar assinatura:', error);
