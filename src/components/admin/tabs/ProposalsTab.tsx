@@ -3,11 +3,8 @@ import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FileText, List, PlusCircle } from 'lucide-react';
 import ProposalsList from '../proposals/ProposalsList';
-import ProposalGenerator from '../proposals/ProposalGenerator';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import DeleteConfirmationDialog from '../proposals/DeleteConfirmationDialog';
+import ProposalGeneratorRefactored from '../proposals/ProposalGeneratorRefactored';
 import { Button } from '@/components/ui/button';
-import { useProposalList } from '../hooks/useProposalList';
 import { ProposalData } from '../hooks/proposal';
 
 interface QuoteRequest {
@@ -96,7 +93,7 @@ const ProposalsTab = ({ quoteRequests, quoteIdFromUrl }: ProposalsTabProps) => {
           </TabsContent>
           
           <TabsContent value="create">
-            <ProposalGenerator 
+            <ProposalGeneratorRefactored 
               quoteRequests={quoteRequests}
               quoteIdFromUrl={quoteIdFromUrl}
               onClose={handleBackToList}
@@ -104,7 +101,7 @@ const ProposalsTab = ({ quoteRequests, quoteIdFromUrl }: ProposalsTabProps) => {
           </TabsContent>
           
           <TabsContent value="view">
-            <ProposalGenerator 
+            <ProposalGeneratorRefactored 
               quoteRequests={quoteRequests}
               initialProposalId={selectedProposalId || undefined}
               onClose={handleBackToList}

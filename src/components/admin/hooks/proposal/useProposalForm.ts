@@ -1,20 +1,10 @@
+
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { ProposalFormData, ProposalData, QuoteRequest, Service } from './types';
 import { defaultFormData } from './constants';
 import { fetchProposal, saveProposal, deleteProposal, sendProposalByEmail, savePdfUrl } from './proposalApi';
-import { ProposalTemplateData } from './api/proposalTemplates';
-
-// Template padrão simples
-const defaultTemplate: ProposalTemplateData = {
-  id: 'default',
-  name: 'Template Padrão',
-  description: 'Template padrão para propostas',
-  html_content: '<div class="proposal-content">{{client_name}}</div>',
-  css_content: '.proposal-content { font-family: Arial, sans-serif; }',
-  variables: {},
-  is_default: true
-};
+import { proposalTemplatesApi, ProposalTemplateData } from './api/proposalTemplates';
 
 export interface UseProposalFormReturn {
   selectedQuote: string;
@@ -27,7 +17,7 @@ export interface UseProposalFormReturn {
   formData: ProposalFormData;
   isEditMode: boolean;
   proposalId: string | undefined;
-  selectedTemplate: ProposalTemplateData;
+  selectedTemplate: ProposalTemplateData | null;
   isSubmitting: boolean;
   setSelectedQuote: React.Dispatch<React.SetStateAction<string>>;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
@@ -35,7 +25,7 @@ export interface UseProposalFormReturn {
   setGeneratingPDF: React.Dispatch<React.SetStateAction<boolean>>;
   setProposal: React.Dispatch<React.SetStateAction<ProposalData | null>>;
   setFormData: React.Dispatch<React.SetStateAction<ProposalFormData>>;
-  setSelectedTemplate: React.Dispatch<React.SetStateAction<ProposalTemplateData>>;
+  setSelectedTemplate: React.Dispatch<React.SetStateAction<ProposalTemplateData | null>>;
   handleQuoteSelect: (quoteId: string) => void;
   handleFormChange: (field: keyof ProposalFormData, value: any) => void;
   handleServiceChange: (index: number, checked: boolean) => void;
@@ -66,7 +56,7 @@ export function useProposalForm(
   const [proposal, setProposal] = useState<ProposalData | null>(null);
   const [proposalId, setProposalId] = useState<string | undefined>(initialProposalId);
   const [isEditMode, setIsEditMode] = useState<boolean>(!!initialProposalId);
-  const [selectedTemplate, setSelectedTemplate] = useState<ProposalTemplateData>(defaultTemplate);
+  const [selectedTemplate, setSelectedTemplate] = useState<ProposalTemplateData | null>(null);
   
   const [formData, setFormData] = useState<ProposalFormData>({...defaultFormData});
 
@@ -80,6 +70,38 @@ export function useProposalForm(
       setFormData(prev => ({ ...prev, total_price: total.toString() }));
     }
   }, [formData.services, formData.total_price]);
+
+  // Load default template on mount
+  useEffect(() => {
+    const loadDefaultTemplate = async () => {
+      try {
+        console.log('Loading default template...');
+        const defaultTemplate = await proposalTemplatesApi.getDefaultProposalTemplate();
+        if (defaultTemplate) {
+          console.log('Default template loaded:', defaultTemplate);
+          setSelectedTemplate(defaultTemplate);
+          setFormData(prev => ({ ...prev, template_id: defaultTemplate.id }));
+        } else {
+          console.log('No default template found, will use first available');
+          const templates = await proposalTemplatesApi.fetchProposalTemplates();
+          if (templates.length > 0) {
+            const firstTemplate = templates[0];
+            console.log('Using first template:', firstTemplate);
+            setSelectedTemplate(firstTemplate);
+            setFormData(prev => ({ ...prev, template_id: firstTemplate.id }));
+          }
+        }
+      } catch (error) {
+        console.error('Error loading default template:', error);
+        // Set formData without template_id to avoid foreign key error
+        setFormData(prev => ({ ...prev, template_id: null }));
+      }
+    };
+    
+    if (!selectedTemplate && !initialProposalId) {
+      loadDefaultTemplate();
+    }
+  }, [selectedTemplate, initialProposalId]);
 
   // Load proposal data if in edit mode
   useEffect(() => {
@@ -106,12 +128,24 @@ export function useProposalForm(
           payment_terms: data.payment_terms,
           notes: data.notes || "",
           quote_request_id: data.quote_request_id,
-          template_id: data.template_id || '',
+          template_id: data.template_id || null,
           status: data.status
         });
         
         if (data.quote_request_id) {
           setSelectedQuote(data.quote_request_id);
+        }
+        
+        // Load template if exists
+        if (data.template_id) {
+          try {
+            const template = await proposalTemplatesApi.fetchProposalTemplateById(data.template_id);
+            if (template) {
+              setSelectedTemplate(template);
+            }
+          } catch (error) {
+            console.error('Error loading template:', error);
+          }
         }
         
         // Store PDF URL if available
@@ -228,6 +262,7 @@ export function useProposalForm(
     setProposalId(undefined);
     setIsEditMode(false);
     setProposal(null);
+    setSelectedTemplate(null);
   };
 
   const saveProposalHandler = async (): Promise<string | null> => {
@@ -238,11 +273,11 @@ export function useProposalForm(
       console.log('Selected template:', selectedTemplate);
       
       // Convert string values to appropriate types and format for the API
+      // Use the correct template_id from the HTML template table
       const proposalData = {
         ...formData,
         total_price: parseFloat(formData.total_price) || 0,
-        // Use template_id from formData which gets updated from selectedTemplate
-        template_id: formData.template_id
+        template_id: selectedTemplate?.id || null
       };
       
       console.log('Processed proposal data for saving:', proposalData);

@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { ProposalData, Service } from './types';
 import { Json } from '@/integrations/supabase/types';
@@ -51,6 +50,20 @@ export const fetchProposal = async (id: string): Promise<ProposalData | null> =>
 export const saveProposal = async (proposal: Omit<ProposalData, 'id' | 'created_at'> & { id?: string }): Promise<string | null> => {
   try {
     console.log('Saving proposal with template_id:', proposal.template_id);
+    
+    // Validate template_id exists in proposal_template_html table if provided
+    if (proposal.template_id) {
+      const { data: templateExists, error: templateError } = await supabase
+        .from('proposal_template_html')
+        .select('id')
+        .eq('id', proposal.template_id)
+        .single();
+        
+      if (templateError || !templateExists) {
+        console.warn('Template ID not found in proposal_template_html, setting to null:', proposal.template_id);
+        proposal.template_id = null;
+      }
+    }
     
     // Prepare proposal data
     const newProposal = {
@@ -109,8 +122,7 @@ export const saveProposal = async (proposal: Omit<ProposalData, 'id' | 'created_
   }
 };
 
-// Delete a proposal
-export const deleteProposal = async (id: string): Promise<boolean> => {
+const deleteProposal = async (id: string): Promise<boolean> => {
   try {
     const { error } = await supabase
       .from('proposals')
@@ -125,8 +137,7 @@ export const deleteProposal = async (id: string): Promise<boolean> => {
   }
 };
 
-// Send a proposal by email
-export const sendProposalByEmail = async (proposal: ProposalData): Promise<boolean> => {
+const sendProposalByEmail = async (proposal: ProposalData): Promise<boolean> => {
   try {
     console.log('Sending proposal by email:', proposal.id, 'to', proposal.client_email);
     
@@ -157,8 +168,7 @@ export const sendProposalByEmail = async (proposal: ProposalData): Promise<boole
   }
 };
 
-// Save the PDF URL to the proposal
-export const savePdfUrl = async (proposalId: string, pdfUrl: string): Promise<boolean> => {
+const savePdfUrl = async (proposalId: string, pdfUrl: string): Promise<boolean> => {
   try {
     console.log('Saving PDF URL:', pdfUrl, 'for proposal:', proposalId);
     const { error } = await supabase
@@ -178,3 +188,5 @@ export const savePdfUrl = async (proposalId: string, pdfUrl: string): Promise<bo
     return false;
   }
 };
+
+export { deleteProposal, sendProposalByEmail, savePdfUrl };
