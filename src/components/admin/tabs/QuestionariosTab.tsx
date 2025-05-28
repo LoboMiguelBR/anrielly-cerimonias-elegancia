@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
 import { supabase } from "@/integrations/supabase/client"
-import { Plus, ExternalLink, Users, Eye, Edit, Trash2, FileText, Copy } from 'lucide-react'
+import { Plus, ExternalLink, Users, Eye, Edit, Trash2, FileText, Copy, Sparkles } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import {
@@ -19,10 +19,17 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import useSWR from 'swr'
 import type { Database } from '@/integrations/supabase/types'
 import KPICards from './components/KPICards'
 import QuestionarioEditModal from './components/QuestionarioEditModal'
+import QuestionarioHistoryViewer from './components/QuestionarioHistoryViewer'
 import { useQuestionarioWordExport } from '@/hooks/useQuestionarioWordExport'
 
 type QuestionarioRow = Database['public']['Tables']['questionarios_noivos']['Row']
@@ -37,6 +44,7 @@ interface Questionario {
   data_atualizacao: string
   respostas_json: Record<string, string> | null
   total_perguntas_resp: number
+  historia_gerada?: string
 }
 
 interface QuestionarioGroup {
@@ -55,6 +63,7 @@ const QuestionariosTab = () => {
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set())
   const [editingQuestionario, setEditingQuestionario] = useState<Questionario | null>(null)
   const [deletingQuestionario, setDeletingQuestionario] = useState<Questionario | null>(null)
+  const [viewingHistory, setViewingHistory] = useState<Questionario | null>(null)
 
   const fetcher = async (): Promise<Questionario[]> => {
     const { data, error } = await supabase
@@ -73,7 +82,8 @@ const QuestionariosTab = () => {
       data_criacao: row.data_criacao || '',
       data_atualizacao: row.data_atualizacao || '',
       respostas_json: row.respostas_json as Record<string, string> | null,
-      total_perguntas_resp: row.total_perguntas_resp || 0
+      total_perguntas_resp: row.total_perguntas_resp || 0,
+      historia_gerada: row.historia_gerada || undefined
     }))
   }
 
@@ -399,6 +409,12 @@ const QuestionariosTab = () => {
                                     </div>
                                     <div className="flex items-center gap-2">
                                       {getStatusBadge(questionario.status)}
+                                      {questionario.historia_gerada && (
+                                        <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
+                                          <Sparkles className="w-3 h-3 mr-1" />
+                                          História IA
+                                        </Badge>
+                                      )}
                                     </div>
                                   </div>
                                   
@@ -436,6 +452,22 @@ const QuestionariosTab = () => {
                                     </TooltipTrigger>
                                     <TooltipContent>Ver respostas</TooltipContent>
                                   </Tooltip>
+
+                                  {questionario.historia_gerada && (
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Button
+                                          size="sm"
+                                          variant="outline"
+                                          onClick={() => setViewingHistory(questionario)}
+                                          className="h-8 w-8 p-0 text-purple-600"
+                                        >
+                                          <Sparkles className="h-4 w-4" />
+                                        </Button>
+                                      </TooltipTrigger>
+                                      <TooltipContent>Ver História IA</TooltipContent>
+                                    </Tooltip>
+                                  )}
 
                                   <Tooltip>
                                     <TooltipTrigger asChild>
@@ -535,6 +567,21 @@ const QuestionariosTab = () => {
             </CardContent>
           </Card>
         )}
+
+        {/* Modal de Visualização da História IA */}
+        <Dialog open={!!viewingHistory} onOpenChange={(open) => !open && setViewingHistory(null)}>
+          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>História Gerada por IA</DialogTitle>
+            </DialogHeader>
+            {viewingHistory && (
+              <QuestionarioHistoryViewer
+                questionarioId={viewingHistory.id}
+                nomeResponsavel={viewingHistory.nome_responsavel}
+              />
+            )}
+          </DialogContent>
+        </Dialog>
 
         {/* Modal de Edição */}
         <QuestionarioEditModal

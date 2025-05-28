@@ -11,12 +11,14 @@ const ContractStatusBadge = ({ status }: ContractStatusBadgeProps) => {
     switch (status) {
       case 'signed':
         return { label: 'Assinado', variant: 'default' as const, className: 'bg-green-100 text-green-800' };
-      case 'pending':
-        return { label: 'Pendente', variant: 'secondary' as const, className: 'bg-yellow-100 text-yellow-800' };
+      case 'sent':
+        return { label: 'Enviado', variant: 'secondary' as const, className: 'bg-yellow-100 text-yellow-800' };
       case 'draft':
         return { label: 'Rascunho', variant: 'outline' as const, className: 'bg-gray-100 text-gray-800' };
-      case 'canceled':
+      case 'cancelled':
         return { label: 'Cancelado', variant: 'destructive' as const, className: 'bg-red-100 text-red-800' };
+      case 'expired':
+        return { label: 'Expirado', variant: 'destructive' as const, className: 'bg-red-100 text-red-800' };
       default:
         return { label: 'Desconhecido', variant: 'outline' as const, className: 'bg-gray-100 text-gray-800' };
     }

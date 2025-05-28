@@ -68,7 +68,7 @@ export interface ContractFormData {
   user_agent?: string;
 }
 
-export interface EmailTemplate {
+export interface ContractEmailTemplate {
   id: string;
   name: string;
   subject: string;
@@ -78,6 +78,15 @@ export interface EmailTemplate {
   is_default?: boolean;
   created_at: string;
   updated_at: string;
+}
+
+export interface ContractEmailTemplateFormData {
+  name: string;
+  subject: string;
+  html_content: string;
+  template_type: string;
+  description?: string;
+  is_default?: boolean;
 }
 
 export interface ContractTemplate {
@@ -90,3 +99,24 @@ export interface ContractTemplate {
   created_at: string;
   updated_at: string;
 }
+
+export interface SignatureCanvasProps {
+  onSignatureChange: (signature: string) => void;
+  hasDrawnSignature: boolean;
+  onHasDrawnSignatureChange: (hasDrawn: boolean) => void;
+}
+
+export const CIVIL_STATUS_OPTIONS = [
+  { value: 'solteiro', label: 'Solteiro(a)' },
+  { value: 'casado', label: 'Casado(a)' },
+  { value: 'divorciado', label: 'Divorciado(a)' },
+  { value: 'viuvo', label: 'Viúvo(a)' },
+  { value: 'uniao_estavel', label: 'União Estável' }
+];
+
+export const EMAIL_TEMPLATE_TYPES = [
+  { value: 'signature', label: 'Envio para Assinatura' },
+  { value: 'reminder', label: 'Lembrete' },
+  { value: 'confirmation', label: 'Confirmação' },
+  { value: 'custom', label: 'Personalizado' }
+];
