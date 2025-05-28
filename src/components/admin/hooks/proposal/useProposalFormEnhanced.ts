@@ -1,8 +1,10 @@
-import { useState, useEffect } from 'react';
+
+import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
-import { ProposalFormData, ProposalData, QuoteRequest, Service } from './types';
-import { fetchProposal, saveProposal, deleteProposal, sendProposalByEmail, savePdfUrl } from './proposalApi';
-import { proposalTemplatesApi, ProposalTemplateData } from './api/proposalTemplates';
+import { ProposalData, Service, QuoteRequest } from './types';
+import { proposalTemplatesApi } from './api/proposalTemplates';
+import type { ProposalTemplateData } from './api/proposalTemplates';
+import { fetchProposal, saveProposal } from './proposalApi';
 
 interface Professional {
   id: string;
@@ -13,86 +15,29 @@ interface Professional {
   city: string;
 }
 
-const defaultFormData: ProposalFormData = {
-  client_name: '',
-  client_email: '',
-  client_phone: '',
-  event_type: '',
-  event_date: '',
-  event_location: '',
-  validity_date: '',
-  services: [],
-  total_price: '0',
-  payment_terms: '',
-  notes: '',
-  quote_request_id: '',
-  template_id: '',
-  status: 'draft',
-  customService: ''
-};
-
-export interface UseProposalFormEnhancedReturn {
-  // Form state
-  formData: ProposalFormData;
-  setFormData: React.Dispatch<React.SetStateAction<ProposalFormData>>;
-  
-  // Client selection
-  selectedClientType: 'lead' | 'professional' | '';
-  selectedClientId: string;
-  setSelectedClientType: (type: 'lead' | 'professional') => void;
-  setSelectedClientId: (id: string) => void;
-  
-  // Financial calculations
-  totalPrice: string;
-  discount: string;
-  finalPrice: string;
-  setTotalPrice: (value: string) => void;
-  setDiscount: (value: string) => void;
-  
-  // Template
-  selectedTemplate: ProposalTemplateData | null;
-  setSelectedTemplate: (template: ProposalTemplateData) => void;
-  
-  // Loading states
-  isLoading: boolean;
-  isSaving: boolean;
-  isDeleting: boolean;
-  isSending: boolean;
-  generatingPDF: boolean;
-  
-  // Form actions
-  handleFormChange: (field: keyof ProposalFormData, value: any) => void;
-  handleServiceToggle: (index: number, included: boolean) => void;
-  handleServiceUpdate: (index: number, updates: Partial<Service>) => void;
-  handleAddService: () => void;
-  handleRemoveService: (index: number) => void;
-  
-  // CRUD operations
-  saveProposal: () => Promise<string | null>;
-  deleteProposal: () => Promise<boolean>;
-  sendProposalEmail: () => Promise<boolean>;
-  saveProposalPdfUrl: (url: string) => Promise<boolean>;
-  handleSubmit: () => Promise<boolean>;
-  resetForm: () => void;
-  
-  // Other states
-  proposal: ProposalData | null;
-  isEditMode: boolean;
-  proposalId: string | undefined;
-}
-
-export function useProposalFormEnhanced(
+export const useProposalFormEnhanced = (
   initialProposalId?: string,
   quoteRequests: QuoteRequest[] = [],
   professionals: Professional[] = []
-): UseProposalFormEnhancedReturn {
+) => {
   // Form state
-  const [formData, setFormData] = useState<ProposalFormData>(defaultFormData);
-  const [proposal, setProposal] = useState<ProposalData | null>(null);
-  const [proposalId, setProposalId] = useState<string | undefined>(initialProposalId);
-  const [isEditMode, setIsEditMode] = useState<boolean>(!!initialProposalId);
-  
-  // Client selection
+  const [formData, setFormData] = useState<ProposalData>({
+    client_name: '',
+    client_email: '',
+    client_phone: '',
+    event_type: '',
+    event_date: '',
+    event_location: '',
+    services: [],
+    total_price: 0,
+    payment_terms: '',
+    notes: '',
+    validity_date: '',
+    template_id: null,
+    status: 'draft'
+  });
+
+  // Selection state
   const [selectedClientType, setSelectedClientType] = useState<'lead' | 'professional' | ''>('');
   const [selectedClientId, setSelectedClientId] = useState<string>('');
   
@@ -101,123 +46,92 @@ export function useProposalFormEnhanced(
   const [discount, setDiscount] = useState<string>('0');
   const [finalPrice, setFinalPrice] = useState<string>('0');
   
-  // Template
+  // Template state
   const [selectedTemplate, setSelectedTemplate] = useState<ProposalTemplateData | null>(null);
   
   // Loading states
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [isSaving, setIsSaving] = useState<boolean>(false);
-  const [isDeleting, setIsDeleting] = useState<boolean>(false);
-  const [isSending, setIsSending] = useState<boolean>(false);
-  const [generatingPDF, setGeneratingPDF] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  
+  // Proposal state
+  const [proposal, setProposal] = useState<ProposalData | null>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
 
-  // Calculate final price when total or discount changes
+  // Calculate final price
   useEffect(() => {
     const total = parseFloat(totalPrice) || 0;
-    const discountValue = parseFloat(discount) || 0;
-    const final = Math.max(0, total - discountValue);
-    setFinalPrice(final.toString());
-    
-    // Update form data
-    setFormData(prev => ({ ...prev, total_price: final.toString() }));
+    const discountAmount = parseFloat(discount) || 0;
+    const final = Math.max(0, total - discountAmount);
+    setFinalPrice(final.toFixed(2));
   }, [totalPrice, discount]);
 
-  // Load default template on mount
+  // Load existing proposal if editing
   useEffect(() => {
-    const loadDefaultTemplate = async () => {
-      try {
-        const defaultTemplate = await proposalTemplatesApi.getDefaultProposalTemplate();
-        if (defaultTemplate) {
-          setSelectedTemplate(defaultTemplate);
-          setFormData(prev => ({ ...prev, template_id: defaultTemplate.id }));
-        }
-      } catch (error) {
-        console.error('Error loading default template:', error);
-      }
-    };
-    
-    if (!selectedTemplate) {
-      loadDefaultTemplate();
-    }
-  }, [selectedTemplate]);
-
-  // Load proposal data if in edit mode
-  useEffect(() => {
-    const loadProposal = async () => {
-      if (!proposalId) return;
-      
+    if (initialProposalId) {
       setIsLoading(true);
-      try {
-        const data = await fetchProposal(proposalId);
-        
-        if (data) {
-          setFormData({
-            client_name: data.client_name,
-            client_email: data.client_email,
-            client_phone: data.client_phone,
-            event_type: data.event_type,
-            event_date: data.event_date || '',
-            event_location: data.event_location,
-            validity_date: data.validity_date,
-            services: data.services,
-            total_price: data.total_price.toString(),
-            payment_terms: data.payment_terms,
-            notes: data.notes || '',
-            quote_request_id: data.quote_request_id || '',
-            template_id: data.template_id || '',
-            status: data.status || 'draft',
-            customService: ''
-          });
-          
-          setTotalPrice(data.total_price.toString());
-          setProposal(data);
-          
-          // Try to determine client type
-          if (data.quote_request_id) {
-            setSelectedClientType('lead');
-            setSelectedClientId(data.quote_request_id);
+      setIsEditMode(true);
+      
+      fetchProposal(initialProposalId)
+        .then((proposalData) => {
+          if (proposalData) {
+            setProposal(proposalData);
+            setFormData(proposalData);
+            setTotalPrice(proposalData.total_price.toString());
+            
+            // Load template if exists
+            if (proposalData.template_id) {
+              proposalTemplatesApi.fetchProposalTemplateById(proposalData.template_id)
+                .then(template => {
+                  if (template) {
+                    setSelectedTemplate(template);
+                  }
+                });
+            }
           }
-        }
-      } catch (error) {
-        console.error('Error loading proposal:', error);
-        toast.error('Erro ao carregar proposta');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    if (proposalId) {
-      loadProposal();
+        })
+        .catch((error) => {
+          console.error('Error loading proposal:', error);
+          toast.error('Erro ao carregar proposta');
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
     }
-  }, [proposalId]);
+  }, [initialProposalId]);
 
-  const handleFormChange = (field: keyof ProposalFormData, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
+  // Form handlers
+  const handleFormChange = useCallback((field: keyof ProposalData, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  }, []);
 
-  const handleServiceToggle = (index: number, included: boolean) => {
+  // Service handlers
+  const handleServiceToggle = useCallback((index: number, included: boolean) => {
     setFormData(prev => ({
       ...prev,
       services: prev.services.map((service, i) => 
         i === index ? { ...service, included } : service
       )
     }));
-  };
+  }, []);
 
-  const handleServiceUpdate = (index: number, updates: Partial<Service>) => {
+  const handleServiceUpdate = useCallback((index: number, updates: Partial<Service>) => {
     setFormData(prev => ({
       ...prev,
       services: prev.services.map((service, i) => 
         i === index ? { ...service, ...updates } : service
       )
     }));
-  };
+  }, []);
 
-  const handleAddService = () => {
+  const handleAddService = useCallback(() => {
     const newService: Service = {
-      name: 'Novo Serviço',
+      name: '',
       description: '',
       price: 0,
+      quantity: 1,
       included: true
     };
     
@@ -225,149 +139,106 @@ export function useProposalFormEnhanced(
       ...prev,
       services: [...prev.services, newService]
     }));
-  };
+  }, []);
 
-  const handleRemoveService = (index: number) => {
+  const handleRemoveService = useCallback((index: number) => {
     setFormData(prev => ({
       ...prev,
       services: prev.services.filter((_, i) => i !== index)
     }));
-  };
+  }, []);
 
-  const saveProposalHandler = async (): Promise<string | null> => {
-    setIsSaving(true);
-    
+  // Submit handler
+  const handleSubmit = useCallback(async (): Promise<boolean> => {
     try {
-      const proposalData = {
+      setIsSaving(true);
+      
+      // Validation
+      if (!formData.client_name || !formData.client_email || !formData.client_phone) {
+        toast.error('Preencha todos os campos obrigatórios do cliente');
+        return false;
+      }
+      
+      if (!formData.event_type || !formData.event_location) {
+        toast.error('Preencha todos os campos obrigatórios do evento');
+        return false;
+      }
+      
+      if (!formData.payment_terms || !formData.validity_date) {
+        toast.error('Preencha todos os campos obrigatórios dos termos');
+        return false;
+      }
+
+      // Prepare proposal data
+      const proposalData: ProposalData = {
         ...formData,
         total_price: parseFloat(finalPrice) || 0,
-        template_id: selectedTemplate?.id || null
+        template_id: selectedTemplate?.id || null,
+        id: proposal?.id
       };
-      
+
+      // Save proposal
       const savedId = await saveProposal(proposalData);
       
-      if (!savedId) {
-        toast.error('Não foi possível salvar a proposta');
-        return null;
+      if (savedId) {
+        toast.success(isEditMode ? 'Proposta atualizada com sucesso!' : 'Proposta criada com sucesso!');
+        
+        // Update proposal state if editing
+        if (isEditMode) {
+          setProposal({ ...proposalData, id: savedId });
+        }
+        
+        return true;
+      } else {
+        toast.error('Erro ao salvar proposta');
+        return false;
       }
-      
-      toast.success('Proposta salva com sucesso!');
-      
-      if (!isEditMode) {
-        setProposalId(savedId);
-        setIsEditMode(true);
-      }
-      
-      return savedId;
-    } catch (error: any) {
-      console.error('Error saving proposal:', error);
-      toast.error(`Erro ao salvar proposta: ${error.message}`);
-      return null;
+    } catch (error) {
+      console.error('Error submitting proposal:', error);
+      toast.error('Erro ao salvar proposta');
+      return false;
     } finally {
       setIsSaving(false);
     }
-  };
-
-  const handleSubmit = async (): Promise<boolean> => {
-    const savedId = await saveProposalHandler();
-    return !!savedId;
-  };
-
-  const deleteProposalHandler = async (): Promise<boolean> => {
-    if (!proposalId) return false;
-    
-    setIsDeleting(true);
-    const success = await deleteProposal(proposalId);
-    
-    if (success) {
-      resetForm();
-    }
-    
-    setIsDeleting(false);
-    return success;
-  };
-
-  const sendProposalEmailHandler = async (): Promise<boolean> => {
-    if (!proposal) return false;
-    
-    setIsSending(true);
-    const success = await sendProposalByEmail(proposal);
-    setIsSending(false);
-    
-    return success;
-  };
-
-  const saveProposalPdfUrlHandler = async (url: string): Promise<boolean> => {
-    if (!proposalId) return false;
-    
-    const success = await savePdfUrl(proposalId, url);
-    
-    if (success && proposal) {
-      setProposal({...proposal, pdf_url: url});
-    }
-    
-    return success;
-  };
-
-  const resetForm = () => {
-    setFormData(defaultFormData);
-    setSelectedClientType('');
-    setSelectedClientId('');
-    setTotalPrice('0');
-    setDiscount('0');
-    setFinalPrice('0');
-    setProposalId(undefined);
-    setIsEditMode(false);
-    setProposal(null);
-  };
+  }, [formData, finalPrice, selectedTemplate, proposal, isEditMode]);
 
   return {
-    // Form state
+    // Form data
     formData,
-    setFormData,
     
-    // Client selection
+    // Selection state
     selectedClientType,
     selectedClientId,
-    setSelectedClientType,
-    setSelectedClientId,
     
-    // Financial calculations
+    // Financial state
     totalPrice,
     discount,
     finalPrice,
-    setTotalPrice,
-    setDiscount,
     
-    // Template
+    // Template state
     selectedTemplate,
-    setSelectedTemplate,
     
     // Loading states
     isLoading,
     isSaving,
-    isDeleting,
-    isSending,
-    generatingPDF,
     
-    // Form actions
+    // Proposal state
+    proposal,
+    isEditMode,
+    
+    // Setters
+    setSelectedClientType,
+    setSelectedClientId,
+    setTotalPrice,
+    setDiscount,
+    setSelectedTemplate,
+    
+    // Handlers
     handleFormChange,
     handleServiceToggle,
     handleServiceUpdate,
     handleAddService,
     handleRemoveService,
-    
-    // CRUD operations
-    saveProposal: saveProposalHandler,
-    deleteProposal: deleteProposalHandler,
-    sendProposalEmail: sendProposalEmailHandler,
-    saveProposalPdfUrl: saveProposalPdfUrlHandler,
-    handleSubmit,
-    resetForm,
-    
-    // Other states
-    proposal,
-    isEditMode,
-    proposalId
+    handleSubmit
   };
-}
+};
