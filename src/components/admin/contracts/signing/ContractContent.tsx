@@ -13,6 +13,7 @@ interface ContractContentProps {
 const ContractContent: React.FC<ContractContentProps> = ({ contract }) => {
   const [templateCss, setTemplateCss] = useState<string>('');
   const [templateHtml, setTemplateHtml] = useState<string>('');
+  const [renderedContent, setRenderedContent] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>('');
 
@@ -20,70 +21,79 @@ const ContractContent: React.FC<ContractContentProps> = ({ contract }) => {
   useEffect(() => {
     const fetchTemplateData = async () => {
       console.log('ContractContent: Starting template fetch for contract:', contract.id);
-      console.log('Contract has html_content:', !!contract.html_content);
-      console.log('Contract has css_content:', !!contract.css_content);
-      console.log('Contract template_id:', contract.template_id);
-
-      // Se já tem CSS do contrato, usar ele
-      if (contract.css_content) {
-        console.log('Using contract CSS content');
-        setTemplateCss(contract.css_content);
-      }
-
-      // Se já tem HTML do contrato, usar ele
-      if (contract.html_content) {
-        console.log('Using contract HTML content');
-        setTemplateHtml(contract.html_content);
-        return;
-      }
-
-      // Se não tem HTML no contrato, buscar template
-      console.log('Contract has no HTML content, fetching template...');
+      
       setIsLoading(true);
       setError('');
       
       try {
-        const templates = await contractTemplatesApi.getContractTemplates();
-        console.log('Available templates:', templates.length);
-        
-        let selectedTemplate = null;
-        
-        // Tentar encontrar template específico primeiro
-        if (contract.template_id) {
-          selectedTemplate = templates.find(t => t.id === contract.template_id);
-          console.log('Found specific template:', !!selectedTemplate);
-        }
-        
-        // Se não encontrou template específico, usar template padrão
-        if (!selectedTemplate) {
-          selectedTemplate = templates.find(t => t.is_default);
-          console.log('Using default template:', !!selectedTemplate);
-        }
-        
-        // Se ainda não tem template, usar o primeiro disponível
-        if (!selectedTemplate && templates.length > 0) {
-          selectedTemplate = templates[0];
-          console.log('Using first available template:', selectedTemplate.name);
-        }
-        
-        if (selectedTemplate) {
-          console.log('Selected template:', selectedTemplate.name);
-          setTemplateHtml(selectedTemplate.html_content);
+        let htmlContent = contract.html_content;
+        let cssContent = contract.css_content;
+
+        // Se não tem HTML no contrato, buscar template
+        if (!htmlContent) {
+          console.log('Contract has no HTML content, fetching template...');
           
-          // Se não tem CSS do contrato, usar CSS do template
-          if (!contract.css_content && selectedTemplate.css_content) {
-            console.log('Using template CSS content');
-            setTemplateCss(selectedTemplate.css_content);
+          const templates = await contractTemplatesApi.getContractTemplates();
+          console.log('Available templates:', templates.length);
+          
+          let selectedTemplate = null;
+          
+          // Tentar encontrar template específico primeiro
+          if (contract.template_id) {
+            selectedTemplate = templates.find(t => t.id === contract.template_id);
+            console.log('Found specific template:', !!selectedTemplate);
           }
-        } else {
-          console.warn('No templates available, using enhanced basic HTML');
-          setTemplateHtml(generateEnhancedContractHtml(contract));
+          
+          // Se não encontrou template específico, usar template padrão
+          if (!selectedTemplate) {
+            selectedTemplate = templates.find(t => t.is_default);
+            console.log('Using default template:', !!selectedTemplate);
+          }
+          
+          // Se ainda não tem template, usar o primeiro disponível
+          if (!selectedTemplate && templates.length > 0) {
+            selectedTemplate = templates[0];
+            console.log('Using first available template:', selectedTemplate.name);
+          }
+          
+          if (selectedTemplate) {
+            console.log('Selected template:', selectedTemplate.name);
+            htmlContent = selectedTemplate.html_content;
+            
+            // Se não tem CSS do contrato, usar CSS do template
+            if (!cssContent && selectedTemplate.css_content) {
+              console.log('Using template CSS content');
+              cssContent = selectedTemplate.css_content;
+            }
+          } else {
+            console.warn('No templates available, using enhanced basic HTML');
+            htmlContent = generateEnhancedContractHtml(contract);
+          }
+        }
+
+        setTemplateHtml(htmlContent || '');
+        setTemplateCss(cssContent || '');
+
+        // Renderizar conteúdo com variáveis substituídas
+        if (htmlContent) {
+          console.log('Rendering contract with variables...');
+          const rendered = await renderContractTemplate(htmlContent, cssContent, contract);
+          setRenderedContent(rendered);
+          console.log('Contract rendered successfully');
         }
       } catch (error) {
         console.error('Error fetching template:', error);
         setError('Erro ao carregar template do contrato');
         // Fallback para HTML básico melhorado
-        setTemplateHtml(generateEnhancedContractHtml(contract));
+        const fallbackHtml = generateEnhancedContractHtml(contract);
+        setTemplateHtml(fallbackHtml);
+        try {
+          const rendered = await renderContractTemplate(fallbackHtml, '', contract);
+          setRenderedContent(rendered);
+        } catch (renderError) {
+          console.error('Error rendering fallback:', renderError);
+          setRenderedContent(fallbackHtml);
+        }
       } finally {
         setIsLoading(false);
       }
@@ -135,17 +145,21 @@ const ContractContent: React.FC<ContractContentProps> = ({ contract }) => {
         
         <div class="contract-signatures">
           <h3>ASSINATURAS</h3>
-          <div class="signatures-row">
-            <div class="signature-box">
+          <div class="signatures-row" style="display: flex; justify-content: space-between; margin-top: 40px;">
+            <div class="signature-box" style="width: 45%; text-align: center;">
               <h4>Contratante:</h4>
-              {ASSINATURA_CLIENTE}
-              <p>____________________</p>
-              <p>{NOME_CLIENTE}</p>
+              <div style="min-height: 80px; border: 1px solid #ddd; margin: 10px 0; padding: 10px; background: white;">
+                {ASSINATURA_CLIENTE}
+              </div>
+              <p style="border-top: 1px solid #000; margin-top: 20px; padding-top: 5px;">{NOME_CLIENTE}</p>
             </div>
             
-            <div class="signature-box">
+            <div class="signature-box" style="width: 45%; text-align: center;">
               <h4>Contratada:</h4>
-              {ASSINATURA_CONTRATADA}
+              <div style="min-height: 80px; border: 1px solid #ddd; margin: 10px 0; padding: 10px; background: white;">
+                {ASSINATURA_CONTRATADA}
+              </div>
+              <p style="border-top: 1px solid #000; margin-top: 20px; padding-top: 5px;">Anrielly Cristina Costa Gomes</p>
             </div>
           </div>
         </div>
@@ -171,25 +185,6 @@ const ContractContent: React.FC<ContractContentProps> = ({ contract }) => {
         </div>
       </div>
     `;
-  };
-
-  // Renderizar conteúdo do contrato com template e variáveis substituídas
-  const renderContractContent = () => {
-    const htmlContent = contract.html_content || templateHtml;
-    
-    if (!htmlContent) {
-      console.warn('No HTML content available for contract');
-      return '<p>Carregando conteúdo do contrato...</p>';
-    }
-    
-    console.log('Rendering contract with HTML content length:', htmlContent.length);
-    console.log('Contract status:', contract.status);
-    console.log('Has signature data:', !!contract.signature_data);
-    
-    const cssContent = contract.css_content || templateCss;
-    console.log('Using CSS content length:', cssContent?.length || 0);
-    
-    return renderContractTemplate(htmlContent, cssContent, contract);
   };
 
   if (error) {
@@ -249,7 +244,7 @@ const ContractContent: React.FC<ContractContentProps> = ({ contract }) => {
               overflowWrap: 'break-word',
               wordBreak: 'break-word'
             }}
-            dangerouslySetInnerHTML={{ __html: renderContractContent() }}
+            dangerouslySetInnerHTML={{ __html: renderedContent || 'Carregando...' }}
           />
         )}
       </CardContent>

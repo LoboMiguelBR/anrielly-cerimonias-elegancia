@@ -13,8 +13,10 @@ const ContractSigning = () => {
     isSubmitting,
     signature,
     setSignature,
+    signatureUrl,
+    setSignatureUrl,
     hasDrawnSignature,
-    setHasDrawnSignature,
+    setHasDrawnSignatureChange,
     clientName,
     setClientName,
     clientEmail,
@@ -48,8 +50,10 @@ const ContractSigning = () => {
         contract={contract}
         signature={signature}
         onSignatureChange={setSignature}
+        signatureUrl={signatureUrl}
+        onSignatureUrlChange={setSignatureUrl}
         hasDrawnSignature={hasDrawnSignature}
-        onHasDrawnSignatureChange={setHasDrawnSignature}
+        onHasDrawnSignatureChange={setHasDrawnSignatureChange}
         clientName={clientName}
         onClientNameChange={setClientName}
         clientEmail={clientEmail}

@@ -6,13 +6,13 @@ import { combineTemplateWithStyles } from './templateStyling';
 /**
  * Renderiza o template completo com dados e estilos
  */
-export const renderContractTemplate = (
+export const renderContractTemplate = async (
   htmlContent: string,
   cssContent: string | undefined,
   contract: ContractData
-): string => {
-  // Primeiro substituir variáveis
-  const contentWithVariables = replaceTemplateVariables(htmlContent, contract);
+): Promise<string> => {
+  // Primeiro substituir variáveis (aguardando async)
+  const contentWithVariables = await replaceTemplateVariables(htmlContent, contract);
   
   // Depois aplicar estilos
   return combineTemplateWithStyles(contentWithVariables, cssContent);

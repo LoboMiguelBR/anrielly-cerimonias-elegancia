@@ -66,9 +66,12 @@ export const formatSignatureDateTime = (signedAt?: string | null): { date: strin
 /**
  * Creates a mapping of template variables to their values
  */
-export const createVariableMapping = (contract: ContractData): Record<string, string> => {
+export const createVariableMapping = async (contract: ContractData): Promise<Record<string, string>> => {
   const signatureDateTime = formatSignatureDateTime(contract.signed_at);
   const contractHash = generateContractHash(contract);
+  
+  // Aguardar a assinatura da empresa de forma async
+  const companySignature = await formatCompanySignature();
   
   return {
     // Dados básicos do cliente
@@ -108,7 +111,7 @@ export const createVariableMapping = (contract: ContractData): Record<string, st
     
     // Assinaturas
     '{ASSINATURA_CLIENTE}': formatClientSignature(contract.signature_data),
-    '{ASSINATURA_CONTRATADA}': formatCompanySignature(),
+    '{ASSINATURA_CONTRATADA}': companySignature,
     
     // Dados da empresa
     '{NOME_EMPRESA}': 'Anrielly Gomes - Mestre de Cerimônia',
@@ -120,10 +123,10 @@ export const createVariableMapping = (contract: ContractData): Record<string, st
 /**
  * Substitui todas as variáveis do template pelos dados reais do contrato
  */
-export const replaceTemplateVariables = (content: string, contract: ContractData): string => {
+export const replaceTemplateVariables = async (content: string, contract: ContractData): Promise<string> => {
   if (!content || !contract) return content;
 
-  const variables = createVariableMapping(contract);
+  const variables = await createVariableMapping(contract);
 
   // Substituir todas as variáveis
   let processedContent = content;

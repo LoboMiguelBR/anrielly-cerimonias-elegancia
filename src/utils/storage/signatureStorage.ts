@@ -1,6 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { v4 as uuidv4 } from 'uuid';
+import { uploadAnriellySignature } from './anriellySignatureUpload';
 
 /**
  * Converte base64 em Blob
@@ -56,30 +57,28 @@ export const saveSignatureToStorage = async (
  * Obtém URL da assinatura da empresa (Anrielly)
  */
 export const getCompanySignatureUrl = async (): Promise<string> => {
-  // Upload da assinatura da Anrielly se não existir
-  const companySignatureFileName = 'anrielly-signature.png';
-  
   try {
-    // Verificar se já existe
+    // Primeiro tentar buscar assinatura existente no storage
     const { data: existingFile } = await supabase.storage
       .from('signatures')
-      .list('', { search: companySignatureFileName });
+      .list('', { search: 'anrielly-signature.png' });
 
     if (existingFile && existingFile.length > 0) {
       const { data: urlData } = supabase.storage
         .from('signatures')
-        .getPublicUrl(companySignatureFileName);
+        .getPublicUrl('anrielly-signature.png');
       
       console.log('Usando assinatura da empresa existente:', urlData.publicUrl);
       return urlData.publicUrl;
     }
 
-    // Se não existe, usar uma assinatura padrão temporária
-    console.warn('Assinatura da empresa não encontrada, usando placeholder');
-    return '/placeholder.svg';
+    // Se não existe, fazer upload
+    console.log('Assinatura não encontrada no storage, fazendo upload...');
+    return await uploadAnriellySignature();
   } catch (error) {
     console.error('Erro ao obter assinatura da empresa:', error);
-    return '/placeholder.svg';
+    // Fallback para a imagem local
+    return '/lovable-uploads/2fff881d-0a84-498f-bea5-b9adc67af1bd.png';
   }
 };
 
