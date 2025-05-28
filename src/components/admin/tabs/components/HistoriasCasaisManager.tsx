@@ -1,14 +1,14 @@
+
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Eye, RefreshCw, Sparkles, Users, Calendar, Heart } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Json } from '@/integrations/supabase/types';
 import ModalPersonalizacao from './ModalPersonalizacao';
 import { usePersonalizacaoIA } from '@/hooks/usePersonalizacaoIA';
 import QuestionarioHistoryModal from './QuestionarioHistoryModal';
+import HistoriasCasaisHeader from './HistoriasCasaisHeader';
+import HistoriasCasaisEmptyState from './HistoriasCasaisEmptyState';
+import CasalCard from './CasalCard';
 
 interface QuestionarioCasal {
   id: string;
@@ -135,19 +135,6 @@ const HistoriasCasaisManager = () => {
     return casais.find(casal => casal.link_publico === linkPublico);
   };
 
-  const formatarData = (data: string | null) => {
-    if (!data) return 'N/A';
-    return new Date(data).toLocaleDateString('pt-BR');
-  };
-
-  const getStatusColor = (status: string | null) => {
-    switch (status) {
-      case 'preenchido': return 'bg-green-100 text-green-800';
-      case 'rascunho': return 'bg-yellow-100 text-yellow-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
   const groupedCasais = casais.reduce((acc, casal) => {
     if (!acc[casal.link_publico]) {
       acc[casal.link_publico] = [];
@@ -169,131 +156,23 @@ const HistoriasCasaisManager = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Histórias dos Casais (IA)</h2>
-          <p className="text-gray-600">Gerencie e visualize as histórias criadas pela IA</p>
-        </div>
-        <Button onClick={carregarCasais} variant="outline">
-          <RefreshCw className="w-4 h-4 mr-2" />
-          Atualizar
-        </Button>
-      </div>
+      <HistoriasCasaisHeader onRefresh={carregarCasais} />
 
       <div className="grid gap-6">
-        {Object.entries(groupedCasais).map(([linkPublico, casalGroup]) => {
-          const primeiroDoGrupo = casalGroup[0];
-          const temHistoria = primeiroDoGrupo.historia_gerada;
-          const temPersonalizacao = primeiroDoGrupo.temPersonalizacao;
-          
-          return (
-            <Card key={linkPublico} className="relative">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <Heart className="w-5 h-5 text-rose-500" />
-                    <div>
-                      <CardTitle className="text-lg">
-                        Casal: {linkPublico.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                      </CardTitle>
-                      <div className="flex items-center space-x-2 mt-1">
-                        <Badge variant="outline" className={getStatusColor(primeiroDoGrupo.status)}>
-                          {primeiroDoGrupo.status || 'N/A'}
-                        </Badge>
-                        {temPersonalizacao && (
-                          <Badge variant="outline" className="bg-purple-100 text-purple-800">
-                            🎨 Personalizado
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Users className="w-4 h-4 text-gray-500" />
-                    <span className="text-sm text-gray-600">{casalGroup.length} questionário(s)</span>
-                  </div>
-                </div>
-              </CardHeader>
-
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {casalGroup.map((casal) => (
-                      <div key={casal.id} className="p-3 bg-gray-50 rounded-lg">
-                        <div className="font-medium text-gray-900">{casal.nome_responsavel}</div>
-                        <div className="text-sm text-gray-600">{casal.email}</div>
-                        <div className="text-xs text-gray-500 mt-1">
-                          {casal.total_perguntas_resp || 0} respostas • Atualizado em {formatarData(casal.data_atualizacao)}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {temHistoria && (
-                    <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                      <div className="flex items-center space-x-2 mb-2">
-                        <Sparkles className="w-4 h-4 text-green-600" />
-                        <span className="font-medium text-green-800">História Gerada</span>
-                      </div>
-                      <p className="text-sm text-green-700 line-clamp-3">
-                        {primeiroDoGrupo.historia_gerada?.substring(0, 200)}...
-                      </p>
-                    </div>
-                  )}
-
-                  <div className="flex flex-wrap gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setShowPersonalizacao(linkPublico)}
-                    >
-                      🎨 Personalizar
-                    </Button>
-                    
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => gerarHistoria(linkPublico)}
-                      disabled={isGenerating === linkPublico || casalGroup.length < 2}
-                    >
-                      {isGenerating === linkPublico ? (
-                        <>
-                          <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-current mr-2" />
-                          Gerando...
-                        </>
-                      ) : (
-                        <>
-                          <RefreshCw className="w-3 h-3 mr-2" />
-                          {temHistoria ? 'Regenerar' : 'Gerar'} História
-                        </>
-                      )}
-                    </Button>
-
-                    {temHistoria && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setShowHistory(linkPublico)}
-                      >
-                        <Eye className="w-3 h-3 mr-2" />
-                        Ver História
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
+        {Object.entries(groupedCasais).map(([linkPublico, casalGroup]) => (
+          <CasalCard
+            key={linkPublico}
+            linkPublico={linkPublico}
+            casalGroup={casalGroup}
+            isGenerating={isGenerating}
+            onPersonalizacao={setShowPersonalizacao}
+            onGerarHistoria={gerarHistoria}
+            onVerHistoria={setShowHistory}
+          />
+        ))}
       </div>
 
-      {Object.keys(groupedCasais).length === 0 && (
-        <div className="text-center py-12">
-          <Heart className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum casal encontrado</h3>
-          <p className="text-gray-600">Aguarde os casais preencherem seus questionários para gerar as histórias.</p>
-        </div>
-      )}
+      {Object.keys(groupedCasais).length === 0 && <HistoriasCasaisEmptyState />}
 
       {/* Modal de Visualização da História */}
       {showHistory && (
