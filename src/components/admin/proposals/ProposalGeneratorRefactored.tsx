@@ -9,7 +9,7 @@ import { FileText } from 'lucide-react';
 import { useProposalFormEnhanced } from '../hooks/proposal/useProposalFormEnhanced';
 import { QuoteRequest } from '../hooks/proposal/types';
 import { proposalTemplatesApi } from '../hooks/proposal/api/proposalTemplates';
-import type { ProposalTemplateData } from '../hooks/proposal/api/proposalTemplates';
+import type { ProposalTemplateData as ApiProposalTemplateData } from '../hooks/proposal/api/proposalTemplates';
 import ClientProfessionalSelector from './generator/ClientProfessionalSelector';
 import ServicesSection from './generator/ServicesSection';
 import TemplateSelector from './templates/TemplateSelector';
@@ -39,7 +39,7 @@ const ProposalGeneratorRefactored: React.FC<ProposalGeneratorRefactoredProps> = 
   onClose
 }) => {
   const [professionals, setProfessionals] = useState<Professional[]>([]);
-  const [templates, setTemplates] = useState<ProposalTemplateData[]>([]);
+  const [templates, setTemplates] = useState<ApiProposalTemplateData[]>([]);
   const [showPreview, setShowPreview] = useState(false);
 
   const {
@@ -107,7 +107,7 @@ const ProposalGeneratorRefactored: React.FC<ProposalGeneratorRefactoredProps> = 
     }
   }, [quoteIdFromUrl, selectedClientId, isEditMode, setSelectedClientType, setSelectedClientId]);
 
-  const handleTemplateChange = (template: ProposalTemplateData) => {
+  const handleTemplateChange = (template: ApiProposalTemplateData) => {
     setSelectedTemplate(template);
     handleFormChange('template_id', template.id);
   };
@@ -147,10 +147,32 @@ const ProposalGeneratorRefactored: React.FC<ProposalGeneratorRefactoredProps> = 
       template_id: selectedTemplate?.id || null
     };
 
+    // Convert API template data to preview format
+    const previewTemplate = selectedTemplate ? {
+      id: selectedTemplate.id,
+      name: selectedTemplate.name,
+      colors: {
+        primary: '#8A2BE2',
+        secondary: '#F2AE30',
+        accent: '#E57373',
+        text: '#333333',
+        background: '#FFFFFF'
+      },
+      fonts: {
+        heading: 'Playfair Display, serif',
+        body: 'Inter, sans-serif'
+      },
+      logo: "https://oampddkpuybkbwqggrty.supabase.co/storage/v1/object/public/proposals/LogoAG.png",
+      showQrCode: true,
+      showTestimonials: true,
+      showDifferentials: true,
+      showAboutSection: true
+    } : undefined;
+
     return (
       <ProposalPreview
         proposal={proposalData as any}
-        template={selectedTemplate || undefined}
+        template={previewTemplate}
         onBack={() => setShowPreview(false)}
       />
     );
