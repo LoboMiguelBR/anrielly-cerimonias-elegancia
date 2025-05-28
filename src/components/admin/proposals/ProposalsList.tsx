@@ -1,14 +1,11 @@
 
-import { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import ProposalGenerator from './ProposalGenerator';
-import DeleteConfirmationDialog from './DeleteConfirmationDialog';
+import { useState, useEffect } from 'react';
 import { useProposalList } from '../hooks/useProposalList';
+import { ProposalData } from '../hooks/proposal';
 import { 
   ProposalsTable, 
   EmptyState, 
-  LoadingState, 
-  ProposalsHeader
+  LoadingState
 } from './list';
 
 interface ProposalsListProps {
@@ -23,69 +20,39 @@ interface ProposalsListProps {
     event_location?: string;
   }>;
   quoteIdFromUrl?: string | null;
+  onViewProposal: (proposal: ProposalData) => void;
+  onCreateNew: () => void;
 }
 
-const ProposalsList: React.FC<ProposalsListProps> = ({ quoteRequests, quoteIdFromUrl }) => {
+const ProposalsList: React.FC<ProposalsListProps> = ({ 
+  quoteRequests, 
+  quoteIdFromUrl,
+  onViewProposal,
+  onCreateNew
+}) => {
   const {
     proposals,
     isLoading,
-    selectedProposal,
-    showAddEditDialog,
-    showDeleteDialog,
-    handleAddNew,
-    handleEdit,
-    handleDelete,
-    handleDeleteConfirmed,
-    setShowAddEditDialog,
-    setShowDeleteDialog
+    handleDelete
   } = useProposalList();
+
+  const handleEditProposal = (proposal: ProposalData) => {
+    onViewProposal(proposal);
+  };
 
   return (
     <div className="space-y-4">
-      <ProposalsHeader onAddNew={handleAddNew} />
-
       {isLoading ? (
         <LoadingState />
       ) : proposals.length === 0 ? (
-        <EmptyState onAddNew={handleAddNew} />
+        <EmptyState onAddNew={onCreateNew} />
       ) : (
         <ProposalsTable 
           proposals={proposals} 
-          onEdit={handleEdit} 
+          onEdit={handleEditProposal}
           onDelete={handleDelete} 
         />
       )}
-
-      {/* Add/Edit Proposal Dialog */}
-      <Dialog open={showAddEditDialog} onOpenChange={setShowAddEditDialog}>
-        <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{selectedProposal ? 'Editar Proposta' : 'Nova Proposta'}</DialogTitle>
-            <DialogDescription>
-              {selectedProposal 
-                ? `Editando proposta para ${selectedProposal.client_name}`
-                : 'Preencha os detalhes para criar uma nova proposta.'
-              }
-            </DialogDescription>
-          </DialogHeader>
-          
-          <ProposalGenerator 
-            quoteRequests={quoteRequests}
-            quoteIdFromUrl={quoteIdFromUrl}
-            initialProposalId={selectedProposal?.id}
-            onClose={() => setShowAddEditDialog(false)}
-          />
-        </DialogContent>
-      </Dialog>
-
-      {/* Delete Confirmation Dialog */}
-      <DeleteConfirmationDialog
-        open={showDeleteDialog}
-        onClose={() => setShowDeleteDialog(false)}
-        onConfirm={handleDeleteConfirmed}
-        title="Excluir Proposta"
-        description={`Tem certeza que deseja excluir a proposta para ${selectedProposal?.client_name}? Esta ação não pode ser desfeita.`}
-      />
     </div>
   );
 };

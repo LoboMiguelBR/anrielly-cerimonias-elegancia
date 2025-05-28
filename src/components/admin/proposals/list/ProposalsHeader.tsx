@@ -13,7 +13,7 @@ const ProposalsHeader: React.FC<ProposalsHeaderProps> = ({ onAddNew }) => {
       <h3 className="text-lg font-medium">Propostas</h3>
       <Button 
         onClick={onAddNew}
-        className="flex items-center gap-2 bg-purple-200 hover:bg-purple-300 text-primary-foreground"
+        className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white"
       >
         <Plus size={16} />
         Nova Proposta
