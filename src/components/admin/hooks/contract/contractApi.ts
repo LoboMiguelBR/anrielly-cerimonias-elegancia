@@ -1,8 +1,9 @@
+
 // Legacy API - kept for backward compatibility
 // This file re-exports the new modular API functions
 // Gradually migrate imports to use the specific modules directly
 
-import { contractCrudApi } from './api/contractCrud';
+import { contractCrudApi } from './api/contractCrud/index';
 import { contractStatusApi } from './api/contractStatus';
 import { contractTemplatesApi } from './api/contractTemplates';
 import { contractEmailTemplatesApi } from './api/contractEmailTemplates';
