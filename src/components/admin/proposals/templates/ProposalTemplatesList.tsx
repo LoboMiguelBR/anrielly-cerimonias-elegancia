@@ -1,10 +1,9 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Edit, Trash2, Copy, Plus } from 'lucide-react';
-import { proposalTemplatesApi, ProposalTemplateData } from '../api/proposalTemplates';
+import { proposalTemplatesApi, ProposalTemplateData } from '../../hooks/proposal/api/proposalTemplates';
 import { toast } from 'sonner';
 
 interface ProposalTemplatesListProps {

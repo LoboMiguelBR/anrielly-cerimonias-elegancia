@@ -1,8 +1,7 @@
-
 import { useState } from 'react';
 import ProposalTemplatesList from './ProposalTemplatesList';
 import ProposalTemplateEditor from './ProposalTemplateEditor';
-import { ProposalTemplateData } from '../api/proposalTemplates';
+import { ProposalTemplateData } from '../../hooks/proposal/api/proposalTemplates';
 
 const ProposalTemplatesManager = () => {
   const [currentView, setCurrentView] = useState<'list' | 'create' | 'edit'>('list');

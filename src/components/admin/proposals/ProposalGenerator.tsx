@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Plus, Trash2, FileText } from 'lucide-react';
 import { useProposalForm } from '../hooks/proposal/useProposalForm';
 import { ProposalData, Service, QuoteRequest } from '../hooks/proposal/types';
-import { proposalTemplatesApi, ProposalTemplateData } from './api/proposalTemplates';
+import { proposalTemplatesApi, ProposalTemplateData } from '../hooks/proposal/api/proposalTemplates';
 import ProposalPDFGenerator from './pdf/ProposalPDFGenerator';
 import { toast } from 'sonner';
 
@@ -112,6 +112,11 @@ const ProposalGenerator: React.FC<ProposalGeneratorProps> = ({
   }
 
   if (showPreview) {
+    const proposalData: ProposalData = {
+      ...formData,
+      total_price: parseFloat(formData.total_price) || 0
+    };
+
     return (
       <div className="space-y-4">
         <div className="flex items-center justify-between">
@@ -122,7 +127,7 @@ const ProposalGenerator: React.FC<ProposalGeneratorProps> = ({
         </div>
         
         <ProposalPDFGenerator
-          proposal={formData as ProposalData}
+          proposal={proposalData}
           template={selectedTemplate || undefined}
           onPdfReady={(blob) => {
             toast.success('PDF gerado com sucesso!');
@@ -134,6 +139,8 @@ const ProposalGenerator: React.FC<ProposalGeneratorProps> = ({
       </div>
     );
   }
+
+  const currentTotalPrice = parseFloat(formData.total_price) || 0;
 
   return (
     <form onSubmit={handleFormSubmit} className="space-y-6">
@@ -295,7 +302,7 @@ const ProposalGenerator: React.FC<ProposalGeneratorProps> = ({
           
           <div className="flex justify-end mt-4">
             <div className="text-lg font-semibold">
-              Total: R$ {formData.total_price.toFixed(2)}
+              Total: R$ {currentTotalPrice.toFixed(2)}
             </div>
           </div>
         </CardContent>

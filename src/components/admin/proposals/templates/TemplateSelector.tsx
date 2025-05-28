@@ -7,11 +7,11 @@ import {
   SelectTrigger, 
   SelectValue 
 } from '@/components/ui/select';
-import { proposalTemplatesApi, ProposalTemplateData } from './api/proposalTemplates';
+import { proposalTemplatesApi, ProposalTemplateData } from '../api/proposalTemplates';
 
 interface TemplateSelectorProps {
   selectedTemplateId?: string;
-  onSelectTemplate: (templateId: string) => void;
+  onSelectTemplate: (template: ProposalTemplateData) => void;
 }
 
 const TemplateSelector: React.FC<TemplateSelectorProps> = ({ 
@@ -36,7 +36,7 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
         // Auto-select default template if none selected
         if (!selectedTemplateId && templatesData.length > 0) {
           const defaultTemplate = templatesData.find(t => t.is_default) || templatesData[0];
-          onSelectTemplate(defaultTemplate.id);
+          onSelectTemplate(defaultTemplate);
         }
       } catch (error) {
         console.error('Error loading templates:', error);
@@ -47,6 +47,13 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
     
     loadTemplates();
   }, [selectedTemplateId, onSelectTemplate]);
+
+  const handleTemplateChange = (templateId: string) => {
+    const template = templates.find(t => t.id === templateId);
+    if (template) {
+      onSelectTemplate(template);
+    }
+  };
 
   const getSelectedTemplateDisplayName = () => {
     if (isLoading) {
@@ -65,7 +72,7 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
     <div>
       <Select 
         disabled={isLoading} 
-        onValueChange={onSelectTemplate} 
+        onValueChange={handleTemplateChange} 
         value={selectedTemplateId || ''}
       >
         <SelectTrigger className="w-full">

@@ -1,7 +1,6 @@
-
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { ProposalFormData, ProposalData, QuoteRequest } from './types';
+import { ProposalFormData, ProposalData, QuoteRequest, Service } from './types';
 import { defaultFormData } from './constants';
 import { fetchProposal, saveProposal, deleteProposal, sendProposalByEmail, savePdfUrl } from './proposalApi';
 import { ProposalTemplateData } from './api/proposalTemplates';
@@ -29,6 +28,7 @@ export interface UseProposalFormReturn {
   isEditMode: boolean;
   proposalId: string | undefined;
   selectedTemplate: ProposalTemplateData;
+  isSubmitting: boolean;
   setSelectedQuote: React.Dispatch<React.SetStateAction<string>>;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   setIsSaving: React.Dispatch<React.SetStateAction<boolean>>;
@@ -46,6 +46,10 @@ export interface UseProposalFormReturn {
   saveProposalPdfUrl: (url: string) => Promise<boolean>;
   resetForm: () => void;
   setProposalId: React.Dispatch<React.SetStateAction<string | undefined>>;
+  handleSubmit: () => Promise<boolean>;
+  addService: () => void;
+  removeService: (index: number) => void;
+  updateService: (index: number, updates: Partial<Service>) => void;
 }
 
 export function useProposalForm(
@@ -65,6 +69,17 @@ export function useProposalForm(
   const [selectedTemplate, setSelectedTemplate] = useState<ProposalTemplateData>(defaultTemplate);
   
   const [formData, setFormData] = useState<ProposalFormData>({...defaultFormData});
+
+  // Calculate total price whenever services change
+  useEffect(() => {
+    const total = formData.services.reduce((sum, service) => {
+      return service.included ? sum + (service.price || 0) : sum;
+    }, 0);
+    
+    if (formData.total_price !== total.toString()) {
+      setFormData(prev => ({ ...prev, total_price: total.toString() }));
+    }
+  }, [formData.services, formData.total_price]);
 
   // Load proposal data if in edit mode
   useEffect(() => {
@@ -178,6 +193,35 @@ export function useProposalForm(
     });
   };
 
+  const addService = () => {
+    const newService: Service = {
+      name: 'Novo Serviço',
+      description: '',
+      price: 0,
+      included: true
+    };
+    setFormData(prev => ({
+      ...prev,
+      services: [...prev.services, newService]
+    }));
+  };
+
+  const removeService = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      services: prev.services.filter((_, i) => i !== index)
+    }));
+  };
+
+  const updateService = (index: number, updates: Partial<Service>) => {
+    setFormData(prev => ({
+      ...prev,
+      services: prev.services.map((service, i) => 
+        i === index ? { ...service, ...updates } : service
+      )
+    }));
+  };
+
   const resetForm = () => {
     setFormData({...defaultFormData});
     setSelectedQuote("");
@@ -226,6 +270,11 @@ export function useProposalForm(
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handleSubmit = async (): Promise<boolean> => {
+    const savedId = await saveProposalHandler();
+    return !!savedId;
   };
 
   const deleteProposalHandler = async (): Promise<boolean> => {
@@ -278,6 +327,7 @@ export function useProposalForm(
     isEditMode,
     proposalId,
     selectedTemplate,
+    isSubmitting: isSaving,
     setSelectedQuote,
     setIsLoading,
     setIsSaving,
@@ -294,6 +344,10 @@ export function useProposalForm(
     sendProposalEmail: sendProposalEmailHandler,
     saveProposalPdfUrl,
     resetForm,
-    setProposalId
+    setProposalId,
+    handleSubmit,
+    addService,
+    removeService,
+    updateService
   };
 }
