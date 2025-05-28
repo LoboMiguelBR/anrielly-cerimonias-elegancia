@@ -26,6 +26,7 @@ const HtmlProposalRenderer: React.FC<HtmlProposalRendererProps> = ({
   const [template, setTemplate] = useState<HtmlTemplateData | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [processedHtml, setProcessedHtml] = useState<string>('');
+  const [isProcessingVariables, setIsProcessingVariables] = useState<boolean>(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -34,14 +35,12 @@ const HtmlProposalRenderer: React.FC<HtmlProposalRendererProps> = ({
         setIsLoading(true);
         let loadedTemplate = null;
         
-        // First try to load the specified template
         if (templateId && templateId !== 'default') {
           console.log('Loading HTML template with ID:', templateId);
           loadedTemplate = await fetchHtmlTemplateById(templateId);
           console.log('Loaded template:', loadedTemplate);
         }
         
-        // If no template is found, get a default template
         if (!loadedTemplate) {
           console.error('No template found with ID:', templateId);
           toast.error('Template HTML não encontrado');
@@ -68,26 +67,34 @@ const HtmlProposalRenderer: React.FC<HtmlProposalRendererProps> = ({
 
   useEffect(() => {
     if (template && proposal) {
-      try {
-        // Replace variables in the template with actual data
-        console.log('Processing template with proposal data:', proposal);
-        const html = replaceVariablesInTemplate(template.htmlContent, proposal);
-        setProcessedHtml(html);
-      } catch (error) {
-        console.error('Error processing template:', error);
-        if (onError) {
-          onError('Erro ao processar template HTML');
+      const processTemplate = async () => {
+        try {
+          setIsProcessingVariables(true);
+          console.log('Processing template with proposal data (including dynamic variables):', proposal);
+          
+          // Use the async version that handles dynamic variables
+          const html = await replaceVariablesInTemplate(template.htmlContent, proposal);
+          setProcessedHtml(html);
+        } catch (error) {
+          console.error('Error processing template:', error);
+          if (onError) {
+            onError('Erro ao processar template HTML com variáveis dinâmicas');
+          }
+        } finally {
+          setIsProcessingVariables(false);
         }
-      }
+      };
+      
+      processTemplate();
     }
   }, [template, proposal, onError]);
 
   useEffect(() => {
-    if (!previewOnly && containerRef.current && processedHtml && !isLoading) {
+    if (!previewOnly && containerRef.current && processedHtml && !isLoading && !isProcessingVariables) {
       console.log('Generating PDF...');
       generatePDF();
     }
-  }, [processedHtml, isLoading, previewOnly]);
+  }, [processedHtml, isLoading, previewOnly, isProcessingVariables]);
 
   const generatePDF = async () => {
     if (!containerRef.current) {
@@ -99,10 +106,9 @@ const HtmlProposalRenderer: React.FC<HtmlProposalRendererProps> = ({
       const element = containerRef.current;
       
       console.log('Starting PDF generation from HTML element');
-      // Wait a bit for the HTML to render fully
+      // Wait a bit for the HTML to render fully, including dynamic content
       setTimeout(async () => {
         try {
-          // Create a canvas from the HTML element
           const canvas = await html2canvas(element, {
             scale: 2,
             useCORS: true,
@@ -112,7 +118,6 @@ const HtmlProposalRenderer: React.FC<HtmlProposalRendererProps> = ({
           
           console.log('Canvas generated successfully');
           
-          // Create PDF
           const imgWidth = 210; // A4 width in mm
           const pageHeight = 297; // A4 height in mm
           const imgHeight = (canvas.height * imgWidth) / canvas.width;
@@ -122,7 +127,6 @@ const HtmlProposalRenderer: React.FC<HtmlProposalRendererProps> = ({
           const pdf = new jsPDF('p', 'mm', 'a4');
           pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, position, imgWidth, imgHeight);
           
-          // Add new pages if content is longer than one page
           heightLeft -= pageHeight;
           while (heightLeft > 0) {
             position = heightLeft - imgHeight;
@@ -131,7 +135,6 @@ const HtmlProposalRenderer: React.FC<HtmlProposalRendererProps> = ({
             heightLeft -= pageHeight;
           }
           
-          // Generate blob
           const pdfBlob = pdf.output('blob');
           console.log('PDF blob generated successfully');
           
@@ -145,7 +148,7 @@ const HtmlProposalRenderer: React.FC<HtmlProposalRendererProps> = ({
             onError(`Erro ao gerar canvas para PDF: ${canvasError.message || 'Erro desconhecido'}`);
           }
         }
-      }, 1000);
+      }, 2000); // Increased timeout to allow for dynamic content loading
     } catch (error: any) {
       console.error('Error generating PDF:', error);
       if (onError) {
@@ -163,6 +166,34 @@ const HtmlProposalRenderer: React.FC<HtmlProposalRendererProps> = ({
         margin: 0;
         padding: 0;
       }
+      
+      /* Enhanced styles for dynamic content */
+      .gallery-container {
+        margin: 20px 0;
+      }
+      
+      .gallery-item img {
+        max-width: 100%;
+        height: auto;
+      }
+      
+      .testimonials-container {
+        margin: 20px 0;
+      }
+      
+      .testimonial-item {
+        border-left: 4px solid #8A2BE2;
+      }
+      
+      .gallery-placeholder,
+      .testimonials-placeholder {
+        padding: 20px;
+        text-align: center;
+        color: #666;
+        font-style: italic;
+        background-color: #f9f9f9;
+        border-radius: 8px;
+      }
     </style>
     ${processedHtml}
   ` : '';
@@ -171,6 +202,17 @@ const HtmlProposalRenderer: React.FC<HtmlProposalRendererProps> = ({
     return (
       <div className="flex justify-center items-center p-10 h-[500px]">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-600"></div>
+      </div>
+    );
+  }
+
+  if (isProcessingVariables) {
+    return (
+      <div className="flex justify-center items-center p-10 h-[500px]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-purple-600 mx-auto mb-3"></div>
+          <p className="text-sm text-gray-600">Carregando galeria e depoimentos...</p>
+        </div>
       </div>
     );
   }
