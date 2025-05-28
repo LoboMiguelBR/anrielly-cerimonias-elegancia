@@ -1,72 +1,66 @@
 
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
+import { useParams } from 'react-router-dom';
+import { contractSigningApi } from '@/components/admin/hooks/contract/api/contractSigning';
 import { ContractData } from '@/components/admin/hooks/contract/types';
+import { toast } from 'sonner';
 
 export const useContractFetch = () => {
-  const { slug } = useParams();
-  const navigate = useNavigate();
+  const { token } = useParams<{ token: string }>();
   const [contract, setContract] = useState<ContractData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchContract = async () => {
-      if (!slug) {
-        toast.error('Link de contrato inválido');
-        navigate('/');
+      if (!token) {
+        console.error('No token provided in URL');
+        setIsLoading(false);
         return;
       }
 
+      console.log('useContractFetch: Starting fetch for token:', token);
+      
       try {
-        console.log('Fetching contract by slug:', slug);
+        const contractData = await contractSigningApi.getContractByToken(token);
         
-        // Buscar contrato por slug primeiro
-        const { data: contractData, error: contractError } = await supabase
-          .from('contracts')
-          .select('*')
-          .eq('public_slug', slug)
-          .single();
-
-        if (contractError || !contractData) {
-          console.error('Contract not found by slug, trying by token:', contractError);
+        if (contractData) {
+          console.log('useContractFetch: Contract loaded successfully:', {
+            id: contractData.id,
+            client_name: contractData.client_name,
+            status: contractData.status,
+            has_html_content: !!contractData.html_content,
+            has_css_content: !!contractData.css_content,
+            template_id: contractData.template_id
+          });
           
-          // Fallback: tentar buscar por token se slug não funcionar
-          const { data: tokenData, error: tokenError } = await supabase
-            .from('contracts')
-            .select('*')
-            .eq('public_token', slug)
-            .single();
-
-          if (tokenError || !tokenData) {
-            console.error('Contract not found:', tokenError);
-            toast.error('Contrato não encontrado');
-            navigate('/');
-            return;
+          // Log específico para debug do conteúdo
+          if (!contractData.html_content) {
+            console.warn('useContractFetch: Contract has no HTML content, will need to fetch template');
           }
           
-          setContract({
-            ...tokenData,
-            status: tokenData.status as ContractData['status']
-          });
+          if (!contractData.css_content) {
+            console.warn('useContractFetch: Contract has no CSS content, will need to fetch template CSS');
+          }
+          
+          setContract(contractData);
         } else {
-          setContract({
-            ...contractData,
-            status: contractData.status as ContractData['status']
-          });
+          console.error('useContractFetch: Contract not found for token:', token);
+          toast.error('Contrato não encontrado');
         }
       } catch (error) {
-        console.error('Error fetching contract:', error);
+        console.error('useContractFetch: Error fetching contract:', error);
         toast.error('Erro ao carregar contrato');
-        navigate('/');
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchContract();
-  }, [slug, navigate]);
+  }, [token]);
 
-  return { contract, setContract, isLoading };
+  return {
+    contract,
+    setContract,
+    isLoading
+  };
 };

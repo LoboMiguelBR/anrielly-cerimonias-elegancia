@@ -87,6 +87,7 @@ export type Database = {
           client_phone: string
           client_profession: string | null
           created_at: string
+          css_content: string | null
           down_payment: number | null
           down_payment_date: string | null
           event_date: string | null
@@ -124,6 +125,7 @@ export type Database = {
           client_phone: string
           client_profession?: string | null
           created_at?: string
+          css_content?: string | null
           down_payment?: number | null
           down_payment_date?: string | null
           event_date?: string | null
@@ -161,6 +163,7 @@ export type Database = {
           client_phone?: string
           client_profession?: string | null
           created_at?: string
+          css_content?: string | null
           down_payment?: number | null
           down_payment_date?: string | null
           event_date?: string | null

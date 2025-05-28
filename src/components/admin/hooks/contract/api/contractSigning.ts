@@ -5,6 +5,8 @@ import { ContractData, ContractStatus } from '../types';
 export const contractSigningApi = {
   // Get contract by public token
   async getContractByToken(token: string): Promise<ContractData | null> {
+    console.log('contractSigningApi: Fetching contract by token:', token);
+    
     const { data, error } = await supabase
       .from('contracts')
       .select('*')
@@ -16,7 +18,21 @@ export const contractSigningApi = {
       throw error;
     }
 
-    if (!data) return null;
+    if (!data) {
+      console.log('No contract found for token:', token);
+      return null;
+    }
+
+    console.log('Contract found:', {
+      id: data.id,
+      client_name: data.client_name,
+      status: data.status,
+      has_html_content: !!data.html_content,
+      has_css_content: !!data.css_content,
+      template_id: data.template_id,
+      html_content_length: data.html_content?.length || 0,
+      css_content_length: data.css_content?.length || 0
+    });
 
     return {
       ...data,
