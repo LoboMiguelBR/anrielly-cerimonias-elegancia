@@ -1,7 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { GalleryImage } from '../../../hooks/gallery/types';
-import { Testimonial } from '../../../hooks/testimonials/types';
+import { GalleryImage } from '@/components/admin/hooks/gallery/types';
+import { Testimonial } from '@/components/admin/hooks/testimonials/types';
 
 export interface DynamicDataOptions {
   limit?: number;
