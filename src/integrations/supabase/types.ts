@@ -99,6 +99,7 @@ export type Database = {
           notes: string | null
           pdf_url: string | null
           proposal_id: string | null
+          public_slug: string | null
           public_token: string
           quote_request_id: string | null
           remaining_amount: number | null
@@ -135,6 +136,7 @@ export type Database = {
           notes?: string | null
           pdf_url?: string | null
           proposal_id?: string | null
+          public_slug?: string | null
           public_token?: string
           quote_request_id?: string | null
           remaining_amount?: number | null
@@ -171,6 +173,7 @@ export type Database = {
           notes?: string | null
           pdf_url?: string | null
           proposal_id?: string | null
+          public_slug?: string | null
           public_token?: string
           quote_request_id?: string | null
           remaining_amount?: number | null
@@ -462,6 +465,8 @@ export type Database = {
           data_atualizacao: string | null
           data_criacao: string | null
           email: string
+          historia_gerada: string | null
+          historia_processada: boolean | null
           id: string
           link_publico: string
           nome_responsavel: string
@@ -474,6 +479,8 @@ export type Database = {
           data_atualizacao?: string | null
           data_criacao?: string | null
           email: string
+          historia_gerada?: string | null
+          historia_processada?: boolean | null
           id?: string
           link_publico: string
           nome_responsavel: string
@@ -486,6 +493,8 @@ export type Database = {
           data_atualizacao?: string | null
           data_criacao?: string | null
           email?: string
+          historia_gerada?: string | null
+          historia_processada?: boolean | null
           id?: string
           link_publico?: string
           nome_responsavel?: string

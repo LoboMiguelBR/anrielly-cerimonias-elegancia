@@ -6,3 +6,4 @@ export { contractTemplatesApi } from './contractTemplates';
 export { contractEmailTemplatesApi } from './contractEmailTemplates';
 export { contractSigningApi } from './contractSigning';
 export { contractVersioningApi } from './contractVersioning';
+export { contractSlugApi } from './contractSlug';

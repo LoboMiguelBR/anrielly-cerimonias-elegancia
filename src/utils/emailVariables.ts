@@ -22,6 +22,16 @@ export const generateContractHash = (contract: ContractData): string => {
   return Math.abs(hash).toString(16).padStart(8, '0').toUpperCase();
 };
 
+// Função para gerar URL do contrato (prioriza slug)
+export const generateContractUrl = (contract: ContractData): string => {
+  const baseUrl = window.location.origin;
+  
+  // Usar slug se disponível, senão usar token público
+  const identifier = contract.public_slug || contract.public_token;
+  
+  return `${baseUrl}/contrato/${identifier}`;
+};
+
 // Variáveis disponíveis para templates de email
 export const emailTemplateVariables = [
   // Dados do Cliente
@@ -81,6 +91,7 @@ export const replaceEmailVariables = (
   }
 ): string => {
   const contractHash = additionalData?.contractHash || generateContractHash(contract);
+  const contractUrl = additionalData?.contractUrl || generateContractUrl(contract);
   const signedDate = additionalData?.signedAt ? new Date(additionalData.signedAt) : new Date();
   
   const variables = {
@@ -109,8 +120,8 @@ export const replaceEmailVariables = (
     '{{VERSAO}}': `v${contract.version || 1}`,
     '{{DATA_VERSAO}}': contract.version_timestamp ? new Date(contract.version_timestamp).toLocaleDateString('pt-BR') : new Date().toLocaleDateString('pt-BR'),
     
-    // Links
-    '{{LINK_CONTRATO}}': additionalData?.contractUrl || '',
+    // Links (usando slug personalizado)
+    '{{LINK_CONTRATO}}': contractUrl,
     
     // Dados de Auditoria e Segurança
     '{{IP_ASSINANTE}}': additionalData?.signerIp || '',

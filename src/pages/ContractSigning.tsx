@@ -1,327 +1,187 @@
 
-import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useParams, useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { contractApi } from '@/components/admin/hooks/contract';
-import { ContractData } from '@/components/admin/hooks/contract/types';
 import { toast } from 'sonner';
-import { Loader2, CheckCircle, AlertTriangle, FileText } from 'lucide-react';
-import { SignatureCanvas, ContractSignatureSection } from '@/components/admin/contracts/signing';
+import { contractSigningApi } from '@/components/admin/hooks/contract/api/contractSigning';
+import { contractSlugApi } from '@/components/admin/hooks/contract/api/contractSlug';
+import { ContractData } from '@/components/admin/hooks/contract/types';
+import ContractSignatureSection from '@/components/admin/contracts/signing/ContractSignatureSection';
+import SignatureCanvas from '@/components/admin/contracts/signing/SignatureCanvas';
+import { replaceContractVariables, generateDocumentHash } from '@/utils/contractVariables';
 
 const ContractSigning = () => {
-  const { token } = useParams<{ token: string }>();
+  const { tokenOrSlug } = useParams<{ tokenOrSlug: string }>();
+  const navigate = useNavigate();
   const [contract, setContract] = useState<ContractData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSigning, setIsSigning] = useState(false);
-  const [hasAgreed, setHasAgreed] = useState(false);
-  const [signature, setSignature] = useState<string>('');
-  const [isSigned, setIsSigned] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [hasDrawnSignature, setHasDrawnSignature] = useState(false);
+  const [signatureData, setSignatureData] = useState<string | null>(null);
+  const [contractContent, setContractContent] = useState<string>('');
   const [contractHash, setContractHash] = useState<string>('');
 
   useEffect(() => {
     const fetchContract = async () => {
-      if (!token) {
-        setError('Token inválido');
-        setIsLoading(false);
+      if (!tokenOrSlug) {
+        toast.error('Token ou slug do contrato não fornecido');
+        navigate('/');
         return;
       }
 
       try {
-        const contractData = await contractApi.getContractByToken(token);
-        if (!contractData) {
-          setError('Contrato não encontrado');
-        } else if (contractData.status === 'signed') {
-          setIsSigned(true);
-          setContract(contractData);
-        } else {
-          setContract(contractData);
-          // Gerar hash do contrato para validade jurídica
-          const contractContent = renderContractContent(contractData);
-          const hash = await generateContractHash(contractContent);
-          setContractHash(hash);
+        setIsLoading(true);
+        
+        // Primeiro tenta buscar por slug, depois por token
+        let contractData: ContractData | null = null;
+        
+        // Se contém apenas letras, números e hífens, provavelmente é um slug
+        if (/^[a-z0-9-]+$/.test(tokenOrSlug)) {
+          contractData = await contractSlugApi.getContractBySlug(tokenOrSlug);
         }
-      } catch (err: any) {
-        setError('Erro ao carregar contrato');
-        console.error('Error fetching contract:', err);
+        
+        // Se não encontrou por slug ou o formato não é de slug, tenta por token
+        if (!contractData) {
+          contractData = await contractSigningApi.getContractByToken(tokenOrSlug);
+        }
+
+        if (!contractData) {
+          toast.error('Contrato não encontrado');
+          navigate('/');
+          return;
+        }
+
+        setContract(contractData);
+
+        // Processar o conteúdo do contrato se existir template
+        if (contractData.html_content) {
+          const processedContent = replaceContractVariables(contractData.html_content, contractData);
+          setContractContent(processedContent);
+          setContractHash(generateDocumentHash(processedContent));
+        }
+      } catch (error) {
+        console.error('Error fetching contract:', error);
+        toast.error('Erro ao carregar contrato');
+        navigate('/');
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchContract();
-  }, [token]);
-
-  // Função para gerar hash SHA-256 do contrato
-  const generateContractHash = async (content: string): Promise<string> => {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(content);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-  };
+  }, [tokenOrSlug, navigate]);
 
   const handleSign = async () => {
-    if (!hasAgreed) {
-      toast.error('Você deve concordar com os termos do contrato');
+    if (!contract || !signatureData) {
+      toast.error('Assinatura é obrigatória');
       return;
     }
-
-    if (!hasDrawnSignature) {
-      toast.error('A assinatura desenhada é obrigatória para validação jurídica do contrato.');
-      return;
-    }
-
-    if (!contract || !token) return;
 
     setIsSigning(true);
     try {
-      // Get user's IP and user agent
-      const ipResponse = await fetch('https://api.ipify.org?format=json');
-      const { ip } = await ipResponse.json();
-      const userAgent = navigator.userAgent;
-
-      const signatureData = {
-        agreed: hasAgreed,
-        signature: signature,
-        timestamp: new Date().toISOString(),
-        client_name: contract.client_name,
-        ip_address: ip,
-        user_agent: userAgent,
-        contract_hash: contractHash,
-        legal_compliance: {
-          lei_14063_2020: true,
-          marco_civil_internet: true,
-          codigo_civil_brasileiro: true
-        }
-      };
-
-      await contractApi.signContract(token, signatureData, ip);
+      // Obter IP do usuário (simulado para desenvolvimento)
+      const userIP = '127.0.0.1'; // Em produção, você pode usar um serviço para obter o IP real
       
-      setIsSigned(true);
-      toast.success('Contrato assinado com sucesso! Você receberá uma cópia por email.');
+      await contractSigningApi.signContract(
+        contract.public_token,
+        { signature: signatureData },
+        userIP
+      );
+
+      toast.success('Contrato assinado com sucesso!');
       
-    } catch (err: any) {
+      // Redirecionar para página de confirmação (pode ser criada no futuro)
+      setTimeout(() => {
+        navigate('/');
+      }, 2000);
+    } catch (error) {
+      console.error('Error signing contract:', error);
       toast.error('Erro ao assinar contrato');
-      console.error('Error signing contract:', err);
     } finally {
       setIsSigning(false);
     }
   };
 
-  const renderContractContent = (contract: ContractData) => {
-    return `
-      <div class="contract">
-        <h1>CONTRATO DE PRESTAÇÃO DE SERVIÇOS DE CERIMONIAL</h1>
-        
-        <p>Por este instrumento particular, de um lado:</p>
-        
-        <p><strong>CONTRATADA:</strong> Anrielly Cristina Costa Gomes, Mestre de Cerimônia, CPF: 092.005.807-85, residente na Rua Artur Luiz Correia, nº 973, Bairro San Remo, Volta Redonda - RJ, CEP: 27267-050, Telefone: (24) 99268-9947, E-mail: contato@anriellygomes.com.br</p>
-        
-        <p><strong>CONTRATANTE:</strong> ${contract.client_name}, ${contract.civil_status || 'estado civil não informado'}, ${contract.client_profession || 'profissão não informada'}, residente em ${contract.client_address || 'endereço não informado'}, telefone ${contract.client_phone}, e-mail ${contract.client_email}.</p>
-        
-        <p>As partes acima qualificadas têm entre si justo e contratado o seguinte:</p>
-        
-        <h2>CLÁUSULA PRIMEIRA – DO OBJETO</h2>
-        <p>O presente contrato tem como objeto a prestação de serviços profissionais de cerimonial para o evento "${contract.event_type}" a ser realizado no dia ${contract.event_date ? new Date(contract.event_date).toLocaleDateString('pt-BR') : '___/___/___'}, às ${contract.event_time || '__:__'}, no endereço ${contract.event_location || 'a ser definido'}.</p>
-        
-        <h2>CLÁUSULA SEGUNDA – DO PREÇO E CONDIÇÕES DE PAGAMENTO</h2>
-        <p>O valor total dos serviços contratados é de R$ ${contract.total_price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}, a ser pago da seguinte forma:</p>
-        <p>a) Entrada: R$ ${contract.down_payment ? contract.down_payment.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : '0,00'}, a ser paga até ${contract.down_payment_date ? new Date(contract.down_payment_date).toLocaleDateString('pt-BR') : '___/___/___'};</p>
-        <p>b) Saldo: R$ ${contract.remaining_amount ? contract.remaining_amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : '0,00'}, a ser pago até ${contract.remaining_payment_date ? new Date(contract.remaining_payment_date).toLocaleDateString('pt-BR') : '___/___/___'}.</p>
-        
-        <h2>CLÁUSULA TERCEIRA – DAS OBRIGAÇÕES DA CONTRATADA</h2>
-        <p>A CONTRATADA se compromete a prestar os serviços de cerimonial com profissionalismo, pontualidade e qualidade, incluindo:</p>
-        <ul>
-          <li>Condução completa da cerimônia de ${contract.event_type};</li>
-          <li>Coordenação dos momentos protocolares;</li>
-          <li>Assessoria durante todo o evento;</li>
-          <li>Disponibilização de equipamentos necessários para o cerimonial.</li>
-        </ul>
-        
-        <h2>CLÁUSULA QUARTA – DAS OBRIGAÇÕES DO CONTRATANTE</h2>
-        <p>O CONTRATANTE se compromete a:</p>
-        <ul>
-          <li>Efetuar os pagamentos nas datas acordadas;</li>
-          <li>Fornecer todas as informações necessárias para a realização do evento;</li>
-          <li>Garantir acesso ao local do evento;</li>
-          <li>Comunicar qualquer alteração com antecedência mínima de 15 dias.</li>
-        </ul>
-        
-        <h2>CLÁUSULA QUINTA – DO CANCELAMENTO</h2>
-        <p>Em caso de cancelamento pelo CONTRATANTE com antecedência superior a 30 dias, será devolvido 50% do valor pago. Cancelamentos com menos de 30 dias de antecedência não terão direito a reembolso.</p>
-        
-        <h2>CLÁUSULA SEXTA – DA FORÇA MAIOR</h2>
-        <p>Em caso de impossibilidade de realização do evento por motivos de força maior (fenômenos naturais, pandemias, determinações governamentais), as partes acordarão nova data ou a devolução proporcional dos valores pagos.</p>
-        
-        <h2>CLÁUSULA SÉTIMA – DO FORO</h2>
-        <p>Fica eleito o foro da comarca de Volta Redonda/RJ para dirimir quaisquer controvérsias oriundas do presente contrato.</p>
-        
-        <h2>CLÁUSULA OITAVA – DISPOSIÇÕES FINAIS</h2>
-        <p>Este contrato é firmado em caráter irrevogável e irretratável, obrigando as partes e seus sucessores. Alterações só serão válidas se feitas por escrito e assinadas por ambas as partes.</p>
-        
-        <p>E por estarem assim justas e contratadas, as partes assinam o presente instrumento digitalmente.</p>
-        
-        <p><strong>Data:</strong> ${new Date().toLocaleDateString('pt-BR')}</p>
-        
-        ${contract.notes ? `<p><strong>Observações:</strong> ${contract.notes}</p>` : ''}
-      </div>
-    `;
-  };
-
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-          <p>Carregando contrato...</p>
-        </div>
+        <Card className="w-full max-w-md">
+          <CardContent className="p-6 text-center">
+            <p>Carregando contrato...</p>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
-  if (error) {
+  if (!contract) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <Card className="w-full max-w-md">
-          <CardContent className="pt-6">
-            <Alert variant="destructive">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
+          <CardContent className="p-6 text-center">
+            <p>Contrato não encontrado</p>
+            <Button onClick={() => navigate('/')} className="mt-4">
+              Voltar ao Início
+            </Button>
           </CardContent>
         </Card>
       </div>
     );
   }
-
-  if (isSigned) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md">
-          <CardContent className="pt-6 text-center">
-            <CheckCircle className="h-16 w-16 text-green-600 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold mb-2">Contrato Assinado com Sucesso!</h2>
-            <p className="text-gray-600 mb-4">
-              Seu contrato foi assinado digitalmente e tem validade jurídica conforme a legislação brasileira. 
-              Você receberá uma cópia por email em instantes.
-            </p>
-            <div className="text-sm text-gray-500 space-y-1">
-              <p>Assinado em: {contract?.signed_at ? new Date(contract.signed_at).toLocaleString('pt-BR') : new Date().toLocaleString('pt-BR')}</p>
-              <p>Hash do contrato: {contractHash.substring(0, 16)}...</p>
-              <p>Conforme Lei nº 14.063/2020</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  if (!contract) return null;
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-4xl mx-auto px-4">
         <Card>
-          <CardHeader className="text-center">
-            <div className="flex items-center justify-center mb-4">
-              <FileText className="h-8 w-8 text-blue-600 mr-2" />
-              <CardTitle className="text-2xl">Assinatura Digital de Contrato</CardTitle>
+          <CardContent className="p-8">
+            <div className="text-center mb-8">
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                Assinatura de Contrato
+              </h1>
+              <p className="text-gray-600">
+                Contrato para {contract.client_name} - {contract.event_type}
+              </p>
             </div>
-            <p className="text-gray-600">
-              <strong>Cliente:</strong> {contract.client_name} | <strong>Evento:</strong> {contract.event_type}
-            </p>
-            <div className="text-sm text-gray-500 mt-2">
-              <p>Hash do documento: {contractHash.substring(0, 32)}...</p>
+
+            {/* Conteúdo do Contrato */}
+            {contractContent && (
+              <div className="mb-8 p-6 bg-white border rounded-lg">
+                <div 
+                  className="prose max-w-none"
+                  dangerouslySetInnerHTML={{ __html: contractContent }}
+                />
+              </div>
+            )}
+
+            {/* Canvas de Assinatura */}
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold mb-4">Sua Assinatura</h3>
+              <SignatureCanvas onSignatureChange={setSignatureData} />
             </div>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Contract Content */}
-            <div 
-              className="prose max-w-none p-6 bg-white border rounded-lg text-sm"
-              dangerouslySetInnerHTML={{ __html: renderContractContent(contract) }}
-            />
 
-            {/* Legal Notice */}
-            <Alert>
-              <AlertTriangle className="h-4 w-4" />
-              <AlertDescription>
-                <strong>Aviso Legal:</strong> Este contrato digital possui validade jurídica conforme a Lei nº 14.063/2020 
-                (Marco Legal das Assinaturas Eletrônicas), Lei nº 12.965/2014 (Marco Civil da Internet) e Código Civil Brasileiro. 
-                Sua assinatura será registrada com data, hora, IP e hash do documento para fins de auditoria.
-              </AlertDescription>
-            </Alert>
-
-            {/* Signature Section with both signatures */}
+            {/* Seção de Assinaturas */}
             <ContractSignatureSection 
               contract={contract} 
-              contractHash={contractHash} 
+              contractHash={contractHash}
             />
 
-            {/* Client Signature Area */}
-            <div className="space-y-4 p-6 bg-gray-50 rounded-lg">
-              <h3 className="text-lg font-semibold">Confirmação e Assinatura do Cliente</h3>
-              
-              {/* Agreement Checkbox */}
-              <div className="flex items-start space-x-3">
-                <Checkbox 
-                  id="agree"
-                  checked={hasAgreed}
-                  onCheckedChange={(checked) => setHasAgreed(!!checked)}
-                />
-                <label htmlFor="agree" className="text-sm leading-relaxed">
-                  <strong>Declaro que:</strong> Li, compreendi e aceito integralmente os termos deste contrato. 
-                  Este aceite tem validade jurídica conforme Lei nº 14.063/2020, Marco Civil da Internet 
-                  (Lei nº 12.965/2014) e Código Civil Brasileiro. Confirmo que todas as informações 
-                  fornecidas são verdadeiras e aceito as responsabilidades descritas neste documento.
-                </label>
-              </div>
-
-              {/* Signature Canvas */}
-              <SignatureCanvas
-                onSignatureChange={setSignature}
-                hasDrawnSignature={hasDrawnSignature}
-                onHasDrawnSignatureChange={setHasDrawnSignature}
-              />
-
-              {/* Sign Button */}
-              <Button 
+            {/* Botão de Confirmação */}
+            <div className="text-center mt-8">
+              <Button
                 onClick={handleSign}
-                disabled={!hasAgreed || !hasDrawnSignature || isSigning}
-                className="w-full"
+                disabled={!signatureData || isSigning}
                 size="lg"
+                className="px-8 py-3"
               >
-                {isSigning ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    Processando Assinatura...
-                  </>
-                ) : (
-                  'Assinar Contrato Digitalmente'
-                )}
+                {isSigning ? 'Assinando...' : 'Assinar Contrato'}
               </Button>
-              
-              {(!hasAgreed || !hasDrawnSignature) && (
-                <Alert variant="destructive">
-                  <AlertDescription>
-                    {!hasAgreed && !hasDrawnSignature && "Você deve concordar com os termos e desenhar sua assinatura"}
-                    {!hasAgreed && hasDrawnSignature && "Você deve concordar com os termos do contrato"}
-                    {hasAgreed && !hasDrawnSignature && "Você deve desenhar sua assinatura para validação jurídica"}
-                  </AlertDescription>
-                </Alert>
-              )}
             </div>
 
-            {/* Footer */}
-            <div className="text-center text-sm text-gray-500 pt-4 border-t">
-              <p className="font-semibold">Anrielly Cristina Costa Gomes - Mestre de Cerimônia</p>
-              <p>CPF: 092.005.807-85</p>
-              <p>contato@anriellygomes.com.br | (24) 99268-9947</p>
-              <p className="mt-2 text-xs">
-                Contrato com validade jurídica conforme legislação brasileira
+            {/* Informações Legais */}
+            <div className="mt-6 text-xs text-gray-500 text-center">
+              <p>
+                Ao assinar este contrato, você concorda com todos os termos e condições descritos acima.
+                Esta assinatura tem validade jurídica conforme a Lei nº 14.063/2020.
               </p>
             </div>
           </CardContent>

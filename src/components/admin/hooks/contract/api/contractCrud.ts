@@ -1,6 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { ContractData, ContractFormData, ContractStatus } from '../types';
+import { contractSlugApi } from './contractSlug';
 
 // Helper function to sanitize date and time fields
 const sanitizeDateTimeFields = (data: any) => {
@@ -99,6 +100,19 @@ export const contractCrudApi = {
       throw error;
     }
 
+    // Generate and save slug after contract creation
+    try {
+      const slug = await contractSlugApi.generateAndSaveSlug(
+        data.id, 
+        contractData.client_name, 
+        contractData.event_date
+      );
+      data.public_slug = slug;
+      console.log('Generated slug for contract:', slug);
+    } catch (slugError) {
+      console.warn('Failed to generate slug, continuing without it:', slugError);
+    }
+
     return {
       ...data,
       status: data.status as ContractStatus,
@@ -136,6 +150,21 @@ export const contractCrudApi = {
     if (error) {
       console.error('Error updating contract:', error);
       throw error;
+    }
+
+    // Update slug if client name or event date changed
+    if (contractData.client_name || contractData.event_date) {
+      try {
+        const slug = await contractSlugApi.updateSlug(
+          id, 
+          contractData.client_name || data.client_name, 
+          contractData.event_date || data.event_date
+        );
+        data.public_slug = slug;
+        console.log('Updated slug for contract:', slug);
+      } catch (slugError) {
+        console.warn('Failed to update slug:', slugError);
+      }
     }
 
     return {
