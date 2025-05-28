@@ -8,9 +8,10 @@ import { toast } from 'sonner';
 interface ContractPDFGeneratorProps {
   contract: ContractData;
   onPDFGenerated?: (url: string) => void;
+  compact?: boolean; // Nova prop para modo compacto
 }
 
-const ContractPDFGenerator = ({ contract, onPDFGenerated }: ContractPDFGeneratorProps) => {
+const ContractPDFGenerator = ({ contract, onPDFGenerated, compact = false }: ContractPDFGeneratorProps) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isViewing, setIsViewing] = useState(false);
 
@@ -281,6 +282,19 @@ const ContractPDFGenerator = ({ contract, onPDFGenerated }: ContractPDFGenerator
     }
   };
 
+  // Modo compacto para uso no dropdown
+  if (compact) {
+    return (
+      <div className="flex items-center gap-2 w-full">
+        <FileText className="h-4 w-4" />
+        <span onClick={generatePDF} className="cursor-pointer">
+          {isGenerating ? 'Gerando...' : 'Download PDF'}
+        </span>
+      </div>
+    );
+  }
+
+  // Modo normal (original)
   return (
     <div className="flex gap-3">
       <Button

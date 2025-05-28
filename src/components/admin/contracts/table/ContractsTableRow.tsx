@@ -1,11 +1,8 @@
 
 import { TableCell, TableRow } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
 import { ContractData } from '../../hooks/contract/types';
 import ContractStatusBadge from '../ContractStatusBadge';
-import ContractActions from '../ContractActions';
-import ContractPDFGenerator from '../pdf/ContractPDFGenerator';
-import { Eye, Edit, Trash2 } from 'lucide-react';
+import ContractsTableActions from './ContractsTableActions';
 
 interface ContractsTableRowProps {
   contract: ContractData;
@@ -25,84 +22,63 @@ const ContractsTableRow = ({
   onRefresh
 }: ContractsTableRowProps) => {
   return (
-    <TableRow key={contract.id}>
-      <TableCell>
-        <div>
-          <p className="font-medium">{contract.client_name}</p>
-          <p className="text-sm text-gray-500">{contract.client_email}</p>
+    <TableRow key={contract.id} className="hover:bg-gray-50/50">
+      <TableCell className="py-3">
+        <div className="min-w-[180px]">
+          <p className="font-medium text-gray-900 truncate">{contract.client_name}</p>
+          <p className="text-sm text-gray-500 truncate">{contract.client_email}</p>
         </div>
       </TableCell>
-      <TableCell>
-        <div>
-          <p className="font-medium">{contract.event_type}</p>
-          <p className="text-sm text-gray-500">{contract.event_location}</p>
+      <TableCell className="py-3">
+        <div className="min-w-[160px]">
+          <p className="font-medium text-gray-900 truncate">{contract.event_type}</p>
+          <p className="text-sm text-gray-500 truncate">{contract.event_location}</p>
         </div>
       </TableCell>
-      <TableCell>
-        {contract.event_date ? (
-          <div>
-            <p>{new Date(contract.event_date).toLocaleDateString('pt-BR')}</p>
-            {contract.event_time && (
-              <p className="text-sm text-gray-500">{contract.event_time}</p>
-            )}
-          </div>
-        ) : (
-          <span className="text-gray-400">-</span>
-        )}
-      </TableCell>
-      <TableCell>
-        <p className="font-medium">
-          {new Intl.NumberFormat('pt-BR', {
-            style: 'currency',
-            currency: 'BRL'
-          }).format(contract.total_price)}
-        </p>
-      </TableCell>
-      <TableCell>
-        <ContractStatusBadge status={contract.status} />
-      </TableCell>
-      <TableCell>
-        {new Date(contract.created_at).toLocaleDateString('pt-BR')}
-      </TableCell>
-      <TableCell>
-        <div className="flex items-center justify-end gap-2 flex-wrap">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onView(contract)}
-            title="Visualizar"
-          >
-            <Eye className="h-4 w-4" />
-          </Button>
-          
-          {contract.status !== 'signed' && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onEdit(contract)}
-              title="Editar"
-            >
-              <Edit className="h-4 w-4" />
-            </Button>
+      <TableCell className="py-3">
+        <div className="min-w-[120px]">
+          {contract.event_date ? (
+            <>
+              <p className="text-gray-900">{new Date(contract.event_date).toLocaleDateString('pt-BR')}</p>
+              {contract.event_time && (
+                <p className="text-sm text-gray-500">{contract.event_time}</p>
+              )}
+            </>
+          ) : (
+            <span className="text-gray-400">-</span>
           )}
-          
-          {contract.status === 'signed' && (
-            <ContractPDFGenerator contract={contract} />
-          )}
-          
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onDelete(contract)}
-            title="Excluir"
-            className="text-red-600 hover:text-red-700"
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
-          
-          <ContractActions 
-            contract={contract} 
-            onStatusUpdate={onRefresh}
+        </div>
+      </TableCell>
+      <TableCell className="py-3">
+        <div className="min-w-[100px]">
+          <p className="font-medium text-gray-900">
+            {new Intl.NumberFormat('pt-BR', {
+              style: 'currency',
+              currency: 'BRL'
+            }).format(contract.total_price)}
+          </p>
+        </div>
+      </TableCell>
+      <TableCell className="py-3">
+        <div className="min-w-[120px]">
+          <ContractStatusBadge status={contract.status} />
+        </div>
+      </TableCell>
+      <TableCell className="py-3">
+        <div className="min-w-[100px]">
+          <p className="text-gray-900">
+            {new Date(contract.created_at).toLocaleDateString('pt-BR')}
+          </p>
+        </div>
+      </TableCell>
+      <TableCell className="py-3">
+        <div className="w-[100px] flex justify-end">
+          <ContractsTableActions
+            contract={contract}
+            onView={onView}
+            onEdit={onEdit}
+            onDelete={onDelete}
+            onRefresh={onRefresh}
           />
         </div>
       </TableCell>
