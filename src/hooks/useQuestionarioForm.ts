@@ -2,6 +2,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { toast } from 'sonner';
 import { questionarioSections } from '@/utils/questionarioSections';
+import { supabase } from '@/integrations/supabase/client';
 
 interface UseQuestionarioFormParams {
   questionario: any;
@@ -66,41 +67,40 @@ const useQuestionarioForm = ({ questionario, updateQuestionario, logout }: UseQu
 
     setIsSaving(true);
     try {
-      const response = await fetch('/api/supabase/functions/v1/questionario-respostas', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      console.log('Salvando respostas para questionário:', questionario.id, 'finalizar:', finalizar);
+      
+      const { data, error } = await supabase.functions.invoke('questionario-respostas', {
+        body: {
           questionarioId: questionario.id,
           respostas,
           finalizar
-        })
+        }
       });
 
-      if (!response.ok) {
-        throw new Error('Erro ao salvar respostas');
+      if (error) {
+        console.error('Erro na edge function:', error);
+        throw new Error(error.message || 'Erro ao salvar respostas');
       }
 
-      const result = await response.json();
+      console.log('Resposta da edge function:', data);
       
       // Update the questionario with new status
       updateQuestionario({
         ...questionario,
         respostas_json: respostas,
-        status: result.status
+        status: data.status
       });
 
       setLastSaved(new Date());
-      toast.success(result.message || 'Respostas salvas com sucesso!');
+      toast.success(data.message || 'Respostas salvas com sucesso!');
 
       if (finalizar) {
         toast.success('Questionário finalizado! Obrigado por suas respostas.');
         // Could redirect or logout here if needed
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao salvar respostas:', error);
-      toast.error('Erro ao salvar respostas. Tente novamente.');
+      toast.error(`Erro ao salvar respostas: ${error.message || 'Tente novamente.'}`);
     } finally {
       setIsSaving(false);
     }

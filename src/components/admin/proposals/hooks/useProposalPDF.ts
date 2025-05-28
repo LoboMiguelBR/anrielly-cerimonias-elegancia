@@ -7,6 +7,7 @@ import { ProposalData } from '../../hooks/proposal/types';
 import { ProposalTemplateData } from '../templates/shared/types';
 import ProposalPDF from '../../ProposalPDF';
 import { savePdfUrl } from '../../hooks/proposal/proposalApi';
+import React from 'react';
 
 export const useProposalPDF = () => {
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
@@ -22,8 +23,8 @@ export const useProposalPDF = () => {
     try {
       console.log('Generating PDF for proposal:', proposal.id);
       
-      // Generate PDF blob
-      const pdfComponent = <ProposalPDF proposal={proposal} template={template} />;
+      // Generate PDF blob using React.createElement instead of JSX
+      const pdfComponent = React.createElement(ProposalPDF, { proposal, template });
       const blob = await pdf(pdfComponent).toBlob();
       
       // Create file name
