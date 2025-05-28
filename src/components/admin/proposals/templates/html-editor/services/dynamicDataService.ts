@@ -53,7 +53,12 @@ export const fetchTestimonialsForTemplate = async (options: DynamicDataOptions =
     const { data, error } = await query;
     
     if (error) throw error;
-    return data || [];
+    
+    // Type assertion to ensure status field matches Testimonial type
+    return (data || []).map(item => ({
+      ...item,
+      status: item.status as 'approved' | 'pending' | 'rejected'
+    }));
   } catch (error) {
     console.error('Error fetching testimonials for template:', error);
     return [];

@@ -3,3 +3,4 @@
 export * from './templateFetchService';
 export * from './templateManagementService';
 export * from './defaultTemplateService';
+export * from './templatePreviewService';
