@@ -1,8 +1,6 @@
-
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { contractTemplatesApi } from '../../hooks/contract/api/contractTemplates';
@@ -15,16 +13,7 @@ import {
   TemplatePreview,
   generateBasicTemplate
 } from './components';
-
-const templateSchema = z.object({
-  name: z.string().min(1, 'Nome é obrigatório'),
-  description: z.string().optional().or(z.literal('')),
-  html_content: z.string().min(1, 'Conteúdo é obrigatório'),
-  css_content: z.string().optional().or(z.literal('')),
-  is_default: z.boolean().optional(),
-});
-
-type TemplateFormData = z.infer<typeof templateSchema>;
+import { templateSchema, TemplateFormData } from './types';
 
 interface ContractTemplateEditorProps {
   template?: ContractTemplate;

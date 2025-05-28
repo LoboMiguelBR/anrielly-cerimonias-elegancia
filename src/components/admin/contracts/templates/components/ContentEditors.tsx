@@ -3,14 +3,7 @@ import React from 'react';
 import { UseFormRegister, FieldErrors } from 'react-hook-form';
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-
-interface TemplateFormData {
-  name: string;
-  description?: string;
-  html_content: string;
-  css_content?: string;
-  is_default?: boolean;
-}
+import { TemplateFormData } from '../types';
 
 interface ContentEditorsProps {
   register: UseFormRegister<TemplateFormData>;

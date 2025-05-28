@@ -4,14 +4,7 @@ import { UseFormRegister, FieldErrors } from 'react-hook-form';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-
-interface TemplateFormData {
-  name: string;
-  description?: string;
-  html_content: string;
-  css_content?: string;
-  is_default?: boolean;
-}
+import { TemplateFormData } from '../types';
 
 interface TemplateFormFieldsProps {
   register: UseFormRegister<TemplateFormData>;
