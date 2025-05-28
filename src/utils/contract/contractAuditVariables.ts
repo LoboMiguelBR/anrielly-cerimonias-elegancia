@@ -56,7 +56,7 @@ export const getSecureCompanySignatureUrl = async (): Promise<string> => {
     return await getCompanySignatureUrl();
   } catch (error) {
     console.error('Erro ao obter assinatura da empresa:', error);
-    return '/placeholder.svg';
+    return '/lovable-uploads/2fff881d-0a84-498f-bea5-b9adc67af1bd.png';
   }
 };
 
@@ -64,25 +64,28 @@ export const getSecureCompanySignatureUrl = async (): Promise<string> => {
  * Formata a assinatura do cliente para exibição
  */
 export const formatClientSignature = (signatureData?: any): string => {
-  if (!signatureData || !signatureData.signature) {
+  if (!signatureData) {
     return '<span style="color: #666; font-style: italic;">Aguardando assinatura</span>';
   }
   
-  // Se a assinatura é uma URL de storage
-  if (typeof signatureData.signature === 'string') {
-    // Verificar se é URL do storage do Supabase
-    if (signatureData.signature.includes('supabase.co/storage/v1/object/public/signatures/')) {
-      return `<img src="${signatureData.signature}" alt="Assinatura do Cliente" style="max-width: 200px; max-height: 80px; border: 1px solid #ddd; padding: 5px; background: white;" />`;
+  // Se signatureData é uma string (URL direta)
+  if (typeof signatureData === 'string') {
+    if (signatureData.includes('supabase.co/storage/v1/object/public/signatures/') || 
+        signatureData.startsWith('data:image') || 
+        signatureData.startsWith('http')) {
+      return `<img src="${signatureData}" alt="Assinatura do Cliente" style="max-width: 200px; max-height: 80px; border: 1px solid #ddd; padding: 5px; background: white;" />`;
     }
-    
-    // Se é uma URL de imagem base64
-    if (signatureData.signature.startsWith('data:image')) {
-      return `<img src="${signatureData.signature}" alt="Assinatura do Cliente" style="max-width: 200px; max-height: 80px; border: 1px solid #ddd; padding: 5px; background: white;" />`;
-    }
-    
-    // Se é uma URL externa
-    if (signatureData.signature.startsWith('http')) {
-      return `<img src="${signatureData.signature}" alt="Assinatura do Cliente" style="max-width: 200px; max-height: 80px; border: 1px solid #ddd; padding: 5px; background: white;" />`;
+  }
+  
+  // Se signatureData é um objeto com propriedade signature
+  if (signatureData.signature) {
+    const signature = signatureData.signature;
+    if (typeof signature === 'string') {
+      if (signature.includes('supabase.co/storage/v1/object/public/signatures/') || 
+          signature.startsWith('data:image') || 
+          signature.startsWith('http')) {
+        return `<img src="${signature}" alt="Assinatura do Cliente" style="max-width: 200px; max-height: 80px; border: 1px solid #ddd; padding: 5px; background: white;" />`;
+      }
     }
   }
   
@@ -95,25 +98,9 @@ export const formatClientSignature = (signatureData?: any): string => {
 export const formatCompanySignature = async (): Promise<string> => {
   try {
     const signatureUrl = await getSecureCompanySignatureUrl();
-    return `<div style="text-align: center; margin: 10px 0;">
-      <img src="${signatureUrl}" alt="Assinatura Anrielly Gomes" style="max-width: 200px; max-height: 80px; background: white;" onerror="this.style.display='none'" />
-      <div style="border-top: 1px solid #000; margin-top: 5px; padding-top: 5px; font-size: 14px;">
-        <strong>Anrielly Gomes</strong><br>
-        Mestre de Cerimônia<br>
-        CNPJ: [CNPJ da empresa]
-      </div>
-    </div>`;
+    return `<img src="${signatureUrl}" alt="Assinatura Anrielly Gomes" style="max-width: 200px; max-height: 80px; border: 1px solid #ddd; padding: 5px; background: white;" />`;
   } catch (error) {
     console.error('Erro ao formatar assinatura da empresa:', error);
-    return `<div style="text-align: center; margin: 10px 0;">
-      <div style="border: 1px solid #ddd; padding: 20px; color: #666; font-style: italic;">
-        Assinatura da empresa não disponível
-      </div>
-      <div style="border-top: 1px solid #000; margin-top: 5px; padding-top: 5px; font-size: 14px;">
-        <strong>Anrielly Gomes</strong><br>
-        Mestre de Cerimônia<br>
-        CNPJ: [CNPJ da empresa]
-      </div>
-    </div>`;
+    return `<img src="/lovable-uploads/2fff881d-0a84-498f-bea5-b9adc67af1bd.png" alt="Assinatura Anrielly Gomes" style="max-width: 200px; max-height: 80px; border: 1px solid #ddd; padding: 5px; background: white;" />`;
   }
 };

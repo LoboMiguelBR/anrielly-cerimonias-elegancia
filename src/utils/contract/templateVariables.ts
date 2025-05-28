@@ -73,6 +73,13 @@ export const createVariableMapping = async (contract: ContractData): Promise<Rec
   // Aguardar a assinatura da empresa de forma async
   const companySignature = await formatCompanySignature();
   
+  // Formatar assinatura do cliente corretamente
+  let clientSignature = '<span style="color: #666; font-style: italic;">Aguardando assinatura</span>';
+  
+  if (contract.signature_data) {
+    clientSignature = formatClientSignature(contract.signature_data);
+  }
+  
   return {
     // Dados básicos do cliente
     '{NOME_CLIENTE}': contract.client_name || '',
@@ -109,8 +116,8 @@ export const createVariableMapping = async (contract: ContractData): Promise<Rec
     '{DISPOSITIVO}': formatDeviceInfo(contract.user_agent),
     '{HASH_DOCUMENTO}': contractHash,
     
-    // Assinaturas
-    '{ASSINATURA_CLIENTE}': formatClientSignature(contract.signature_data),
+    // Assinaturas (agora retornando as imagens corretas)
+    '{ASSINATURA_CLIENTE}': clientSignature,
     '{ASSINATURA_CONTRATADA}': companySignature,
     
     // Dados da empresa
