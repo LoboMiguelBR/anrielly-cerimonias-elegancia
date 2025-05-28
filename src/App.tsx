@@ -6,7 +6,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import AdminLogin from './pages/AdminLogin';
 import QuestionarioLogin from './pages/QuestionarioLogin';
 import QuestionarioFormulario from './pages/QuestionarioFormulario';
-import ContractSigning from './pages/ContractSigning';
+import ContractSigning from './pages/ContractSigning/index';
 import NotFound from './pages/NotFound';
 import AdminProtectedRoute from './components/AdminProtectedRoute';
 import { Toaster } from 'sonner';
