@@ -37,50 +37,54 @@ const ContractContent: React.FC<ContractContentProps> = ({ contract }) => {
       }
 
       // Se não tem HTML no contrato, buscar template
-      if (contract.template_id) {
-        setIsLoading(true);
-        setError('');
+      console.log('Contract has no HTML content, fetching template...');
+      setIsLoading(true);
+      setError('');
+      
+      try {
+        const templates = await contractTemplatesApi.getContractTemplates();
+        console.log('Available templates:', templates.length);
         
-        try {
-          console.log('Fetching template data for template_id:', contract.template_id);
-          const templates = await contractTemplatesApi.getContractTemplates();
-          const template = templates.find(t => t.id === contract.template_id);
-          
-          if (template) {
-            console.log('Template found:', template.name);
-            setTemplateHtml(template.html_content);
-            
-            // Se não tem CSS do contrato, usar CSS do template
-            if (!contract.css_content && template.css_content) {
-              console.log('Using template CSS content');
-              setTemplateCss(template.css_content);
-            }
-          } else {
-            console.warn('Template not found, will try default template');
-            // Buscar template padrão
-            const defaultTemplate = templates.find(t => t.is_default);
-            if (defaultTemplate) {
-              console.log('Using default template:', defaultTemplate.name);
-              setTemplateHtml(defaultTemplate.html_content);
-              if (!contract.css_content && defaultTemplate.css_content) {
-                setTemplateCss(defaultTemplate.css_content);
-              }
-            } else {
-              throw new Error('Nenhum template encontrado');
-            }
-          }
-        } catch (error) {
-          console.error('Error fetching template:', error);
-          setError('Erro ao carregar template do contrato');
-          // Fallback para HTML básico
-          setTemplateHtml(generateBasicContractHtml(contract));
-        } finally {
-          setIsLoading(false);
+        let selectedTemplate = null;
+        
+        // Tentar encontrar template específico primeiro
+        if (contract.template_id) {
+          selectedTemplate = templates.find(t => t.id === contract.template_id);
+          console.log('Found specific template:', !!selectedTemplate);
         }
-      } else {
-        console.log('No template_id, generating basic HTML');
-        // Se não tem template_id, gerar HTML básico
+        
+        // Se não encontrou template específico, usar template padrão
+        if (!selectedTemplate) {
+          selectedTemplate = templates.find(t => t.is_default);
+          console.log('Using default template:', !!selectedTemplate);
+        }
+        
+        // Se ainda não tem template, usar o primeiro disponível
+        if (!selectedTemplate && templates.length > 0) {
+          selectedTemplate = templates[0];
+          console.log('Using first available template:', selectedTemplate.name);
+        }
+        
+        if (selectedTemplate) {
+          console.log('Selected template:', selectedTemplate.name);
+          setTemplateHtml(selectedTemplate.html_content);
+          
+          // Se não tem CSS do contrato, usar CSS do template
+          if (!contract.css_content && selectedTemplate.css_content) {
+            console.log('Using template CSS content');
+            setTemplateCss(selectedTemplate.css_content);
+          }
+        } else {
+          console.warn('No templates available, using basic HTML');
+          setTemplateHtml(generateBasicContractHtml(contract));
+        }
+      } catch (error) {
+        console.error('Error fetching template:', error);
+        setError('Erro ao carregar template do contrato');
+        // Fallback para HTML básico
         setTemplateHtml(generateBasicContractHtml(contract));
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -130,7 +134,7 @@ const ContractContent: React.FC<ContractContentProps> = ({ contract }) => {
     
     if (!htmlContent) {
       console.warn('No HTML content available for contract');
-      return '<p>Conteúdo do contrato não disponível.</p>';
+      return '<p>Carregando conteúdo do contrato...</p>';
     }
     
     console.log('Rendering contract with HTML content length:', htmlContent.length);
@@ -153,7 +157,7 @@ const ContractContent: React.FC<ContractContentProps> = ({ contract }) => {
           <div className="text-center py-8 text-red-500">
             <p>{error}</p>
             <p className="text-sm text-gray-500 mt-2">
-              Tentando carregar conteúdo básico...
+              Usando conteúdo básico...
             </p>
           </div>
         </CardContent>

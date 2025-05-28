@@ -41,6 +41,44 @@ export const contractSigningApi = {
     };
   },
 
+  // Get contract by public slug
+  async getContractBySlug(slug: string): Promise<ContractData | null> {
+    console.log('contractSigningApi: Fetching contract by slug:', slug);
+    
+    const { data, error } = await supabase
+      .from('contracts')
+      .select('*')
+      .eq('public_slug', slug)
+      .maybeSingle();
+
+    if (error) {
+      console.error('Error fetching contract by slug:', error);
+      throw error;
+    }
+
+    if (!data) {
+      console.log('No contract found for slug:', slug);
+      return null;
+    }
+
+    console.log('Contract found by slug:', {
+      id: data.id,
+      client_name: data.client_name,
+      status: data.status,
+      has_html_content: !!data.html_content,
+      has_css_content: !!data.css_content,
+      template_id: data.template_id,
+      html_content_length: data.html_content?.length || 0,
+      css_content_length: data.css_content?.length || 0
+    });
+
+    return {
+      ...data,
+      token: data.token || data.id, // fallback to id if token is missing
+      status: data.status as ContractStatus
+    };
+  },
+
   // Sign contract - enhanced with legal compliance
   async signContract(token: string, signatureData: any, ip: string): Promise<void> {
     console.log('Signing contract with token:', token);

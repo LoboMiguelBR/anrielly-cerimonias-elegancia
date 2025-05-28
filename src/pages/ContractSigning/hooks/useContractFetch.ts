@@ -6,22 +6,22 @@ import { ContractData } from '@/components/admin/hooks/contract/types';
 import { toast } from 'sonner';
 
 export const useContractFetch = () => {
-  const { token } = useParams<{ token: string }>();
+  const { slug } = useParams<{ slug: string }>();
   const [contract, setContract] = useState<ContractData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchContract = async () => {
-      if (!token) {
-        console.error('No token provided in URL');
+      if (!slug) {
+        console.error('No slug provided in URL');
         setIsLoading(false);
         return;
       }
 
-      console.log('useContractFetch: Starting fetch for token:', token);
+      console.log('useContractFetch: Starting fetch for slug:', slug);
       
       try {
-        const contractData = await contractSigningApi.getContractByToken(token);
+        const contractData = await contractSigningApi.getContractBySlug(slug);
         
         if (contractData) {
           console.log('useContractFetch: Contract loaded successfully:', {
@@ -44,7 +44,7 @@ export const useContractFetch = () => {
           
           setContract(contractData);
         } else {
-          console.error('useContractFetch: Contract not found for token:', token);
+          console.error('useContractFetch: Contract not found for slug:', slug);
           toast.error('Contrato não encontrado');
         }
       } catch (error) {
@@ -56,7 +56,7 @@ export const useContractFetch = () => {
     };
 
     fetchContract();
-  }, [token]);
+  }, [slug]);
 
   return {
     contract,
