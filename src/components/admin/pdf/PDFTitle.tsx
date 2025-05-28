@@ -2,7 +2,15 @@
 import React from 'react';
 import { View, Text } from '@react-pdf/renderer';
 import { styles } from './styles';
-import { PDFTitleProps } from './types';
+
+interface PDFTitleProps {
+  eventType: string;
+  colors: {
+    primary: string;
+    secondary: string;
+    text: string;
+  };
+}
 
 const PDFTitle: React.FC<PDFTitleProps> = ({ eventType, colors }) => {
   return (
@@ -19,13 +27,11 @@ const PDFTitle: React.FC<PDFTitleProps> = ({ eventType, colors }) => {
         color: colors.secondary, 
         fontFamily: 'Times-Roman'
       }}>
-        {eventType}
+        {eventType || 'Evento'}
       </Text>
     </View>
   );
 };
 
 export default PDFTitle;
-
-// Fix the export for use in page components
 export { PDFTitle };

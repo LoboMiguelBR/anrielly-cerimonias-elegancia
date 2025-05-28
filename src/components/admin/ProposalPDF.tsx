@@ -33,8 +33,26 @@ const defaultTemplate: ProposalTemplateData = {
 };
 
 const ProposalPDF: React.FC<ProposalProps> = ({ proposal, template = defaultTemplate }) => {
-  // Ensure we have valid data with fallbacks
+  // Ensure we have valid data with comprehensive fallbacks for PDF generation
   const safeProposal = ProposalHelper.ensureValidProposal(proposal);
+  
+  // Additional validation for PDF generation
+  if (!ProposalHelper.isValidForPDF(safeProposal)) {
+    console.warn('ProposalPDF: Invalid proposal data provided', safeProposal);
+    // Return a minimal document for invalid data
+    return (
+      <ProposalDocument 
+        proposal={{
+          ...safeProposal,
+          client_name: safeProposal.client_name || 'Cliente',
+          event_type: safeProposal.event_type || 'Evento',
+          services: [],
+          total_price: 0
+        }}
+        template={template}
+      />
+    );
+  }
   
   return (
     <ProposalDocument 

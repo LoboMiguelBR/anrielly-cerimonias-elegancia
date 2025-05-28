@@ -2,7 +2,20 @@
 import React from 'react';
 import { View, Text } from '@react-pdf/renderer';
 import { styles } from './styles';
-import { ClientInfoSectionProps } from './types';
+
+interface ClientData {
+  client_name: string;
+  client_email?: string;
+  client_phone?: string;
+}
+
+interface ClientInfoSectionProps {
+  client: ClientData;
+  colors: {
+    primary: string;
+    text: string;
+  };
+}
 
 const ClientInfoSection: React.FC<ClientInfoSectionProps> = ({ client, colors }) => {
   return (
@@ -27,7 +40,7 @@ const ClientInfoSection: React.FC<ClientInfoSectionProps> = ({ client, colors })
           fontFamily: 'Helvetica'
         }}>
           Nome:
-        </Text> {client.client_name}
+        </Text> {client.client_name || 'Cliente'}
       </Text>
       {client.client_email && (
         <Text style={{
@@ -64,6 +77,4 @@ const ClientInfoSection: React.FC<ClientInfoSectionProps> = ({ client, colors })
 };
 
 export default ClientInfoSection;
-
-// Fix the export for use in page components
 export { ClientInfoSection };

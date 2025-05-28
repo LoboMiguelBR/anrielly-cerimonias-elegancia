@@ -2,30 +2,40 @@
 import React from 'react';
 import { View, Text } from '@react-pdf/renderer';
 import { styles } from './styles';
-import { formatCurrency } from '@/lib/utils';
-import { PricingSectionProps } from './types';
+import { ProposalHelper } from './utils/ProposalHelper';
+
+interface PricingSectionProps {
+  totalPrice: number;
+  paymentTerms: string;
+  colors: {
+    primary: string;
+    text: string;
+  };
+}
 
 const PricingSection: React.FC<PricingSectionProps> = ({ totalPrice, paymentTerms, colors }) => {
+  const formattedPrice = ProposalHelper.formatCurrency(totalPrice);
+  const safePaymentTerms = paymentTerms?.trim() || "A definir";
+
   return (
     <View style={styles.priceSection}>
       <Text style={{
         ...styles.totalPrice, 
         color: colors.primary,
-        fontFamily: 'Helvetica',
-        fontWeight: 'bold'
+        fontFamily: 'Helvetica'
       }}>
-        Valor Total: R$ {formatCurrency(totalPrice)}
+        Valor Total: R$ {formattedPrice}
       </Text>
       <Text style={{
         ...styles.text, 
         color: colors.text,
-        fontFamily: 'Helvetica'
+        fontFamily: 'Helvetica',
+        marginTop: 10
       }}>
         <Text style={{
           ...styles.textBold, 
           color: colors.primary,
-          fontFamily: 'Helvetica',
-          fontWeight: 'bold'
+          fontFamily: 'Helvetica'
         }}>
           Condições de Pagamento:
         </Text>
@@ -35,13 +45,11 @@ const PricingSection: React.FC<PricingSectionProps> = ({ totalPrice, paymentTerm
         color: colors.text,
         fontFamily: 'Helvetica'
       }}>
-        {paymentTerms}
+        {safePaymentTerms}
       </Text>
     </View>
   );
 };
 
 export default PricingSection;
-
-// Fix the export for use in page components
 export { PricingSection };

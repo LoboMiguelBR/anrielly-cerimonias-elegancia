@@ -2,7 +2,16 @@
 import React from 'react';
 import { View, Text } from '@react-pdf/renderer';
 import { styles } from './styles';
-import { EventDetailsSectionProps } from './types';
+
+interface EventDetailsSectionProps {
+  eventType: string;
+  eventDate: string;
+  eventLocation: string;
+  colors: {
+    primary: string;
+    text: string;
+  };
+}
 
 const EventDetailsSection: React.FC<EventDetailsSectionProps> = ({ 
   eventType, 
@@ -30,7 +39,7 @@ const EventDetailsSection: React.FC<EventDetailsSectionProps> = ({
           fontFamily: 'Helvetica'
         }}>
           Tipo de Evento:
-        </Text> {eventType}
+        </Text> {eventType || 'Evento'}
       </Text>
       <Text style={{
         ...styles.text, 
@@ -43,7 +52,7 @@ const EventDetailsSection: React.FC<EventDetailsSectionProps> = ({
           fontFamily: 'Helvetica'
         }}>
           Data do Evento:
-        </Text> {eventDate}
+        </Text> {eventDate || 'A definir'}
       </Text>
       <Text style={{
         ...styles.text, 
@@ -56,13 +65,11 @@ const EventDetailsSection: React.FC<EventDetailsSectionProps> = ({
           fontFamily: 'Helvetica'
         }}>
           Local do Evento:
-        </Text> {eventLocation}
+        </Text> {eventLocation || 'A definir'}
       </Text>
     </View>
   );
 };
 
 export default EventDetailsSection;
-
-// Fix the export for use in page components
 export { EventDetailsSection };
