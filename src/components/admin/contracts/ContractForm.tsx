@@ -1,9 +1,7 @@
-
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ContractFormData, ContractData } from '../hooks/contract/types';
 import { contractTemplatesApi } from '../hooks/contract/api/contractTemplates';
 import { useAuditData } from './hooks/useAuditData';
@@ -195,62 +193,70 @@ const ContractForm = ({ initialData, onSubmit, onCancel, isLoading = false }: Co
   };
 
   return (
-    <Card className="w-full max-w-4xl mx-auto">
-      <CardHeader>
-        <CardTitle>
-          {initialData ? 'Editar Contrato' : 'Novo Contrato'}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
-          {/* Seleção de Lead/Cliente */}
-          {!initialData && (
-            <LeadProfessionalSelection
-              onLeadSelect={handleLeadSelect}
-              onProfessionalSelect={handleProfessionalSelect}
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-4xl mx-auto p-6 pb-32">
+        <div className="bg-white rounded-2xl shadow-sm border border-neutral-200 overflow-hidden">
+          <div className="p-6 border-b border-neutral-200">
+            <h1 className="text-2xl font-bold text-gray-900">
+              {initialData ? 'Editar Contrato' : 'Novo Contrato'}
+            </h1>
+            <p className="text-gray-600 mt-1">
+              Preencha os dados abaixo para {initialData ? 'atualizar o' : 'criar um novo'} contrato.
+            </p>
+          </div>
+          
+          <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-8 p-6">
+            {/* Seleção de Lead/Cliente */}
+            {!initialData && (
+              <LeadProfessionalSelection
+                onLeadSelect={handleLeadSelect}
+                onProfessionalSelect={handleProfessionalSelect}
+                selectedLeadId={selectedLeadId}
+                selectedProfessionalId={selectedProfessionalId}
+              />
+            )}
+
+            {/* Dados do Cliente */}
+            <ClientDataSection
+              register={register}
+              errors={errors}
+              setValue={setValue}
+              isManualEntry={isManualEntry}
               selectedLeadId={selectedLeadId}
-              selectedProfessionalId={selectedProfessionalId}
             />
-          )}
 
-          {/* Dados do Cliente */}
-          <ClientDataSection
-            register={register}
-            errors={errors}
-            setValue={setValue}
-            isManualEntry={isManualEntry}
-            selectedLeadId={selectedLeadId}
-          />
+            {/* Dados do Evento */}
+            <EventDataSection
+              register={register}
+              errors={errors}
+            />
 
-          {/* Dados do Evento */}
-          <EventDataSection
-            register={register}
-            errors={errors}
-          />
+            {/* Informações Financeiras */}
+            <FinancialDataSection
+              register={register}
+              errors={errors}
+              watch={watch}
+              setValue={setValue}
+            />
 
-          {/* Informações Financeiras */}
-          <FinancialDataSection
-            register={register}
-            errors={errors}
-          />
+            {/* Template e Observações */}
+            <TemplateNotesSection
+              register={register}
+              setValue={setValue}
+              templates={templates}
+              isLoadingTemplates={isLoadingTemplates}
+            />
 
-          {/* Template e Observações */}
-          <TemplateNotesSection
-            register={register}
-            setValue={setValue}
-            templates={templates}
-            isLoadingTemplates={isLoadingTemplates}
-          />
-
-          {/* Ações */}
-          <FormActions
-            initialData={initialData}
-            isLoading={isLoading}
-            onCancel={onCancel}
-          />
-        </form>
-      </CardContent>
-    </Card>
+            {/* Ações */}
+            <FormActions
+              initialData={initialData}
+              isLoading={isLoading}
+              onCancel={onCancel}
+            />
+          </form>
+        </div>
+      </div>
+    </div>
   );
 };
 
