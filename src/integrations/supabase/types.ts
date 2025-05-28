@@ -253,6 +253,54 @@ export type Database = {
         }
         Relationships: []
       }
+      personalizacoes_ia: {
+        Row: {
+          atualizado_em: string | null
+          contexto_cultural: string | null
+          criado_em: string | null
+          id: string
+          incluir_aliancas: boolean | null
+          incluir_votos: boolean | null
+          linguagem_celebrante: string | null
+          link_publico: string
+          momento_especial: string | null
+          observacoes_adicionais: string | null
+          tags_emocao: string[] | null
+          tipo_cerimonia: string | null
+          tom_conversa: string | null
+        }
+        Insert: {
+          atualizado_em?: string | null
+          contexto_cultural?: string | null
+          criado_em?: string | null
+          id?: string
+          incluir_aliancas?: boolean | null
+          incluir_votos?: boolean | null
+          linguagem_celebrante?: string | null
+          link_publico: string
+          momento_especial?: string | null
+          observacoes_adicionais?: string | null
+          tags_emocao?: string[] | null
+          tipo_cerimonia?: string | null
+          tom_conversa?: string | null
+        }
+        Update: {
+          atualizado_em?: string | null
+          contexto_cultural?: string | null
+          criado_em?: string | null
+          id?: string
+          incluir_aliancas?: boolean | null
+          incluir_votos?: boolean | null
+          linguagem_celebrante?: string | null
+          link_publico?: string
+          momento_especial?: string | null
+          observacoes_adicionais?: string | null
+          tags_emocao?: string[] | null
+          tipo_cerimonia?: string | null
+          tom_conversa?: string | null
+        }
+        Relationships: []
+      }
       professionals: {
         Row: {
           category: string

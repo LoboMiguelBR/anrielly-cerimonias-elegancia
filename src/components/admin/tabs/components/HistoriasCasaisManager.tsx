@@ -1,363 +1,316 @@
 
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Sparkles, Heart, Users, Copy, RefreshCw, AlertCircle } from "lucide-react";
-import { toast } from 'sonner';
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Eye, RefreshCw, Sparkles, Users, Calendar, Heart } from 'lucide-react';
+import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import QuestionarioHistoryViewer from './QuestionarioHistoryViewer';
+import ModalPersonalizacao from './ModalPersonalizacao';
+import { usePersonalizacaoIA } from '@/hooks/usePersonalizacaoIA';
 
-interface QuestionarioCompleto {
+interface QuestionarioCasal {
   id: string;
   link_publico: string;
   nome_responsavel: string;
   email: string;
   status: string;
-  respostas_json: Record<string, string>;
+  historia_gerada: string | null;
+  historia_processada: boolean;
+  data_criacao: string;
+  data_atualizacao: string;
   total_perguntas_resp: number;
-  historia_gerada?: string;
-}
-
-interface HistoriaCasal {
-  link_publico: string;
-  questionarios: QuestionarioCompleto[];
-  historia_gerada?: string;
-  podeGerar: boolean;
+  respostas_json: Record<string, string>;
+  temPersonalizacao?: boolean;
 }
 
 const HistoriasCasaisManager = () => {
-  const [historiasCasais, setHistoriasCasais] = useState<HistoriaCasal[]>([]);
+  const [casais, setCasais] = useState<QuestionarioCasal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isGenerating, setIsGenerating] = useState<string | null>(null);
-  const [viewingHistory, setViewingHistory] = useState<HistoriaCasal | null>(null);
-  const [debugInfo, setDebugInfo] = useState<string | null>(null);
+  const [showHistory, setShowHistory] = useState<string | null>(null);
+  const [showPersonalizacao, setShowPersonalizacao] = useState<string | null>(null);
+  const { toast } = useToast();
+  const { buscarPersonalizacao } = usePersonalizacaoIA();
 
-  const fetchHistoriasCasais = async () => {
+  useEffect(() => {
+    carregarCasais();
+  }, []);
+
+  const carregarCasais = async () => {
     try {
       const { data, error } = await supabase
         .from('questionarios_noivos')
         .select('*')
-        .order('data_criacao', { ascending: false });
+        .eq('status', 'preenchido')
+        .order('data_atualizacao', { ascending: false });
 
       if (error) throw error;
 
-      // Agrupar por link_publico
-      const grupos = data.reduce((acc: Record<string, QuestionarioCompleto[]>, item) => {
-        if (!acc[item.link_publico]) {
-          acc[item.link_publico] = [];
-        }
-        acc[item.link_publico].push({
-          id: item.id,
-          link_publico: item.link_publico,
-          nome_responsavel: item.nome_responsavel,
-          email: item.email,
-          status: item.status || 'rascunho',
-          respostas_json: item.respostas_json as Record<string, string> || {},
-          total_perguntas_resp: item.total_perguntas_resp || 0,
-          historia_gerada: item.historia_gerada || undefined
-        });
-        return acc;
-      }, {});
+      // Verificar quais casais têm personalização
+      const casaisComPersonalizacao = await Promise.all(
+        (data || []).map(async (casal) => {
+          const personalizacao = await buscarPersonalizacao(casal.link_publico);
+          return {
+            ...casal,
+            temPersonalizacao: !!personalizacao
+          };
+        })
+      );
 
-      // Converter para array de HistoriaCasal
-      const historias: HistoriaCasal[] = Object.entries(grupos).map(([link_publico, questionarios]) => {
-        // Verificar se ambos questionários estão preenchidos (pelo menos 80% das perguntas)
-        const questionariosCompletos = questionarios.filter(q => 
-          q.total_perguntas_resp >= 38 && // pelo menos 38 de 48 perguntas
-          (q.status === 'preenchido' || q.status === 'concluido')
-        );
-
-        const podeGerar = questionariosCompletos.length >= 2;
-        
-        // Pegar história de qualquer um dos questionários (elas devem ser iguais)
-        const historiaExistente = questionarios.find(q => q.historia_gerada)?.historia_gerada;
-
-        return {
-          link_publico,
-          questionarios,
-          historia_gerada: historiaExistente,
-          podeGerar
-        };
-      });
-
-      setHistoriasCasais(historias);
+      setCasais(casaisComPersonalizacao);
     } catch (error) {
-      console.error('Error fetching historias:', error);
-      toast.error('Erro ao carregar histórias dos casais');
+      console.error('Erro ao carregar casais:', error);
+      toast({
+        title: "Erro ao carregar dados",
+        description: "Não foi possível carregar a lista de casais.",
+        variant: "destructive"
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchHistoriasCasais();
-  }, []);
-
-  const gerarHistoriaCasal = async (historia: HistoriaCasal) => {
-    if (!historia.podeGerar) {
-      toast.error('Ambos os questionários precisam estar completos para gerar a história');
-      return;
-    }
-
-    setIsGenerating(historia.link_publico);
-    setDebugInfo(null);
+  const gerarHistoria = async (linkPublico: string) => {
+    setIsGenerating(linkPublico);
     
     try {
-      console.log('🚀 Iniciando geração de história para:', historia.link_publico);
-      
-      // Combinar respostas de ambos os noivos
-      const respostasCombinadas = historia.questionarios
-        .filter(q => q.total_perguntas_resp >= 38)
-        .slice(0, 2) // Pegar apenas os 2 primeiros completos
-        .map(q => ({
-          nome: q.nome_responsavel,
-          email: q.email,
-          respostas: q.respostas_json
-        }));
+      // Buscar todos os questionários deste casal
+      const { data: questionarios, error } = await supabase
+        .from('questionarios_noivos')
+        .select('nome_responsavel, email, respostas_json')
+        .eq('link_publico', linkPublico)
+        .eq('status', 'preenchido');
 
-      console.log('📝 Dados preparados:', {
-        link_publico: historia.link_publico,
-        noivos: respostasCombinadas.map(n => ({ 
-          nome: n.nome, 
-          respostasCount: Object.keys(n.respostas || {}).length 
-        }))
-      });
+      if (error) throw error;
 
-      if (respostasCombinadas.length < 2) {
-        toast.error('É necessário ter pelo menos 2 questionários completos');
+      if (!questionarios || questionarios.length < 2) {
+        toast({
+          title: "Questionários insuficientes",
+          description: "São necessários pelo menos 2 questionários completos para gerar a história.",
+          variant: "destructive"
+        });
         return;
       }
 
-      const requestPayload = {
-        link_publico: historia.link_publico,
-        noivos: respostasCombinadas
-      };
-
-      console.log('📤 Enviando requisição para edge function...');
-
-      const { data, error } = await supabase.functions.invoke('gerar-historia-casal', {
-        body: requestPayload
+      // Chamar a Edge Function para gerar a história
+      const { data: result, error: functionError } = await supabase.functions.invoke('gerar-historia-casal', {
+        body: {
+          link_publico: linkPublico,
+          noivos: questionarios.map(q => ({
+            nome: q.nome_responsavel,
+            email: q.email,
+            respostas: q.respostas_json
+          }))
+        }
       });
 
-      console.log('📥 Resposta recebida:', { data, error });
+      if (functionError) throw functionError;
 
-      if (error) {
-        console.error('❌ Erro na edge function:', error);
-        setDebugInfo(`Erro na função: ${JSON.stringify(error, null, 2)}`);
-        throw error;
-      }
-
-      if (data?.success) {
-        console.log('✅ História gerada com sucesso!');
-        toast.success('História do casal gerada com sucesso!');
-        fetchHistoriasCasais(); // Recarregar dados
-        
-        if (data.debug) {
-          setDebugInfo(`Debug info: ${JSON.stringify(data.debug, null, 2)}`);
-        }
+      if (result.success) {
+        toast({
+          title: "História gerada com sucesso!",
+          description: result.message,
+        });
+        carregarCasais(); // Recarregar para mostrar a nova história
       } else {
-        console.error('❌ Falha na geração:', data);
-        const errorMsg = data?.error || 'Erro desconhecido ao gerar história';
-        setDebugInfo(`Resposta de erro: ${JSON.stringify(data, null, 2)}`);
-        toast.error(errorMsg);
+        throw new Error(result.error || 'Erro desconhecido');
       }
+
     } catch (error) {
-      console.error('💥 Erro geral na geração de história:', error);
-      setDebugInfo(`Erro capturado: ${error.message}\nStack: ${error.stack}`);
-      toast.error(`Erro ao gerar história: ${error.message}`);
+      console.error('Erro ao gerar história:', error);
+      toast({
+        title: "Erro ao gerar história",
+        description: "Não foi possível gerar a história do casal.",
+        variant: "destructive"
+      });
     } finally {
       setIsGenerating(null);
     }
   };
 
-  const copyToClipboard = async (text: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      toast.success('História copiada para a área de transferência!');
-    } catch (error) {
-      toast.error('Erro ao copiar texto');
+  const obterCasalPorLink = (linkPublico: string) => {
+    return casais.find(casal => casal.link_publico === linkPublico);
+  };
+
+  const formatarData = (data: string) => {
+    return new Date(data).toLocaleDateString('pt-BR');
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'preenchido': return 'bg-green-100 text-green-800';
+      case 'rascunho': return 'bg-yellow-100 text-yellow-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
 
+  const groupedCasais = casais.reduce((acc, casal) => {
+    if (!acc[casal.link_publico]) {
+      acc[casal.link_publico] = [];
+    }
+    acc[casal.link_publico].push(casal);
+    return acc;
+  }, {} as Record<string, QuestionarioCasal[]>);
+
   if (isLoading) {
     return (
-      <Card>
-        <CardContent className="py-8">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-rose-600 mx-auto mb-4"></div>
-            <p>Carregando histórias dos casais...</p>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div>
+          <p className="mt-2 text-gray-600">Carregando histórias dos casais...</p>
+        </div>
+      </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Heart className="h-5 w-5 text-rose-500" />
-            Histórias dos Casais (IA) - Debug Mode
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-gray-600 mb-4">
-            Gerencie as histórias de amor dos casais criadas automaticamente pela IA.
-            A história só é gerada quando ambos os questionários estão completos.
-          </p>
-          
-          {debugInfo && (
-            <Card className="mb-4 border-orange-200 bg-orange-50">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm flex items-center gap-2">
-                  <AlertCircle className="h-4 w-4 text-orange-600" />
-                  Debug Information
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <pre className="text-xs bg-white p-2 rounded border overflow-auto max-h-32">
-                  {debugInfo}
-                </pre>
-              </CardContent>
-            </Card>
-          )}
-          
-          <div className="space-y-4">
-            {historiasCasais.map((historia) => (
-              <Card key={historia.link_publico} className="border-l-4 border-l-rose-200">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-4 mb-2">
-                        <Users className="w-5 h-5 text-rose-500" />
-                        <div>
-                          <h3 className="font-semibold">Casal: {historia.link_publico}</h3>
-                          <p className="text-sm text-gray-600">
-                            {historia.questionarios.length} pessoa(s) • 
-                            {historia.questionarios.filter(q => q.total_perguntas_resp >= 38).length} completo(s)
-                          </p>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center gap-2 mb-2">
-                        {historia.historia_gerada && (
-                          <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
-                            <Sparkles className="w-3 h-3 mr-1" />
-                            História Criada
-                          </Badge>
-                        )}
-                        {historia.podeGerar && !historia.historia_gerada && (
-                          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                            Pronto para Gerar
-                          </Badge>
-                        )}
-                        {!historia.podeGerar && (
-                          <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-200">
-                            Aguardando Questionários
-                          </Badge>
-                        )}
-                      </div>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">Histórias dos Casais (IA)</h2>
+          <p className="text-gray-600">Gerencie e visualize as histórias criadas pela IA</p>
+        </div>
+        <Button onClick={carregarCasais} variant="outline">
+          <RefreshCw className="w-4 h-4 mr-2" />
+          Atualizar
+        </Button>
+      </div>
 
-                      {/* Lista dos questionários */}
-                      <div className="text-xs text-gray-500 space-y-1">
-                        {historia.questionarios.map((q) => (
-                          <div key={q.id} className="flex items-center gap-2">
-                            <span className={q.total_perguntas_resp >= 38 ? 'text-green-600' : 'text-gray-400'}>
-                              • {q.nome_responsavel} ({q.total_perguntas_resp}/48 perguntas) - Status: {q.status}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-2">
-                      {historia.historia_gerada && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => setViewingHistory(historia)}
-                          className="text-purple-600"
-                        >
-                          <Sparkles className="h-4 w-4 mr-1" />
-                          Ver História
-                        </Button>
-                      )}
-                      
-                      <Button
-                        size="sm"
-                        variant={historia.historia_gerada ? "outline" : "default"}
-                        onClick={() => gerarHistoriaCasal(historia)}
-                        disabled={!historia.podeGerar || isGenerating === historia.link_publico}
-                        className={!historia.historia_gerada ? "bg-rose-600 hover:bg-rose-700" : ""}
-                      >
-                        {isGenerating === historia.link_publico ? (
-                          <RefreshCw className="h-4 w-4 mr-1 animate-spin" />
-                        ) : (
-                          <Sparkles className="h-4 w-4 mr-1" />
+      <div className="grid gap-6">
+        {Object.entries(groupedCasais).map(([linkPublico, casalGroup]) => {
+          const primeiroDoGrupo = casalGroup[0];
+          const temHistoria = primeiroDoGrupo.historia_gerada;
+          const temPersonalizacao = primeiroDoGrupo.temPersonalizacao;
+          
+          return (
+            <Card key={linkPublico} className="relative">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <Heart className="w-5 h-5 text-rose-500" />
+                    <div>
+                      <CardTitle className="text-lg">
+                        Casal: {linkPublico.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                      </CardTitle>
+                      <div className="flex items-center space-x-2 mt-1">
+                        <Badge variant="outline" className={getStatusColor(primeiroDoGrupo.status)}>
+                          {primeiroDoGrupo.status}
+                        </Badge>
+                        {temPersonalizacao && (
+                          <Badge variant="outline" className="bg-purple-100 text-purple-800">
+                            🎨 Personalizado
+                          </Badge>
                         )}
-                        {historia.historia_gerada ? 'Regenerar' : 'Gerar História'}
-                      </Button>
+                      </div>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-            
-            {historiasCasais.length === 0 && (
-              <div className="text-center py-8 text-gray-500">
-                <Heart className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                <p>Nenhum casal com questionários disponíveis ainda</p>
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+                  <div className="flex items-center space-x-2">
+                    <Users className="w-4 h-4 text-gray-500" />
+                    <span className="text-sm text-gray-600">{casalGroup.length} questionário(s)</span>
+                  </div>
+                </div>
+              </CardHeader>
+
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {casalGroup.map((casal) => (
+                      <div key={casal.id} className="p-3 bg-gray-50 rounded-lg">
+                        <div className="font-medium text-gray-900">{casal.nome_responsavel}</div>
+                        <div className="text-sm text-gray-600">{casal.email}</div>
+                        <div className="text-xs text-gray-500 mt-1">
+                          {casal.total_perguntas_resp} respostas • Atualizado em {formatarData(casal.data_atualizacao)}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {temHistoria && (
+                    <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                      <div className="flex items-center space-x-2 mb-2">
+                        <Sparkles className="w-4 h-4 text-green-600" />
+                        <span className="font-medium text-green-800">História Gerada</span>
+                      </div>
+                      <p className="text-sm text-green-700 line-clamp-3">
+                        {primeiroDoGrupo.historia_gerada?.substring(0, 200)}...
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowPersonalizacao(linkPublico)}
+                    >
+                      🎨 Personalizar
+                    </Button>
+                    
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => gerarHistoria(linkPublico)}
+                      disabled={isGenerating === linkPublico || casalGroup.length < 2}
+                    >
+                      {isGenerating === linkPublico ? (
+                        <>
+                          <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-current mr-2" />
+                          Gerando...
+                        </>
+                      ) : (
+                        <>
+                          <RefreshCw className="w-3 h-3 mr-2" />
+                          {temHistoria ? 'Regenerar' : 'Gerar'} História
+                        </>
+                      )}
+                    </Button>
+
+                    {temHistoria && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowHistory(linkPublico)}
+                      >
+                        <Eye className="w-3 h-3 mr-2" />
+                        Ver História
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+
+      {Object.keys(groupedCasais).length === 0 && (
+        <div className="text-center py-12">
+          <Heart className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum casal encontrado</h3>
+          <p className="text-gray-600">Aguarde os casais preencherem seus questionários para gerar as histórias.</p>
+        </div>
+      )}
 
       {/* Modal de Visualização da História */}
-      <Dialog open={!!viewingHistory} onOpenChange={(open) => !open && setViewingHistory(null)}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-purple-600" />
-              História do Casal - {viewingHistory?.link_publico}
-            </DialogTitle>
-          </DialogHeader>
-          {viewingHistory?.historia_gerada && (
-            <div className="space-y-4">
-              <div className="flex justify-end">
-                <Button
-                  onClick={() => copyToClipboard(viewingHistory.historia_gerada!)}
-                  variant="outline"
-                  size="sm"
-                  className="gap-2"
-                >
-                  <Copy className="h-4 w-4" />
-                  Copiar
-                </Button>
-              </div>
-              <div className="prose max-w-none">
-                <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-6 rounded-lg">
-                  <p className="text-gray-800 leading-relaxed whitespace-pre-wrap">
-                    {viewingHistory.historia_gerada}
-                  </p>
-                </div>
-              </div>
-              <div className="text-xs text-gray-500">
-                <p>✨ História gerada automaticamente com Inteligência Artificial</p>
-                <p>📝 Baseada nas respostas dos questionários de ambos os noivos</p>
-                <p>🔒 Visível apenas para administradores</p>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      {showHistory && (
+        <QuestionarioHistoryViewer
+          isOpen={!!showHistory}
+          onClose={() => setShowHistory(null)}
+          questionario={obterCasalPorLink(showHistory)}
+        />
+      )}
+
+      {/* Modal de Personalização */}
+      {showPersonalizacao && (
+        <ModalPersonalizacao
+          isOpen={!!showPersonalizacao}
+          onClose={() => setShowPersonalizacao(null)}
+          linkPublico={showPersonalizacao}
+          onPersonalizacaoSalva={carregarCasais}
+        />
+      )}
     </div>
   );
 };

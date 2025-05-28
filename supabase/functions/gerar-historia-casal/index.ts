@@ -84,6 +84,20 @@ serve(async (req) => {
       noivos: noivos.map(n => ({ nome: n.nome, respostasCount: Object.keys(n.respostas || {}).length }))
     })
 
+    // Buscar personalização da IA
+    console.log('Buscando personalização IA...')
+    const { data: personalizacao, error: personalizacaoError } = await supabaseClient
+      .from('personalizacoes_ia')
+      .select('*')
+      .eq('link_publico', link_publico)
+      .maybeSingle()
+
+    if (personalizacaoError) {
+      console.warn('Erro ao buscar personalização (continuando sem):', personalizacaoError)
+    }
+
+    console.log('Personalização encontrada:', !!personalizacao)
+
     // Formatar as respostas para o prompt
     const formatarRespostas = (noivo: typeof noivos[0]) => {
       if (!noivo.respostas) {
@@ -107,8 +121,48 @@ serve(async (req) => {
       noivo: respostasNoivo.length
     })
 
-    // Prompt profissional para geração da história
-    const prompt = `Você é um especialista em contar histórias de amor para cerimônias de casamento. Sua missão é transformar as respostas dos questionários de dois noivos em uma narrativa romântica, envolvente, emocionante e com toques de humor leve e saudável.
+    // Construir prompt baseado na personalização (se existir)
+    let prompt = ''
+    
+    if (personalizacao) {
+      console.log('Construindo prompt personalizado...')
+      
+      const linguagemCelebrante = personalizacao.linguagem_celebrante || 'celebrante especialista'
+      const tipoCerimonia = personalizacao.tipo_cerimonia || 'tradicional'
+      const tomConversa = personalizacao.tom_conversa || 'romântico'
+      const tagsEmocao = personalizacao.tags_emocao?.join(', ') || 'amor e leveza'
+      
+      prompt = `Você é um ${linguagemCelebrante} de cerimônias do tipo ${tipoCerimonia}.
+Sua missão é criar uma história com um tom ${tomConversa} e emoção baseada em: ${tagsEmocao}.
+
+${personalizacao.incluir_votos ? 'Inclua também votos personalizados baseados nas respostas dos noivos.' : ''}
+${personalizacao.incluir_aliancas ? 'Descreva a troca de alianças de forma simbólica e emocionante.' : ''}
+${personalizacao.momento_especial ? `Momento especial a destacar: ${personalizacao.momento_especial}` : ''}
+${personalizacao.contexto_cultural ? `Adapte o texto para o contexto cultural: ${personalizacao.contexto_cultural}` : ''}
+${personalizacao.observacoes_adicionais ? `Observações adicionais: ${personalizacao.observacoes_adicionais}` : ''}
+
+Crie um texto que conte a trajetória do casal, destacando:
+- Como se conheceram;
+- As primeiras impressões um do outro;
+- Os momentos marcantes, desafios, superações e alegrias;
+- Curiosidades do relacionamento (como apelidos, manias e brincadeiras);
+- Características que um admira no outro;
+- O que eles mais gostam de fazer juntos;
+- O que esperam do futuro e da família que estão formando.
+
+A história deve ser contada de forma natural, espontânea, como se fosse um celebrante falando, com amor, carinho, emoção e leveza.
+
+Aqui estão as informações coletadas dos dois noivos:
+
+${respostasNoiva}
+
+${respostasNoivo}
+
+Gere uma história única, emocionante e inesquecível para ser lida durante a cerimônia de casamento. O texto deve ter entre 3-5 parágrafos e ser adequado para leitura em uma cerimônia de casamento.`
+    } else {
+      console.log('Usando prompt padrão (sem personalização)...')
+      
+      prompt = `Você é um especialista em contar histórias de amor para cerimônias de casamento. Sua missão é transformar as respostas dos questionários de dois noivos em uma narrativa romântica, envolvente, emocionante e com toques de humor leve e saudável.
 
 Crie um texto que conte a trajetória do casal, destacando:
 - Como se conheceram;
@@ -130,6 +184,7 @@ ${respostasNoiva}
 ${respostasNoivo}
 
 Gere agora uma história incrível, inesquecível, emocionante e encantadora sobre esse casal. O texto deve ter entre 3-5 parágrafos e ser adequado para leitura em uma cerimônia de casamento.`
+    }
 
     console.log('Calling OpenAI API...')
 
@@ -231,14 +286,20 @@ Gere agora uma história incrível, inesquecível, emocionante e encantadora sob
 
     console.log('Story saved successfully to database')
 
+    const mensagem = personalizacao 
+      ? 'História personalizada gerada com sucesso!' 
+      : 'História do casal gerada com sucesso!'
+
     return new Response(
       JSON.stringify({ 
         success: true, 
         historia: historiaGerada,
-        message: 'História do casal gerada com sucesso!',
+        message: mensagem,
+        personalizada: !!personalizacao,
         debug: {
           noivosProcessados: noivos.length,
-          historiaLength: historiaGerada.length
+          historiaLength: historiaGerada.length,
+          temPersonalizacao: !!personalizacao
         }
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
