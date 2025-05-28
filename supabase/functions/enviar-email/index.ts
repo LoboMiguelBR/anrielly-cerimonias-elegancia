@@ -144,6 +144,43 @@ serve(async (req) => {
         emailTo = 'contato@anriellygomes.com.br'
         break
 
+      case 'contato-confirmacao':
+        emailSubject = 'Confirmação: Recebemos sua mensagem!'
+        emailHtml = `
+          <div style="max-width: 600px; margin: 0 auto; font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+            <div style="background: linear-gradient(135deg, #f43f5e, #ec4899); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+              <h1 style="color: white; margin: 0; font-size: 28px;">Obrigada pelo contato!</h1>
+            </div>
+            
+            <div style="background: white; padding: 30px; border-radius: 0 0 10px 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+              <h2 style="color: #f43f5e; margin-top: 0;">Olá ${name},</h2>
+              
+              <p>Recebemos sua mensagem e ficamos muito felizes com seu interesse em nossos serviços de cerimonial!</p>
+              
+              <div style="background: #fef2f2; border-left: 4px solid #f43f5e; padding: 20px; margin: 20px 0; border-radius: 5px;">
+                <h3 style="margin-top: 0; color: #991b1b;">📝 Resumo da sua mensagem:</h3>
+                <p><strong>Nome:</strong> ${name}</p>
+                <p><strong>Email:</strong> ${email}</p>
+                <p><strong>Telefone:</strong> ${phone}</p>
+                <p><strong>Mensagem:</strong> ${message}</p>
+              </div>
+              
+              <p>Nossa equipe analisará sua solicitação e retornaremos em breve com todas as informações necessárias para o seu evento especial.</p>
+              
+              <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                <h3 style="margin-top: 0; color: #374151;">📞 Contatos Diretos:</h3>
+                <p><strong>WhatsApp:</strong> <a href="https://wa.me/5524992689947" style="color: #f43f5e; text-decoration: none;">(24) 99268-9947</a></p>
+                <p><strong>Email:</strong> <a href="mailto:contato@anriellygomes.com.br" style="color: #f43f5e; text-decoration: none;">contato@anriellygomes.com.br</a></p>
+              </div>
+              
+              <p>Atenciosamente,<br>
+              <strong style="color: #f43f5e;">Anrielly Gomes</strong><br>
+              <em>Mestre de Cerimônia</em></p>
+            </div>
+          </div>
+        `
+        break
+
       case 'novo-depoimento':
         emailSubject = 'Novo depoimento submetido'
         emailHtml = `
