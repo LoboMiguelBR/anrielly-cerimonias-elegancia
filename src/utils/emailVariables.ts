@@ -45,10 +45,14 @@ export const emailTemplateVariables = [
   { label: 'Valor Restante', value: '{VALOR_RESTANTE}', variable: '{{VALOR_RESTANTE}}' },
   { label: 'Data Pagamento Restante', value: '{DATA_PAGAMENTO_RESTANTE}', variable: '{{DATA_PAGAMENTO_RESTANTE}}' },
   
+  // Dados de Versionamento (NOVAS VARIÁVEIS)
+  { label: 'Versão do Contrato', value: '{VERSAO}', variable: '{{VERSAO}}' },
+  { label: 'Data da Versão', value: '{DATA_VERSAO}', variable: '{{DATA_VERSAO}}' },
+  
   // Links e URLs
   { label: 'Link do Contrato', value: '{LINK_CONTRATO}', variable: '{{LINK_CONTRATO}}' },
   
-  // Dados de Auditoria e Segurança (NOVAS VARIÁVEIS)
+  // Dados de Auditoria e Segurança
   { label: 'IP do Assinante', value: '{IP_ASSINANTE}', variable: '{{IP_ASSINANTE}}' },
   { label: 'Navegador/Dispositivo', value: '{USER_AGENT}', variable: '{{USER_AGENT}}' },
   { label: 'Hash do Contrato', value: '{HASH_CONTRATO}', variable: '{{HASH_CONTRATO}}' },
@@ -101,10 +105,14 @@ export const replaceEmailVariables = (
     '{{VALOR_RESTANTE}}': contract.remaining_amount ? `R$ ${contract.remaining_amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '',
     '{{DATA_PAGAMENTO_RESTANTE}}': contract.remaining_payment_date ? new Date(contract.remaining_payment_date).toLocaleDateString('pt-BR') : '',
     
+    // Dados de Versionamento (NOVAS VARIÁVEIS IMPORTANTES)
+    '{{VERSAO}}': `v${contract.version || 1}`,
+    '{{DATA_VERSAO}}': contract.version_timestamp ? new Date(contract.version_timestamp).toLocaleDateString('pt-BR') : new Date().toLocaleDateString('pt-BR'),
+    
     // Links
     '{{LINK_CONTRATO}}': additionalData?.contractUrl || '',
     
-    // Dados de Auditoria e Segurança (NOVAS VARIÁVEIS IMPORTANTES)
+    // Dados de Auditoria e Segurança
     '{{IP_ASSINANTE}}': additionalData?.signerIp || '',
     '{{USER_AGENT}}': additionalData?.userAgent || '',
     '{{HASH_CONTRATO}}': contractHash,

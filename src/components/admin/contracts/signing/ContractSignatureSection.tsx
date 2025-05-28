@@ -9,8 +9,19 @@ interface ContractSignatureSectionProps {
 }
 
 const ContractSignatureSection = ({ contract, contractHash }: ContractSignatureSectionProps) => {
-  // URL da assinatura da Anrielly (imagem fornecida)
+  // URLs das assinaturas da Anrielly (verificar se existe)
   const anriellySignatureUrl = '/lovable-uploads/2fff881d-0a84-498f-bea5-b9adc67af1bd.png';
+  
+  // Função para lidar com erro de carregamento da imagem
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    console.warn('Erro ao carregar assinatura da Anrielly:', e);
+    // Ocultar a imagem se não conseguir carregar
+    e.currentTarget.style.display = 'none';
+  };
+
+  const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    console.log('Assinatura da Anrielly carregada com sucesso');
+  };
 
   return (
     <Card className="mt-6">
@@ -27,11 +38,15 @@ const ContractSignatureSection = ({ contract, contractHash }: ContractSignatureS
               <p className="text-xs text-gray-600">CPF: 092.005.807-85</p>
             </div>
             <div className="ml-auto">
-              <img 
-                src={anriellySignatureUrl} 
-                alt="Assinatura Anrielly Gomes"
-                className="h-16 w-auto border border-gray-200 bg-white p-2 rounded"
-              />
+              <div className="h-16 w-32 border border-gray-200 bg-white p-2 rounded flex items-center justify-center">
+                <img 
+                  src={anriellySignatureUrl} 
+                  alt="Assinatura Anrielly Gomes"
+                  className="max-h-full max-w-full object-contain"
+                  onError={handleImageError}
+                  onLoad={handleImageLoad}
+                />
+              </div>
             </div>
           </div>
         </div>

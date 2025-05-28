@@ -60,6 +60,10 @@ export const replaceContractVariables = (
     '{{remaining_amount}}': contract.remaining_amount ? `R$ ${contract.remaining_amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '',
     '{{remaining_payment_date}}': contract.remaining_payment_date ? new Date(contract.remaining_payment_date).toLocaleDateString('pt-BR') : '',
     
+    // Dados de versionamento (NOVAS VARIÁVEIS)
+    '{{version}}': `v${contract.version || 1}`,
+    '{{version_date}}': contract.version_timestamp ? new Date(contract.version_timestamp).toLocaleDateString('pt-BR') : new Date().toLocaleDateString('pt-BR'),
+    
     // Dados de assinatura e auditoria
     '{{current_date}}': browserInfo.current_date,
     '{{current_time}}': browserInfo.current_time,
@@ -95,6 +99,9 @@ export const getAvailableVariables = () => [
   // Dados Financeiros
   '{{total_price}}', '{{total_price_extenso}}', '{{down_payment}}', '{{down_payment_date}}',
   '{{remaining_amount}}', '{{remaining_payment_date}}',
+  
+  // Dados de Versionamento (NOVAS VARIÁVEIS)
+  '{{version}}', '{{version_date}}',
   
   // Dados de Assinatura
   '{{current_date}}', '{{current_time}}', '{{ip_address}}', '{{user_agent}}',
