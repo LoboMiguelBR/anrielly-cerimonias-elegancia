@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -17,7 +18,7 @@ const useQuestionarioForm = () => {
       setIsLoading(true);
       try {
         const { data, error } = await supabase
-          .from('questionarios')
+          .from('questionarios_noivos')
           .select('*')
           .eq('link_publico', linkPublico)
           .single();
@@ -37,7 +38,7 @@ const useQuestionarioForm = () => {
 
         setQuestionario(data);
         // Inicializa o estado de respostas com as respostas existentes do banco de dados, se houver
-        setRespostas(data.respostas || {});
+        setRespostas(data.respostas_json || {});
       } finally {
         setIsLoading(false);
       }
@@ -49,7 +50,7 @@ const useQuestionarioForm = () => {
   }, [linkPublico, navigate]);
 
   const handleInputChange = (perguntaId: string, value: any) => {
-    setRespostas(prevRespostas => ({
+    setRespostas((prevRespostas: any) => ({
       ...prevRespostas,
       [perguntaId]: value,
     }));
@@ -61,8 +62,8 @@ const useQuestionarioForm = () => {
 
     try {
       const { error } = await supabase
-        .from('questionarios')
-        .update({ respostas })
+        .from('questionarios_noivos')
+        .update({ respostas_json: respostas })
         .eq('link_publico', linkPublico);
 
       if (error) {
@@ -74,8 +75,8 @@ const useQuestionarioForm = () => {
       toast.success('Respostas salvas com sucesso!');
 
       // Enviar email de conclusão do questionário
-      if (questionario?.nome && questionario?.email) {
-        await sendQuestionarioCompletionEmail(questionario.nome, questionario.email, questionario.id);
+      if (questionario?.nome_responsavel && questionario?.email) {
+        await sendQuestionarioCompletionEmail(questionario.nome_responsavel, questionario.email, questionario.id);
       }
 
       navigate(`/questionario/${linkPublico}/sucesso`); // Redireciona para a página de sucesso

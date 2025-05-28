@@ -1,6 +1,7 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { testimonialsApi } from './testimonialsApi';
-import { TestimonialData, TestimonialFormData } from './types';
+import { Testimonial, TestimonialFormData } from './types';
 import { toast } from 'sonner';
 import { sendNewTestimonialNotification, sendTestimonialApprovedNotification } from '@/utils/email';
 
@@ -19,7 +20,7 @@ export const useTestimonials = () => {
 
   const createMutation = useMutation({
     mutationFn: testimonialsApi.createTestimonial,
-    onSuccess: (newTestimonial) => {
+    onSuccess: (newTestimonial: Testimonial) => {
       queryClient.invalidateQueries({ queryKey: ['testimonials'] });
       toast.success('Depoimento criado com sucesso!');
 
@@ -45,7 +46,7 @@ export const useTestimonials = () => {
   const updateMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<TestimonialFormData> }) =>
       testimonialsApi.updateTestimonial(id, data),
-    onSuccess: (updatedTestimonial) => {
+    onSuccess: (updatedTestimonial: Testimonial) => {
       queryClient.invalidateQueries({ queryKey: ['testimonials'] });
       toast.success('Depoimento atualizado com sucesso!');
 
@@ -87,10 +88,10 @@ export const useTestimonials = () => {
     isLoading,
     error,
     refetch,
-    createTestimonial: async (data: TestimonialFormData): Promise<TestimonialData> => {
+    createTestimonial: async (data: TestimonialFormData): Promise<Testimonial> => {
       return await createMutation.mutateAsync(data);
     },
-    updateTestimonial: async (id: string, data: Partial<TestimonialFormData>): Promise<TestimonialData> => {
+    updateTestimonial: async (id: string, data: Partial<TestimonialFormData>): Promise<Testimonial> => {
       return await updateMutation.mutateAsync({ id, data });
     },
     deleteTestimonial: async (id: string): Promise<void> => {

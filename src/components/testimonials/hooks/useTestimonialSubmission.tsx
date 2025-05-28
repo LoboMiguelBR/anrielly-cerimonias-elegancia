@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { testimonialsApi } from '@/components/admin/hooks/testimonials/testimonialsApi';
@@ -23,8 +24,9 @@ const useTestimonialSubmission = () => {
       await testimonialsApi.createTestimonial({
         name,
         email,
-        message,
-        approved: false
+        role: '',
+        quote: message,
+        status: 'pending'
       });
 
       // Send notification

@@ -2,7 +2,8 @@
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Plus } from 'lucide-react';
-import { useTestimonials, Testimonial } from '../hooks/useTestimonials';
+import { useTestimonials } from '../hooks/testimonials/useTestimonials';
+import { Testimonial } from '../hooks/testimonials/types';
 import TestimonialCard from '../testimonials/TestimonialCard';
 import AddTestimonialDialog from '../testimonials/AddTestimonialDialog';
 import EditTestimonialDialog from '../testimonials/EditTestimonialDialog';
@@ -13,14 +14,15 @@ const TestimonialsTab = () => {
   const {
     testimonials,
     isLoading,
-    isSubmitting,
-    activeFilter,
-    setActiveFilter,
-    addTestimonial,
+    isCreating,
+    isUpdating,
+    isDeleting,
+    createTestimonial,
     updateTestimonial,
-    updateTestimonialStatus,
     deleteTestimonial
   } = useTestimonials();
+
+  const [activeFilter, setActiveFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
   
   // Add dialog state
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -32,7 +34,15 @@ const TestimonialsTab = () => {
   // Delete confirmation dialog state
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [testimonialToDelete, setTestimonialToDelete] = useState<Testimonial | null>(null);
-  
+
+  // Filter testimonials based on active filter
+  const filteredTestimonials = Array.isArray(testimonials) 
+    ? testimonials.filter(testimonial => {
+        if (activeFilter === 'all') return true;
+        return testimonial.status === activeFilter;
+      })
+    : [];
+
   const handleEditTestimonial = (testimonial: Testimonial) => {
     setCurrentTestimonial(testimonial);
     setShowEditDialog(true);
@@ -45,13 +55,76 @@ const TestimonialsTab = () => {
 
   const handleDeleteConfirm = async () => {
     if (!testimonialToDelete) return false;
-    const success = await deleteTestimonial(testimonialToDelete);
-    return success;
+    try {
+      await deleteTestimonial(testimonialToDelete.id);
+      setTestimonialToDelete(null);
+      setShowDeleteDialog(false);
+      return true;
+    } catch (error) {
+      console.error('Error deleting testimonial:', error);
+      return false;
+    }
   };
 
   const handleUpdateStatus = async (testimonial: Testimonial, newStatus: 'pending' | 'approved' | 'rejected') => {
-    await updateTestimonialStatus(testimonial, newStatus);
+    try {
+      await updateTestimonial(testimonial.id, { status: newStatus });
+    } catch (error) {
+      console.error('Error updating testimonial status:', error);
+    }
   };
+
+  const handleAddTestimonial = async (formData: { name: string; role: string; quote: string; email: string }, uploadImage: File | null) => {
+    try {
+      // Handle image upload if needed (you may want to implement this)
+      let imageUrl = null;
+      // if (uploadImage) {
+      //   imageUrl = await uploadTestimonialImage(uploadImage);
+      // }
+
+      await createTestimonial({
+        name: formData.name,
+        email: formData.email,
+        role: formData.role,
+        quote: formData.quote,
+        image_url: imageUrl,
+        status: 'pending'
+      });
+
+      setShowAddDialog(false);
+      return true;
+    } catch (error) {
+      console.error('Error adding testimonial:', error);
+      return false;
+    }
+  };
+
+  const handleUpdateTestimonial = async (testimonial: Testimonial, formData: { name: string; role: string; quote: string; email: string }, uploadImage: File | null) => {
+    try {
+      // Handle image upload if needed
+      let imageUrl = testimonial.image_url;
+      // if (uploadImage) {
+      //   imageUrl = await uploadTestimonialImage(uploadImage);
+      // }
+
+      await updateTestimonial(testimonial.id, {
+        name: formData.name,
+        email: formData.email,
+        role: formData.role,
+        quote: formData.quote,
+        image_url: imageUrl
+      });
+
+      setShowEditDialog(false);
+      setCurrentTestimonial(null);
+      return true;
+    } catch (error) {
+      console.error('Error updating testimonial:', error);
+      return false;
+    }
+  };
+
+  const isSubmitting = isCreating || isUpdating || isDeleting;
 
   return (
     <div className="p-6 bg-white rounded-lg shadow-sm">
@@ -80,7 +153,7 @@ const TestimonialsTab = () => {
       
       {isLoading ? (
         <div className="p-12 text-center">Carregando depoimentos...</div>
-      ) : testimonials.length === 0 ? (
+      ) : filteredTestimonials.length === 0 ? (
         <div className="p-12 text-center border-2 border-dashed rounded-lg">
           {activeFilter === 'all' ? (
             <>
@@ -99,7 +172,7 @@ const TestimonialsTab = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {testimonials.map((testimonial) => (
+          {filteredTestimonials.map((testimonial) => (
             <TestimonialCard
               key={testimonial.id}
               testimonial={testimonial}
@@ -116,7 +189,7 @@ const TestimonialsTab = () => {
         isOpen={showAddDialog}
         isSubmitting={isSubmitting}
         onClose={() => setShowAddDialog(false)}
-        onSubmit={addTestimonial}
+        onSubmit={handleAddTestimonial}
       />
       
       {/* Edit Testimonial Dialog */}
@@ -125,7 +198,7 @@ const TestimonialsTab = () => {
         isSubmitting={isSubmitting}
         testimonial={currentTestimonial}
         onClose={() => setShowEditDialog(false)}
-        onSubmit={updateTestimonial}
+        onSubmit={handleUpdateTestimonial}
       />
       
       {/* Delete Confirmation Dialog */}
