@@ -114,6 +114,14 @@ export const templatesMenuItems: MenuItem[] = [
   }
 ];
 
+export const menuSections = [
+  { title: "Dashboard", items: dashboardMenuItems },
+  { title: "Negócio", items: businessMenuItems },
+  { title: "Conteúdo", items: contentMenuItems },
+  { title: "Gestão", items: managementMenuItems },
+  { title: "Templates", items: templatesMenuItems }
+];
+
 export const getAllMenuItems = (): MenuItem[] => {
   return [
     ...dashboardMenuItems,

@@ -5,7 +5,7 @@ export type ContractStatus =
   | 'signed'    // Assinado
   | 'cancelled' // Cancelado
   | 'expired'   // Expirado
-  | 'pending';  // Pendente (added missing status)
+  | 'pending';  // Pendente
 
 export interface ContractData {
   id: string;
@@ -113,6 +113,17 @@ export interface SignatureCanvasProps {
   onSignatureChange: (signature: string) => void;
   hasDrawnSignature: boolean;
   onHasDrawnSignatureChange: (hasDrawn: boolean) => void;
+}
+
+export interface ContractSignatureSectionProps {
+  contract: ContractData;
+  onSignatureChange: (signature: string) => void;
+  hasDrawnSignature: boolean;
+  onHasDrawnSignatureChange: (hasDrawn: boolean) => void;
+  isSubmitting: boolean;
+  errorMessage: string;
+  successMessage: string;
+  onSubmit: () => Promise<void>;
 }
 
 export const CIVIL_STATUS_OPTIONS = [

@@ -22,7 +22,7 @@ const TabContentRenderer = ({ transformedQuoteRequests }: TabContentRendererProp
   return (
     <>
       <TabsContent value="dashboard">
-        <DashboardTab />
+        <DashboardTab quoteRequests={transformedQuoteRequests} />
       </TabsContent>
 
       <TabsContent value="quotes">

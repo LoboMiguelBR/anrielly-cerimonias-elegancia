@@ -21,6 +21,7 @@ interface QuestionarioCompleto {
   status: string;
   respostas_json: Record<string, string>;
   total_perguntas_resp: number;
+  historia_gerada?: string;
 }
 
 interface HistoriaCasal {
@@ -57,7 +58,8 @@ const HistoriasCasaisManager = () => {
           email: item.email,
           status: item.status || 'rascunho',
           respostas_json: item.respostas_json as Record<string, string> || {},
-          total_perguntas_resp: item.total_perguntas_resp || 0
+          total_perguntas_resp: item.total_perguntas_resp || 0,
+          historia_gerada: item.historia_gerada || undefined
         });
         return acc;
       }, {});
@@ -67,7 +69,7 @@ const HistoriasCasaisManager = () => {
         // Verificar se ambos questionários estão preenchidos (pelo menos 80% das perguntas)
         const questionariosCompletos = questionarios.filter(q => 
           q.total_perguntas_resp >= 38 && // pelo menos 38 de 48 perguntas
-          q.status === 'preenchido' || q.status === 'concluido'
+          (q.status === 'preenchido' || q.status === 'concluido')
         );
 
         const podeGerar = questionariosCompletos.length >= 2;
