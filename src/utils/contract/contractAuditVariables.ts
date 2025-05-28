@@ -1,5 +1,6 @@
 
 import { ContractData } from '@/components/admin/hooks/contract/types';
+import { getCompanySignatureUrl } from '@/utils/storage/signatureStorage';
 
 /**
  * Gera hash SHA256 do conteúdo do contrato para auditoria
@@ -48,11 +49,15 @@ export const formatDeviceInfo = (userAgent?: string): string => {
 };
 
 /**
- * Gera URL da assinatura padrão da empresa (Anrielly)
+ * Gera URL da assinatura padrão da empresa (Anrielly) do storage seguro
  */
-export const getCompanySignatureUrl = (): string => {
-  // URL da assinatura da Anrielly no storage público
-  return 'https://oampddkpuybkbwqggrty.supabase.co/storage/v1/object/public/proposals/assinatura-anrielly.png';
+export const getSecureCompanySignatureUrl = async (): Promise<string> => {
+  try {
+    return await getCompanySignatureUrl();
+  } catch (error) {
+    console.error('Erro ao obter assinatura da empresa:', error);
+    return '/placeholder.svg';
+  }
 };
 
 /**
@@ -63,14 +68,22 @@ export const formatClientSignature = (signatureData?: any): string => {
     return '<span style="color: #666; font-style: italic;">Aguardando assinatura</span>';
   }
   
-  // Se a assinatura é uma URL de imagem
-  if (typeof signatureData.signature === 'string' && signatureData.signature.startsWith('data:image')) {
-    return `<img src="${signatureData.signature}" alt="Assinatura do Cliente" style="max-width: 200px; max-height: 80px; border: 1px solid #ddd; padding: 5px;" />`;
-  }
-  
-  // Se é uma URL externa
-  if (typeof signatureData.signature === 'string' && signatureData.signature.startsWith('http')) {
-    return `<img src="${signatureData.signature}" alt="Assinatura do Cliente" style="max-width: 200px; max-height: 80px; border: 1px solid #ddd; padding: 5px;" />`;
+  // Se a assinatura é uma URL de storage
+  if (typeof signatureData.signature === 'string') {
+    // Verificar se é URL do storage do Supabase
+    if (signatureData.signature.includes('supabase.co/storage/v1/object/public/signatures/')) {
+      return `<img src="${signatureData.signature}" alt="Assinatura do Cliente" style="max-width: 200px; max-height: 80px; border: 1px solid #ddd; padding: 5px; background: white;" />`;
+    }
+    
+    // Se é uma URL de imagem base64
+    if (signatureData.signature.startsWith('data:image')) {
+      return `<img src="${signatureData.signature}" alt="Assinatura do Cliente" style="max-width: 200px; max-height: 80px; border: 1px solid #ddd; padding: 5px; background: white;" />`;
+    }
+    
+    // Se é uma URL externa
+    if (signatureData.signature.startsWith('http')) {
+      return `<img src="${signatureData.signature}" alt="Assinatura do Cliente" style="max-width: 200px; max-height: 80px; border: 1px solid #ddd; padding: 5px; background: white;" />`;
+    }
   }
   
   return '<span style="color: #666; font-style: italic;">Assinatura inválida</span>';
@@ -79,14 +92,28 @@ export const formatClientSignature = (signatureData?: any): string => {
 /**
  * Formata a assinatura da empresa para exibição
  */
-export const formatCompanySignature = (): string => {
-  const signatureUrl = getCompanySignatureUrl();
-  return `<div style="text-align: center; margin: 10px 0;">
-    <img src="${signatureUrl}" alt="Assinatura Anrielly Gomes" style="max-width: 200px; max-height: 80px;" />
-    <div style="border-top: 1px solid #000; margin-top: 5px; padding-top: 5px; font-size: 14px;">
-      <strong>Anrielly Gomes</strong><br>
-      Mestre de Cerimônia<br>
-      CNPJ: [CNPJ da empresa]
-    </div>
-  </div>`;
+export const formatCompanySignature = async (): Promise<string> => {
+  try {
+    const signatureUrl = await getSecureCompanySignatureUrl();
+    return `<div style="text-align: center; margin: 10px 0;">
+      <img src="${signatureUrl}" alt="Assinatura Anrielly Gomes" style="max-width: 200px; max-height: 80px; background: white;" onerror="this.style.display='none'" />
+      <div style="border-top: 1px solid #000; margin-top: 5px; padding-top: 5px; font-size: 14px;">
+        <strong>Anrielly Gomes</strong><br>
+        Mestre de Cerimônia<br>
+        CNPJ: [CNPJ da empresa]
+      </div>
+    </div>`;
+  } catch (error) {
+    console.error('Erro ao formatar assinatura da empresa:', error);
+    return `<div style="text-align: center; margin: 10px 0;">
+      <div style="border: 1px solid #ddd; padding: 20px; color: #666; font-style: italic;">
+        Assinatura da empresa não disponível
+      </div>
+      <div style="border-top: 1px solid #000; margin-top: 5px; padding-top: 5px; font-size: 14px;">
+        <strong>Anrielly Gomes</strong><br>
+        Mestre de Cerimônia<br>
+        CNPJ: [CNPJ da empresa]
+      </div>
+    </div>`;
+  }
 };

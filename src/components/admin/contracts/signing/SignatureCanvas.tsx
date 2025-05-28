@@ -2,22 +2,31 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Trash2, PenTool } from 'lucide-react';
+import { Trash2, PenTool, Save, CheckCircle } from 'lucide-react';
+import { toast } from 'sonner';
+import { saveSignatureToStorage } from '@/utils/storage/signatureStorage';
 
 interface SignatureCanvasProps {
   onSignatureChange: (signature: string) => void;
+  onSignatureUrlChange: (url: string) => void;
   hasDrawnSignature: boolean;
   onHasDrawnSignatureChange: (hasDrawn: boolean) => void;
+  contractId?: string;
 }
 
 const SignatureCanvas: React.FC<SignatureCanvasProps> = ({
   onSignatureChange,
+  onSignatureUrlChange,
   hasDrawnSignature,
-  onHasDrawnSignatureChange
+  onHasDrawnSignatureChange,
+  contractId
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [lastPoint, setLastPoint] = useState<{ x: number; y: number } | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [signatureSaved, setSignatureSaved] = useState(false);
+  const [savedSignatureUrl, setSavedSignatureUrl] = useState<string>('');
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -62,6 +71,12 @@ const SignatureCanvas: React.FC<SignatureCanvasProps> = ({
     setIsDrawing(true);
     const pos = getEventPos(e);
     setLastPoint(pos);
+    
+    // Reset saved state when user starts drawing again
+    if (signatureSaved) {
+      setSignatureSaved(false);
+      setSavedSignatureUrl('');
+    }
   };
 
   const draw = (e: React.MouseEvent | React.TouchEvent) => {
@@ -110,6 +125,34 @@ const SignatureCanvas: React.FC<SignatureCanvasProps> = ({
     
     onSignatureChange('');
     onHasDrawnSignatureChange(false);
+    setSignatureSaved(false);
+    setSavedSignatureUrl('');
+    onSignatureUrlChange('');
+  };
+
+  const saveSignature = async () => {
+    const canvas = canvasRef.current;
+    if (!canvas || !hasDrawnSignature) {
+      toast.error('Desenhe uma assinatura primeiro');
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const signature = canvas.toDataURL();
+      const url = await saveSignatureToStorage(signature, contractId);
+      
+      setSavedSignatureUrl(url);
+      setSignatureSaved(true);
+      onSignatureUrlChange(url);
+      
+      toast.success('Assinatura salva com sucesso!');
+    } catch (error) {
+      console.error('Erro ao salvar assinatura:', error);
+      toast.error('Erro ao salvar assinatura');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -120,16 +163,41 @@ const SignatureCanvas: React.FC<SignatureCanvasProps> = ({
             <PenTool className="h-4 w-4" />
             <span>Desenhe sua assinatura abaixo</span>
           </div>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={clearSignature}
-            className="flex items-center gap-2"
-          >
-            <Trash2 className="h-4 w-4" />
-            Limpar
-          </Button>
+          <div className="flex gap-2">
+            {hasDrawnSignature && !signatureSaved && (
+              <Button
+                type="button"
+                variant="default"
+                size="sm"
+                onClick={saveSignature}
+                disabled={isSaving}
+                className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
+              >
+                {isSaving ? (
+                  <>
+                    <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
+                    Salvando...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4" />
+                    Salvar Assinatura
+                  </>
+                )}
+              </Button>
+            )}
+            
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={clearSignature}
+              className="flex items-center gap-2"
+            >
+              <Trash2 className="h-4 w-4" />
+              Limpar
+            </Button>
+          </div>
         </div>
         
         <div className="border-2 border-gray-300 border-dashed rounded-lg bg-gray-50">
@@ -146,7 +214,26 @@ const SignatureCanvas: React.FC<SignatureCanvasProps> = ({
           />
         </div>
         
-        {!hasDrawnSignature && (
+        {signatureSaved && savedSignatureUrl && (
+          <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+            <div className="flex items-center gap-2 text-green-700 mb-2">
+              <CheckCircle className="h-4 w-4" />
+              <span className="text-sm font-medium">Assinatura salva com sucesso!</span>
+            </div>
+            <div className="flex items-center justify-center bg-white border rounded p-2">
+              <img 
+                src={savedSignatureUrl} 
+                alt="Assinatura salva" 
+                className="max-h-16 max-w-full object-contain"
+                onError={() => {
+                  console.error('Erro ao carregar preview da assinatura salva');
+                }}
+              />
+            </div>
+          </div>
+        )}
+        
+        {!hasDrawnSignature && !signatureSaved && (
           <p className="text-xs text-gray-500 text-center">
             Clique e arraste ou toque e deslize para assinar
           </p>

@@ -9,6 +9,8 @@ interface ContractSignatureSectionProps {
   contract: ContractData;
   signature: string;
   onSignatureChange: (signature: string) => void;
+  signatureUrl: string;
+  onSignatureUrlChange: (url: string) => void;
   hasDrawnSignature: boolean;
   onHasDrawnSignatureChange: (hasDrawn: boolean) => void;
   clientName: string;
@@ -23,6 +25,8 @@ const ContractSignatureSection: React.FC<ContractSignatureSectionProps> = ({
   contract,
   signature,
   onSignatureChange,
+  signatureUrl,
+  onSignatureUrlChange,
   hasDrawnSignature,
   onHasDrawnSignatureChange,
   clientName,
@@ -46,6 +50,8 @@ const ContractSignatureSection: React.FC<ContractSignatureSectionProps> = ({
           contract={contract}
           signature={signature}
           onSignatureChange={onSignatureChange}
+          signatureUrl={signatureUrl}
+          onSignatureUrlChange={onSignatureUrlChange}
           hasDrawnSignature={hasDrawnSignature}
           onHasDrawnSignatureChange={onHasDrawnSignatureChange}
           clientName={clientName}

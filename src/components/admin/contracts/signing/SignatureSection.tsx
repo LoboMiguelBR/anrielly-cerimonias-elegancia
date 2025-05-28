@@ -14,6 +14,8 @@ interface SignatureSectionProps {
   contract: ContractData;
   signature: string;
   onSignatureChange: (signature: string) => void;
+  signatureUrl: string;
+  onSignatureUrlChange: (url: string) => void;
   hasDrawnSignature: boolean;
   onHasDrawnSignatureChange: (hasDrawn: boolean) => void;
   clientName: string;
@@ -28,6 +30,8 @@ const SignatureSection: React.FC<SignatureSectionProps> = ({
   contract,
   signature,
   onSignatureChange,
+  signatureUrl,
+  onSignatureUrlChange,
   hasDrawnSignature,
   onHasDrawnSignatureChange,
   clientName,
@@ -38,6 +42,7 @@ const SignatureSection: React.FC<SignatureSectionProps> = ({
   onSubmit
 }) => {
   const isAlreadySigned = contract.status === 'signed';
+  const canSign = hasDrawnSignature && signatureUrl && clientName.trim() && clientEmail.trim();
 
   if (isAlreadySigned) {
     return (
@@ -106,18 +111,33 @@ const SignatureSection: React.FC<SignatureSectionProps> = ({
           <div className="relative">
             <SignatureCanvas
               onSignatureChange={onSignatureChange}
+              onSignatureUrlChange={onSignatureUrlChange}
               hasDrawnSignature={hasDrawnSignature}
               onHasDrawnSignatureChange={onHasDrawnSignatureChange}
+              contractId={contract.id}
             />
           </div>
         </div>
+
+        {/* Validation Message */}
+        {hasDrawnSignature && !signatureUrl && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+            <p className="text-sm text-yellow-700">
+              ⚠️ Por favor, clique em "Salvar Assinatura" antes de assinar o contrato
+            </p>
+          </div>
+        )}
 
         {/* Action Button - Fixed at bottom on mobile */}
         <div className="sticky bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 -mx-6 -mb-6 mt-6 sm:static sm:border-0 sm:p-0 sm:m-0 z-10">
           <Button
             onClick={onSubmit}
-            disabled={!hasDrawnSignature || !clientName.trim() || !clientEmail.trim() || isSubmitting}
-            className="w-full h-12 sm:h-10 text-base sm:text-sm bg-rose-600 hover:bg-rose-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={!canSign || isSubmitting}
+            className={`w-full h-12 sm:h-10 text-base sm:text-sm transition-all ${
+              canSign 
+                ? 'bg-rose-600 hover:bg-rose-700' 
+                : 'bg-gray-400 cursor-not-allowed'
+            }`}
           >
             {isSubmitting ? (
               <>
@@ -128,6 +148,16 @@ const SignatureSection: React.FC<SignatureSectionProps> = ({
               'Assinar Contrato'
             )}
           </Button>
+          
+          {!canSign && (
+            <p className="text-xs text-gray-500 text-center mt-2">
+              {!hasDrawnSignature 
+                ? 'Desenhe sua assinatura' 
+                : !signatureUrl 
+                ? 'Salve sua assinatura' 
+                : 'Preencha todos os campos'}
+            </p>
+          )}
         </div>
       </CardContent>
     </Card>

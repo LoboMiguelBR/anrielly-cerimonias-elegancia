@@ -7,13 +7,14 @@ import { ContractData } from '@/components/admin/hooks/contract/types';
 export const useContractSigning = (contract: ContractData | null, setContract: (contract: ContractData) => void) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [signature, setSignature] = useState('');
+  const [signatureUrl, setSignatureUrl] = useState('');
   const [hasDrawnSignature, setHasDrawnSignature] = useState(false);
   const [clientName, setClientName] = useState(contract?.client_name || '');
   const [clientEmail, setClientEmail] = useState(contract?.client_email || '');
 
   const handleSignContract = async () => {
-    if (!contract || !signature || !hasDrawnSignature) {
-      toast.error('Por favor, assine o contrato antes de continuar');
+    if (!contract || !signature || !hasDrawnSignature || !signatureUrl) {
+      toast.error('Por favor, desenhe e salve sua assinatura antes de continuar');
       return;
     }
 
@@ -37,7 +38,7 @@ export const useContractSigning = (contract: ContractData | null, setContract: (
 
       // Dados completos de auditoria
       const auditData = {
-        signature,
+        signature: signatureUrl, // Usar URL da assinatura salva
         signed_at: signedAt,
         signer_ip: ip,
         user_agent: userAgent,
@@ -51,13 +52,14 @@ export const useContractSigning = (contract: ContractData | null, setContract: (
         ip,
         userAgent: userAgent.substring(0, 50) + '...',
         signedAt,
-        hasSignature: !!signature
+        hasSignature: !!signatureUrl,
+        signatureUrl: signatureUrl.substring(0, 50) + '...'
       });
 
       const { error } = await supabase.functions.invoke('contract-signed', {
         body: {
           contractId: contract.id,
-          signature,
+          signature: signatureUrl,
           clientName,
           clientEmail,
           ipAddress: ip,
@@ -94,6 +96,8 @@ export const useContractSigning = (contract: ContractData | null, setContract: (
     isSubmitting,
     signature,
     setSignature,
+    signatureUrl,
+    setSignatureUrl,
     hasDrawnSignature,
     setHasDrawnSignature,
     clientName,
