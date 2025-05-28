@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,7 @@ import { ContractData } from '../../hooks/contract/types';
 import ContractStatusBadge from '../ContractStatusBadge';
 import SignatureCanvas from './SignatureCanvas';
 import { combineHtmlWithCss, replaceContractVariables } from '@/utils/contractTemplateUtils';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ContractSignatureSectionProps {
   contract: ContractData;
@@ -39,7 +40,36 @@ const ContractSignatureSection: React.FC<ContractSignatureSectionProps> = ({
   isSubmitting,
   onSubmit
 }) => {
+  const [templateCss, setTemplateCss] = useState<string>('');
   const isAlreadySigned = contract.status === 'signed';
+
+  // Buscar CSS do template se não estiver disponível no contrato
+  useEffect(() => {
+    const fetchTemplateCss = async () => {
+      if (contract.css_content) {
+        setTemplateCss(contract.css_content);
+        return;
+      }
+
+      if (contract.template_id) {
+        try {
+          const { data, error } = await supabase
+            .from('contract_templates')
+            .select('css_content')
+            .eq('id', contract.template_id)
+            .single();
+
+          if (!error && data?.css_content) {
+            setTemplateCss(data.css_content);
+          }
+        } catch (error) {
+          console.error('Error fetching template CSS:', error);
+        }
+      }
+    };
+
+    fetchTemplateCss();
+  }, [contract.css_content, contract.template_id]);
 
   // Combinar HTML com CSS do template
   const renderContractContent = () => {
@@ -47,8 +77,8 @@ const ContractSignatureSection: React.FC<ContractSignatureSectionProps> = ({
     
     let processedContent = replaceContractVariables(contract.html_content, contract);
     
-    if (contract.css_content) {
-      processedContent = combineHtmlWithCss(processedContent, contract.css_content);
+    if (templateCss) {
+      processedContent = combineHtmlWithCss(processedContent, templateCss);
     }
     
     return processedContent;

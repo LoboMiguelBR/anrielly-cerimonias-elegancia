@@ -29,6 +29,7 @@ export interface ContractData {
   remaining_payment_date?: string;
   template_id?: string;
   html_content?: string;
+  css_content?: string; // Adicionado campo CSS
   pdf_url?: string;
   notes?: string;
   status: ContractStatus;
