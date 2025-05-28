@@ -1,10 +1,21 @@
+
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { ProposalFormData, ProposalData, QuoteRequest } from './types';
 import { defaultFormData } from './constants';
 import { fetchProposal, saveProposal, deleteProposal, sendProposalByEmail, savePdfUrl } from './proposalApi';
-import { ProposalTemplateData } from '../../proposals/templates/shared/types';
-import { defaultTemplate } from '../../proposals/templates/shared/templateService';
+import { ProposalTemplateData } from './api/proposalTemplates';
+
+// Template padrão simples
+const defaultTemplate: ProposalTemplateData = {
+  id: 'default',
+  name: 'Template Padrão',
+  description: 'Template padrão para propostas',
+  html_content: '<div class="proposal-content">{{client_name}}</div>',
+  css_content: '.proposal-content { font-family: Arial, sans-serif; }',
+  variables: {},
+  is_default: true
+};
 
 export interface UseProposalFormReturn {
   selectedQuote: string;
@@ -122,7 +133,7 @@ export function useProposalForm(
           client_name: selectedQuoteData.name || '',
           client_email: selectedQuoteData.email || '',
           client_phone: selectedQuoteData.phone || '',
-          event_type: selectedQuoteData.event_type || selectedQuoteData.eventType || '',
+          event_type: selectedQuoteData.event_type || '',
           event_date: selectedQuoteData.event_date || '',
           event_location: selectedQuoteData.event_location || '',
           quote_request_id: selectedQuote,
@@ -158,11 +169,11 @@ export function useProposalForm(
   };
 
   const handleCustomServiceAdd = () => {
-    if (formData.customService.trim() === "") return;
+    if (!formData.customService || formData.customService.trim() === "") return;
     
     setFormData({
       ...formData,
-      services: [...formData.services, { name: formData.customService, included: true }],
+      services: [...formData.services, { name: formData.customService, included: true, price: 0 }],
       customService: "",
     });
   };

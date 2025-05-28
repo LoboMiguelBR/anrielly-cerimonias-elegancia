@@ -1,6 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import type { Json } from '@/integrations/supabase/types';
 
 export interface ProposalTemplateData {
   id: string;
@@ -32,6 +33,15 @@ export interface UpdateProposalTemplateData {
   is_default?: boolean;
 }
 
+// Função helper para converter Json do Supabase para Record<string, any>
+const convertJsonToRecord = (jsonData: Json | null): Record<string, any> => {
+  if (!jsonData) return {};
+  if (typeof jsonData === 'object' && jsonData !== null && !Array.isArray(jsonData)) {
+    return jsonData as Record<string, any>;
+  }
+  return {};
+};
+
 // Fetch all proposal templates
 export const fetchProposalTemplates = async (): Promise<ProposalTemplateData[]> => {
   try {
@@ -41,7 +51,18 @@ export const fetchProposalTemplates = async (): Promise<ProposalTemplateData[]> 
       .order('created_at', { ascending: false });
       
     if (error) throw error;
-    return data || [];
+    
+    return (data || []).map(template => ({
+      id: template.id,
+      name: template.name,
+      description: template.description || '',
+      html_content: template.html_content,
+      css_content: template.css_content || '',
+      variables: convertJsonToRecord(template.variables),
+      is_default: template.is_default || false,
+      created_at: template.created_at,
+      updated_at: template.updated_at
+    }));
   } catch (error: any) {
     console.error('Error fetching proposal templates:', error);
     toast.error('Erro ao carregar templates de proposta');
@@ -59,7 +80,18 @@ export const fetchProposalTemplateById = async (id: string): Promise<ProposalTem
       .single();
       
     if (error) throw error;
-    return data;
+    
+    return {
+      id: data.id,
+      name: data.name,
+      description: data.description || '',
+      html_content: data.html_content,
+      css_content: data.css_content || '',
+      variables: convertJsonToRecord(data.variables),
+      is_default: data.is_default || false,
+      created_at: data.created_at,
+      updated_at: data.updated_at
+    };
   } catch (error: any) {
     console.error('Error fetching proposal template:', error);
     toast.error('Erro ao carregar template de proposta');
@@ -79,7 +111,18 @@ export const createProposalTemplate = async (templateData: CreateProposalTemplat
     if (error) throw error;
     
     toast.success('Template de proposta criado com sucesso!');
-    return data;
+    
+    return {
+      id: data.id,
+      name: data.name,
+      description: data.description || '',
+      html_content: data.html_content,
+      css_content: data.css_content || '',
+      variables: convertJsonToRecord(data.variables),
+      is_default: data.is_default || false,
+      created_at: data.created_at,
+      updated_at: data.updated_at
+    };
   } catch (error: any) {
     console.error('Error creating proposal template:', error);
     toast.error(`Erro ao criar template: ${error.message}`);
@@ -100,7 +143,18 @@ export const updateProposalTemplate = async (id: string, templateData: UpdatePro
     if (error) throw error;
     
     toast.success('Template de proposta atualizado com sucesso!');
-    return data;
+    
+    return {
+      id: data.id,
+      name: data.name,
+      description: data.description || '',
+      html_content: data.html_content,
+      css_content: data.css_content || '',
+      variables: convertJsonToRecord(data.variables),
+      is_default: data.is_default || false,
+      created_at: data.created_at,
+      updated_at: data.updated_at
+    };
   } catch (error: any) {
     console.error('Error updating proposal template:', error);
     toast.error(`Erro ao atualizar template: ${error.message}`);
@@ -147,10 +201,33 @@ export const getDefaultProposalTemplate = async (): Promise<ProposalTemplateData
         .single();
         
       if (firstError && firstError.code !== 'PGRST116') throw firstError;
-      return firstTemplate;
+      
+      if (!firstTemplate) return null;
+      
+      return {
+        id: firstTemplate.id,
+        name: firstTemplate.name,
+        description: firstTemplate.description || '',
+        html_content: firstTemplate.html_content,
+        css_content: firstTemplate.css_content || '',
+        variables: convertJsonToRecord(firstTemplate.variables),
+        is_default: firstTemplate.is_default || false,
+        created_at: firstTemplate.created_at,
+        updated_at: firstTemplate.updated_at
+      };
     }
     
-    return data;
+    return {
+      id: data.id,
+      name: data.name,
+      description: data.description || '',
+      html_content: data.html_content,
+      css_content: data.css_content || '',
+      variables: convertJsonToRecord(data.variables),
+      is_default: data.is_default || false,
+      created_at: data.created_at,
+      updated_at: data.updated_at
+    };
   } catch (error: any) {
     console.error('Error fetching default proposal template:', error);
     return null;

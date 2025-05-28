@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { proposalTemplatesApi, ProposalTemplateData } from '../api/proposalTemplates';
+import { proposalTemplatesApi, ProposalTemplateData } from '../../hooks/proposal/api/proposalTemplates';
 import { toast } from 'sonner';
 import {
   ProposalTemplateFormFields,

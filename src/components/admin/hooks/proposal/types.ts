@@ -1,10 +1,13 @@
 
+import { z } from 'zod';
+
 export interface Service {
   id?: string;
   name: string;
   description?: string;
   price: number;
   quantity?: number;
+  included?: boolean; // Adicionando a propriedade included que estava faltando
 }
 
 export interface ProposalData {
@@ -47,6 +50,8 @@ export interface QuoteRequest {
   updated_at?: string;
 }
 
-export interface ProposalFormData extends Omit<ProposalData, 'id' | 'created_at'> {
+export interface ProposalFormData extends Omit<ProposalData, 'id' | 'created_at' | 'total_price'> {
   id?: string;
+  total_price: string; // String para facilitar edição no formulário
+  customService?: string; // Adicionando propriedade que estava faltando
 }
