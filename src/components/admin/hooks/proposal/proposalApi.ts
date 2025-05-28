@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { ProposalData, Service } from './types';
 import { Json } from '@/integrations/supabase/types';
@@ -51,22 +52,30 @@ export const saveProposal = async (proposal: Omit<ProposalData, 'id' | 'created_
   try {
     console.log('Saving proposal with template_id:', proposal.template_id);
     
-    // Validate template_id exists in proposal_template_html table if provided
-    if (proposal.template_id) {
+    // Validate and clean template_id
+    let templateId = proposal.template_id;
+    
+    if (templateId) {
+      // Validate template_id exists in proposal_template_html table
       const { data: templateExists, error: templateError } = await supabase
         .from('proposal_template_html')
         .select('id')
-        .eq('id', proposal.template_id)
-        .single();
+        .eq('id', templateId)
+        .maybeSingle();
         
-      if (templateError || !templateExists) {
-        console.warn('Template ID not found in proposal_template_html, setting to null:', proposal.template_id);
-        proposal.template_id = null;
+      if (templateError) {
+        console.warn('Error checking template existence:', templateError);
+        templateId = null;
+      } else if (!templateExists) {
+        console.warn('Template ID not found in proposal_template_html, setting to null:', templateId);
+        templateId = null;
+      } else {
+        console.log('Template validated successfully:', templateId);
       }
     }
     
     // Prepare proposal data
-    const newProposal = {
+    const proposalData = {
       client_name: proposal.client_name,
       client_email: proposal.client_email,
       client_phone: proposal.client_phone,
@@ -79,7 +88,7 @@ export const saveProposal = async (proposal: Omit<ProposalData, 'id' | 'created_
       notes: proposal.notes,
       quote_request_id: proposal.quote_request_id,
       validity_date: proposal.validity_date,
-      template_id: proposal.template_id,
+      template_id: templateId, // Use validated templateId
       status: proposal.status || 'draft',
       html_content: proposal.html_content,
       css_content: proposal.css_content,
@@ -88,11 +97,17 @@ export const saveProposal = async (proposal: Omit<ProposalData, 'id' | 'created_
       public_token: proposal.public_token
     };
 
+    console.log('Final proposal data to save:', {
+      ...proposalData,
+      services: 'services array',
+      template_id: proposalData.template_id
+    });
+
     if (proposal.id) {
       // Update existing proposal
       const { error } = await supabase
         .from('proposals')
-        .update(newProposal)
+        .update(proposalData)
         .eq('id', proposal.id);
         
       if (error) {
@@ -100,12 +115,13 @@ export const saveProposal = async (proposal: Omit<ProposalData, 'id' | 'created_
         throw error;
       }
       
+      console.log('Proposal updated successfully:', proposal.id);
       return proposal.id;
     } else {
       // Create new proposal
       const { data, error } = await supabase
         .from('proposals')
-        .insert([newProposal])
+        .insert([proposalData])
         .select('id');
         
       if (error) {
@@ -113,11 +129,28 @@ export const saveProposal = async (proposal: Omit<ProposalData, 'id' | 'created_
         throw error;
       }
       
-      return data?.[0]?.id || null;
+      const newId = data?.[0]?.id;
+      if (newId) {
+        console.log('Proposal created successfully:', newId);
+        return newId;
+      } else {
+        throw new Error('No ID returned after insert');
+      }
     }
   } catch (error: any) {
     console.error('Error saving proposal:', error);
-    toast.error(`Erro ao salvar proposta: ${error.message}`);
+    
+    // Provide more specific error messages
+    let errorMessage = 'Erro ao salvar proposta';
+    if (error.message?.includes('foreign key')) {
+      errorMessage = 'Erro de referência de template. Verifique se o template selecionado é válido.';
+    } else if (error.message?.includes('null value')) {
+      errorMessage = 'Erro: campos obrigatórios não preenchidos.';
+    } else if (error.message) {
+      errorMessage = `Erro: ${error.message}`;
+    }
+    
+    toast.error(errorMessage);
     return null;
   }
 };
