@@ -1,0 +1,52 @@
+
+{
+  "name": "Anrielly Gomes Cerimonialista",
+  "short_name": "AG Cerimonias",
+  "description": "Tornando seus sonhos realidade com elegância e sofisticação",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fdf2f8",
+  "theme_color": "#e11d48",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/LogoAG_192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/LogoAG_512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Questionário de Noivos",
+      "description": "Acesse o questionário personalizado",
+      "url": "/questionario",
+      "icons": [
+        {
+          "src": "/LogoAG_192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Contato",
+      "description": "Entre em contato conosco",
+      "url": "/#contact",
+      "icons": [
+        {
+          "src": "/LogoAG_192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ],
+  "categories": ["business", "lifestyle", "wedding"],
+  "lang": "pt-BR",
+  "dir": "ltr"
+}

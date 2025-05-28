@@ -53,7 +53,7 @@ const QuestionarioContainer = ({
         isFinalized={questionario?.status === 'concluido'}
       />
 
-      <div className="container mx-auto px-4 max-w-6xl py-4 lg:py-8">
+      <div className={`container mx-auto px-4 max-w-6xl py-4 lg:py-8 ${isMobile ? 'pb-24' : ''}`}>
         <div className={`flex gap-8 ${isMobile ? 'flex-col' : ''}`}>
           {!isMobile && (
             <QuestionarioSidebar

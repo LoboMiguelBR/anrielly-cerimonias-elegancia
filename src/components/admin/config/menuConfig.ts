@@ -6,7 +6,7 @@ import {
   FileText, 
   Image, 
   Star,
-  FileContract,
+  File,
   Mail,
   FileImage,
   UserCheck,
@@ -46,7 +46,7 @@ export const businessMenuItems: MenuItem[] = [
   {
     id: "contracts",
     label: "Contratos",
-    icon: FileContract,
+    icon: File,
     description: "Contratos e assinaturas"
   }
 ];
@@ -103,7 +103,7 @@ export const templatesMenuItems: MenuItem[] = [
   {
     id: "contract-templates",
     label: "Templates Contratos",
-    icon: FileContract,
+    icon: File,
     description: "Templates para contratos"
   },
   {

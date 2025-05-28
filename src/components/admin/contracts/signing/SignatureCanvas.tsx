@@ -1,8 +1,8 @@
 
-import { useRef, useState, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertTriangle } from 'lucide-react';
+import { Card } from "@/components/ui/card";
+import { Trash2, PenTool } from 'lucide-react';
 
 interface SignatureCanvasProps {
   onSignatureChange: (signature: string) => void;
@@ -10,176 +10,149 @@ interface SignatureCanvasProps {
   onHasDrawnSignatureChange: (hasDrawn: boolean) => void;
 }
 
-const SignatureCanvas = ({ 
-  onSignatureChange, 
-  hasDrawnSignature, 
-  onHasDrawnSignatureChange 
-}: SignatureCanvasProps) => {
+const SignatureCanvas: React.FC<SignatureCanvasProps> = ({
+  onSignatureChange,
+  hasDrawnSignature,
+  onHasDrawnSignatureChange
+}) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [lastPoint, setLastPoint] = useState<{ x: number; y: number } | null>(null);
 
-  // Configurar canvas para assinatura com melhor responsividade
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (canvas) {
-      const ctx = canvas.getContext('2d');
-      if (ctx) {
-        // Configurar canvas com alta resolução
-        const rect = canvas.getBoundingClientRect();
-        const scale = window.devicePixelRatio || 1;
-        
-        canvas.width = rect.width * scale;
-        canvas.height = rect.height * scale;
-        
-        ctx.scale(scale, scale);
-        ctx.fillStyle = 'white';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
-        // Melhorar configurações para assinatura mais sensível
-        ctx.strokeStyle = '#000';
-        ctx.lineWidth = 3;
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
-        ctx.imageSmoothingEnabled = true;
-      }
-    }
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Set canvas size
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width * window.devicePixelRatio;
+    canvas.height = rect.height * window.devicePixelRatio;
+    ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+    // Set drawing styles
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    // Clear canvas
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
   }, []);
 
-  const getEventPos = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+  const getEventPos = (e: React.MouseEvent | React.TouchEvent) => {
     const canvas = canvasRef.current;
     if (!canvas) return { x: 0, y: 0 };
-    
+
     const rect = canvas.getBoundingClientRect();
-    const scale = window.devicePixelRatio || 1;
-    
-    if ('touches' in e) {
-      // Touch event
-      const touch = e.touches[0] || e.changedTouches[0];
-      return {
-        x: (touch.clientX - rect.left) * scale,
-        y: (touch.clientY - rect.top) * scale
-      };
-    } else {
-      // Mouse event
-      return {
-        x: (e.clientX - rect.left) * scale,
-        y: (e.clientY - rect.top) * scale
-      };
-    }
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+
+    return {
+      x: clientX - rect.left,
+      y: clientY - rect.top
+    };
   };
 
-  const handleStart = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+  const startDrawing = (e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();
     setIsDrawing(true);
     const pos = getEventPos(e);
     setLastPoint(pos);
-    
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    
-    ctx.beginPath();
-    ctx.moveTo(pos.x, pos.y);
-    onHasDrawnSignatureChange(true);
   };
 
-  const handleMove = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
-    if (!isDrawing || !lastPoint) return;
+  const draw = (e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();
-    
+    if (!isDrawing || !lastPoint) return;
+
     const canvas = canvasRef.current;
-    if (!canvas) return;
-    
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    
-    const pos = getEventPos(e);
-    
-    // Usar quadratic curve para suavizar a linha
-    const midPoint = {
-      x: (lastPoint.x + pos.x) / 2,
-      y: (lastPoint.y + pos.y) / 2
-    };
-    
-    ctx.quadraticCurveTo(lastPoint.x, lastPoint.y, midPoint.x, midPoint.y);
+    const ctx = canvas?.getContext('2d');
+    if (!canvas || !ctx) return;
+
+    const currentPoint = getEventPos(e);
+
+    ctx.beginPath();
+    ctx.moveTo(lastPoint.x, lastPoint.y);
+    ctx.lineTo(currentPoint.x, currentPoint.y);
     ctx.stroke();
+
+    setLastPoint(currentPoint);
     
-    setLastPoint(pos);
+    if (!hasDrawnSignature) {
+      onHasDrawnSignatureChange(true);
+    }
   };
 
-  const handleEnd = () => {
+  const stopDrawing = () => {
+    if (!isDrawing) return;
+    
     setIsDrawing(false);
     setLastPoint(null);
     
+    // Save signature as base64
     const canvas = canvasRef.current;
     if (canvas) {
-      onSignatureChange(canvas.toDataURL());
+      const signature = canvas.toDataURL();
+      onSignatureChange(signature);
     }
   };
 
   const clearSignature = () => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    const ctx = canvas?.getContext('2d');
+    if (!canvas || !ctx) return;
+
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
     
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    
-    const scale = window.devicePixelRatio || 1;
-    ctx.fillStyle = 'white';
-    ctx.fillRect(0, 0, canvas.width / scale, canvas.height / scale);
     onSignatureChange('');
     onHasDrawnSignatureChange(false);
   };
 
   return (
-    <div className="space-y-2">
-      <label className="text-sm font-medium flex items-center gap-2">
-        <span className="text-red-500">*</span>
-        Assinatura Digital (obrigatória - desenhe no campo abaixo):
-      </label>
-      
-      {!hasDrawnSignature && (
-        <Alert>
-          <AlertTriangle className="h-4 w-4" />
-          <AlertDescription>
-            <strong>Assinatura obrigatória:</strong> Por favor, desenhe sua assinatura no campo abaixo. 
-            A assinatura desenhada é obrigatória para conferir validade jurídica ao contrato digital.
-          </AlertDescription>
-        </Alert>
-      )}
-      
-      <div className="border-2 border-gray-300 rounded bg-white touch-none">
-        <canvas
-          ref={canvasRef}
-          className="w-full h-40 cursor-crosshair touch-none"
-          style={{ touchAction: 'none' }}
-          onMouseDown={handleStart}
-          onMouseMove={handleMove}
-          onMouseUp={handleEnd}
-          onMouseLeave={handleEnd}
-          onTouchStart={handleStart}
-          onTouchMove={handleMove}
-          onTouchEnd={handleEnd}
-        />
+    <Card className="p-4">
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            <PenTool className="h-4 w-4" />
+            <span>Desenhe sua assinatura abaixo</span>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={clearSignature}
+            className="flex items-center gap-2"
+          >
+            <Trash2 className="h-4 w-4" />
+            Limpar
+          </Button>
+        </div>
+        
+        <div className="border-2 border-gray-300 border-dashed rounded-lg bg-gray-50">
+          <canvas
+            ref={canvasRef}
+            className="w-full h-32 md:h-40 cursor-crosshair touch-none"
+            onMouseDown={startDrawing}
+            onMouseMove={draw}
+            onMouseUp={stopDrawing}
+            onMouseLeave={stopDrawing}
+            onTouchStart={startDrawing}
+            onTouchMove={draw}
+            onTouchEnd={stopDrawing}
+          />
+        </div>
+        
+        {!hasDrawnSignature && (
+          <p className="text-xs text-gray-500 text-center">
+            Clique e arraste ou toque e deslize para assinar
+          </p>
+        )}
       </div>
-      
-      <div className="flex gap-2">
-        <Button 
-          type="button" 
-          variant="outline" 
-          size="sm"
-          onClick={clearSignature}
-        >
-          Limpar Assinatura
-        </Button>
-        <span className="text-xs text-gray-500 flex items-center">
-          A assinatura será registrada com timestamp e IP para validade jurídica
-        </span>
-      </div>
-    </div>
+    </Card>
   );
 };
 
