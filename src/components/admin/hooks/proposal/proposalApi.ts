@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { ProposalData, Service } from './types';
 import { Json } from '@/integrations/supabase/types';
@@ -23,7 +24,6 @@ export const fetchProposal = async (id: string): Promise<ProposalData | null> =>
       event_type: data.event_type,
       event_date: data.event_date,
       event_location: data.event_location,
-      // Add explicit type casting for services
       services: (data.services as unknown) as Service[],
       total_price: data.total_price,
       payment_terms: data.payment_terms,
@@ -33,7 +33,13 @@ export const fetchProposal = async (id: string): Promise<ProposalData | null> =>
       created_at: data.created_at,
       template_id: data.template_id || null,
       status: data.status,
-      pdf_url: data.pdf_url
+      pdf_url: data.pdf_url,
+      html_content: data.html_content,
+      css_content: data.css_content,
+      version: data.version || 1,
+      version_timestamp: data.version_timestamp,
+      public_slug: data.public_slug,
+      public_token: data.public_token
     };
   } catch (error) {
     console.error('Error fetching proposal:', error);
@@ -45,41 +51,6 @@ export const fetchProposal = async (id: string): Promise<ProposalData | null> =>
 export const saveProposal = async (proposal: Omit<ProposalData, 'id' | 'created_at'> & { id?: string }): Promise<string | null> => {
   try {
     console.log('Saving proposal with template_id:', proposal.template_id);
-    
-    // Check if the template_id is from an HTML template (not a valid reference for proposal_templates table)
-    // HTML template IDs should not be stored directly in the template_id field to avoid foreign key constraint errors
-    // We can identify HTML templates by checking if they exist in the 'proposal_template_html' table
-    let templateId = null;
-    
-    // Only set templateId if it's a valid reference for the proposal_templates table
-    // For HTML templates, we'll keep it null to avoid the foreign key constraint error
-    if (proposal.template_id && 
-        proposal.template_id !== '' && 
-        proposal.template_id !== 'default') {
-      
-      // First check if this ID exists in the proposal_template_html table
-      const { data: htmlTemplate, error: htmlCheckError } = await supabase
-        .from('proposal_template_html')
-        .select('id')
-        .eq('id', proposal.template_id)
-        .maybeSingle();
-      
-      if (htmlCheckError) {
-        console.error('Error checking if template is HTML:', htmlCheckError);
-      }
-      
-      // If it's not an HTML template, then we can use it as a template_id reference
-      if (!htmlTemplate) {
-        templateId = proposal.template_id;
-      } else {
-        // It's an HTML template - we need to set template_id to null to avoid the foreign key constraint
-        // The actual HTML template ID is preserved in the client-side state for rendering
-        console.log('HTML template detected, setting database templateId to null');
-        templateId = null;
-      }
-    }
-    
-    console.log('Final templateId value for database:', templateId);
     
     // Prepare proposal data
     const newProposal = {
@@ -95,8 +66,13 @@ export const saveProposal = async (proposal: Omit<ProposalData, 'id' | 'created_
       notes: proposal.notes,
       quote_request_id: proposal.quote_request_id,
       validity_date: proposal.validity_date,
-      template_id: templateId, // We now use our carefully prepared templateId value
+      template_id: proposal.template_id,
       status: proposal.status || 'draft',
+      html_content: proposal.html_content,
+      css_content: proposal.css_content,
+      version: proposal.version || 1,
+      public_slug: proposal.public_slug,
+      public_token: proposal.public_token
     };
 
     if (proposal.id) {
@@ -149,15 +125,34 @@ export const deleteProposal = async (id: string): Promise<boolean> => {
   }
 };
 
-// Send a proposal by email - Stub function, will be implemented later
+// Send a proposal by email
 export const sendProposalByEmail = async (proposal: ProposalData): Promise<boolean> => {
   try {
     console.log('Sending proposal by email:', proposal.id, 'to', proposal.client_email);
-    toast.success(`Email enviado para ${proposal.client_email}`);
-    // Implementation would go here - for now just return success
+    
+    // Call the email edge function
+    const response = await fetch('/api/send-proposal-email', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        proposal,
+        to: proposal.client_email,
+        name: proposal.client_name,
+        tipo: 'proposta-envio'
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to send email');
+    }
+
+    toast.success(`Proposta enviada para ${proposal.client_email}`);
     return true;
   } catch (error) {
     console.error('Error sending proposal by email:', error);
+    toast.error('Erro ao enviar proposta por email');
     return false;
   }
 };

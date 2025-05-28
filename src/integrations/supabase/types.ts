@@ -397,13 +397,17 @@ export type Database = {
           client_name: string
           client_phone: string
           created_at: string
+          css_content: string | null
           event_date: string | null
           event_location: string
           event_type: string
+          html_content: string | null
           id: string
           notes: string | null
           payment_terms: string
           pdf_url: string | null
+          public_slug: string | null
+          public_token: string | null
           quote_request_id: string | null
           services: Json
           status: string | null
@@ -411,19 +415,25 @@ export type Database = {
           total_price: number
           updated_at: string
           validity_date: string
+          version: number | null
+          version_timestamp: string | null
         }
         Insert: {
           client_email: string
           client_name: string
           client_phone: string
           created_at?: string
+          css_content?: string | null
           event_date?: string | null
           event_location: string
           event_type: string
+          html_content?: string | null
           id?: string
           notes?: string | null
           payment_terms: string
           pdf_url?: string | null
+          public_slug?: string | null
+          public_token?: string | null
           quote_request_id?: string | null
           services?: Json
           status?: string | null
@@ -431,19 +441,25 @@ export type Database = {
           total_price: number
           updated_at?: string
           validity_date: string
+          version?: number | null
+          version_timestamp?: string | null
         }
         Update: {
           client_email?: string
           client_name?: string
           client_phone?: string
           created_at?: string
+          css_content?: string | null
           event_date?: string | null
           event_location?: string
           event_type?: string
+          html_content?: string | null
           id?: string
           notes?: string | null
           payment_terms?: string
           pdf_url?: string | null
+          public_slug?: string | null
+          public_token?: string | null
           quote_request_id?: string | null
           services?: Json
           status?: string | null
@@ -451,6 +467,8 @@ export type Database = {
           total_price?: number
           updated_at?: string
           validity_date?: string
+          version?: number | null
+          version_timestamp?: string | null
         }
         Relationships: [
           {
