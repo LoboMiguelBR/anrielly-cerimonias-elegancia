@@ -1,5 +1,8 @@
 
-export const getCompletedEmailTemplate = (name: string) => `
+export const completedTemplate = (questionario: any) => ({
+  to: questionario.email,
+  subject: '🎉 Questionário Finalizado com Sucesso!',
+  html: `
 <!DOCTYPE html>
 <html>
 <head>
@@ -29,7 +32,7 @@ export const getCompletedEmailTemplate = (name: string) => `
       <div class="logo">
         <img src="https://544e400e-7788-4e91-b981-e8bcbb39dd2f.lovableproject.com/LogoAG_512x512.png" alt="Anrielly Gomes Logo" onerror="this.style.display='none'; this.parentElement.innerHTML='🎉';" />
       </div>
-      <h1>Parabéns, ${name}!</h1>
+      <h1>Parabéns, ${questionario.nome_responsavel}!</h1>
       <p class="subtitle">Anrielly Gomes - Mestre de Cerimônia</p>
       <p>Questionário finalizado com sucesso!</p>
     </div>
@@ -71,3 +74,4 @@ export const getCompletedEmailTemplate = (name: string) => `
 </body>
 </html>
 `
+});

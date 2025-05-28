@@ -1,250 +1,241 @@
 
 import { useState } from 'react'
-import { useToast } from '@/components/ui/use-toast'
-import { Input } from '@/components/ui/input'
-import { PasswordInput } from '@/components/ui/password-input'
-import { Label } from '@/components/ui/label'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { AlertCircle } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import { useQuestionarioAuth } from '@/hooks/useQuestionarioAuth'
-import { useQuestionarioValidation } from '@/hooks/useQuestionarioValidation'
+import { toast } from 'sonner'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Label } from '@/components/ui/label'
+import { Loader2, Lock, Mail, User } from 'lucide-react'
 
 interface QuestionarioAuthFormsProps {
   linkPublico: string
 }
 
 const QuestionarioAuthForms = ({ linkPublico }: QuestionarioAuthFormsProps) => {
-  const { toast } = useToast()
+  const navigate = useNavigate()
   const { login, register } = useQuestionarioAuth(linkPublico)
-  const { fieldErrors, validateField } = useQuestionarioValidation()
-
+  
   const [loginData, setLoginData] = useState({ email: '', senha: '' })
   const [registerData, setRegisterData] = useState({ email: '', senha: '', nomeResponsavel: '' })
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState('')
+  const [loginLoading, setLoginLoading] = useState(false)
+  const [registerLoading, setRegisterLoading] = useState(false)
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError('')
-    
-    // Validate fields
-    validateField('email', loginData.email)
-    validateField('senha', loginData.senha)
-    
-    if (Object.keys(fieldErrors).length > 0 || !loginData.email || !loginData.senha) {
+    if (!loginData.email || !loginData.senha) {
+      toast.error('Por favor, preencha todos os campos')
       return
     }
-    
-    setIsSubmitting(true)
 
-    console.log('Iniciando login...')
-    const result = await login(loginData.email, loginData.senha)
-    
-    if (result.success) {
-      toast({
-        title: "Login realizado com sucesso!",
-        description: "Redirecionando para o questionário...",
-      })
-    } else {
-      console.error('Erro no login:', result.error)
-      setError(result.error || 'Erro desconhecido no login')
-      toast({
-        title: "Erro no login",
-        description: result.error,
-        variant: "destructive",
-      })
+    setLoginLoading(true)
+    try {
+      const result = await login(loginData.email, loginData.senha)
+      
+      if (result.success) {
+        toast.success('Login realizado com sucesso!')
+        if (result.redirect) {
+          // Pequeno delay para mostrar o toast antes de redirecionar
+          setTimeout(() => {
+            navigate(`/questionario/${linkPublico}/formulario`)
+          }, 500)
+        }
+      } else {
+        toast.error(result.error || 'Erro no login')
+      }
+    } catch (error) {
+      toast.error('Erro inesperado. Tente novamente.')
+    } finally {
+      setLoginLoading(false)
     }
-    
-    setIsSubmitting(false)
   }
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError('')
-    
-    // Validate fields
-    validateField('nomeResponsavel', registerData.nomeResponsavel)
-    validateField('email', registerData.email)
-    validateField('senha', registerData.senha)
-    
-    if (Object.keys(fieldErrors).length > 0 || !registerData.email || !registerData.senha || !registerData.nomeResponsavel) {
+    if (!registerData.email || !registerData.senha || !registerData.nomeResponsavel) {
+      toast.error('Por favor, preencha todos os campos')
       return
     }
-    
-    setIsSubmitting(true)
 
-    console.log('Iniciando registro...')
-    const result = await register(registerData.email, registerData.senha, registerData.nomeResponsavel)
-    
-    if (result.success) {
-      toast({
-        title: "Conta criada com sucesso!",
-        description: "Um email de boas-vindas foi enviado. Redirecionando para o questionário...",
-      })
-    } else {
-      console.error('Erro no registro:', result.error)
-      setError(result.error || 'Erro desconhecido no registro')
-      toast({
-        title: "Erro ao criar conta",
-        description: result.error,
-        variant: "destructive",
-      })
+    if (registerData.senha.length < 6) {
+      toast.error('A senha deve ter pelo menos 6 caracteres')
+      return
     }
-    
-    setIsSubmitting(false)
+
+    setRegisterLoading(true)
+    try {
+      const result = await register(registerData.email, registerData.senha, registerData.nomeResponsavel)
+      
+      if (result.success) {
+        toast.success('Cadastro realizado com sucesso!')
+        if (result.redirect) {
+          // Pequeno delay para mostrar o toast antes de redirecionar
+          setTimeout(() => {
+            navigate(`/questionario/${linkPublico}/formulario`)
+          }, 500)
+        }
+      } else {
+        toast.error(result.error || 'Erro no cadastro')
+      }
+    } catch (error) {
+      toast.error('Erro inesperado. Tente novamente.')
+    } finally {
+      setRegisterLoading(false)
+    }
   }
 
   return (
-    <Card className="rounded-2xl shadow-md hover:shadow-lg transition-shadow bg-white">
-      <CardHeader className="text-center p-8">
-        <CardTitle className="text-2xl font-playfair font-bold text-gray-800">
-          Questionário de Noivos
+    <Card className="bg-white/95 backdrop-blur-sm shadow-xl border-rose-200">
+      <CardHeader className="text-center pb-4">
+        <CardTitle className="text-xl font-playfair text-gray-800">
+          Acesso ao Questionário
         </CardTitle>
-        <CardDescription className="text-base text-gray-600">
-          Acesse ou crie sua conta para preencher o questionário
-        </CardDescription>
       </CardHeader>
-      <CardContent className="p-8 pt-0">
-        {error && (
-          <Alert variant="destructive" className="mb-6 bg-rose-50 border-rose-200">
-            <AlertCircle className="h-5 w-5" />
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-        
-        <Tabs defaultValue="login" className="w-full">
-          <TabsList className="grid grid-cols-2 bg-neutral-100 rounded-full mb-6">
-            <TabsTrigger 
-              value="login" 
-              className="data-[state=active]:bg-rose-100 data-[state=active]:text-rose-700 rounded-full text-[15px] font-medium"
-            >
+      
+      <CardContent>
+        <Tabs defaultValue="login" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="login" className="data-[state=active]:bg-rose-100">
               Entrar
             </TabsTrigger>
-            <TabsTrigger 
-              value="register" 
-              className="data-[state=active]:bg-rose-100 data-[state=active]:text-rose-700 rounded-full text-[15px] font-medium"
-            >
-              Criar Conta
+            <TabsTrigger value="register" className="data-[state=active]:bg-rose-100">
+              Cadastrar
             </TabsTrigger>
           </TabsList>
-
-          <TabsContent value="login">
-            <form onSubmit={handleLogin} className="space-y-5">
+          
+          <TabsContent value="login" className="space-y-4">
+            <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="login-email" className="text-sm font-medium text-gray-700">Email</Label>
-                <Input
-                  id="login-email"
-                  type="email"
-                  value={loginData.email}
-                  onChange={(e) => {
-                    setError('')
-                    setLoginData(prev => ({ ...prev, email: e.target.value }))
-                    validateField('email', e.target.value)
-                  }}
-                  placeholder="seu@email.com"
-                  className="bg-neutral-50 border-neutral-300 focus-visible:ring-rose-400 placeholder:text-gray-400"
-                  required
-                />
-                {fieldErrors.email && (
-                  <p className="text-xs text-red-500">{fieldErrors.email}</p>
-                )}
+                <Label htmlFor="login-email" className="text-sm font-medium text-gray-700">
+                  Email
+                </Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="login-email"
+                    type="email"
+                    placeholder="seu@email.com"
+                    value={loginData.email}
+                    onChange={(e) => setLoginData(prev => ({ ...prev, email: e.target.value }))}
+                    className="pl-10 border-rose-200 focus:border-rose-400 focus:ring-rose-400"
+                    disabled={loginLoading}
+                    required
+                  />
+                </div>
               </div>
+              
               <div className="space-y-2">
-                <Label htmlFor="login-senha" className="text-sm font-medium text-gray-700">Senha</Label>
-                <PasswordInput
-                  id="login-senha"
-                  value={loginData.senha}
-                  onChange={(e) => {
-                    setError('')
-                    setLoginData(prev => ({ ...prev, senha: e.target.value }))
-                    validateField('senha', e.target.value)
-                  }}
-                  placeholder="Sua senha"
-                  className="bg-neutral-50 border-neutral-300 focus-visible:ring-rose-400 placeholder:text-gray-400"
-                  required
-                />
-                {fieldErrors.senha && (
-                  <p className="text-xs text-red-500">{fieldErrors.senha}</p>
-                )}
+                <Label htmlFor="login-senha" className="text-sm font-medium text-gray-700">
+                  Senha
+                </Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="login-senha"
+                    type="password"
+                    placeholder="••••••"
+                    value={loginData.senha}
+                    onChange={(e) => setLoginData(prev => ({ ...prev, senha: e.target.value }))}
+                    className="pl-10 border-rose-200 focus:border-rose-400 focus:ring-rose-400"
+                    disabled={loginLoading}
+                    required
+                  />
+                </div>
               </div>
+              
               <Button 
                 type="submit" 
-                className="w-full bg-rose-500 hover:bg-rose-600 text-white rounded-full font-medium"
-                disabled={isSubmitting}
+                className="w-full bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white"
+                disabled={loginLoading}
               >
-                {isSubmitting ? 'Entrando...' : 'Entrar'}
+                {loginLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Entrando...
+                  </>
+                ) : (
+                  'Entrar'
+                )}
               </Button>
             </form>
           </TabsContent>
-
-          <TabsContent value="register">
-            <form onSubmit={handleRegister} className="space-y-5">
+          
+          <TabsContent value="register" className="space-y-4">
+            <form onSubmit={handleRegister} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="register-nome" className="text-sm font-medium text-gray-700">Nome Completo</Label>
-                <Input
-                  id="register-nome"
-                  type="text"
-                  value={registerData.nomeResponsavel}
-                  onChange={(e) => {
-                    setError('')
-                    setRegisterData(prev => ({ ...prev, nomeResponsavel: e.target.value }))
-                    validateField('nomeResponsavel', e.target.value)
-                  }}
-                  placeholder="Seu nome completo"
-                  className="bg-neutral-50 border-neutral-300 focus-visible:ring-rose-400 placeholder:text-gray-400"
-                  required
-                />
-                {fieldErrors.nomeResponsavel && (
-                  <p className="text-xs text-red-500">{fieldErrors.nomeResponsavel}</p>
-                )}
+                <Label htmlFor="register-nome" className="text-sm font-medium text-gray-700">
+                  Nome Completo
+                </Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="register-nome"
+                    type="text"
+                    placeholder="Seu nome completo"
+                    value={registerData.nomeResponsavel}
+                    onChange={(e) => setRegisterData(prev => ({ ...prev, nomeResponsavel: e.target.value }))}
+                    className="pl-10 border-rose-200 focus:border-rose-400 focus:ring-rose-400"
+                    disabled={registerLoading}
+                    required
+                  />
+                </div>
               </div>
+              
               <div className="space-y-2">
-                <Label htmlFor="register-email" className="text-sm font-medium text-gray-700">Email</Label>
-                <Input
-                  id="register-email"
-                  type="email"
-                  value={registerData.email}
-                  onChange={(e) => {
-                    setError('')
-                    setRegisterData(prev => ({ ...prev, email: e.target.value }))
-                    validateField('email', e.target.value)
-                  }}
-                  placeholder="seu@email.com"
-                  className="bg-neutral-50 border-neutral-300 focus-visible:ring-rose-400 placeholder:text-gray-400"
-                  required
-                />
-                {fieldErrors.email && (
-                  <p className="text-xs text-red-500">{fieldErrors.email}</p>
-                )}
+                <Label htmlFor="register-email" className="text-sm font-medium text-gray-700">
+                  Email
+                </Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="register-email"
+                    type="email"
+                    placeholder="seu@email.com"
+                    value={registerData.email}
+                    onChange={(e) => setRegisterData(prev => ({ ...prev, email: e.target.value }))}
+                    className="pl-10 border-rose-200 focus:border-rose-400 focus:ring-rose-400"
+                    disabled={registerLoading}
+                    required
+                  />
+                </div>
               </div>
+              
               <div className="space-y-2">
-                <Label htmlFor="register-senha" className="text-sm font-medium text-gray-700">Senha</Label>
-                <PasswordInput
-                  id="register-senha"
-                  value={registerData.senha}
-                  onChange={(e) => {
-                    setError('')
-                    setRegisterData(prev => ({ ...prev, senha: e.target.value }))
-                    validateField('senha', e.target.value)
-                  }}
-                  placeholder="Escolha uma senha (mín. 6 caracteres)"
-                  className="bg-neutral-50 border-neutral-300 focus-visible:ring-rose-400 placeholder:text-gray-400"
-                  required
-                  minLength={6}
-                />
-                {fieldErrors.senha && (
-                  <p className="text-xs text-red-500">{fieldErrors.senha}</p>
-                )}
+                <Label htmlFor="register-senha" className="text-sm font-medium text-gray-700">
+                  Senha
+                </Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="register-senha"
+                    type="password"
+                    placeholder="••••••"
+                    value={registerData.senha}
+                    onChange={(e) => setRegisterData(prev => ({ ...prev, senha: e.target.value }))}
+                    className="pl-10 border-rose-200 focus:border-rose-400 focus:ring-rose-400"
+                    disabled={registerLoading}
+                    required
+                    minLength={6}
+                  />
+                </div>
+                <p className="text-xs text-gray-500">Mínimo de 6 caracteres</p>
               </div>
+              
               <Button 
                 type="submit" 
-                className="w-full bg-rose-500 hover:bg-rose-600 text-white rounded-full font-medium"
-                disabled={isSubmitting}
+                className="w-full bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white"
+                disabled={registerLoading}
               >
-                {isSubmitting ? 'Criando...' : 'Criar Conta'}
+                {registerLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Cadastrando...
+                  </>
+                ) : (
+                  'Cadastrar'
+                )}
               </Button>
             </form>
           </TabsContent>

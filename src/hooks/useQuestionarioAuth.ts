@@ -44,7 +44,7 @@ export function useQuestionarioAuth(linkPublico: string) {
     }
   }, [linkPublico])
 
-  const login = async (email: string, senha: string): Promise<{ success: boolean; error?: string }> => {
+  const login = async (email: string, senha: string): Promise<{ success: boolean; error?: string; redirect?: boolean }> => {
     try {
       console.log('Tentando login:', { email, linkPublico })
       
@@ -92,14 +92,14 @@ export function useQuestionarioAuth(linkPublico: string) {
       })
 
       console.log('Login realizado com sucesso')
-      return { success: true }
+      return { success: true, redirect: true }
     } catch (error) {
       console.error('Erro no login (catch):', error)
       return { success: false, error: 'Erro de conexão. Verifique sua internet e tente novamente.' }
     }
   }
 
-  const register = async (email: string, senha: string, nomeResponsavel: string): Promise<{ success: boolean; error?: string }> => {
+  const register = async (email: string, senha: string, nomeResponsavel: string): Promise<{ success: boolean; error?: string; redirect?: boolean }> => {
     try {
       console.log('Tentando registro:', { email, nomeResponsavel, linkPublico })
       
@@ -147,7 +147,7 @@ export function useQuestionarioAuth(linkPublico: string) {
       })
 
       console.log('Registro realizado com sucesso')
-      return { success: true }
+      return { success: true, redirect: true }
     } catch (error) {
       console.error('Erro no registro (catch):', error)
       return { success: false, error: 'Erro de conexão. Verifique sua internet e tente novamente.' }

@@ -52,6 +52,52 @@ serve(async (req) => {
 
     console.log('Respostas salvas com sucesso:', { questionarioId, status: novoStatus })
 
+    // Se estiver finalizando, enviar emails
+    if (finalizar && data) {
+      try {
+        // Email de confirmação para o casal
+        console.log('Enviando email de confirmação para:', data.email)
+        const emailCasalResponse = await supabaseClient.functions.invoke('enviar-email-questionario', {
+          body: {
+            questionarioId: questionarioId,
+            tipo: 'finalizacao'
+          }
+        })
+
+        if (emailCasalResponse.error) {
+          console.error('Erro ao enviar email para o casal:', emailCasalResponse.error)
+        } else {
+          console.log('Email de confirmação enviado para o casal')
+        }
+
+        // Email de notificação para o administrador
+        console.log('Enviando notificação para administrador')
+        const emailAdminResponse = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/enviar-email`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${Deno.env.get('SUPABASE_ANON_KEY')}`
+          },
+          body: JSON.stringify({
+            name: data.nome_responsavel,
+            email: 'contato@anriellygomes.com.br',
+            questionarioId: questionarioId,
+            tipo: 'questionario-concluido'
+          })
+        })
+
+        if (!emailAdminResponse.ok) {
+          console.error('Erro ao enviar notificação para administrador:', await emailAdminResponse.text())
+        } else {
+          console.log('Notificação enviada para administrador')
+        }
+
+      } catch (emailError) {
+        console.error('Erro ao enviar emails:', emailError)
+        // Não falha a operação por causa do email
+      }
+    }
+
     return new Response(
       JSON.stringify({ 
         success: true, 

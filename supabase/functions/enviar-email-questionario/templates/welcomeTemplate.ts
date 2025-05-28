@@ -1,5 +1,8 @@
 
-export const getWelcomeEmailTemplate = (name: string) => `
+export const welcomeTemplate = (questionario: any) => ({
+  to: questionario.email,
+  subject: '🌸 Bem-vindo(a) ao Questionário de Noivos!',
+  html: `
 <!DOCTYPE html>
 <html>
 <head>
@@ -32,7 +35,7 @@ export const getWelcomeEmailTemplate = (name: string) => `
     </div>
     
     <div class="content">
-      <h2>Olá, ${name}! 💖</h2>
+      <h2>Olá, ${questionario.nome_responsavel}! 💖</h2>
       
       <p>Seja muito bem-vindo(a) ao nosso <strong>Questionário de Celebração do Amor</strong>!</p>
       
@@ -66,3 +69,4 @@ export const getWelcomeEmailTemplate = (name: string) => `
 </body>
 </html>
 `
+});

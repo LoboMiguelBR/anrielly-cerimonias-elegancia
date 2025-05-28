@@ -1,10 +1,8 @@
 
 import QuestionarioHeader from './QuestionarioHeader'
-import QuestionarioSidebar from './QuestionarioSidebar'
+import QuestionarioTabs from './QuestionarioTabs'
 import QuestionarioContent from './QuestionarioContent'
 import QuestionarioFooter from './QuestionarioFooter'
-import MobileQuestionarioNav from './MobileQuestionarioNav'
-import { useQuestionarioSections } from '@/hooks/useQuestionarioSections'
 import { useMobileLayout } from '@/hooks/useMobileLayout'
 
 interface QuestionarioContainerProps {
@@ -38,7 +36,6 @@ const QuestionarioContainer = ({
   onFinalize,
   onLogout
 }: QuestionarioContainerProps) => {
-  const { currentSection, sectionRefs, handleNavigateToSection } = useQuestionarioSections()
   const { isMobile } = useMobileLayout()
 
   return (
@@ -50,35 +47,26 @@ const QuestionarioContainer = ({
         totalPerguntas={totalPerguntas}
         lastSaved={lastSaved}
         onLogout={onLogout}
-        isFinalized={questionario?.status === 'concluido'}
+        isFinalized={questionario?.status === 'preenchido'}
       />
 
-      <div className={`container mx-auto px-4 max-w-6xl py-4 lg:py-8 ${isMobile ? 'pb-24' : ''}`}>
-        <div className={`flex gap-8 ${isMobile ? 'flex-col' : ''}`}>
-          {!isMobile && (
-            <QuestionarioSidebar
+      <div className={`py-4 lg:py-8 ${isMobile ? 'pb-24' : ''}`}>
+        <QuestionarioTabs
+          respostas={respostas}
+          podeEditar={podeEditar}
+          onRespostaChange={onRespostaChange}
+        >
+          {(sectionId, section) => (
+            <QuestionarioContent
               respostas={respostas}
-              onNavigateToSection={handleNavigateToSection}
-              currentSection={currentSection}
+              podeEditar={podeEditar}
+              onRespostaChange={onRespostaChange}
+              sectionId={sectionId}
+              section={section}
             />
           )}
-
-          <QuestionarioContent
-            respostas={respostas}
-            podeEditar={podeEditar}
-            sectionRefs={sectionRefs}
-            onRespostaChange={onRespostaChange}
-          />
-        </div>
+        </QuestionarioTabs>
       </div>
-
-      {isMobile && (
-        <MobileQuestionarioNav
-          respostas={respostas}
-          onNavigateToSection={handleNavigateToSection}
-          currentSection={currentSection}
-        />
-      )}
 
       <QuestionarioFooter
         isSaving={isSaving}
