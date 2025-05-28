@@ -1,9 +1,8 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ContractData } from '../../hooks/contract/types';
 import { supabase } from '@/integrations/supabase/client';
-import { renderContractTemplate } from '@/utils/contractTemplateRenderer';
+import { renderContractTemplate } from '@/utils/contract';
 
 interface ContractContentProps {
   contract: ContractData;
