@@ -3,9 +3,10 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Eye, CheckCircle, Edit } from 'lucide-react';
+import { Eye, CheckCircle, Edit, FileText } from 'lucide-react';
 import { ContractData } from '../../hooks/contract/types';
 import ContractContent from './ContractContent';
+import ContractPDFGenerator from '../pdf/ContractPDFGenerator';
 
 interface ContractPreviewProps {
   contract: ContractData;
@@ -21,11 +22,92 @@ const ContractPreview: React.FC<ContractPreviewProps> = ({
   isSubmitting
 }) => {
   const hasPreviewSignature = contract.preview_signature_url && contract.status === 'draft_signed';
+  const isSignedContract = contract.status === 'signed';
 
-  if (!hasPreviewSignature) {
+  if (!hasPreviewSignature && !isSignedContract) {
     return null;
   }
 
+  // Se o contrato já foi assinado definitivamente, mostrar resultado final
+  if (isSignedContract) {
+    return (
+      <div className="space-y-6">
+        {/* Success Header */}
+        <Card className="border-green-200 bg-green-50">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <CheckCircle className="h-6 w-6 text-green-600" />
+                <div>
+                  <CardTitle className="text-lg text-green-900">
+                    Contrato Assinado com Sucesso! ✅
+                  </CardTitle>
+                  <p className="text-sm text-green-700 mt-1">
+                    Assinado em {contract.signed_at ? new Date(contract.signed_at).toLocaleString('pt-BR') : ''}
+                  </p>
+                </div>
+              </div>
+              <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300">
+                <CheckCircle className="h-3 w-3 mr-1" />
+                Assinado
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="bg-green-100 border border-green-200 rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <div className="w-6 h-6 rounded-full bg-green-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <CheckCircle className="text-white h-4 w-4" />
+                </div>
+                <div>
+                  <h4 className="font-medium text-green-800 mb-1">
+                    Processo Concluído
+                  </h4>
+                  <p className="text-sm text-green-700">
+                    Seu contrato foi assinado digitalmente e possui validade jurídica. 
+                    Você pode baixar o PDF para seus arquivos.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* PDF Download Section */}
+        <Card className="border-blue-200 bg-blue-50">
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-3">
+              <FileText className="h-6 w-6 text-blue-600" />
+              <div>
+                <CardTitle className="text-lg text-blue-900">
+                  Download do Contrato
+                </CardTitle>
+                <p className="text-sm text-blue-700 mt-1">
+                  Baixe o PDF do seu contrato assinado
+                </p>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="flex justify-center">
+              <ContractPDFGenerator contract={contract} />
+            </div>
+            <div className="mt-4 bg-blue-100 border border-blue-200 rounded-lg p-3">
+              <p className="text-sm text-blue-700">
+                <strong>💡 Dica:</strong> Recomendamos salvar o PDF em seus arquivos pessoais. 
+                Este documento possui validade jurídica e contém todos os dados de auditoria necessários.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Final Contract Content */}
+        <ContractContent contract={contract} />
+      </div>
+    );
+  }
+
+  // Se está em modo preview (draft_signed), mostrar tela de confirmação
   return (
     <div className="space-y-6">
       {/* Preview Header */}

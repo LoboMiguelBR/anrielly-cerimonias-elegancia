@@ -51,7 +51,8 @@ const ContractSigning = () => {
     <div className="min-h-screen bg-gray-50 py-4 sm:py-6 md:py-8">
       <ContractHeader contract={contract} isAlreadySigned={isAlreadySigned} />
       
-      {isInPreview ? (
+      {/* Mostrar preview tanto para draft_signed quanto para signed */}
+      {(isInPreview || isAlreadySigned) ? (
         <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <ContractPreview
             contract={contract}

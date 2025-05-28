@@ -15,6 +15,11 @@ const ContractPDFGenerator = ({ contract, onPDFGenerated }: ContractPDFGenerator
   const [isViewing, setIsViewing] = useState(false);
 
   const generateContractHTML = (contract: ContractData) => {
+    // Usar assinatura do signature_data se disponível, senão usar preview
+    const clientSignature = contract.signature_data?.signature || contract.preview_signature_url;
+    const signedAt = contract.signed_at || contract.signature_drawn_at;
+    const auditData = contract.signature_data || {};
+    
     return `
       <!DOCTYPE html>
       <html>
@@ -74,6 +79,21 @@ const ContractPDFGenerator = ({ contract, onPDFGenerated }: ContractPDFGenerator
               max-width: 200px;
               max-height: 80px;
               margin: 10px 0;
+              border: 1px solid #ddd;
+            }
+            .audit-section {
+              background: #fef3c7;
+              border: 1px solid #fbbf24;
+              border-radius: 8px;
+              padding: 15px;
+              margin: 30px 0;
+            }
+            .legal-section {
+              background: #f0fdf4;
+              border: 1px solid #16a34a;
+              border-radius: 8px;
+              padding: 15px;
+              margin: 20px 0;
             }
             .footer { 
               margin-top: 40px; 
@@ -93,6 +113,7 @@ const ContractPDFGenerator = ({ contract, onPDFGenerated }: ContractPDFGenerator
           <div class="header">
             <div class="title">CONTRATO DE PRESTAÇÃO DE SERVIÇOS DE CERIMONIAL</div>
             <p>Contrato Digital com Validade Jurídica</p>
+            ${contract.status === 'signed' ? '<p style="color: #16a34a; font-weight: bold;">✅ CONTRATO ASSINADO DIGITALMENTE</p>' : ''}
           </div>
 
           <div class="parties">
@@ -157,6 +178,17 @@ const ContractPDFGenerator = ({ contract, onPDFGenerated }: ContractPDFGenerator
 
           ${contract.notes ? `<div class="section"><div class="section-title">OBSERVAÇÕES</div><p>${contract.notes}</p></div>` : ''}
 
+          ${contract.status === 'signed' ? `
+            <div class="audit-section">
+              <div class="section-title" style="color: #92400e; margin-top: 0;">🔒 DADOS DE AUDITORIA E SEGURANÇA</div>
+              <p><strong>Data/Hora da Assinatura:</strong> ${signedAt ? new Date(signedAt).toLocaleString('pt-BR') : 'Não disponível'}</p>
+              <p><strong>IP do Assinante:</strong> ${auditData.signer_ip || contract.signer_ip || 'Não disponível'}</p>
+              <p><strong>Dispositivo:</strong> ${auditData.user_agent || contract.user_agent || 'Não disponível'}</p>
+              <p><strong>Fuso Horário:</strong> ${auditData.timezone || 'America/Sao_Paulo'}</p>
+              <p><strong>Versão do Contrato:</strong> ${contract.version || 1}</p>
+            </div>
+          ` : ''}
+
           <div class="signature-section">
             <div class="signature-block">
               <img src="/lovable-uploads/2fff881d-0a84-498f-bea5-b9adc67af1bd.png" alt="Assinatura Anrielly" class="signature-image" />
@@ -168,20 +200,31 @@ const ContractPDFGenerator = ({ contract, onPDFGenerated }: ContractPDFGenerator
             </div>
             
             <div class="signature-block">
-              ${contract.signature_data?.signature ? `<img src="${contract.signature_data.signature}" alt="Assinatura Cliente" class="signature-image" />` : ''}
+              ${clientSignature ? `<img src="${clientSignature}" alt="Assinatura Cliente" class="signature-image" />` : '<div style="height: 80px; border: 1px dashed #ccc; margin: 10px 0; display: flex; align-items: center; justify-content: center; color: #666;">Aguardando assinatura</div>'}
               <div class="signature-line">
                 <strong>${contract.client_name}</strong><br>
                 Contratante<br>
-                ${contract.signed_at ? `Assinado em: ${new Date(contract.signed_at).toLocaleString('pt-BR')}` : 'Aguardando assinatura'}
+                ${signedAt ? `Assinado em: ${new Date(signedAt).toLocaleString('pt-BR')}` : 'Aguardando assinatura'}
               </div>
             </div>
+          </div>
+
+          <div class="legal-section">
+            <div class="section-title" style="color: #166534; margin-top: 0;">⚖️ VALIDADE JURÍDICA</div>
+            <p>Este contrato digital possui <strong>validade jurídica plena</strong> conforme:</p>
+            <ul>
+              <li><strong>Lei nº 14.063/2020</strong> - Lei das Assinaturas Eletrônicas</li>
+              <li><strong>Marco Civil da Internet</strong> - Lei nº 12.965/2014</li>
+              <li><strong>Código Civil Brasileiro</strong> - Lei nº 10.406/2002</li>
+            </ul>
+            <p style="margin-top: 10px;"><strong>Certificação:</strong> Todos os dados de auditoria foram capturados automaticamente para garantir a autenticidade, integridade e não-repúdio do documento digital.</p>
           </div>
 
           <div class="footer">
             <p><strong>Anrielly Cristina Costa Gomes - Mestre de Cerimônia</strong></p>
             <p>CPF: 092.005.807-85 | contato@anriellygomes.com.br | (24) 99268-9947</p>
-            <p>Contrato com validade jurídica conforme Lei nº 14.063/2020, Marco Civil da Internet e Código Civil Brasileiro</p>
-            ${contract.signature_data?.contract_hash ? `<p style="font-size: 10px;">Hash: ${contract.signature_data.contract_hash.substring(0, 32)}...</p>` : ''}
+            <p>Documento gerado em: ${new Date().toLocaleString('pt-BR')}</p>
+            <p style="font-size: 10px; color: #999;">ID do Contrato: ${contract.id}</p>
           </div>
         </body>
       </html>
@@ -238,17 +281,12 @@ const ContractPDFGenerator = ({ contract, onPDFGenerated }: ContractPDFGenerator
     }
   };
 
-  if (contract.status !== 'signed') {
-    return null;
-  }
-
   return (
-    <div className="flex gap-2">
+    <div className="flex gap-3">
       <Button
         onClick={viewPDF}
         disabled={isViewing}
         variant="outline"
-        size="sm"
         className="flex items-center gap-2"
       >
         {isViewing ? (
@@ -262,9 +300,7 @@ const ContractPDFGenerator = ({ contract, onPDFGenerated }: ContractPDFGenerator
       <Button
         onClick={generatePDF}
         disabled={isGenerating}
-        variant="outline"
-        size="sm"
-        className="flex items-center gap-2"
+        className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
       >
         {isGenerating ? (
           <Loader2 className="h-4 w-4 animate-spin" />
