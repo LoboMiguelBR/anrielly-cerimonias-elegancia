@@ -67,11 +67,20 @@ const ContractTemplateEditor = ({ template, onSave, onCancel }: ContractTemplate
   const onSubmit = async (data: TemplateFormData) => {
     setIsLoading(true);
     try {
+      // Ensure required fields are present and create properly typed payload
+      const templatePayload = {
+        name: data.name,
+        html_content: data.html_content,
+        description: data.description || '',
+        css_content: data.css_content || '',
+        is_default: data.is_default || false,
+      };
+
       let result;
       if (template) {
-        result = await contractTemplatesApi.updateContractTemplate(template.id, data);
+        result = await contractTemplatesApi.updateContractTemplate(template.id, templatePayload);
       } else {
-        result = await contractTemplatesApi.createContractTemplate(data);
+        result = await contractTemplatesApi.createContractTemplate(templatePayload);
       }
       onSave(result);
       toast.success(`Template ${template ? 'atualizado' : 'criado'} com sucesso!`);
@@ -101,6 +110,7 @@ const ContractTemplateEditor = ({ template, onSave, onCancel }: ContractTemplate
                   id="name"
                   {...register('name')}
                   placeholder="Ex: Contrato Padrão de Casamento"
+                  className="h-12 md:h-10"
                 />
                 {errors.name && (
                   <p className="text-sm text-red-600 mt-1">{errors.name.message}</p>
@@ -113,6 +123,7 @@ const ContractTemplateEditor = ({ template, onSave, onCancel }: ContractTemplate
                   id="description"
                   {...register('description')}
                   placeholder="Descrição opcional do template"
+                  className="h-12 md:h-10"
                 />
               </div>
             </div>
