@@ -5,9 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProposalTemplateData } from './shared/types';
-import { saveTemplate, updateTemplate } from './shared/templateService';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import { proposalTemplatesApi } from '../../hooks/proposal/api/proposalTemplates';
 
 interface TemplateEditorProps {
   template: ProposalTemplateData;
@@ -44,35 +44,27 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
     setIsLoading(true);
     
     try {
-      const templateData: Omit<ProposalTemplateData, 'id' | 'created_at' | 'updated_at'> = {
+      const templateData = {
         name: data.name,
-        colors: {
-          primary: data.primaryColor,
-          secondary: data.secondaryColor,
-          accent: data.accentColor,
-          text: data.textColor,
-          background: data.backgroundColor,
-        },
-        fonts: template.fonts, // Keep existing fonts for now
-        showQrCode: data.showQrCode,
-        showTestimonials: data.showTestimonials,
-        showDifferentials: data.showDifferentials,
-        showAboutSection: data.showAboutSection,
-        logo: template.logo, // Keep existing logo
+        html_content: '<div>Template HTML</div>',
+        css_content: '',
+        is_default: false
       };
       
       let success = false;
       
       // If it has an ID and it's not the default template, update it
       if (template.id && template.id !== 'default') {
-        success = await updateTemplate(template.id, templateData);
+        await proposalTemplatesApi.updateProposalTemplate(template.id, templateData);
+        success = true;
       } else {
         // Otherwise create a new template
-        const newId = await saveTemplate(templateData);
+        const newId = await proposalTemplatesApi.createProposalTemplate(templateData);
         success = !!newId;
       }
       
       if (success) {
+        toast.success('Template salvo com sucesso');
         onSaved();
       }
     } catch (error) {
@@ -83,6 +75,7 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
     }
   };
 
+  
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <Tabs value={activeTab} onValueChange={setActiveTab}>

@@ -3,7 +3,6 @@ import React, { useState, useEffect } from 'react';
 import { PDFPreviewContent, PDFHeader, PDFTabs, proposalUtils } from './preview';
 import { ProposalData } from '../hooks/proposal';
 import { ProposalTemplateData } from './templates/shared/types';
-import { defaultTemplate } from './templates/shared/templateService';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { v4 as uuidv4 } from 'uuid';
@@ -15,6 +14,28 @@ interface ProposalPreviewProps {
   onBack: () => void;
   onPdfGenerated?: (pdfUrl: string) => Promise<void>;
 }
+
+// Default template inline
+const defaultTemplate: ProposalTemplateData = {
+  id: 'default',
+  name: 'Template Padrão',
+  colors: {
+    primary: '#8A2BE2',
+    secondary: '#F2AE30',
+    accent: '#E57373',
+    text: '#333333',
+    background: '#FFFFFF'
+  },
+  fonts: {
+    title: 'Playfair Display, serif',
+    body: 'Inter, sans-serif'
+  },
+  logo: "https://oampddkpuybkbwqggrty.supabase.co/storage/v1/object/public/proposals/LogoAG.png",
+  showQrCode: true,
+  showTestimonials: true,
+  showDifferentials: true,
+  showAboutSection: true
+};
 
 const ProposalPreview: React.FC<ProposalPreviewProps> = ({ 
   proposal, 
