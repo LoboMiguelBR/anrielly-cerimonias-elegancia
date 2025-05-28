@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,6 +14,7 @@ import ServicesSection from './generator/ServicesSection';
 import TemplateSelector from './templates/TemplateSelector';
 import ProposalPreview from './ProposalPreview';
 import { supabase } from '@/integrations/supabase/client';
+import ProposalActionButtons from './generator/ProposalActionButtons';
 
 interface Professional {
   id: string;
@@ -125,10 +125,13 @@ const ProposalGeneratorRefactored: React.FC<ProposalGeneratorRefactoredProps> = 
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    // Don't close automatically - let user decide when to close
+    await handleSubmit();
+  };
+
+  const handleSaveProposal = async (): Promise<boolean> => {
     const success = await handleSubmit();
-    if (success && onClose) {
-      onClose();
-    }
+    return success;
   };
 
   const handlePreview = () => {
@@ -138,6 +141,17 @@ const ProposalGeneratorRefactored: React.FC<ProposalGeneratorRefactoredProps> = 
   const handleClientFormChange = (field: string, value: string) => {
     handleFormChange(field as any, value);
   };
+
+  // Check if form is valid for PDF generation
+  const isFormValid = !!(
+    formData.client_name &&
+    formData.client_email &&
+    formData.event_type &&
+    formData.event_location &&
+    formData.payment_terms &&
+    formData.validity_date &&
+    formData.services.length > 0
+  );
 
   if (isLoading) {
     return (
@@ -348,6 +362,15 @@ const ProposalGeneratorRefactored: React.FC<ProposalGeneratorRefactoredProps> = 
           {isSaving ? 'Salvando...' : (isEditMode ? 'Atualizar' : 'Criar')} Proposta
         </Button>
       </div>
+
+      {/* PDF and Email Action Buttons */}
+      <ProposalActionButtons
+        proposal={proposal}
+        template={selectedTemplate}
+        isFormValid={isFormValid}
+        onSave={handleSaveProposal}
+        isSaving={isSaving}
+      />
     </form>
   );
 };
