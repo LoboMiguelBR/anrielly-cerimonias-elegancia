@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles, Heart, Users, Copy, RefreshCw } from "lucide-react";
+import { Sparkles, Heart, Users, Copy, RefreshCw, AlertCircle } from "lucide-react";
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import {
@@ -36,6 +36,7 @@ const HistoriasCasaisManager = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isGenerating, setIsGenerating] = useState<string | null>(null);
   const [viewingHistory, setViewingHistory] = useState<HistoriaCasal | null>(null);
+  const [debugInfo, setDebugInfo] = useState<string | null>(null);
 
   const fetchHistoriasCasais = async () => {
     try {
@@ -105,8 +106,11 @@ const HistoriasCasaisManager = () => {
     }
 
     setIsGenerating(historia.link_publico);
+    setDebugInfo(null);
     
     try {
+      console.log('🚀 Iniciando geração de história para:', historia.link_publico);
+      
       // Combinar respostas de ambos os noivos
       const respostasCombinadas = historia.questionarios
         .filter(q => q.total_perguntas_resp >= 38)
@@ -117,29 +121,56 @@ const HistoriasCasaisManager = () => {
           respostas: q.respostas_json
         }));
 
+      console.log('📝 Dados preparados:', {
+        link_publico: historia.link_publico,
+        noivos: respostasCombinadas.map(n => ({ 
+          nome: n.nome, 
+          respostasCount: Object.keys(n.respostas || {}).length 
+        }))
+      });
+
       if (respostasCombinadas.length < 2) {
         toast.error('É necessário ter pelo menos 2 questionários completos');
         return;
       }
 
+      const requestPayload = {
+        link_publico: historia.link_publico,
+        noivos: respostasCombinadas
+      };
+
+      console.log('📤 Enviando requisição para edge function...');
+
       const { data, error } = await supabase.functions.invoke('gerar-historia-casal', {
-        body: {
-          link_publico: historia.link_publico,
-          noivos: respostasCombinadas
-        }
+        body: requestPayload
       });
 
-      if (error) throw error;
+      console.log('📥 Resposta recebida:', { data, error });
 
-      if (data.success) {
+      if (error) {
+        console.error('❌ Erro na edge function:', error);
+        setDebugInfo(`Erro na função: ${JSON.stringify(error, null, 2)}`);
+        throw error;
+      }
+
+      if (data?.success) {
+        console.log('✅ História gerada com sucesso!');
         toast.success('História do casal gerada com sucesso!');
         fetchHistoriasCasais(); // Recarregar dados
+        
+        if (data.debug) {
+          setDebugInfo(`Debug info: ${JSON.stringify(data.debug, null, 2)}`);
+        }
       } else {
-        toast.error(data.error || 'Erro ao gerar história');
+        console.error('❌ Falha na geração:', data);
+        const errorMsg = data?.error || 'Erro desconhecido ao gerar história';
+        setDebugInfo(`Resposta de erro: ${JSON.stringify(data, null, 2)}`);
+        toast.error(errorMsg);
       }
     } catch (error) {
-      console.error('Error generating story:', error);
-      toast.error('Erro ao gerar história do casal');
+      console.error('💥 Erro geral na geração de história:', error);
+      setDebugInfo(`Erro capturado: ${error.message}\nStack: ${error.stack}`);
+      toast.error(`Erro ao gerar história: ${error.message}`);
     } finally {
       setIsGenerating(null);
     }
@@ -173,7 +204,7 @@ const HistoriasCasaisManager = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Heart className="h-5 w-5 text-rose-500" />
-            Histórias dos Casais (IA)
+            Histórias dos Casais (IA) - Debug Mode
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -181,6 +212,22 @@ const HistoriasCasaisManager = () => {
             Gerencie as histórias de amor dos casais criadas automaticamente pela IA.
             A história só é gerada quando ambos os questionários estão completos.
           </p>
+          
+          {debugInfo && (
+            <Card className="mb-4 border-orange-200 bg-orange-50">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <AlertCircle className="h-4 w-4 text-orange-600" />
+                  Debug Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <pre className="text-xs bg-white p-2 rounded border overflow-auto max-h-32">
+                  {debugInfo}
+                </pre>
+              </CardContent>
+            </Card>
+          )}
           
           <div className="space-y-4">
             {historiasCasais.map((historia) => (
@@ -223,7 +270,7 @@ const HistoriasCasaisManager = () => {
                         {historia.questionarios.map((q) => (
                           <div key={q.id} className="flex items-center gap-2">
                             <span className={q.total_perguntas_resp >= 38 ? 'text-green-600' : 'text-gray-400'}>
-                              • {q.nome_responsavel} ({q.total_perguntas_resp}/48 perguntas)
+                              • {q.nome_responsavel} ({q.total_perguntas_resp}/48 perguntas) - Status: {q.status}
                             </span>
                           </div>
                         ))}
