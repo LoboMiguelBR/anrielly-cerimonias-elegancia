@@ -11,7 +11,7 @@ import { ContractSignatureSection } from '@/components/admin/contracts/signing';
 import { AlertCircle } from 'lucide-react';
 
 const ContractSigning = () => {
-  const { token } = useParams();
+  const { slug } = useParams();
   const navigate = useNavigate();
   const [contract, setContract] = useState<ContractData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -23,36 +23,55 @@ const ContractSigning = () => {
 
   useEffect(() => {
     const fetchContract = async () => {
-      if (!token) {
-        toast.error('Token de contrato não encontrado');
+      if (!slug) {
+        toast.error('Link de contrato inválido');
         navigate('/');
         return;
       }
 
       try {
-        const { data, error } = await supabase
+        console.log('Fetching contract by slug:', slug);
+        
+        // Buscar contrato por slug primeiro
+        const { data: contractData, error: contractError } = await supabase
           .from('contracts')
           .select('*')
-          .eq('public_token', token)
+          .eq('public_slug', slug)
           .single();
 
-        if (error) {
-          console.error('Error fetching contract:', error);
-          toast.error('Contrato não encontrado');
-          navigate('/');
-          return;
+        if (contractError || !contractData) {
+          console.error('Contract not found by slug, trying by token:', contractError);
+          
+          // Fallback: tentar buscar por token se slug não funcionar
+          const { data: tokenData, error: tokenError } = await supabase
+            .from('contracts')
+            .select('*')
+            .eq('public_token', slug)
+            .single();
+
+          if (tokenError || !tokenData) {
+            console.error('Contract not found:', tokenError);
+            toast.error('Contrato não encontrado');
+            navigate('/');
+            return;
+          }
+          
+          setContract({
+            ...tokenData,
+            status: tokenData.status as ContractData['status']
+          });
+          setClientName(tokenData.client_name);
+          setClientEmail(tokenData.client_email);
+        } else {
+          setContract({
+            ...contractData,
+            status: contractData.status as ContractData['status']
+          });
+          setClientName(contractData.client_name);
+          setClientEmail(contractData.client_email);
         }
-
-        const contractData: ContractData = {
-          ...data,
-          status: data.status as ContractData['status']
-        };
-
-        setContract(contractData);
-        setClientName(contractData.client_name);
-        setClientEmail(contractData.client_email);
       } catch (error) {
-        console.error('Error:', error);
+        console.error('Error fetching contract:', error);
         toast.error('Erro ao carregar contrato');
         navigate('/');
       } finally {
@@ -61,7 +80,7 @@ const ContractSigning = () => {
     };
 
     fetchContract();
-  }, [token, navigate]);
+  }, [slug, navigate]);
 
   const handleSignContract = async () => {
     if (!contract || !signature || !hasDrawnSignature) {
@@ -71,16 +90,23 @@ const ContractSigning = () => {
 
     setIsSubmitting(true);
     try {
+      // Obter IP do cliente
+      const ipResponse = await fetch('https://api.ipify.org?format=json').catch(() => ({ ip: 'unknown' }));
+      const { ip } = await ipResponse.json?.() || { ip: 'unknown' };
+
       const { error } = await supabase.functions.invoke('contract-signed', {
         body: {
           contractId: contract.id,
           signature,
           clientName,
           clientEmail,
-          ipAddress: await fetch('https://api.ipify.org?format=json')
-            .then(res => res.json())
-            .then(data => data.ip)
-            .catch(() => 'unknown')
+          ipAddress: ip,
+          signatureData: {
+            signature,
+            signed_at: new Date().toISOString(),
+            signer_ip: ip,
+            user_agent: navigator.userAgent
+          }
         }
       });
 
@@ -88,7 +114,7 @@ const ContractSigning = () => {
 
       toast.success('Contrato assinado com sucesso!');
       
-      // Refresh contract data
+      // Atualizar dados do contrato
       const { data: updatedData } = await supabase
         .from('contracts')
         .select('*')
@@ -96,11 +122,10 @@ const ContractSigning = () => {
         .single();
 
       if (updatedData) {
-        const updatedContract: ContractData = {
+        setContract({
           ...updatedData,
           status: updatedData.status as ContractData['status']
-        };
-        setContract(updatedContract);
+        });
       }
     } catch (error) {
       console.error('Error signing contract:', error);

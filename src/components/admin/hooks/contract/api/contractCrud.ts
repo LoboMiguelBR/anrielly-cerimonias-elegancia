@@ -124,13 +124,17 @@ export const contractCrudApi = {
       remaining_amount: data.remaining_amount ? Number(data.remaining_amount) : undefined
     } as ContractData;
 
-    // Enviar email automaticamente após criação do contrato
+    // Enviar email automaticamente após criação do contrato com slug amigável
     try {
       console.log('Sending automatic contract email...');
+      const contractUrl = contractResult.public_slug 
+        ? `${window.location.origin}/contrato/${contractResult.public_slug}`
+        : `${window.location.origin}/contrato/${contractResult.public_token}`;
+        
       const success = await sendContractForSignature(
         contractResult.client_name,
         contractResult.client_email,
-        `${window.location.origin}/contrato/${contractResult.public_token}`,
+        contractUrl,
         contractResult.event_type,
         contractResult
       );

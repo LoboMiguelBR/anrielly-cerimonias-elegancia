@@ -22,7 +22,7 @@ function App() {
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/questionario/:linkPublico" element={<QuestionarioLogin />} />
         <Route path="/questionario/:linkPublico/formulario" element={<QuestionarioFormulario />} />
-        <Route path="/contrato/:token" element={<ContractSigning />} />
+        <Route path="/contrato/:slug" element={<ContractSigning />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       <Toaster position="top-right" richColors />

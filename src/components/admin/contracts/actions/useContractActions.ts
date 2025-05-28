@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { ContractData } from '../../hooks/contract/types';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 export const useContractActions = (contract: ContractData, onStatusUpdate?: () => void) => {
   const [isEmailDialogOpen, setIsEmailDialogOpen] = useState(false);
@@ -10,7 +11,10 @@ export const useContractActions = (contract: ContractData, onStatusUpdate?: () =
   const [isSending, setIsSending] = useState(false);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
 
-  const contractUrl = `${window.location.origin}/contrato/${contract.public_token}`;
+  // Usar slug amigável se disponível, senão usar token
+  const contractUrl = contract.public_slug 
+    ? `${window.location.origin}/contrato/${contract.public_slug}`
+    : `${window.location.origin}/contrato/${contract.public_token}`;
 
   // Load default template when dialog opens
   const loadDefaultTemplate = async () => {
@@ -92,14 +96,10 @@ contato@anriellygomes.com.br
   const sendContractEmail = async () => {
     setIsSending(true);
     try {
-      console.log('Sending contract email via edge function...');
+      console.log('Sending contract email via Supabase function...');
       
-      const response = await fetch('https://oampddkpuybkbwqggrty.supabase.co/functions/v1/enviar-email', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      const { data, error } = await supabase.functions.invoke('enviar-email', {
+        body: {
           to: contract.client_email,
           name: contract.client_name,
           subject: emailSubject,
@@ -108,18 +108,15 @@ contato@anriellygomes.com.br
           eventType: contract.event_type,
           contractData: contract,
           tipo: 'contrato-assinatura'
-        })
+        }
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error('Error response from email function:', errorData);
-        throw new Error(`Error sending email: ${response.statusText}`);
+      if (error) {
+        console.error('Error response from email function:', error);
+        throw new Error(`Error sending email: ${error.message}`);
       }
 
-      const result = await response.json();
-      console.log('Email sent successfully:', result);
-
+      console.log('Email sent successfully:', data);
       toast.success('Email enviado com sucesso!');
       setIsEmailDialogOpen(false);
       onStatusUpdate?.();
