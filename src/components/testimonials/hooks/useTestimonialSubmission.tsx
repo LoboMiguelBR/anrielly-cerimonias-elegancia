@@ -1,109 +1,56 @@
-
 import { useState } from 'react';
-import { uploadTestimonialImage, submitTestimonial } from '@/components/admin/hooks/testimonials/api/upload';
-import { sendNewTestimonialNotification } from '@/utils/emailUtils';
+import { toast } from 'sonner';
+import { testimonialsApi } from '@/components/admin/hooks/testimonials/testimonialsApi';
+import { sendNewTestimonialNotification } from '@/utils/email';
 
-export interface TestimonialFormData {
-  name: string;
-  role: string;
-  quote: string;
-  email: string;
-}
-
-export const useTestimonialSubmission = () => {
+const useTestimonialSubmission = () => {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formData, setFormData] = useState<TestimonialFormData>({
-    name: '',
-    role: '',
-    quote: '',
-    email: ''
-  });
-  const [uploadImage, setUploadImage] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState('');
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) {
-      setUploadImage(null);
-      setPreviewUrl('');
+    if (!name || !email || !message) {
+      toast.error('Por favor, preencha todos os campos.');
       return;
     }
-    
-    setUploadImage(file);
-    
-    // Create preview URL
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setPreviewUrl(reader.result as string);
-    };
-    reader.readAsDataURL(file);
-  };
 
-  const clearImage = () => {
-    setUploadImage(null);
-    setPreviewUrl('');
-  };
-
-  const resetForm = () => {
-    setFormData({
-      name: '',
-      role: '',
-      quote: '',
-      email: ''
-    });
-    setUploadImage(null);
-    setPreviewUrl('');
-  };
-
-  const handleSubmit = async () => {
     setIsSubmitting(true);
-
     try {
-      let imageUrl = null;
-      
-      // Upload image if selected
-      if (uploadImage) {
-        imageUrl = await uploadTestimonialImage(uploadImage);
-      }
-      
       // Submit testimonial
-      const success = await submitTestimonial(formData, imageUrl);
-      
-      if (success) {
-        // Send email notification about new testimonial
-        await sendNewTestimonialNotification(formData.name, formData.email);
-        
-        resetForm();
-      }
-      
-      return success;
-      
-    } catch (error: any) {
+      await testimonialsApi.createTestimonial({
+        name,
+        email,
+        message,
+        approved: false
+      });
+
+      // Send notification
+      await sendNewTestimonialNotification(name, email);
+
+      toast.success('Depoimento enviado com sucesso! Ele será avaliado e publicado em breve.');
+      setName('');
+      setEmail('');
+      setMessage('');
+    } catch (error) {
       console.error('Erro ao enviar depoimento:', error);
-      return false;
+      toast.error('Erro ao enviar depoimento. Por favor, tente novamente.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return {
-    formData,
+    name,
+    setName,
+    email,
+    setEmail,
+    message,
+    setMessage,
     isSubmitting,
-    previewUrl,
-    uploadImage,
-    handleInputChange,
-    handleImageChange,
-    clearImage,
-    handleSubmit,
-    resetForm
+    handleSubmit
   };
 };
 

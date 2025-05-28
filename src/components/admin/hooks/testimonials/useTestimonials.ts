@@ -1,116 +1,103 @@
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { testimonialsApi } from './testimonialsApi';
+import { TestimonialData, TestimonialFormData } from './types';
+import { toast } from 'sonner';
+import { sendNewTestimonialNotification, sendTestimonialApprovedNotification } from '@/utils/email';
 
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { Testimonial } from './types';
-import { 
-  fetchAllTestimonials,
-  addTestimonial as apiAddTestimonial,
-  updateTestimonial as apiUpdateTestimonial,
-  deleteTestimonial as apiDeleteTestimonial,
-  updateTestimonialStatus as apiUpdateTestimonialStatus,
-  ensureTestimonialsBucketExists
-} from './api';
-import { sendTestimonialApprovedNotification } from '@/utils/emailUtils';
+export const useTestimonials = () => {
+  const queryClient = useQueryClient();
 
-export function useTestimonials() {
-  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [activeFilter, setActiveFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
-  
-  useEffect(() => {
-    fetchTestimonials();
-    
-    // Ensure bucket exists when component mounts
-    ensureTestimonialsBucketExists();
-    
-    const channel = supabase
-      .channel('public:testimonials')
-      .on(
-        'postgres_changes',
-        { 
-          event: '*', 
-          schema: 'public', 
-          table: 'testimonials' 
-        },
-        () => {
-          fetchTestimonials();
-        }
-      )
-      .subscribe();
-      
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
-
-  const fetchTestimonials = async () => {
-    try {
-      setIsLoading(true);
-      const data = await fetchAllTestimonials();
-      setTestimonials(data);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const filteredTestimonials = testimonials.filter(testimonial => {
-    if (activeFilter === 'all') return true;
-    return testimonial.status === activeFilter;
+  const {
+    data: testimonials = [],
+    isLoading,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: ['testimonials'],
+    queryFn: testimonialsApi.getTestimonials,
   });
 
-  const addTestimonial = async (formData: { name: string; role: string; quote: string; email: string }, uploadImage: File | null) => {
-    setIsSubmitting(true);
-    const success = await apiAddTestimonial(formData, uploadImage);
-    setIsSubmitting(false);
-    return success;
-  };
+  const createMutation = useMutation({
+    mutationFn: testimonialsApi.createTestimonial,
+    onSuccess: (newTestimonial) => {
+      queryClient.invalidateQueries({ queryKey: ['testimonials'] });
+      toast.success('Depoimento criado com sucesso!');
 
-  const updateTestimonial = async (
-    testimonial: Testimonial, 
-    formData: { name: string; role: string; quote: string; email: string }, 
-    uploadImage: File | null
-  ) => {
-    setIsSubmitting(true);
-    const success = await apiUpdateTestimonial(testimonial, formData, uploadImage);
-    setIsSubmitting(false);
-    return success;
-  };
+      // Enviar email de notificação para novo depoimento
+      sendNewTestimonialNotification(newTestimonial.name, newTestimonial.email)
+        .then(success => {
+          if (success) {
+            console.log('New testimonial notification email sent successfully');
+          } else {
+            console.warn('Failed to send new testimonial notification email');
+          }
+        })
+        .catch(error => {
+          console.error('Error sending new testimonial notification email:', error);
+        });
+    },
+    onError: (error) => {
+      console.error('Erro ao criar depoimento:', error);
+      toast.error('Erro ao criar depoimento.');
+    },
+  });
 
-  const updateTestimonialStatus = async (
-    testimonial: Testimonial,
-    newStatus: 'pending' | 'approved' | 'rejected'
-  ) => {
-    setIsSubmitting(true);
-    const success = await apiUpdateTestimonialStatus(testimonial, newStatus);
-    
-    // Send notification when testimonial is approved
-    if (success && newStatus === 'approved') {
-      try {
-        await sendTestimonialApprovedNotification(testimonial.name, testimonial.email);
-      } catch (error) {
-        console.error('Error sending testimonial approval notification:', error);
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<TestimonialFormData> }) =>
+      testimonialsApi.updateTestimonial(id, data),
+    onSuccess: (updatedTestimonial) => {
+      queryClient.invalidateQueries({ queryKey: ['testimonials'] });
+      toast.success('Depoimento atualizado com sucesso!');
+
+      // Enviar email de notificação para depoimento aprovado
+      if (updatedTestimonial.status === 'approved') {
+        sendTestimonialApprovedNotification(updatedTestimonial.name, updatedTestimonial.email)
+          .then(success => {
+            if (success) {
+              console.log('Testimonial approved notification email sent successfully');
+            } else {
+              console.warn('Failed to send testimonial approved notification email');
+            }
+          })
+          .catch(error => {
+            console.error('Error sending testimonial approved notification email:', error);
+          });
       }
-    }
-    
-    setIsSubmitting(false);
-    return success;
-  };
+    },
+    onError: (error) => {
+      console.error('Erro ao atualizar depoimento:', error);
+      toast.error('Erro ao atualizar depoimento.');
+    },
+  });
 
-  const deleteTestimonial = async (testimonial: Testimonial) => {
-    return await apiDeleteTestimonial(testimonial);
-  };
+  const deleteMutation = useMutation({
+    mutationFn: testimonialsApi.deleteTestimonial,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['testimonials'] });
+      toast.success('Depoimento excluído com sucesso!');
+    },
+    onError: (error) => {
+      console.error('Erro ao excluir depoimento:', error);
+      toast.error('Erro ao excluir depoimento.');
+    },
+  });
 
   return {
-    testimonials: filteredTestimonials,
+    testimonials,
     isLoading,
-    isSubmitting,
-    activeFilter,
-    setActiveFilter,
-    fetchTestimonials,
-    addTestimonial,
-    updateTestimonial,
-    updateTestimonialStatus,
-    deleteTestimonial
+    error,
+    refetch,
+    createTestimonial: async (data: TestimonialFormData): Promise<TestimonialData> => {
+      return await createMutation.mutateAsync(data);
+    },
+    updateTestimonial: async (id: string, data: Partial<TestimonialFormData>): Promise<TestimonialData> => {
+      return await updateMutation.mutateAsync({ id, data });
+    },
+    deleteTestimonial: async (id: string): Promise<void> => {
+      await deleteMutation.mutateAsync(id);
+    },
+    isCreating: createMutation.isPending,
+    isUpdating: updateMutation.isPending,
+    isDeleting: deleteMutation.isPending,
   };
-}
+};
