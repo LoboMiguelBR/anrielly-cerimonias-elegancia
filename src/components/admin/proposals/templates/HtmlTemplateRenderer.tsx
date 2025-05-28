@@ -19,9 +19,13 @@ const HtmlTemplateRenderer: React.FC<HtmlTemplateRendererProps> = ({
   const [processedHtml, setProcessedHtml] = useState<string>('');
   
   useEffect(() => {
-    // Replace variables in the template with actual data
-    const html = replaceVariablesInTemplate(template.htmlContent, proposal);
-    setProcessedHtml(html);
+    const processTemplate = async () => {
+      // Replace variables in the template with actual data asynchronously
+      const html = await replaceVariablesInTemplate(template.htmlContent, proposal);
+      setProcessedHtml(html);
+    };
+
+    processTemplate();
   }, [proposal, template]);
 
   // Create a combined HTML document with both HTML and CSS

@@ -21,16 +21,20 @@ const ProposalPDFGenerator: React.FC<ProposalPDFGeneratorProps> = ({
   const [processedHtml, setProcessedHtml] = useState<string>('');
 
   useEffect(() => {
-    if (template && proposal) {
-      try {
-        // Process template variables
-        const htmlWithVariables = replaceVariablesInTemplate(template.html_content, proposal);
-        setProcessedHtml(htmlWithVariables);
-      } catch (error: any) {
-        console.error('Error processing template:', error);
-        onError(`Erro ao processar template: ${error.message}`);
+    const processTemplate = async () => {
+      if (template && proposal) {
+        try {
+          // Process template variables asynchronously
+          const htmlWithVariables = await replaceVariablesInTemplate(template.html_content, proposal);
+          setProcessedHtml(htmlWithVariables);
+        } catch (error: any) {
+          console.error('Error processing template:', error);
+          onError(`Erro ao processar template: ${error.message}`);
+        }
       }
-    }
+    };
+
+    processTemplate();
   }, [template, proposal, onError]);
 
   const generatePDF = async () => {
