@@ -20,6 +20,7 @@ export const useTestimonialsData = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [realtimeConnected, setRealtimeConnected] = useState(false);
   
   const fetchTestimonials = useCallback(async (shouldRandomize: boolean = false) => {
     try {
@@ -88,9 +89,12 @@ export const useTestimonialsData = () => {
       console.log('[useTestimonialsData] Dados estáticos de fallback:', finalTestimonials);
       setTestimonials(finalTestimonials);
       
-      toast.error('Erro ao carregar depoimentos', {
-        description: error.message
-      });
+      // Apenas mostrar toast de erro para erros críticos, não para problemas de realtime
+      if (!error.message?.includes('realtime') && !error.message?.includes('websocket')) {
+        toast.error('Erro ao carregar depoimentos', {
+          description: error.message
+        });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -100,7 +104,7 @@ export const useTestimonialsData = () => {
     console.log('[useTestimonialsData] Inicializando hook');
     fetchTestimonials(true); // Randomizar no carregamento inicial
     
-    // Set up realtime subscription with better error handling
+    // Set up realtime subscription with enhanced error handling
     const channel = supabase
       .channel('public:testimonials')
       .on(
@@ -116,20 +120,45 @@ export const useTestimonialsData = () => {
         }
       )
       .subscribe((status) => {
+        console.log('[useTestimonialsData] Status da conexão realtime:', status);
+        
         if (status === 'SUBSCRIBED') {
-          console.log('[useTestimonialsData] Inscrito com sucesso para alterações em tempo real');
-        }
-        if (status === 'CHANNEL_ERROR') {
-          console.error('[useTestimonialsData] Falha ao monitorar alterações em tempo real');
-          toast.error('Falha ao monitorar alterações em depoimentos.');
+          console.log('[useTestimonialsData] Realtime conectado com sucesso');
+          setRealtimeConnected(true);
+        } else if (status === 'CHANNEL_ERROR') {
+          console.warn('[useTestimonialsData] Erro na conexão realtime - funcionando sem atualizações automáticas');
+          setRealtimeConnected(false);
+          // Não mostrar toast de erro para problemas de realtime
+          // A aplicação continua funcionando normalmente
+        } else if (status === 'CLOSED') {
+          console.log('[useTestimonialsData] Conexão realtime fechada');
+          setRealtimeConnected(false);
         }
       });
+    
+    // Implementar polling de fallback caso o realtime falhe
+    let fallbackInterval: NodeJS.Timeout;
+    
+    // Aguardar 5 segundos para verificar se o realtime conectou
+    const realtimeTimeout = setTimeout(() => {
+      if (!realtimeConnected) {
+        console.log('[useTestimonialsData] Realtime não conectou, iniciando polling de fallback');
+        // Polling a cada 30 segundos se realtime não funcionar
+        fallbackInterval = setInterval(() => {
+          fetchTestimonials(false);
+        }, 30000);
+      }
+    }, 5000);
     
     return () => {
       console.log('[useTestimonialsData] Limpando inscrição em tempo real');
       supabase.removeChannel(channel);
+      clearTimeout(realtimeTimeout);
+      if (fallbackInterval) {
+        clearInterval(fallbackInterval);
+      }
     };
-  }, [fetchTestimonials]);
+  }, [fetchTestimonials, realtimeConnected]);
 
   // Função para forçar uma nova randomização (caso necessário)
   const randomizeTestimonials = useCallback(() => {
@@ -144,7 +173,8 @@ export const useTestimonialsData = () => {
     isLoading,
     error,
     fetchTestimonials: () => fetchTestimonials(false),
-    randomizeTestimonials
+    randomizeTestimonials,
+    realtimeConnected
   };
 };
 
