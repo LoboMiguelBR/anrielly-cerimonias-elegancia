@@ -1,3 +1,6 @@
+
+import { supabase } from '@/integrations/supabase/client';
+
 /**
  * Utility to send email notifications via the Supabase Edge Function
  */
@@ -11,23 +14,16 @@ export const sendEmailNotification = async (payload: any): Promise<boolean> => {
   try {
     console.log('Sending email notification:', payload);
     
-    const response = await fetch('https://oampddkpuybkbwqggrty.supabase.co/functions/v1/enviar-email', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload)
+    const { data, error } = await supabase.functions.invoke('enviar-email', {
+      body: payload
     });
     
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error('Error response from email function:', errorData);
-      throw new Error(`Error sending email notification: ${response.statusText}`);
+    if (error) {
+      console.error('Error response from email function:', error);
+      throw new Error(`Error sending email notification: ${error.message}`);
     }
     
-    const result = await response.json();
-    console.log('Email notification sent successfully:', result);
-    
+    console.log('Email notification sent successfully:', data);
     return true;
   } catch (error) {
     console.error('Failed to send email notification:', error);
@@ -118,20 +114,16 @@ export const sendQuestionarioWelcomeEmail = async (name: string, email: string):
   }
 
   try {
-    const response = await fetch('https://oampddkpuybkbwqggrty.supabase.co/functions/v1/enviar-email-questionario', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
+    const { data, error } = await supabase.functions.invoke('enviar-email-questionario', {
+      body: {
         name,
         email,
         type: 'welcome'
-      })
+      }
     });
 
-    if (!response.ok) {
-      throw new Error(`Error sending welcome email: ${response.statusText}`);
+    if (error) {
+      throw new Error(`Error sending welcome email: ${error.message}`);
     }
 
     console.log('Welcome email sent successfully');
@@ -152,21 +144,17 @@ export const sendQuestionarioCompletionEmail = async (name: string, email: strin
   }
 
   try {
-    const response = await fetch('https://oampddkpuybkbwqggrty.supabase.co/functions/v1/enviar-email-questionario', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
+    const { data, error } = await supabase.functions.invoke('enviar-email-questionario', {
+      body: {
         name,
         email,
         type: 'completed',
         questionarioId
-      })
+      }
     });
 
-    if (!response.ok) {
-      throw new Error(`Error sending completion email: ${response.statusText}`);
+    if (error) {
+      throw new Error(`Error sending completion email: ${error.message}`);
     }
 
     console.log('Completion email sent successfully');
