@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { ContractData } from '../../hooks/contract/types';
 import { contractTemplatesApi } from '../../hooks/contract/api/contractTemplates';
 import { renderContractTemplate } from '@/utils/contract';
@@ -75,14 +76,14 @@ const ContractContent: React.FC<ContractContentProps> = ({ contract }) => {
             setTemplateCss(selectedTemplate.css_content);
           }
         } else {
-          console.warn('No templates available, using basic HTML');
-          setTemplateHtml(generateBasicContractHtml(contract));
+          console.warn('No templates available, using enhanced basic HTML');
+          setTemplateHtml(generateEnhancedContractHtml(contract));
         }
       } catch (error) {
         console.error('Error fetching template:', error);
         setError('Erro ao carregar template do contrato');
-        // Fallback para HTML básico
-        setTemplateHtml(generateBasicContractHtml(contract));
+        // Fallback para HTML básico melhorado
+        setTemplateHtml(generateEnhancedContractHtml(contract));
       } finally {
         setIsLoading(false);
       }
@@ -91,8 +92,8 @@ const ContractContent: React.FC<ContractContentProps> = ({ contract }) => {
     fetchTemplateData();
   }, [contract]);
 
-  // Gerar HTML básico quando não há template
-  const generateBasicContractHtml = (contractData: ContractData): string => {
+  // Gerar HTML melhorado com todas as variáveis quando não há template
+  const generateEnhancedContractHtml = (contractData: ContractData): string => {
     return `
       <div class="contract-basic">
         <h1>CONTRATO DE PRESTAÇÃO DE SERVIÇOS</h1>
@@ -103,6 +104,9 @@ const ContractContent: React.FC<ContractContentProps> = ({ contract }) => {
           <p><strong>Nome:</strong> {NOME_CLIENTE}</p>
           <p><strong>Email:</strong> {EMAIL_CLIENTE}</p>
           <p><strong>Telefone:</strong> {TELEFONE_CLIENTE}</p>
+          <p><strong>Endereço:</strong> {ENDERECO_CLIENTE}</p>
+          <p><strong>Profissão:</strong> {PROFISSAO_CLIENTE}</p>
+          <p><strong>Estado Civil:</strong> {ESTADO_CIVIL}</p>
           
           <h3>CONTRATADA:</h3>
           <p><strong>Nome:</strong> Anrielly Gomes - Mestre de Cerimônia</p>
@@ -114,8 +118,11 @@ const ContractContent: React.FC<ContractContentProps> = ({ contract }) => {
           <h3>DETALHES DO EVENTO</h3>
           <p><strong>Tipo:</strong> {TIPO_EVENTO}</p>
           <p><strong>Data:</strong> {DATA_EVENTO}</p>
+          <p><strong>Horário:</strong> {HORARIO_EVENTO}</p>
           <p><strong>Local:</strong> {LOCAL_EVENTO}</p>
           <p><strong>Valor Total:</strong> {VALOR_TOTAL}</p>
+          <p><strong>Entrada:</strong> {ENTRADA} (Data: {DATA_ENTRADA})</p>
+          <p><strong>Restante:</strong> {VALOR_RESTANTE} (Data: {DATA_PAGAMENTO_RESTANTE})</p>
         </div>
         
         <div class="contract-terms">
@@ -123,6 +130,44 @@ const ContractContent: React.FC<ContractContentProps> = ({ contract }) => {
           <p>1. A contratada se compromete a prestar os serviços de cerimonial conforme acordado.</p>
           <p>2. O pagamento será realizado conforme condições especificadas.</p>
           <p>3. Este contrato possui validade jurídica conforme Lei nº 14.063/2020.</p>
+          <p>4. Observações: {OBSERVACOES}</p>
+        </div>
+        
+        <div class="contract-signatures">
+          <h3>ASSINATURAS</h3>
+          <div class="signatures-row">
+            <div class="signature-box">
+              <h4>Contratante:</h4>
+              {ASSINATURA_CLIENTE}
+              <p>____________________</p>
+              <p>{NOME_CLIENTE}</p>
+            </div>
+            
+            <div class="signature-box">
+              <h4>Contratada:</h4>
+              {ASSINATURA_CONTRATADA}
+            </div>
+          </div>
+        </div>
+        
+        <div class="contract-audit">
+          <h3>DADOS DE AUDITORIA E SEGURANÇA</h3>
+          <p><strong>Data da Assinatura:</strong> {DATA_ASSINATURA} às {HORA_ASSINATURA}</p>
+          <p><strong>IP do Assinante:</strong> {IP}</p>
+          <p><strong>Dispositivo:</strong> {DISPOSITIVO}</p>
+          <p><strong>Hash do Documento:</strong> {HASH_DOCUMENTO}</p>
+          <p><strong>Versão:</strong> {VERSAO} ({DATA_VERSAO})</p>
+          
+          <div class="legal-validity">
+            <h4>⚖️ VALIDADE JURÍDICA</h4>
+            <p>Este contrato digital possui validade jurídica conforme:</p>
+            <ul>
+              <li>Lei nº 14.063/2020 (Assinaturas Eletrônicas)</li>
+              <li>Código Civil Brasileiro</li>
+              <li>Marco Civil da Internet</li>
+            </ul>
+            <p>Todos os dados de auditoria foram capturados automaticamente para garantir a autenticidade e integridade do documento.</p>
+          </div>
         </div>
       </div>
     `;
@@ -138,6 +183,8 @@ const ContractContent: React.FC<ContractContentProps> = ({ contract }) => {
     }
     
     console.log('Rendering contract with HTML content length:', htmlContent.length);
+    console.log('Contract status:', contract.status);
+    console.log('Has signature data:', !!contract.signature_data);
     
     const cssContent = contract.css_content || templateCss;
     console.log('Using CSS content length:', cssContent?.length || 0);
@@ -157,7 +204,7 @@ const ContractContent: React.FC<ContractContentProps> = ({ contract }) => {
           <div className="text-center py-8 text-red-500">
             <p>{error}</p>
             <p className="text-sm text-gray-500 mt-2">
-              Usando conteúdo básico...
+              Usando conteúdo básico melhorado...
             </p>
           </div>
         </CardContent>
@@ -168,9 +215,25 @@ const ContractContent: React.FC<ContractContentProps> = ({ contract }) => {
   return (
     <Card className="shadow-sm">
       <CardHeader className="pb-3">
-        <CardTitle className="text-base sm:text-lg md:text-xl">
-          Conteúdo do Contrato
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-base sm:text-lg md:text-xl">
+            Conteúdo do Contrato
+          </CardTitle>
+          
+          {/* Status badges */}
+          <div className="flex gap-2">
+            {contract.status === 'signed' && (
+              <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                ✅ Assinado
+              </Badge>
+            )}
+            {contract.signature_data && (
+              <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                🔒 Auditoria Completa
+              </Badge>
+            )}
+          </div>
+        </div>
       </CardHeader>
       <CardContent className="pt-0">
         {isLoading ? (

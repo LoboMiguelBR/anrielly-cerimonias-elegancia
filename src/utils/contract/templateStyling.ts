@@ -3,7 +3,7 @@
  * Combina HTML content com CSS para renderização completa
  */
 export const combineTemplateWithStyles = (htmlContent: string, cssContent?: string): string => {
-  // CSS básico padrão para contratos
+  // CSS básico padrão para contratos com melhorias para assinaturas
   const defaultCss = `
     .contract-basic {
       font-family: 'Arial', sans-serif;
@@ -42,6 +42,81 @@ export const combineTemplateWithStyles = (htmlContent: string, cssContent?: stri
       border-radius: 5px;
       border-left: 4px solid #d4af37;
     }
+    
+    /* === ESTILOS PARA ASSINATURAS === */
+    .contract-signatures {
+      margin-bottom: 25px;
+      padding: 20px;
+      background-color: #f0f9ff;
+      border-radius: 8px;
+      border: 2px solid #3b82f6;
+    }
+    .signatures-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 30px;
+      margin-top: 20px;
+    }
+    .signature-box {
+      flex: 1;
+      text-align: center;
+      padding: 15px;
+      background-color: white;
+      border-radius: 5px;
+      border: 1px solid #ddd;
+    }
+    .signature-box h4 {
+      margin-bottom: 15px;
+      color: #2c3e50;
+      font-size: 14px;
+    }
+    .signature-box img {
+      display: block;
+      margin: 10px auto;
+      max-width: 200px;
+      max-height: 80px;
+      border: 1px solid #ddd;
+      padding: 5px;
+      background-color: #fafafa;
+    }
+    
+    /* === ESTILOS PARA AUDITORIA === */
+    .contract-audit {
+      margin-bottom: 25px;
+      padding: 20px;
+      background-color: #fef3c7;
+      border-radius: 8px;
+      border: 2px solid #f59e0b;
+    }
+    .contract-audit h3 {
+      color: #92400e;
+      margin-top: 0;
+    }
+    .contract-audit p {
+      margin: 8px 0;
+      font-size: 13px;
+    }
+    .legal-validity {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: #fee2e2;
+      border-radius: 5px;
+      border-left: 4px solid #dc2626;
+    }
+    .legal-validity h4 {
+      color: #dc2626;
+      margin-top: 0;
+      font-size: 14px;
+    }
+    .legal-validity ul {
+      margin: 10px 0;
+      padding-left: 20px;
+    }
+    .legal-validity li {
+      margin: 5px 0;
+      font-size: 12px;
+    }
+    
     .contract-content {
       max-width: 100%;
       overflow-wrap: break-word;
@@ -53,6 +128,8 @@ export const combineTemplateWithStyles = (htmlContent: string, cssContent?: stri
     .contract-content * {
       max-width: 100%;
     }
+    
+    /* === RESPONSIVIDADE === */
     @media (max-width: 768px) {
       .contract-basic {
         padding: 15px;
@@ -60,8 +137,28 @@ export const combineTemplateWithStyles = (htmlContent: string, cssContent?: stri
       .contract-basic h1 {
         font-size: 20px;
       }
-      .contract-parties, .contract-details, .contract-terms {
+      .contract-parties, .contract-details, .contract-terms, .contract-signatures, .contract-audit {
         padding: 10px;
+      }
+      .signatures-row {
+        flex-direction: column;
+        gap: 20px;
+      }
+      .signature-box img {
+        max-width: 150px;
+        max-height: 60px;
+      }
+    }
+    
+    /* === IMPRESSÃO === */
+    @media print {
+      .contract-basic {
+        max-width: none;
+        margin: 0;
+        padding: 20px;
+      }
+      .contract-signatures, .contract-audit {
+        break-inside: avoid;
       }
     }
   `;

@@ -31,6 +31,29 @@ export const useContractSigning = (contract: ContractData | null, setContract: (
         console.warn('Failed to get IP address:', ipError);
       }
 
+      // Capturar dados completos do dispositivo
+      const userAgent = navigator.userAgent;
+      const signedAt = new Date().toISOString();
+
+      // Dados completos de auditoria
+      const auditData = {
+        signature,
+        signed_at: signedAt,
+        signer_ip: ip,
+        user_agent: userAgent,
+        client_name: clientName,
+        client_email: clientEmail,
+        timestamp: Date.now(),
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+      };
+
+      console.log('Capturando dados de auditoria completos:', {
+        ip,
+        userAgent: userAgent.substring(0, 50) + '...',
+        signedAt,
+        hasSignature: !!signature
+      });
+
       const { error } = await supabase.functions.invoke('contract-signed', {
         body: {
           contractId: contract.id,
@@ -38,12 +61,7 @@ export const useContractSigning = (contract: ContractData | null, setContract: (
           clientName,
           clientEmail,
           ipAddress: ip,
-          signatureData: {
-            signature,
-            signed_at: new Date().toISOString(),
-            signer_ip: ip,
-            user_agent: navigator.userAgent
-          }
+          signatureData: auditData
         }
       });
 
