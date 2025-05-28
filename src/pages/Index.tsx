@@ -32,8 +32,22 @@ const Index = () => {
     const elements = document.querySelectorAll('.animate-on-scroll');
     elements.forEach((el) => observer.observe(el));
 
+    // Add CSS for the animated class
+    const style = document.createElement('style');
+    style.textContent = `
+      .animated {
+        opacity: 1 !important;
+        transform: translateY(0) !important;
+      }
+    `;
+    document.head.appendChild(style);
+
     return () => {
       elements.forEach((el) => observer.unobserve(el));
+      // Clean up the style element
+      if (style.parentNode) {
+        style.parentNode.removeChild(style);
+      }
     };
   }, []);
 
@@ -78,13 +92,6 @@ const Index = () => {
           <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
         </svg>
       </a>
-
-      <style jsx>{`
-        .animated {
-          opacity: 1 !important;
-          transform: translateY(0) !important;
-        }
-      `}</style>
     </div>
   );
 };
