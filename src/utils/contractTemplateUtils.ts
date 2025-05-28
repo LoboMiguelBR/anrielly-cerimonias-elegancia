@@ -3,37 +3,43 @@ import { ContractData } from '@/components/admin/hooks/contract/types';
 
 /**
  * Combina HTML content com CSS para renderização completa do template
+ * Versão simplificada sem dependências externas
  */
 export const combineHtmlWithCss = (htmlContent: string, cssContent?: string): string => {
   if (!cssContent) {
     return htmlContent;
   }
 
+  // Criar CSS com escopo isolado para evitar conflitos
+  const scopedCss = `
+    <style scoped>
+      .contract-content {
+        max-width: 100%;
+        overflow-wrap: break-word;
+        word-wrap: break-word;
+      }
+      .contract-content * {
+        max-width: 100%;
+      }
+      ${cssContent}
+    </style>
+  `;
+
   // Se já existe uma tag <style>, substituir o conteúdo
   if (htmlContent.includes('<style>')) {
     return htmlContent.replace(
-      /<style>[\s\S]*?<\/style>/gi,
-      `<style>${cssContent}</style>`
+      /<style[^>]*>[\s\S]*?<\/style>/gi,
+      scopedCss
     );
   }
 
-  // Se não existe tag <style>, adicionar no início
-  const styleTag = `<style>${cssContent}</style>`;
-  
-  // Se existe tag <html>, adicionar dentro do <head>
-  if (htmlContent.includes('<html>')) {
-    return htmlContent.replace(
-      /<head>/gi,
-      `<head>${styleTag}`
-    );
-  }
-
-  // Caso contrário, adicionar no início do conteúdo
-  return `${styleTag}${htmlContent}`;
+  // Adicionar CSS e wrapper no conteúdo
+  return `${scopedCss}<div class="contract-content">${htmlContent}</div>`;
 };
 
 /**
  * Substitui variáveis do contrato no template
+ * Versão simplificada sem dependências externas
  */
 export const replaceContractVariables = (content: string, contract: ContractData): string => {
   return content

@@ -1,14 +1,14 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { ContractData } from '@/components/admin/hooks/contract/types';
-import ContractStatusBadge from '@/components/admin/contracts/ContractStatusBadge';
+import ContractHeader from '@/components/admin/contracts/signing/ContractHeader';
 import { ContractSignatureSection } from '@/components/admin/contracts/signing';
-import { AlertCircle, FileText } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 
 const ContractSigning = () => {
   const { token } = useParams();
@@ -43,7 +43,6 @@ const ContractSigning = () => {
           return;
         }
 
-        // Convert the data to ContractData type properly
         const contractData: ContractData = {
           ...data,
           status: data.status as ContractData['status']
@@ -115,8 +114,8 @@ const ContractSigning = () => {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-rose-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Carregando contrato...</p>
+          <div className="animate-spin rounded-full h-8 w-8 sm:h-12 sm:w-12 border-b-2 border-rose-600 mx-auto mb-4"></div>
+          <p className="text-gray-600 text-sm sm:text-base">Carregando contrato...</p>
         </div>
       </div>
     );
@@ -125,14 +124,19 @@ const ContractSigning = () => {
   if (!contract) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <Card className="max-w-md mx-auto">
-          <CardContent className="text-center py-8">
-            <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">Contrato não encontrado</h2>
-            <p className="text-gray-600 mb-4">
+        <Card className="max-w-md mx-auto shadow-lg">
+          <CardContent className="text-center py-6 sm:py-8">
+            <AlertCircle className="h-8 w-8 sm:h-12 sm:w-12 text-red-500 mx-auto mb-4" />
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">
+              Contrato não encontrado
+            </h2>
+            <p className="text-sm sm:text-base text-gray-600 mb-4 px-4">
               O contrato solicitado não foi encontrado ou o link pode ter expirado.
             </p>
-            <Button onClick={() => navigate('/')}>
+            <Button 
+              onClick={() => navigate('/')}
+              className="w-full sm:w-auto"
+            >
               Voltar ao Site
             </Button>
           </CardContent>
@@ -144,48 +148,22 @@ const ContractSigning = () => {
   const isAlreadySigned = contract.status === 'signed';
 
   return (
-    <div className="min-h-screen bg-gray-50 py-4 md:py-8">
-      <div className="max-w-4xl mx-auto px-4">
-        {/* Header */}
-        <div className="text-center mb-6 md:mb-8">
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
-            {isAlreadySigned ? 'Contrato Assinado' : 'Assinatura de Contrato'}
-          </h1>
-          <p className="text-gray-600">
-            {isAlreadySigned 
-              ? 'Este contrato já foi assinado com sucesso'
-              : 'Revise os detalhes abaixo e assine o contrato'
-            }
-          </p>
-        </div>
-
-        {/* Contract Status */}
-        <Card className="mb-4 md:mb-6">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
-                <FileText className="h-5 w-5" />
-                Status do Contrato
-              </CardTitle>
-              <ContractStatusBadge status={contract.status} />
-            </div>
-          </CardHeader>
-        </Card>
-
-        <ContractSignatureSection
-          contract={contract}
-          signature={signature}
-          onSignatureChange={setSignature}
-          hasDrawnSignature={hasDrawnSignature}
-          onHasDrawnSignatureChange={setHasDrawnSignature}
-          clientName={clientName}
-          onClientNameChange={setClientName}
-          clientEmail={clientEmail}
-          onClientEmailChange={setClientEmail}
-          isSubmitting={isSubmitting}
-          onSubmit={handleSignContract}
-        />
-      </div>
+    <div className="min-h-screen bg-gray-50 py-4 sm:py-6 md:py-8">
+      <ContractHeader contract={contract} isAlreadySigned={isAlreadySigned} />
+      
+      <ContractSignatureSection
+        contract={contract}
+        signature={signature}
+        onSignatureChange={setSignature}
+        hasDrawnSignature={hasDrawnSignature}
+        onHasDrawnSignatureChange={setHasDrawnSignature}
+        clientName={clientName}
+        onClientNameChange={setClientName}
+        clientEmail={clientEmail}
+        onClientEmailChange={setClientEmail}
+        isSubmitting={isSubmitting}
+        onSubmit={handleSignContract}
+      />
     </div>
   );
 };
