@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent } from "@/components/ui/card";
@@ -91,8 +90,16 @@ const ContractSigning = () => {
     setIsSubmitting(true);
     try {
       // Obter IP do cliente
-      const ipResponse = await fetch('https://api.ipify.org?format=json').catch(() => ({ ip: 'unknown' }));
-      const { ip } = await ipResponse.json?.() || { ip: 'unknown' };
+      let ip = 'unknown';
+      try {
+        const ipResponse = await fetch('https://api.ipify.org?format=json');
+        if (ipResponse.ok) {
+          const ipData = await ipResponse.json();
+          ip = ipData.ip;
+        }
+      } catch (ipError) {
+        console.warn('Failed to get IP address:', ipError);
+      }
 
       const { error } = await supabase.functions.invoke('contract-signed', {
         body: {

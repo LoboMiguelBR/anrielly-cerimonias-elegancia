@@ -1,11 +1,9 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { ContractData, ContractFormData, ContractStatus } from '../types';
 import { contractSlugApi } from './contractSlug';
-import { sendContractForSignature } from '@/utils/emailUtils';
+import { sendContractForSignature } from '@/utils/email';
 import { toast } from 'sonner';
 
-// Helper function to sanitize date and time fields
 const sanitizeDateTimeFields = (data: any) => {
   const sanitized = { ...data };
   
