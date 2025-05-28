@@ -91,14 +91,20 @@ const ClientProfessionalSelector: React.FC<ClientProfessionalSelectorProps> = ({
     
     const selectedClient = availableClients.find(c => c.id === clientId);
     if (selectedClient) {
+      // Auto-complete all available data
       onFormDataChange('client_name', selectedClient.name);
       onFormDataChange('client_email', selectedClient.email);
       onFormDataChange('client_phone', selectedClient.phone);
       
       if (selectedClientType === 'lead') {
+        // For leads, fill event data from quote request
         onFormDataChange('event_type', selectedClient.event_type || '');
         onFormDataChange('event_date', selectedClient.event_date || '');
         onFormDataChange('event_location', selectedClient.event_location || '');
+      } else if (selectedClientType === 'professional') {
+        // For professionals, use category and city as defaults
+        onFormDataChange('event_type', selectedClient.category || '');
+        onFormDataChange('event_location', selectedClient.city || '');
       }
     }
   };
@@ -121,7 +127,7 @@ const ClientProfessionalSelector: React.FC<ClientProfessionalSelectorProps> = ({
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Estatísticas */}
+        {/* Statistics */}
         <div className="grid grid-cols-2 gap-4">
           <div className="text-center p-3 bg-blue-50 rounded-lg">
             <div className="text-2xl font-bold text-blue-600">{stats.leads}</div>
@@ -133,7 +139,7 @@ const ClientProfessionalSelector: React.FC<ClientProfessionalSelectorProps> = ({
           </div>
         </div>
 
-        {/* Seleção do Tipo de Cliente */}
+        {/* Client Type Selection */}
         <div className="space-y-2">
           <Label>Tipo de Cliente *</Label>
           <Select 
@@ -167,7 +173,7 @@ const ClientProfessionalSelector: React.FC<ClientProfessionalSelectorProps> = ({
           </p>
         </div>
 
-        {/* Seleção do Cliente/Profissional */}
+        {/* Client/Professional Selection */}
         {selectedClientType && (
           <div className="space-y-2">
             <Label>
@@ -210,7 +216,7 @@ const ClientProfessionalSelector: React.FC<ClientProfessionalSelectorProps> = ({
           </div>
         )}
 
-        {/* Cliente Selecionado */}
+        {/* Selected Client Preview */}
         {selectedClientId && (
           <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
             <div className="flex items-center gap-2 mb-2">
@@ -223,11 +229,13 @@ const ClientProfessionalSelector: React.FC<ClientProfessionalSelectorProps> = ({
               <p><strong>Nome:</strong> {formData.client_name}</p>
               <p><strong>Email:</strong> {formData.client_email}</p>
               <p><strong>Telefone:</strong> {formData.client_phone}</p>
+              {formData.event_type && <p><strong>Tipo:</strong> {formData.event_type}</p>}
+              {formData.event_location && <p><strong>Local:</strong> {formData.event_location}</p>}
             </div>
           </div>
         )}
 
-        {/* Campos Editáveis */}
+        {/* Editable Fields */}
         <div className="space-y-4">
           <h4 className="text-sm font-semibold text-gray-700">Dados do Cliente</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

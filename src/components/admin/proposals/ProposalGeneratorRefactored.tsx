@@ -82,7 +82,7 @@ const ProposalGeneratorRefactored: React.FC<ProposalGeneratorRefactoredProps> = 
           setProfessionals(professionalsData || []);
         }
 
-        // Load templates
+        // Load templates from the correct table
         const templatesData = await proposalTemplatesApi.fetchProposalTemplates();
         setTemplates(templatesData);
         
@@ -99,13 +99,24 @@ const ProposalGeneratorRefactored: React.FC<ProposalGeneratorRefactoredProps> = 
     loadData();
   }, [selectedTemplate, setSelectedTemplate]);
 
-  // Auto-select quote if provided via URL
+  // Auto-select quote if provided via URL and auto-fill data
   useEffect(() => {
     if (quoteIdFromUrl && !selectedClientId && !isEditMode) {
       setSelectedClientType('lead');
       setSelectedClientId(quoteIdFromUrl);
+      
+      // Auto-fill data from selected quote
+      const selectedQuote = quoteRequests.find(q => q.id === quoteIdFromUrl);
+      if (selectedQuote) {
+        handleFormChange('client_name', selectedQuote.name);
+        handleFormChange('client_email', selectedQuote.email || '');
+        handleFormChange('client_phone', selectedQuote.phone || '');
+        handleFormChange('event_type', selectedQuote.event_type || selectedQuote.eventType || '');
+        handleFormChange('event_date', selectedQuote.event_date || '');
+        handleFormChange('event_location', selectedQuote.event_location || '');
+      }
     }
-  }, [quoteIdFromUrl, selectedClientId, isEditMode, setSelectedClientType, setSelectedClientId]);
+  }, [quoteIdFromUrl, selectedClientId, isEditMode, setSelectedClientType, setSelectedClientId, quoteRequests, handleFormChange]);
 
   const handleTemplateChange = (template: ApiProposalTemplateData) => {
     setSelectedTemplate(template);
@@ -147,7 +158,7 @@ const ProposalGeneratorRefactored: React.FC<ProposalGeneratorRefactoredProps> = 
       template_id: selectedTemplate?.id || null
     };
 
-    // Convert API template data to preview format
+    // Convert API template data to preview format with correct font property
     const previewTemplate = selectedTemplate ? {
       id: selectedTemplate.id,
       name: selectedTemplate.name,
@@ -159,7 +170,7 @@ const ProposalGeneratorRefactored: React.FC<ProposalGeneratorRefactoredProps> = 
         background: '#FFFFFF'
       },
       fonts: {
-        heading: 'Playfair Display, serif',
+        title: 'Playfair Display, serif',
         body: 'Inter, sans-serif'
       },
       logo: "https://oampddkpuybkbwqggrty.supabase.co/storage/v1/object/public/proposals/LogoAG.png",
@@ -196,7 +207,7 @@ const ProposalGeneratorRefactored: React.FC<ProposalGeneratorRefactoredProps> = 
         </CardContent>
       </Card>
 
-      {/* Client/Professional Selection */}
+      {/* Client/Professional Selection with Auto-complete */}
       <ClientProfessionalSelector
         quoteRequests={quoteRequests}
         professionals={professionals}
@@ -255,7 +266,7 @@ const ProposalGeneratorRefactored: React.FC<ProposalGeneratorRefactoredProps> = 
         </CardContent>
       </Card>
 
-      {/* Services Section */}
+      {/* Simplified Services Section */}
       <ServicesSection
         services={formData.services}
         totalPrice={totalPrice}
