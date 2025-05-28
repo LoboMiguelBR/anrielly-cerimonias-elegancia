@@ -6,10 +6,10 @@ import { Label } from "@/components/ui/label";
 
 interface TemplateFormData {
   name: string;
-  description: string;
+  description?: string;
   html_content: string;
-  css_content: string;
-  is_default: boolean;
+  css_content?: string;
+  is_default?: boolean;
 }
 
 interface ContentEditorsProps {
