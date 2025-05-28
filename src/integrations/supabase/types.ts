@@ -112,6 +112,8 @@ export type Database = {
           total_price: number
           updated_at: string
           user_agent: string | null
+          version: number
+          version_timestamp: string | null
         }
         Insert: {
           civil_status?: string | null
@@ -146,6 +148,8 @@ export type Database = {
           total_price: number
           updated_at?: string
           user_agent?: string | null
+          version?: number
+          version_timestamp?: string | null
         }
         Update: {
           civil_status?: string | null
@@ -180,6 +184,8 @@ export type Database = {
           total_price?: number
           updated_at?: string
           user_agent?: string | null
+          version?: number
+          version_timestamp?: string | null
         }
         Relationships: [
           {

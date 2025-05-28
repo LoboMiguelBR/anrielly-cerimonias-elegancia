@@ -10,3 +10,4 @@ export { default as LeadProfessionalSelection } from './LeadProfessionalSelectio
 export { useMoneyFormat } from './hooks/useMoneyFormat';
 export { default as FinancialTooltip } from './components/FinancialTooltip';
 export { default as ProfessionalPreview } from './components/ProfessionalPreview';
+export { default as ContractVersionInfo } from './components/ContractVersionInfo';

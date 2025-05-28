@@ -1,6 +1,8 @@
 
 import { ContractData } from '../hooks/contract/types';
-import { useContractActions, ContractEmailDialog, ContractActionButtons } from './actions';
+import { useContractActions } from './actions';
+import ContractEmailActionButtons from './actions/ContractEmailActionButtons';
+import { ContractEmailDialog } from './actions';
 
 interface ContractActionsProps {
   contract: ContractData;
@@ -26,32 +28,47 @@ const ContractActions = ({ contract, onStatusUpdate }: ContractActionsProps) => 
     replaceVariables
   } = useContractActions(contract, onStatusUpdate);
 
+  const handleSendReminder = () => {
+    setEmailSubject('Lembrete: Assinatura do Contrato Pendente');
+    openEmailDialog();
+  };
+
+  const handleSendSignatureRequest = () => {
+    setEmailSubject('Solicitação de Assinatura do Contrato');
+    openEmailDialog();
+  };
+
+  const handleSendConfirmation = () => {
+    setEmailSubject('Confirmação: Contrato Assinado com Sucesso');
+    openEmailDialog();
+  };
+
   return (
     <div className="flex gap-2">
-      <ContractActionButtons
+      <ContractEmailActionButtons
         contract={contract}
         onCopyToClipboard={copyToClipboard}
         onOpenContractLink={openContractLink}
-        onOpenEmailDialog={openEmailDialog}
+        onSendReminder={handleSendReminder}
+        onSendSignatureRequest={handleSendSignatureRequest}
+        onSendConfirmation={handleSendConfirmation}
       />
       
-      {contract.status !== 'signed' && (
-        <ContractEmailDialog
-          contract={contract}
-          isOpen={isEmailDialogOpen}
-          onOpenChange={setIsEmailDialogOpen}
-          emailSubject={emailSubject}
-          setEmailSubject={setEmailSubject}
-          emailMessage={emailMessage}
-          setEmailMessage={setEmailMessage}
-          contractUrl={contractUrl}
-          isSending={isSending}
-          selectedTemplateId={selectedTemplateId}
-          setSelectedTemplateId={setSelectedTemplateId}
-          onSendEmail={sendContractEmail}
-          replaceVariables={replaceVariables}
-        />
-      )}
+      <ContractEmailDialog
+        contract={contract}
+        isOpen={isEmailDialogOpen}
+        onOpenChange={setIsEmailDialogOpen}
+        emailSubject={emailSubject}
+        setEmailSubject={setEmailSubject}
+        emailMessage={emailMessage}
+        setEmailMessage={setEmailMessage}
+        contractUrl={contractUrl}
+        isSending={isSending}
+        selectedTemplateId={selectedTemplateId}
+        setSelectedTemplateId={setSelectedTemplateId}
+        onSendEmail={sendContractEmail}
+        replaceVariables={replaceVariables}
+      />
     </div>
   );
 };

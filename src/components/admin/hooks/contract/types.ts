@@ -1,4 +1,3 @@
-
 export type ContractStatus = 'draft' | 'pending' | 'signed' | 'canceled';
 
 export interface ContractFormData {
@@ -57,6 +56,9 @@ export interface ContractData {
   signer_ip?: string;
   created_at: string;
   updated_at: string;
+  // Versioning fields
+  version?: number;
+  version_timestamp?: string;
   // Audit fields
   ip_address?: string;
   user_agent?: string;
@@ -84,7 +86,7 @@ export interface Contract {
   quote_request_id?: string;
   proposal_id?: string;
   status: 'pending' | 'signed' | 'draft' | 'canceled';
-  token: string; // Changed from optional to required to match ContractData
+  token: string;
   public_token?: string;
   pdf_url?: string;
   html_content?: string;
@@ -93,6 +95,9 @@ export interface Contract {
   signer_ip?: string;
   created_at: string;
   updated_at: string;
+  // Versioning fields
+  version?: number;
+  version_timestamp?: string;
 }
 
 export interface ContractTemplate {

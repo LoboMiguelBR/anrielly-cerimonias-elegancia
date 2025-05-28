@@ -1,9 +1,11 @@
+
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { ContractFormData, ContractData } from '../hooks/contract/types';
 import { contractTemplatesApi } from '../hooks/contract/api/contractTemplates';
+import { contractVersioningApi } from '../hooks/contract/api/contractVersioning';
 import { useAuditData } from './hooks/useAuditData';
 import {
   ClientDataSection,
@@ -11,8 +13,10 @@ import {
   FinancialDataSection,
   TemplateNotesSection,
   FormActions,
-  LeadProfessionalSelection
+  LeadProfessionalSelection,
+  ContractVersionInfo
 } from './form';
+import { toast } from 'sonner';
 
 // Updated schema with better date/time validation
 const contractSchema = z.object({
@@ -50,6 +54,7 @@ const ContractForm = ({ initialData, onSubmit, onCancel, isLoading = false }: Co
   const [selectedLeadId, setSelectedLeadId] = useState<string | undefined>(initialData?.quote_request_id);
   const [selectedProfessionalId, setSelectedProfessionalId] = useState<string | undefined>();
   const [isManualEntry, setIsManualEntry] = useState(!initialData?.quote_request_id);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>(initialData?.template_id || '');
   const auditData = useAuditData();
 
   const {
@@ -73,9 +78,9 @@ const ContractForm = ({ initialData, onSubmit, onCancel, isLoading = false }: Co
       event_time: initialData.event_time || '',
       event_location: initialData.event_location || '',
       total_price: initialData.total_price,
-      down_payment: initialData.down_payment,
+      down_payment: initialData.down_payment || 0,
       down_payment_date: initialData.down_payment_date || '',
-      remaining_amount: initialData.remaining_amount,
+      remaining_amount: initialData.remaining_amount || 0,
       remaining_payment_date: initialData.remaining_payment_date || '',
       template_id: initialData.template_id || '',
       notes: initialData.notes || '',
@@ -123,12 +128,17 @@ const ContractForm = ({ initialData, onSubmit, onCancel, isLoading = false }: Co
         const templatesData = await contractTemplatesApi.getContractTemplates();
         setTemplates(templatesData);
         
-        if (templatesData.length > 0 && !initialData) {
+        if (initialData?.template_id) {
+          setSelectedTemplateId(initialData.template_id);
+          setValue('template_id', initialData.template_id);
+        } else if (templatesData.length > 0) {
           const defaultTemplate = templatesData.find(t => t.is_default) || templatesData[0];
+          setSelectedTemplateId(defaultTemplate.id);
           setValue('template_id', defaultTemplate.id);
         }
       } catch (error) {
         console.error('Error fetching templates:', error);
+        toast.error('Erro ao carregar templates');
       } finally {
         setIsLoadingTemplates(false);
       }
@@ -177,19 +187,31 @@ const ContractForm = ({ initialData, onSubmit, onCancel, isLoading = false }: Co
   };
 
   const handleFormSubmit = async (formData: ContractFormData) => {
-    // Clean up empty strings for date/time fields before submission
-    const cleanedData = {
-      ...formData,
-      event_date: formData.event_date === '' ? undefined : formData.event_date,
-      event_time: formData.event_time === '' ? undefined : formData.event_time,
-      down_payment_date: formData.down_payment_date === '' ? undefined : formData.down_payment_date,
-      remaining_payment_date: formData.remaining_payment_date === '' ? undefined : formData.remaining_payment_date,
-      // Add audit data
-      ip_address: auditData.ip_address,
-      user_agent: auditData.user_agent,
-    };
+    try {
+      // Clean up empty strings for date/time fields before submission
+      const cleanedData = {
+        ...formData,
+        event_date: formData.event_date === '' ? undefined : formData.event_date,
+        event_time: formData.event_time === '' ? undefined : formData.event_time,
+        down_payment_date: formData.down_payment_date === '' ? undefined : formData.down_payment_date,
+        remaining_payment_date: formData.remaining_payment_date === '' ? undefined : formData.remaining_payment_date,
+        template_id: selectedTemplateId || formData.template_id,
+        // Add audit data
+        ip_address: auditData.ip_address,
+        user_agent: auditData.user_agent,
+      };
 
-    await onSubmit(cleanedData);
+      // Se estamos editando um contrato, incrementar a versão
+      if (initialData) {
+        await contractVersioningApi.incrementContractVersion(initialData.id);
+        toast.success('Versão do contrato atualizada');
+      }
+
+      await onSubmit(cleanedData);
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      toast.error('Erro ao salvar contrato');
+    }
   };
 
   return (
@@ -206,6 +228,11 @@ const ContractForm = ({ initialData, onSubmit, onCancel, isLoading = false }: Co
           </div>
           
           <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-8 p-6">
+            {/* Informações de Versão (somente para edição) */}
+            {initialData && (
+              <ContractVersionInfo contract={initialData} />
+            )}
+
             {/* Seleção de Lead/Cliente */}
             {!initialData && (
               <LeadProfessionalSelection
@@ -245,6 +272,7 @@ const ContractForm = ({ initialData, onSubmit, onCancel, isLoading = false }: Co
               setValue={setValue}
               templates={templates}
               isLoadingTemplates={isLoadingTemplates}
+              selectedTemplateId={selectedTemplateId}
             />
 
             {/* Ações */}
