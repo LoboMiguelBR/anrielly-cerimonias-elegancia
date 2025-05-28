@@ -42,7 +42,13 @@ const SignatureSection: React.FC<SignatureSectionProps> = ({
   onSubmit
 }) => {
   const isAlreadySigned = contract.status === 'signed';
-  const canPreview = hasDrawnSignature && signatureUrl && clientName.trim() && clientEmail.trim();
+  
+  // Verificar se todos os campos necessários estão preenchidos
+  const canPreview = hasDrawnSignature && 
+                    signatureUrl && 
+                    clientName.trim() && 
+                    clientEmail.trim() && 
+                    clientEmail.includes('@');
 
   if (isAlreadySigned) {
     return (
@@ -78,7 +84,7 @@ const SignatureSection: React.FC<SignatureSectionProps> = ({
         <div className="grid grid-cols-1 gap-4">
           <div className="space-y-2">
             <Label htmlFor="client-name" className="text-sm font-medium">
-              Nome Completo
+              Nome Completo *
             </Label>
             <Input
               id="client-name"
@@ -86,12 +92,13 @@ const SignatureSection: React.FC<SignatureSectionProps> = ({
               onChange={(e) => onClientNameChange(e.target.value)}
               className="h-12 text-base"
               placeholder="Digite seu nome completo"
+              required
             />
           </div>
           
           <div className="space-y-2">
             <Label htmlFor="client-email" className="text-sm font-medium">
-              Email
+              Email *
             </Label>
             <Input
               id="client-email"
@@ -100,6 +107,7 @@ const SignatureSection: React.FC<SignatureSectionProps> = ({
               onChange={(e) => onClientEmailChange(e.target.value)}
               className="h-12 text-base"
               placeholder="Digite seu email"
+              required
             />
           </div>
         </div>
@@ -109,7 +117,7 @@ const SignatureSection: React.FC<SignatureSectionProps> = ({
         {/* Signature Canvas */}
         <div className="space-y-2">
           <Label className="text-sm font-medium">
-            Assinatura Digital
+            Assinatura Digital *
           </Label>
           <div className="relative">
             <SignatureCanvas
@@ -131,23 +139,35 @@ const SignatureSection: React.FC<SignatureSectionProps> = ({
                 Processo de Assinatura em 2 Etapas
               </h4>
               <p className="text-sm text-blue-800">
-                1. Desenhe sua assinatura e clique em "Visualizar Contrato"<br/>
+                1. Desenhe sua assinatura, salve e clique em "Visualizar Contrato"<br/>
                 2. Revise o documento completo e confirme sua assinatura
               </p>
             </div>
           </div>
         </div>
 
-        {/* Validation Message */}
-        {hasDrawnSignature && !signatureUrl && (
+        {/* Validation Messages */}
+        {!canPreview && (
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
             <p className="text-sm text-yellow-700">
-              ⚠️ Por favor, clique em "Salvar Assinatura" antes de continuar
+              {!hasDrawnSignature ? (
+                '⚠️ Desenhe sua assinatura primeiro'
+              ) : !signatureUrl ? (
+                '⚠️ Clique em "Salvar Assinatura" antes de continuar'
+              ) : !clientName.trim() ? (
+                '⚠️ Preencha seu nome completo'
+              ) : !clientEmail.trim() ? (
+                '⚠️ Preencha seu email'
+              ) : !clientEmail.includes('@') ? (
+                '⚠️ Digite um email válido'
+              ) : (
+                '⚠️ Complete todos os campos obrigatórios'
+              )}
             </p>
           </div>
         )}
 
-        {/* Action Button - Fixed at bottom on mobile */}
+        {/* Action Button */}
         <div className="sticky bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 -mx-6 -mb-6 mt-6 sm:static sm:border-0 sm:p-0 sm:m-0 z-10">
           <Button
             onClick={onSubmit}
@@ -170,16 +190,6 @@ const SignatureSection: React.FC<SignatureSectionProps> = ({
               </>
             )}
           </Button>
-          
-          {!canPreview && (
-            <p className="text-xs text-gray-500 text-center mt-2">
-              {!hasDrawnSignature 
-                ? 'Desenhe sua assinatura' 
-                : !signatureUrl 
-                ? 'Salve sua assinatura' 
-                : 'Preencha todos os campos'}
-            </p>
-          )}
         </div>
       </CardContent>
     </Card>

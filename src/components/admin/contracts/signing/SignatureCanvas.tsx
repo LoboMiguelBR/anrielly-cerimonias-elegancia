@@ -26,7 +26,6 @@ const SignatureCanvas: React.FC<SignatureCanvasProps> = ({
   const [lastPoint, setLastPoint] = useState<{ x: number; y: number } | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [signatureSaved, setSignatureSaved] = useState(false);
-  const [savedSignatureUrl, setSavedSignatureUrl] = useState<string>('');
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -75,7 +74,7 @@ const SignatureCanvas: React.FC<SignatureCanvasProps> = ({
     // Reset saved state when user starts drawing again
     if (signatureSaved) {
       setSignatureSaved(false);
-      setSavedSignatureUrl('');
+      onSignatureUrlChange('');
     }
   };
 
@@ -126,7 +125,6 @@ const SignatureCanvas: React.FC<SignatureCanvasProps> = ({
     onSignatureChange('');
     onHasDrawnSignatureChange(false);
     setSignatureSaved(false);
-    setSavedSignatureUrl('');
     onSignatureUrlChange('');
   };
 
@@ -142,7 +140,6 @@ const SignatureCanvas: React.FC<SignatureCanvasProps> = ({
       const signature = canvas.toDataURL();
       const url = await saveSignatureToStorage(signature, contractId);
       
-      setSavedSignatureUrl(url);
       setSignatureSaved(true);
       onSignatureUrlChange(url);
       
@@ -214,21 +211,11 @@ const SignatureCanvas: React.FC<SignatureCanvasProps> = ({
           />
         </div>
         
-        {signatureSaved && savedSignatureUrl && (
+        {signatureSaved && (
           <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-            <div className="flex items-center gap-2 text-green-700 mb-2">
+            <div className="flex items-center gap-2 text-green-700">
               <CheckCircle className="h-4 w-4" />
               <span className="text-sm font-medium">Assinatura salva com sucesso!</span>
-            </div>
-            <div className="flex items-center justify-center bg-white border rounded p-2">
-              <img 
-                src={savedSignatureUrl} 
-                alt="Assinatura salva" 
-                className="max-h-16 max-w-full object-contain"
-                onError={() => {
-                  console.error('Erro ao carregar preview da assinatura salva');
-                }}
-              />
             </div>
           </div>
         )}
