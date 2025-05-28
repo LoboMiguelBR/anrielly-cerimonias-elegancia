@@ -55,8 +55,9 @@ serve(async (req) => {
     // Se estiver finalizando, enviar emails
     if (finalizar && data) {
       try {
-        // Email de confirmação para o casal
         console.log('Enviando email de confirmação para:', data.email)
+        
+        // Email de confirmação para o casal
         const emailCasalResponse = await supabaseClient.functions.invoke('enviar-email-questionario', {
           body: {
             questionarioId: questionarioId,
@@ -72,22 +73,17 @@ serve(async (req) => {
 
         // Email de notificação para o administrador
         console.log('Enviando notificação para administrador')
-        const emailAdminResponse = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/enviar-email`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${Deno.env.get('SUPABASE_ANON_KEY')}`
-          },
-          body: JSON.stringify({
+        const emailAdminResponse = await supabaseClient.functions.invoke('enviar-email', {
+          body: {
             name: data.nome_responsavel,
             email: 'contato@anriellygomes.com.br',
             questionarioId: questionarioId,
             tipo: 'questionario-concluido'
-          })
+          }
         })
 
-        if (!emailAdminResponse.ok) {
-          console.error('Erro ao enviar notificação para administrador:', await emailAdminResponse.text())
+        if (emailAdminResponse.error) {
+          console.error('Erro ao enviar notificação para administrador:', emailAdminResponse.error)
         } else {
           console.log('Notificação enviada para administrador')
         }
