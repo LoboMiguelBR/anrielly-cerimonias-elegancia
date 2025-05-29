@@ -4,10 +4,12 @@ import { useQuoteRequests } from '@/hooks/useQuoteRequests';
 import { Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { QuoteDetail, QuotesTable } from '@/components/admin/quotes';
+import { useMobileLayout } from '@/hooks/useMobileLayout';
 
 const QuotesTab = () => {
   const { data: quoteRequests, isLoading, error, mutate } = useQuoteRequests();
   const [selectedQuote, setSelectedQuote] = useState<string | null>(null);
+  const { isMobile } = useMobileLayout();
   
   const handleStatusChange = async (id: string, newStatus: string) => {
     const { error } = await supabase
@@ -32,8 +34,10 @@ const QuotesTab = () => {
 
   if (error) {
     return (
-      <div className="p-6 bg-white rounded-lg shadow-sm">
-        <h2 className="text-xl font-semibold mb-4">Gerenciar Solicitações de Orçamento</h2>
+      <div className={`${isMobile ? 'p-2' : 'p-6'} bg-white rounded-lg shadow-sm`}>
+        <h2 className={`${isMobile ? 'text-lg' : 'text-xl'} font-semibold mb-4`}>
+          Gerenciar Solicitações de Orçamento
+        </h2>
         <div className="p-4 bg-red-50 rounded border border-red-200 text-red-700">
           Erro ao carregar dados: {error.message}
         </div>
@@ -42,8 +46,10 @@ const QuotesTab = () => {
   }
 
   return (
-    <div className="p-6 bg-white rounded-lg shadow-sm">
-      <h2 className="text-xl font-semibold mb-4">Gerenciar Solicitações de Orçamento</h2>
+    <div className={`${isMobile ? 'p-2' : 'p-6'} bg-white rounded-lg shadow-sm min-h-screen`}>
+      <h2 className={`${isMobile ? 'text-lg' : 'text-xl'} font-semibold mb-4`}>
+        {isMobile ? 'Solicitações' : 'Gerenciar Solicitações de Orçamento'}
+      </h2>
       
       {isLoading ? (
         <div className="flex items-center justify-center p-8">

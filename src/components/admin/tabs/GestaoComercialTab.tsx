@@ -10,10 +10,10 @@ const GestaoComercialTab = () => {
   const { isMobile } = useMobileLayout();
 
   return (
-    <div className={`${isMobile ? 'p-4' : 'p-6'} space-y-6`}>
+    <div className={`${isMobile ? 'p-2 space-y-4' : 'p-6 space-y-6'} min-h-screen`}>
       <div className="flex items-center justify-between">
         <div>
-          <h1 className={`${isMobile ? 'text-2xl' : 'text-3xl'} font-bold text-gray-900`}>
+          <h1 className={`${isMobile ? 'text-xl' : 'text-3xl'} font-bold text-gray-900`}>
             Gestão Comercial
           </h1>
           <p className={`text-gray-600 ${isMobile ? 'text-sm' : ''}`}>
@@ -22,27 +22,27 @@ const GestaoComercialTab = () => {
         </div>
       </div>
 
-      <Tabs defaultValue="funil" className="space-y-6">
-        <TabsList className={`grid w-full grid-cols-2 ${isMobile ? 'h-auto' : ''}`}>
+      <Tabs defaultValue="funil" className="space-y-4">
+        <TabsList className={`grid w-full grid-cols-2 ${isMobile ? 'h-12' : ''}`}>
           <TabsTrigger 
             value="funil" 
             className={`${isMobile ? 'text-sm py-3' : ''}`}
           >
-            Funil de Vendas
+            {isMobile ? 'Funil' : 'Funil de Vendas'}
           </TabsTrigger>
           <TabsTrigger 
             value="financeiro"
             className={`${isMobile ? 'text-sm py-3' : ''}`}
           >
-            Painel Financeiro
+            {isMobile ? 'Financeiro' : 'Painel Financeiro'}
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="funil">
+        <TabsContent value="funil" className="space-y-0">
           <FunilVendas />
         </TabsContent>
 
-        <TabsContent value="financeiro">
+        <TabsContent value="financeiro" className="space-y-0">
           <PainelFinanceiro />
         </TabsContent>
       </Tabs>

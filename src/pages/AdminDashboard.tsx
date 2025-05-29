@@ -31,12 +31,14 @@ const AdminDashboard = () => {
           <DesktopSidebar activeTab={activeTab} onTabChange={setActiveTab} />
         )}
 
-        {/* Mobile Navigation (legacy - will be replaced by bottom nav) */}
-        <MobileAdminNav activeTab={activeTab} onTabChange={setActiveTab} />
+        {/* Mobile Navigation (legacy - hidden in favor of bottom nav) */}
+        <div className="hidden">
+          <MobileAdminNav activeTab={activeTab} onTabChange={setActiveTab} />
+        </div>
 
         {/* Main Content */}
-        <main className={`flex-1 ${isMobile ? 'pb-20' : 'lg:pl-0'}`}>
-          <div className="p-4 md:p-6">
+        <main className={`flex-1 ${isMobile ? 'pb-20' : 'lg:pl-0'} min-h-screen`}>
+          <div className={`${isMobile ? 'p-2' : 'p-4 md:p-6'}`}>
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               {/* Hidden TabsList for accessibility */}
               <TabsList className="hidden">
@@ -54,11 +56,13 @@ const AdminDashboard = () => {
         </main>
       </div>
 
-      {/* Bottom Navigation for Mobile */}
-      <BottomNavigation
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-      />
+      {/* Bottom Navigation for Mobile - Always visible on mobile */}
+      {isMobile && (
+        <BottomNavigation
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+        />
+      )}
     </div>
   );
 };

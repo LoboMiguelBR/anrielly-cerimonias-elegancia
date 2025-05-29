@@ -1,6 +1,7 @@
 
 import React from 'react';
 import ProposalsMain from '../proposals/ProposalsMain';
+import { useMobileLayout } from '@/hooks/useMobileLayout';
 
 interface QuoteRequest {
   id: string;
@@ -19,13 +20,20 @@ interface ProposalsTabProps {
 }
 
 const ProposalsTab = ({ quoteRequests, quoteIdFromUrl }: ProposalsTabProps) => {
+  const { isMobile } = useMobileLayout();
+
   return (
-    <div className="space-y-6">
-      <div className="p-6 bg-white rounded-lg shadow-sm border-l-4 border-l-purple-200">
-        <div className="mb-6">
-          <h2 className="text-2xl font-playfair font-semibold mb-2">Gerenciamento de Propostas</h2>
-          <p className="text-gray-500">
-            Crie, edite e envie propostas personalizadas com o visual da sua marca para seus clientes.
+    <div className="space-y-4 min-h-screen">
+      <div className={`${isMobile ? 'p-2' : 'p-6'} bg-white rounded-lg shadow-sm border-l-4 border-l-purple-200`}>
+        <div className="mb-4">
+          <h2 className={`${isMobile ? 'text-lg' : 'text-2xl'} font-playfair font-semibold mb-2`}>
+            {isMobile ? 'Propostas' : 'Gerenciamento de Propostas'}
+          </h2>
+          <p className={`text-gray-500 ${isMobile ? 'text-sm' : ''}`}>
+            {isMobile 
+              ? 'Crie e gerencie propostas personalizadas' 
+              : 'Crie, edite e envie propostas personalizadas com o visual da sua marca para seus clientes.'
+            }
           </p>
         </div>
         
