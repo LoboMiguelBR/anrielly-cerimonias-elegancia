@@ -107,17 +107,24 @@ export const useProposalFormEnhanced = (
     }));
   }, []);
 
-  // Service handlers
-  const handleServiceToggle = useCallback((index: number, included: boolean) => {
+  // Fixed client type setter to match expected interface
+  const handleClientTypeChange = useCallback((type: string) => {
+    setSelectedClientType(type as 'lead' | 'professional' | '');
+  }, []);
+
+  // Service handlers - Updated to use serviceId (string) instead of index (number)
+  const handleServiceToggle = useCallback((serviceId: string) => {
+    const index = parseInt(serviceId);
     setFormData(prev => ({
       ...prev,
       services: prev.services.map((service, i) => 
-        i === index ? { ...service, included } : service
+        i === index ? { ...service, included: !service.included } : service
       )
     }));
   }, []);
 
-  const handleServiceUpdate = useCallback((index: number, updates: Partial<Service>) => {
+  const handleServiceUpdate = useCallback((serviceId: string, updates: any) => {
+    const index = parseInt(serviceId);
     setFormData(prev => ({
       ...prev,
       services: prev.services.map((service, i) => 
@@ -141,7 +148,8 @@ export const useProposalFormEnhanced = (
     }));
   }, []);
 
-  const handleRemoveService = useCallback((index: number) => {
+  const handleRemoveService = useCallback((serviceId: string) => {
+    const index = parseInt(serviceId);
     setFormData(prev => ({
       ...prev,
       services: prev.services.filter((_, i) => i !== index)
@@ -227,7 +235,7 @@ export const useProposalFormEnhanced = (
     isEditMode,
     
     // Setters
-    setSelectedClientType,
+    setSelectedClientType: handleClientTypeChange,
     setSelectedClientId,
     setTotalPrice,
     setDiscount,

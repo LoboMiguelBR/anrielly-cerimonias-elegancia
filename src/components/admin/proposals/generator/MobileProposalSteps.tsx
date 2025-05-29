@@ -126,6 +126,19 @@ const MobileProposalSteps: React.FC<MobileProposalStepsProps> = ({
     handleFormChange(field as any, value);
   };
 
+  // Create wrapper functions to match the expected service handler signatures
+  const handleServiceToggleWrapper = (index: number, included: boolean) => {
+    handleServiceToggle(index.toString());
+  };
+
+  const handleServiceUpdateWrapper = (index: number, updates: any) => {
+    handleServiceUpdate(index.toString(), updates);
+  };
+
+  const handleRemoveServiceWrapper = (index: number) => {
+    handleRemoveService(index.toString());
+  };
+
   const renderStepContent = () => {
     switch (currentStep) {
       case 0: // Template
@@ -149,7 +162,7 @@ const MobileProposalSteps: React.FC<MobileProposalStepsProps> = ({
           <ClientProfessionalSelector
             quoteRequests={quoteRequests}
             professionals={professionals}
-            selectedClientType={selectedClientType}
+            selectedClientType={selectedClientType as 'lead' | 'professional' | ''}
             selectedClientId={selectedClientId}
             formData={{
               client_name: formData.client_name,
@@ -210,10 +223,10 @@ const MobileProposalSteps: React.FC<MobileProposalStepsProps> = ({
             totalPrice={totalPrice}
             discount={discount}
             finalPrice={finalPrice}
-            onServiceToggle={handleServiceToggle}
-            onServiceUpdate={handleServiceUpdate}
+            onServiceToggle={handleServiceToggleWrapper}
+            onServiceUpdate={handleServiceUpdateWrapper}
             onAddService={handleAddService}
-            onRemoveService={handleRemoveService}
+            onRemoveService={handleRemoveServiceWrapper}
             onTotalPriceChange={setTotalPrice}
             onDiscountChange={setDiscount}
             isLoading={isLoading}
