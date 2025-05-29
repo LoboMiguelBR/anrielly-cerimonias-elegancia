@@ -1,4 +1,3 @@
-
 import { 
   BarChart3, 
   MessageSquare, 
@@ -11,7 +10,8 @@ import {
   FileImage,
   UserCheck,
   Heart,
-  Sparkles
+  Sparkles,
+  TrendingUp
 } from 'lucide-react';
 
 export interface MenuItem {
@@ -48,6 +48,12 @@ export const businessMenuItems: MenuItem[] = [
     label: "Contratos",
     icon: File,
     description: "Contratos e assinaturas"
+  },
+  {
+    id: "gestao-comercial",
+    label: "Gestão Comercial",
+    icon: TrendingUp,
+    description: "Funil de vendas e painel financeiro"
   }
 ];
 

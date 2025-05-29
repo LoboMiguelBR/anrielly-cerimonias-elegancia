@@ -1,4 +1,3 @@
-
 import { TabsContent } from "@/components/ui/tabs";
 import DashboardTab from "../tabs/DashboardTab";
 import QuotesTab from "../tabs/QuotesTab";
@@ -13,6 +12,7 @@ import ProfessionalsTab from "../tabs/ProfessionalsTab";
 import ProposalTemplatesTab from "../tabs/ProposalTemplatesTab";
 import ContractTemplatesTab from "../tabs/ContractTemplatesTab";
 import ContractEmailTemplatesTab from "../tabs/ContractEmailTemplatesTab";
+import GestaoComercialTab from "../tabs/GestaoComercialTab";
 
 interface TabContentRendererProps {
   transformedQuoteRequests: any[];
@@ -76,6 +76,10 @@ const TabContentRenderer = ({ transformedQuoteRequests }: TabContentRendererProp
 
       <TabsContent value="contract-email-templates">
         <ContractEmailTemplatesTab />
+      </TabsContent>
+      
+      <TabsContent value="gestao-comercial">
+        <GestaoComercialTab />
       </TabsContent>
     </>
   );
