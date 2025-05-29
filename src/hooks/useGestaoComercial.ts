@@ -183,25 +183,35 @@ export const useGestaoComercial = () => {
 
   const updateItemStatus = async (itemId: string, newStatus: string, itemType: 'quote' | 'proposal' | 'contract') => {
     try {
-      let table = '';
+      // Usar switch case com queries tipadas para evitar erro TypeScript
       switch (itemType) {
         case 'quote':
-          table = 'quote_requests';
+          const { error: quoteError } = await supabase
+            .from('quote_requests')
+            .update({ status: newStatus })
+            .eq('id', itemId);
+          if (quoteError) throw quoteError;
           break;
+          
         case 'proposal':
-          table = 'proposals';
+          const { error: proposalError } = await supabase
+            .from('proposals')
+            .update({ status: newStatus })
+            .eq('id', itemId);
+          if (proposalError) throw proposalError;
           break;
+          
         case 'contract':
-          table = 'contracts';
+          const { error: contractError } = await supabase
+            .from('contracts')
+            .update({ status: newStatus })
+            .eq('id', itemId);
+          if (contractError) throw contractError;
           break;
+          
+        default:
+          throw new Error(`Tipo de item inválido: ${itemType}`);
       }
-
-      const { error } = await supabase
-        .from(table)
-        .update({ status: newStatus })
-        .eq('id', itemId);
-
-      if (error) throw error;
 
       // Recarregar dados após atualização
       await Promise.all([fetchProposals(), fetchContracts()]);

@@ -3,9 +3,11 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useGestaoComercial } from '@/hooks/useGestaoComercial';
 import { DollarSign, FileText, CheckCircle, TrendingUp, Users, Target } from 'lucide-react';
+import { useMobileLayout } from '@/hooks/useMobileLayout';
 
 const PainelFinanceiro = () => {
   const { financialMetrics, isLoading } = useGestaoComercial();
+  const { isMobile, isTablet } = useMobileLayout();
 
   if (isLoading) {
     return (
@@ -81,22 +83,35 @@ const PainelFinanceiro = () => {
     }
   ];
 
+  // Determinar número de colunas baseado no dispositivo
+  const gridCols = isMobile ? 'grid-cols-1' : 
+                   isTablet ? 'grid-cols-2' : 
+                   'grid-cols-1 md:grid-cols-2 lg:grid-cols-3';
+
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className={`grid ${gridCols} gap-4 md:gap-6`}>
         {kpiCards.map((kpi, index) => {
           const Icon = kpi.icon;
           return (
             <Card key={index} className="hover:shadow-md transition-shadow">
-              <CardContent className="p-6">
+              <CardContent className={`${isMobile ? 'p-4' : 'p-6'}`}>
                 <div className="flex items-center justify-between">
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-gray-600">{kpi.title}</p>
-                    <p className="text-2xl font-bold text-gray-900">{kpi.value}</p>
-                    <p className="text-xs text-gray-500">{kpi.description}</p>
+                  <div className="space-y-2 flex-1 min-w-0">
+                    <p className={`${isMobile ? 'text-xs' : 'text-sm'} font-medium text-gray-600 truncate`}>
+                      {kpi.title}
+                    </p>
+                    <p className={`${isMobile ? 'text-lg' : 'text-2xl'} font-bold text-gray-900 truncate`}>
+                      {kpi.value}
+                    </p>
+                    {!isMobile && (
+                      <p className="text-xs text-gray-500 line-clamp-2">
+                        {kpi.description}
+                      </p>
+                    )}
                   </div>
-                  <div className={`p-3 rounded-full ${kpi.bgColor}`}>
-                    <Icon className={`h-6 w-6 ${kpi.color}`} />
+                  <div className={`${isMobile ? 'p-2' : 'p-3'} rounded-full ${kpi.bgColor} flex-shrink-0 ml-3`}>
+                    <Icon className={`${isMobile ? 'h-5 w-5' : 'h-6 w-6'} ${kpi.color}`} />
                   </div>
                 </div>
               </CardContent>
@@ -108,21 +123,23 @@ const PainelFinanceiro = () => {
       {/* Card especial para Taxa de Conversão */}
       <Card className="border-2 border-dashed border-gray-200">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Target className="h-5 w-5 text-indigo-600" />
+          <CardTitle className={`flex items-center gap-2 ${isMobile ? 'text-lg' : 'text-xl'}`}>
+            <Target className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} text-indigo-600`} />
             Performance de Conversão
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-3xl font-bold text-indigo-600">
+        <CardContent className={isMobile ? 'p-4' : 'p-6'}>
+          <div className={`flex ${isMobile ? 'flex-col space-y-4' : 'items-center justify-between'}`}>
+            <div className={isMobile ? 'text-center' : ''}>
+              <p className={`${isMobile ? 'text-2xl' : 'text-3xl'} font-bold text-indigo-600`}>
                 {formatPercentage(financialMetrics.taxaConversao)}
               </p>
-              <p className="text-sm text-gray-600">Taxa de conversão de leads para contratos</p>
+              <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-gray-600 mt-1`}>
+                Taxa de conversão de leads para contratos
+              </p>
             </div>
-            <div className="text-right">
-              <p className="text-sm text-gray-500">
+            <div className={`${isMobile ? 'text-center' : 'text-right'}`}>
+              <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-gray-500`}>
                 {financialMetrics.contratosAssinados} contratos fechados
               </p>
               <p className="text-xs text-gray-400">
