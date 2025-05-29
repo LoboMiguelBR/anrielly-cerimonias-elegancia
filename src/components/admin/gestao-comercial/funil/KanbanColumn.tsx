@@ -26,30 +26,36 @@ const KanbanColumn: React.FC<KanbanColumnProps> = ({
 }) => {
   const { isMobile, isTablet } = useMobileLayout();
 
-  // Responsividade melhorada para diferentes telas
   const getColumnClasses = () => {
     if (isMobile) {
-      return 'w-full max-w-full';
+      return 'w-full';
     }
-    if (isTablet) {
-      return 'min-w-[260px] max-w-[300px]';
-    }
-    return 'min-w-[280px] max-w-[320px] flex-shrink-0';
+    return 'w-full h-full';
   };
 
   const getContentClasses = () => {
     if (isMobile) {
-      return 'space-y-3 min-h-[200px] max-h-[400px] overflow-y-auto';
+      return 'space-y-3 max-h-[60vh] overflow-y-auto';
     }
-    return 'space-y-3 min-h-[400px] max-h-[600px] overflow-y-auto';
+    if (isTablet) {
+      return 'space-y-3 max-h-[500px] overflow-y-auto';
+    }
+    return 'space-y-3 max-h-[600px] overflow-y-auto';
+  };
+
+  const getHeaderClasses = () => {
+    if (isMobile) {
+      return 'pb-2';
+    }
+    return 'pb-3';
   };
 
   return (
     <Card className={`${getColumnClasses()} ${column.color} border-2`}>
-      <CardHeader className="pb-3">
-        <CardTitle className={`${isMobile ? 'text-base' : 'text-sm'} font-semibold ${column.titleColor} flex items-center justify-between`}>
+      <CardHeader className={getHeaderClasses()}>
+        <CardTitle className={`${isMobile ? 'text-sm' : 'text-sm'} font-semibold ${column.titleColor} flex items-center justify-between`}>
           <span className="truncate flex-1">{column.title}</span>
-          <span className="bg-white px-2 py-1 rounded-full text-xs font-medium flex-shrink-0 ml-2">
+          <span className={`bg-white px-2 py-1 rounded-full text-xs font-medium flex-shrink-0 ml-2 ${isMobile ? 'min-w-[24px]' : ''}`}>
             {column.items.length}
           </span>
         </CardTitle>
@@ -65,7 +71,9 @@ const KanbanColumn: React.FC<KanbanColumnProps> = ({
         ))}
         {column.items.length === 0 && (
           <div className="text-center py-8 text-gray-400">
-            <p className="text-sm">Nenhum item nesta etapa</p>
+            <p className={`${isMobile ? 'text-xs' : 'text-sm'}`}>
+              Nenhum item nesta etapa
+            </p>
           </div>
         )}
       </CardContent>

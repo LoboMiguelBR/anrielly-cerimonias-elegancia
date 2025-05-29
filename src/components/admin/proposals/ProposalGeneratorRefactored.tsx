@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,8 +13,10 @@ import ClientProfessionalSelector from './generator/ClientProfessionalSelector';
 import ServicesSection from './generator/ServicesSection';
 import TemplateSelector from './templates/TemplateSelector';
 import ProposalPreview from './ProposalPreview';
+import MobileProposalSteps from './generator/MobileProposalSteps';
 import { supabase } from '@/integrations/supabase/client';
 import ProposalActionButtons from './generator/ProposalActionButtons';
+import { useMobileLayout } from '@/hooks/useMobileLayout';
 
 interface Professional {
   id: string;
@@ -42,6 +43,7 @@ const ProposalGeneratorRefactored: React.FC<ProposalGeneratorRefactoredProps> = 
   const [professionals, setProfessionals] = useState<Professional[]>([]);
   const [templates, setTemplates] = useState<ApiProposalTemplateData[]>([]);
   const [showPreview, setShowPreview] = useState(false);
+  const { isMobile } = useMobileLayout();
 
   const {
     formData,
@@ -68,11 +70,9 @@ const ProposalGeneratorRefactored: React.FC<ProposalGeneratorRefactoredProps> = 
     isEditMode
   } = useProposalFormEnhanced(initialProposalId, quoteRequests, professionals);
 
-  // Load professionals and templates on mount
   useEffect(() => {
     const loadData = async () => {
       try {
-        // Load professionals
         const { data: professionalsData, error: profError } = await supabase
           .from('professionals')
           .select('id, name, email, phone, category, city');
@@ -83,11 +83,9 @@ const ProposalGeneratorRefactored: React.FC<ProposalGeneratorRefactoredProps> = 
           setProfessionals(professionalsData || []);
         }
 
-        // Load templates from the correct table
         const templatesData = await proposalTemplatesApi.fetchProposalTemplates();
         setTemplates(templatesData);
         
-        // Set default template if none selected
         if (!selectedTemplate && templatesData.length > 0) {
           const defaultTemplate = templatesData.find(t => t.is_default) || templatesData[0];
           setSelectedTemplate(defaultTemplate);
@@ -100,13 +98,11 @@ const ProposalGeneratorRefactored: React.FC<ProposalGeneratorRefactoredProps> = 
     loadData();
   }, [selectedTemplate, setSelectedTemplate]);
 
-  // Auto-select quote if provided via URL and auto-fill data
   useEffect(() => {
     if (quoteIdFromUrl && !selectedClientId && !isEditMode) {
       setSelectedClientType('lead');
       setSelectedClientId(quoteIdFromUrl);
       
-      // Auto-fill data from selected quote
       const selectedQuote = quoteRequests.find(q => q.id === quoteIdFromUrl);
       if (selectedQuote) {
         handleFormChange('client_name', selectedQuote.name);
@@ -124,9 +120,8 @@ const ProposalGeneratorRefactored: React.FC<ProposalGeneratorRefactoredProps> = 
     handleFormChange('template_id', template.id);
   };
 
-  const handleFormSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    // Don't close automatically - let user decide when to close
+  const handleFormSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     await handleSubmit();
   };
 
@@ -143,7 +138,6 @@ const ProposalGeneratorRefactored: React.FC<ProposalGeneratorRefactoredProps> = 
     handleFormChange(field as any, value);
   };
 
-  // Check if form is valid for PDF generation
   const isFormValid = !!(
     formData.client_name &&
     formData.client_email &&
@@ -173,7 +167,6 @@ const ProposalGeneratorRefactored: React.FC<ProposalGeneratorRefactoredProps> = 
       template_id: selectedTemplate?.id || null
     };
 
-    // Convert API template data to preview format with correct properties
     const previewTemplate = selectedTemplate ? {
       id: selectedTemplate.id,
       name: selectedTemplate.name,
@@ -204,9 +197,39 @@ const ProposalGeneratorRefactored: React.FC<ProposalGeneratorRefactoredProps> = 
     );
   }
 
+  if (isMobile) {
+    return (
+      <MobileProposalSteps
+        formData={formData}
+        selectedClientType={selectedClientType}
+        selectedClientId={selectedClientId}
+        totalPrice={totalPrice}
+        discount={discount}
+        finalPrice={finalPrice}
+        selectedTemplate={selectedTemplate}
+        quoteRequests={quoteRequests}
+        professionals={professionals}
+        isLoading={isLoading}
+        isSaving={isSaving}
+        setSelectedClientType={setSelectedClientType}
+        setSelectedClientId={setSelectedClientId}
+        setTotalPrice={setTotalPrice}
+        setDiscount={setDiscount}
+        setSelectedTemplate={setSelectedTemplate}
+        handleFormChange={handleFormChange}
+        handleServiceToggle={handleServiceToggle}
+        handleServiceUpdate={handleServiceUpdate}
+        handleAddService={handleAddService}
+        handleRemoveService={handleRemoveService}
+        onSubmit={handleFormSubmit}
+        onPreview={handlePreview}
+        onClose={onClose}
+      />
+    );
+  }
+
   return (
     <form onSubmit={handleFormSubmit} className="space-y-6">
-      {/* Template Selection */}
       <Card>
         <CardHeader>
           <CardTitle>Template da Proposta</CardTitle>
@@ -222,7 +245,6 @@ const ProposalGeneratorRefactored: React.FC<ProposalGeneratorRefactoredProps> = 
         </CardContent>
       </Card>
 
-      {/* Client/Professional Selection with Auto-complete */}
       <ClientProfessionalSelector
         quoteRequests={quoteRequests}
         professionals={professionals}
@@ -243,7 +265,6 @@ const ProposalGeneratorRefactored: React.FC<ProposalGeneratorRefactoredProps> = 
         disabled={isEditMode}
       />
 
-      {/* Event Information */}
       <Card>
         <CardHeader>
           <CardTitle>Dados do Evento</CardTitle>
@@ -281,7 +302,6 @@ const ProposalGeneratorRefactored: React.FC<ProposalGeneratorRefactoredProps> = 
         </CardContent>
       </Card>
 
-      {/* Simplified Services Section */}
       <ServicesSection
         services={formData.services}
         totalPrice={totalPrice}
@@ -296,7 +316,6 @@ const ProposalGeneratorRefactored: React.FC<ProposalGeneratorRefactoredProps> = 
         isLoading={isLoading}
       />
 
-      {/* Financial Terms */}
       <Card>
         <CardHeader>
           <CardTitle>Termos Financeiros</CardTitle>
@@ -325,7 +344,6 @@ const ProposalGeneratorRefactored: React.FC<ProposalGeneratorRefactoredProps> = 
         </CardContent>
       </Card>
 
-      {/* Notes */}
       <Card>
         <CardHeader>
           <CardTitle>Observações</CardTitle>
@@ -343,7 +361,6 @@ const ProposalGeneratorRefactored: React.FC<ProposalGeneratorRefactoredProps> = 
         </CardContent>
       </Card>
 
-      {/* Action Buttons */}
       <div className="flex flex-col sm:flex-row gap-3 justify-end">
         {onClose && (
           <Button type="button" variant="outline" onClick={onClose}>
@@ -364,7 +381,6 @@ const ProposalGeneratorRefactored: React.FC<ProposalGeneratorRefactoredProps> = 
         </Button>
       </div>
 
-      {/* PDF and Email Action Buttons */}
       <ProposalActionButtons
         proposal={proposal}
         template={selectedTemplate ? {

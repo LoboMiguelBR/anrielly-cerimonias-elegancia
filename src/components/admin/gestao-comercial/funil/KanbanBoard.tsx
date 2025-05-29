@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { FunilItem } from '@/hooks/useGestaoComercial';
 import KanbanColumn from './KanbanColumn';
 import { useMobileLayout } from '@/hooks/useMobileLayout';
@@ -20,6 +20,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
 }) => {
   const { isMobile, isTablet } = useMobileLayout();
   const [activeColumn, setActiveColumn] = useState(0);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const columns = [
     {
@@ -73,86 +74,168 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
     }
   ];
 
-  // Layout Mobile: Uma coluna por vez com navegação simplificada
+  const scrollToColumn = (direction: 'left' | 'right') => {
+    if (scrollContainerRef.current) {
+      const scrollAmount = 300;
+      const currentScroll = scrollContainerRef.current.scrollLeft;
+      const newScroll = direction === 'left' 
+        ? currentScroll - scrollAmount 
+        : currentScroll + scrollAmount;
+      
+      scrollContainerRef.current.scrollTo({
+        left: newScroll,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  // Layout Mobile: Uma coluna por vez com navegação por tabs
   if (isMobile) {
-    const currentColumn = columns[activeColumn];
-    
     return (
-      <div className="space-y-4 max-w-full overflow-hidden">
-        {/* Navigation buttons */}
-        <div className="flex items-center justify-between">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setActiveColumn(Math.max(0, activeColumn - 1))}
-            disabled={activeColumn === 0}
-            className="flex items-center gap-1"
-          >
-            <ChevronLeft className="h-4 w-4" />
-            <span className="hidden sm:inline">Anterior</span>
-          </Button>
-          
-          <div className="text-center">
-            <p className="text-sm font-medium">{currentColumn.title}</p>
-            <span className="text-xs text-gray-600">
-              {activeColumn + 1} de {columns.length}
-            </span>
+      <div className="space-y-4 w-full">
+        <Tabs value={columns[activeColumn].id} onValueChange={(value) => {
+          const index = columns.findIndex(col => col.id === value);
+          setActiveColumn(index);
+        }}>
+          <div className="flex items-center justify-between mb-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setActiveColumn(Math.max(0, activeColumn - 1))}
+              disabled={activeColumn === 0}
+              className="flex items-center gap-1"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            
+            <TabsList className="grid grid-cols-1 h-auto">
+              <TabsTrigger 
+                value={columns[activeColumn].id}
+                className="text-sm px-2 py-1 whitespace-nowrap"
+              >
+                {columns[activeColumn].title} ({columns[activeColumn].items.length})
+              </TabsTrigger>
+            </TabsList>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setActiveColumn(Math.min(columns.length - 1, activeColumn + 1))}
+              disabled={activeColumn === columns.length - 1}
+              className="flex items-center gap-1"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
           </div>
-          
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setActiveColumn(Math.min(columns.length - 1, activeColumn + 1))}
-            disabled={activeColumn === columns.length - 1}
-            className="flex items-center gap-1"
-          >
-            <span className="hidden sm:inline">Próximo</span>
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
 
-        {/* Current column content */}
-        <div className="w-full">
-          <KanbanColumn
-            column={currentColumn}
-            onUpdateStatus={onUpdateStatus}
-            onCreateProposal={onCreateProposal}
-          />
-        </div>
-      </div>
-    );
-  }
-
-  // Layout Tablet: 2-3 colunas com scroll horizontal
-  if (isTablet) {
-    return (
-      <div className="w-full overflow-x-auto">
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 min-w-fit">
-          {columns.map((column) => (
+          <TabsContent value={columns[activeColumn].id} className="mt-0">
             <KanbanColumn
-              key={column.id}
-              column={column}
+              column={columns[activeColumn]}
               onUpdateStatus={onUpdateStatus}
               onCreateProposal={onCreateProposal}
             />
-          ))}
+          </TabsContent>
+        </Tabs>
+      </div>
+    );
+  }
+
+  // Layout Tablet: 2 colunas com scroll horizontal
+  if (isTablet) {
+    return (
+      <div className="w-full">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold">Funil de Vendas</h3>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => scrollToColumn('left')}
+              className="flex items-center gap-1"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => scrollToColumn('right')}
+              className="flex items-center gap-1"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+        
+        <div 
+          ref={scrollContainerRef}
+          className="overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-gray-300"
+        >
+          <div className="flex gap-4 min-w-fit">
+            {columns.map((column) => (
+              <div key={column.id} className="min-w-[280px] max-w-[300px] flex-shrink-0">
+                <KanbanColumn
+                  column={column}
+                  onUpdateStatus={onUpdateStatus}
+                  onCreateProposal={onCreateProposal}
+                />
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     );
   }
 
-  // Layout Desktop: Todas as 7 colunas com scroll horizontal melhorado
+  // Layout Desktop: Scroll horizontal controlado com indicadores
   return (
-    <div className="w-full overflow-x-auto pb-4">
-      <div className="flex gap-4 min-w-fit min-h-[600px]">
-        {columns.map((column) => (
-          <KanbanColumn
-            key={column.id}
-            column={column}
-            onUpdateStatus={onUpdateStatus}
-            onCreateProposal={onCreateProposal}
-          />
-        ))}
+    <div className="w-full">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-semibold">Funil de Vendas</h3>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => scrollToColumn('left')}
+            className="flex items-center gap-1"
+          >
+            <ChevronLeft className="h-4 w-4" />
+            Anterior
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => scrollToColumn('right')}
+            className="flex items-center gap-1"
+          >
+            Próximo
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+      
+      <div 
+        ref={scrollContainerRef}
+        className="overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-gray-300"
+        style={{ maxWidth: '100%' }}
+      >
+        <div className="flex gap-4 min-w-fit">
+          {columns.map((column) => (
+            <div key={column.id} className="min-w-[240px] max-w-[280px] flex-shrink-0">
+              <KanbanColumn
+                column={column}
+                onUpdateStatus={onUpdateStatus}
+                onCreateProposal={onCreateProposal}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+      
+      {/* Indicador de scroll */}
+      <div className="flex justify-center mt-2">
+        <div className="text-xs text-gray-500">
+          Use as setas ou arraste horizontalmente para navegar
+        </div>
       </div>
     </div>
   );
