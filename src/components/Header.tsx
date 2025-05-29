@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Menu, X } from 'lucide-react';
 
@@ -30,6 +29,7 @@ const Header = () => {
     { title: 'Serviços', href: '#servicos' },
     { title: 'Diferenciais', href: '#diferenciais' },
     { title: 'Galeria', href: '#galeria' },
+    { title: 'Depoimentos', href: '#depoimentos' },
     { title: 'Contato', href: '#contato' },
   ];
 
