@@ -125,70 +125,108 @@ serve(async (req) => {
     let prompt = ''
     
     if (personalizacao) {
-      console.log('Construindo prompt personalizado...')
+      console.log('Construindo prompt personalizado avançado...')
       
       const linguagemCelebrante = personalizacao.linguagem_celebrante || 'celebrante especialista'
       const tipoCerimonia = personalizacao.tipo_cerimonia || 'tradicional'
       const tomConversa = personalizacao.tom_conversa || 'romântico'
       const tagsEmocao = personalizacao.tags_emocao?.join(', ') || 'amor e leveza'
+      const momentoEspecial = personalizacao.momento_especial || ''
+      const contexto = personalizacao.contexto_cultural || ''
+      const observacoes = personalizacao.observacoes_adicionais || ''
       
-      prompt = `Você é um ${linguagemCelebrante} de cerimônias do tipo ${tipoCerimonia}.
-Sua missão é criar uma história com um tom ${tomConversa} e emoção baseada em: ${tagsEmocao}.
+      prompt = `Você é um ${linguagemCelebrante} especializado em criar histórias emocionantes para cerimônias do tipo ${tipoCerimonia}.
 
-${personalizacao.incluir_votos ? 'Inclua também votos personalizados baseados nas respostas dos noivos.' : ''}
-${personalizacao.incluir_aliancas ? 'Descreva a troca de alianças de forma simbólica e emocionante.' : ''}
-${personalizacao.momento_especial ? `Momento especial a destacar: ${personalizacao.momento_especial}` : ''}
-${personalizacao.contexto_cultural ? `Adapte o texto para o contexto cultural: ${personalizacao.contexto_cultural}` : ''}
-${personalizacao.observacoes_adicionais ? `Observações adicionais: ${personalizacao.observacoes_adicionais}` : ''}
+INSTRUÇÕES FUNDAMENTAIS:
+- Crie uma história LONGA, DETALHADA e EMOCIONANTE (não se limite a parágrafos curtos)
+- Use um tom ${tomConversa} e transmita emoções de: ${tagsEmocao}
+- Esta história será lida durante a cerimônia, então deve ser cativante e tocante
+- NÃO SE LIMITE ao tamanho - quanto mais rica em detalhes, melhor
+- Conte a história como se fosse uma narrativa envolvente, não apenas fatos
 
-Crie um texto que conte a trajetória do casal, destacando:
-- Como se conheceram;
-- As primeiras impressões um do outro;
-- Os momentos marcantes, desafios, superações e alegrias;
-- Curiosidades do relacionamento (como apelidos, manias e brincadeiras);
-- Características que um admira no outro;
-- O que eles mais gostam de fazer juntos;
-- O que esperam do futuro e da família que estão formando.
+${observacoes ? `INSTRUÇÕES ESPECIAIS: ${observacoes}` : ''}
 
-A história deve ser contada de forma natural, espontânea, como se fosse um celebrante falando, com amor, carinho, emoção e leveza.
+ELEMENTOS OBRIGATÓRIOS A INCLUIR NA HISTÓRIA:
+1. Como eles se conheceram (primeiras impressões, cenário, sentimentos)
+2. Os primeiros momentos juntos (como foi o desenvolvimento da relação)
+3. Momentos marcantes da relação (viagens, conquistas, desafios superados)
+4. Características que um admira no outro (personalidade, qualidades únicas)
+5. Tradições, rituais ou coisas especiais que eles fazem juntos
+6. Como eles se complementam e cresceram juntos
+7. Sonhos e planos para o futuro
+8. O que a família e amigos veem neles como casal
 
-Aqui estão as informações coletadas dos dois noivos:
+${momentoEspecial ? `MOMENTO ESPECIAL A DESTACAR: ${momentoEspecial}` : ''}
+${contexto ? `ADAPTE PARA O CONTEXTO: ${contexto}` : ''}
+
+${personalizacao.incluir_votos ? `
+INCLUIR VOTOS PERSONALIZADOS:
+- Baseie-se nas respostas para criar votos únicos que cada um faria ao outro
+- Incorpore as palavras e sentimentos expressos nos questionários
+` : ''}
+
+${personalizacao.incluir_aliancas ? `
+INCLUIR MOMENTO DAS ALIANÇAS:
+- Descreva de forma simbólica e emocionante o significado da troca de alianças
+- Conecte com a jornada do casal até este momento
+` : ''}
+
+FORMATO DA RESPOSTA:
+- Crie uma narrativa fluida e envolvente em 5-8 parágrafos substanciais
+- Cada parágrafo deve ter pelo menos 4-6 frases detalhadas
+- Use linguagem poética mas acessível
+- Inclua detalhes específicos baseados nas respostas dos questionários
+- Faça com que quem ouvir se emocione e se conecte com a história
+
+Aqui estão as respostas dos questionários:
 
 ${respostasNoiva}
 
 ${respostasNoivo}
 
-Gere uma história única, emocionante e inesquecível para ser lida durante a cerimônia de casamento. O texto deve ter entre 3-5 parágrafos e ser adequado para leitura em uma cerimônia de casamento.`
+Agora, crie uma história magnífica, detalhada e emocionante sobre este casal, sem se preocupar com o tamanho do texto.`
     } else {
-      console.log('Usando prompt padrão (sem personalização)...')
+      console.log('Usando prompt padrão aprimorado (sem personalização)...')
       
-      prompt = `Você é um especialista em contar histórias de amor para cerimônias de casamento. Sua missão é transformar as respostas dos questionários de dois noivos em uma narrativa romântica, envolvente, emocionante e com toques de humor leve e saudável.
+      prompt = `Você é um especialista em contar histórias de amor emocionantes para cerimônias de casamento. Sua missão é transformar as respostas dos questionários em uma narrativa LONGA, DETALHADA e PROFUNDAMENTE TOCANTE.
 
-Crie um texto que conte a trajetória do casal, destacando:
-- Como se conheceram;
-- As primeiras impressões um do outro;
-- Os momentos marcantes, desafios, superações e alegrias;
-- Curiosidades do relacionamento (como apelidos, manias e brincadeiras);
-- Características que um admira no outro;
-- O que eles mais gostam de fazer juntos;
-- O que esperam do futuro e da família que estão formando.
+INSTRUÇÕES FUNDAMENTAIS:
+- Crie uma história EXTENSA e RICA EM DETALHES (não se limite a parágrafos curtos)
+- Esta história será lida durante a cerimônia, então deve ser emocionante e cativante
+- NÃO SE PREOCUPE com o tamanho - quanto mais detalhada e envolvente, melhor
+- Use linguagem poética, romântica e carregada de emoção
 
-A história deve ser contada de forma natural, espontânea, como se fosse um celebrante falando, com amor, carinho, emoção e leveza.
+ELEMENTOS OBRIGATÓRIOS A INCLUIR:
+1. Como se conheceram (cenário completo, primeiras impressões detalhadas)
+2. Desenvolvimento da relação (primeiros encontros, como o amor floresceu)
+3. Momentos marcantes e especiais (viagens, conquistas, surpresas)
+4. Desafios superados juntos (como se fortaleceram nas dificuldades)
+5. Características únicas que um admira no outro
+6. Tradições, brincadeiras e rituais especiais do casal
+7. Como eles se complementam e evoluíram juntos
+8. Sonhos, planos e visão de futuro
+9. O que família e amigos veem neles
 
-Adote um tom romântico, poético e divertido. Use palavras que transmitam sensibilidade, amor e conexão.
+FORMATO DA RESPOSTA:
+- 6-10 parágrafos substanciais e detalhados
+- Cada parágrafo com 5-8 frases ricas em detalhes
+- Tom romântico, poético e emocionante
+- Use palavras que transmitam sensibilidade, amor e conexão profunda
+- Inclua momentos específicos baseados nas respostas
+- Faça a plateia se emocionar e se conectar com a história
 
-Aqui estão as informações coletadas dos dois noivos:
+TOME COMO BASE as informações dos questionários:
 
 ${respostasNoiva}
 
 ${respostasNoivo}
 
-Gere agora uma história incrível, inesquecível, emocionante e encantadora sobre esse casal. O texto deve ter entre 3-5 parágrafos e ser adequado para leitura em uma cerimônia de casamento.`
+Crie agora uma história MAGNÍFICA, LONGA e INESQUECÍVEL sobre este casal. Não se limite - quanto mais rica e detalhada, melhor será a experiência na cerimônia.`
     }
 
-    console.log('Calling OpenAI API...')
+    console.log('Calling OpenAI API with enhanced prompt...')
 
-    // Chamar OpenAI com retry logic
+    // Chamar OpenAI com configurações aprimoradas
     let openaiResponse
     let retryCount = 0
     const maxRetries = 3
@@ -208,7 +246,7 @@ Gere agora uma história incrível, inesquecível, emocionante e encantadora sob
             messages: [
               {
                 role: 'system',
-                content: 'Você é um especialista em criar histórias românticas e emocionantes para casamentos.'
+                content: 'Você é um especialista em criar histórias românticas longas, detalhadas e profundamente emocionantes para casamentos. Nunca limite o tamanho do texto - quanto mais rica e envolvente a história, melhor.'
               },
               {
                 role: 'user',
@@ -216,7 +254,9 @@ Gere agora uma história incrível, inesquecível, emocionante e encantadora sob
               }
             ],
             temperature: 0.8,
-            max_tokens: 1500
+            max_tokens: 4000, // Aumentado significativamente
+            presence_penalty: 0.1,
+            frequency_penalty: 0.1
           }),
         })
 
@@ -266,10 +306,10 @@ Gere agora uma história incrível, inesquecível, emocionante e encantadora sob
       throw new Error('OpenAI returned empty story content')
     }
 
-    console.log('Story generated successfully, length:', historiaGerada.length)
+    console.log('Enhanced story generated successfully, length:', historiaGerada.length, 'characters')
 
     // Salvar a história em todos os questionários do mesmo link_publico
-    console.log('Saving story to database...')
+    console.log('Saving enhanced story to database...')
     
     const { error: updateError } = await supabaseClient
       .from('questionarios_noivos')
@@ -284,11 +324,11 @@ Gere agora uma história incrível, inesquecível, emocionante e encantadora sob
       throw new Error(`Erro ao salvar história no banco de dados: ${updateError.message}`)
     }
 
-    console.log('Story saved successfully to database')
+    console.log('Enhanced story saved successfully to database')
 
     const mensagem = personalizacao 
-      ? 'História personalizada gerada com sucesso!' 
-      : 'História do casal gerada com sucesso!'
+      ? 'História personalizada e detalhada gerada com sucesso!' 
+      : 'História completa e emocionante gerada com sucesso!'
 
     return new Response(
       JSON.stringify({ 
@@ -299,7 +339,8 @@ Gere agora uma história incrível, inesquecível, emocionante e encantadora sob
         debug: {
           noivosProcessados: noivos.length,
           historiaLength: historiaGerada.length,
-          temPersonalizacao: !!personalizacao
+          temPersonalizacao: !!personalizacao,
+          caracteresGerados: historiaGerada.length
         }
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

@@ -8,9 +8,34 @@ interface SugestoesInputProps {
   sugestoes: string[];
   placeholder?: string;
   rows?: number;
+  allowMultiple?: boolean;
 }
 
-const SugestoesInput = ({ value, onChange, sugestoes, placeholder, rows = 1 }: SugestoesInputProps) => {
+const SugestoesInput = ({ 
+  value, 
+  onChange, 
+  sugestoes, 
+  placeholder, 
+  rows = 3,
+  allowMultiple = true 
+}: SugestoesInputProps) => {
+  const handleSugestaoClick = (sugestao: string) => {
+    if (allowMultiple) {
+      // Se permitir múltiplas seleções, adiciona ao texto existente
+      if (value.trim() === '') {
+        onChange(sugestao);
+      } else {
+        // Adiciona vírgula se não terminar com pontuação
+        const needsSeparator = !/[,.;]$/.test(value.trim());
+        const separator = needsSeparator ? ', ' : ' ';
+        onChange(value + separator + sugestao);
+      }
+    } else {
+      // Comportamento original - substitui o texto
+      onChange(sugestao);
+    }
+  };
+
   return (
     <div className="space-y-2">
       <Textarea
@@ -18,6 +43,7 @@ const SugestoesInput = ({ value, onChange, sugestoes, placeholder, rows = 1 }: S
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         rows={rows}
+        className="min-h-[80px]"
       />
       <div className="flex flex-wrap gap-2">
         {sugestoes.map((sugestao) => (
@@ -26,13 +52,18 @@ const SugestoesInput = ({ value, onChange, sugestoes, placeholder, rows = 1 }: S
             type="button"
             variant="outline"
             size="sm"
-            onClick={() => onChange(sugestao)}
-            className="text-xs"
+            onClick={() => handleSugestaoClick(sugestao)}
+            className="text-xs hover:bg-purple-50 hover:border-purple-300"
           >
-            {sugestao}
+            {allowMultiple ? '+ ' : ''}{sugestao}
           </Button>
         ))}
       </div>
+      {allowMultiple && (
+        <p className="text-xs text-gray-500">
+          💡 Clique nas sugestões para adicionar ao texto. Você pode combinar múltiplas opções.
+        </p>
+      )}
     </div>
   );
 };
