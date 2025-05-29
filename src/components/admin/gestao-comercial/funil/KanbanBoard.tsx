@@ -73,76 +73,78 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
     }
   ];
 
-  // Layout Mobile: Tabs com navegação
+  // Layout Mobile: Uma coluna por vez com navegação simplificada
   if (isMobile) {
+    const currentColumn = columns[activeColumn];
+    
     return (
-      <div className="space-y-4">
-        <Tabs value={columns[activeColumn].id} onValueChange={(value) => {
-          const index = columns.findIndex(col => col.id === value);
-          setActiveColumn(index);
-        }}>
-          {/* Navigation buttons */}
-          <div className="flex items-center justify-between mb-4">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setActiveColumn(Math.max(0, activeColumn - 1))}
-              disabled={activeColumn === 0}
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            
-            <div className="text-center">
-              <span className="text-sm text-gray-600">
-                {activeColumn + 1} de {columns.length}
-              </span>
-            </div>
-            
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setActiveColumn(Math.min(columns.length - 1, activeColumn + 1))}
-              disabled={activeColumn === columns.length - 1}
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
+      <div className="space-y-4 max-w-full overflow-hidden">
+        {/* Navigation buttons */}
+        <div className="flex items-center justify-between">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setActiveColumn(Math.max(0, activeColumn - 1))}
+            disabled={activeColumn === 0}
+            className="flex items-center gap-1"
+          >
+            <ChevronLeft className="h-4 w-4" />
+            <span className="hidden sm:inline">Anterior</span>
+          </Button>
+          
+          <div className="text-center">
+            <p className="text-sm font-medium">{currentColumn.title}</p>
+            <span className="text-xs text-gray-600">
+              {activeColumn + 1} de {columns.length}
+            </span>
           </div>
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setActiveColumn(Math.min(columns.length - 1, activeColumn + 1))}
+            disabled={activeColumn === columns.length - 1}
+            className="flex items-center gap-1"
+          >
+            <span className="hidden sm:inline">Próximo</span>
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
 
-          {/* Tab triggers - scrollable */}
-          <TabsList className="w-full grid grid-cols-2 gap-1 mb-4 h-auto">
-            {columns.slice(activeColumn, activeColumn + 2).map((column) => (
-              <TabsTrigger 
-                key={column.id} 
-                value={column.id}
-                className="text-xs p-2 h-auto whitespace-normal text-center"
-              >
-                {column.title}
-                <span className="block text-xs opacity-70">
-                  ({column.items.length})
-                </span>
-              </TabsTrigger>
-            ))}
-          </TabsList>
-
-          {/* Tab content */}
-          {columns.map((column) => (
-            <TabsContent key={column.id} value={column.id} className="mt-0">
-              <KanbanColumn
-                column={column}
-                onUpdateStatus={onUpdateStatus}
-                onCreateProposal={onCreateProposal}
-              />
-            </TabsContent>
-          ))}
-        </Tabs>
+        {/* Current column content */}
+        <div className="w-full">
+          <KanbanColumn
+            column={currentColumn}
+            onUpdateStatus={onUpdateStatus}
+            onCreateProposal={onCreateProposal}
+          />
+        </div>
       </div>
     );
   }
 
-  // Layout Tablet: 2-3 colunas
+  // Layout Tablet: 2-3 colunas com scroll horizontal
   if (isTablet) {
     return (
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 overflow-auto">
+      <div className="w-full overflow-x-auto">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 min-w-fit">
+          {columns.map((column) => (
+            <KanbanColumn
+              key={column.id}
+              column={column}
+              onUpdateStatus={onUpdateStatus}
+              onCreateProposal={onCreateProposal}
+            />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Layout Desktop: Todas as 7 colunas com scroll horizontal melhorado
+  return (
+    <div className="w-full overflow-x-auto pb-4">
+      <div className="flex gap-4 min-w-fit min-h-[600px]">
         {columns.map((column) => (
           <KanbanColumn
             key={column.id}
@@ -152,20 +154,6 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
           />
         ))}
       </div>
-    );
-  }
-
-  // Layout Desktop: Todas as 7 colunas
-  return (
-    <div className="flex gap-4 overflow-x-auto pb-4 min-h-[600px]">
-      {columns.map((column) => (
-        <KanbanColumn
-          key={column.id}
-          column={column}
-          onUpdateStatus={onUpdateStatus}
-          onCreateProposal={onCreateProposal}
-        />
-      ))}
     </div>
   );
 };

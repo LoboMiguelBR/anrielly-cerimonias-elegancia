@@ -1,5 +1,5 @@
 
-import { FC, useState, useEffect } from 'react';
+import { FC, useState, useEffect, useRef } from 'react';
 import useEmblaCarousel from 'embla-carousel-react';
 import { TestimonialItemProps } from './TestimonialItem';
 import EnhancedTestimonialCard from './EnhancedTestimonialCard';
@@ -15,6 +15,7 @@ const EnhancedTestimonialCarousel: FC<EnhancedTestimonialCarouselProps> = ({ tes
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, startIndex: 0 });
   const [activeIndex, setActiveIndex] = useState(0);
   const [mounted, setMounted] = useState(false);
+  const testimonialsRef = useRef(testimonials);
   
   // Track when component is mounted
   useEffect(() => {
@@ -24,16 +25,24 @@ const EnhancedTestimonialCarousel: FC<EnhancedTestimonialCarouselProps> = ({ tes
       console.log('[EnhancedTestimonialCarousel] Componente desmontado');
       setMounted(false);
     };
-  }, []);
+  }, [testimonials.length]); // Usar apenas length para evitar re-renders
 
-  // Reset to first slide when testimonials change (after randomization)
+  // Atualizar ref apenas quando necessário
   useEffect(() => {
-    if (emblaApi && testimonials.length > 0) {
-      console.log('[EnhancedTestimonialCarousel] Reiniciando carrossel para o primeiro slide após mudança nos depoimentos');
-      emblaApi.scrollTo(0, false); // Scroll to first slide without animation
+    if (JSON.stringify(testimonialsRef.current) !== JSON.stringify(testimonials)) {
+      testimonialsRef.current = testimonials;
+      console.log('[EnhancedTestimonialCarousel] Dados atualizados:', testimonials.length, 'depoimentos');
+    }
+  }, [testimonials]);
+
+  // Reset to first slide apenas quando testimonials realmente mudam
+  useEffect(() => {
+    if (emblaApi && testimonials.length > 0 && mounted) {
+      console.log('[EnhancedTestimonialCarousel] Reiniciando carrossel para o primeiro slide');
+      emblaApi.scrollTo(0, false);
       setActiveIndex(0);
     }
-  }, [emblaApi, testimonials]);
+  }, [emblaApi, testimonials.length, mounted]); // Usar apenas length
 
   // Update active index when slide changes
   useEffect(() => {
@@ -41,22 +50,16 @@ const EnhancedTestimonialCarousel: FC<EnhancedTestimonialCarouselProps> = ({ tes
     
     const handleSelect = () => {
       const currentIndex = emblaApi.selectedScrollSnap();
-      console.log('[EnhancedTestimonialCarousel] Slide alterou para', currentIndex);
       setActiveIndex(currentIndex);
     };
     
     emblaApi.on('select', handleSelect);
-    handleSelect(); // Set initial active index
+    handleSelect();
     
     return () => {
       emblaApi.off('select', handleSelect);
     };
   }, [emblaApi]);
-
-  // Log when testimonials data changes
-  useEffect(() => {
-    console.log('[EnhancedTestimonialCarousel] Dados atualizados:', testimonials.length, 'depoimentos');
-  }, [testimonials]);
 
   const handleNextSlide = () => {
     if (emblaApi) emblaApi.scrollNext();
@@ -81,7 +84,7 @@ const EnhancedTestimonialCarousel: FC<EnhancedTestimonialCarouselProps> = ({ tes
         <div className="flex">
           {testimonials.map((testimonial, index) => (
             <div 
-              key={testimonial.id} 
+              key={`${testimonial.id}-${index}`} 
               className="flex-shrink-0 flex-grow-0 w-full px-2 md:px-4 py-6"
               style={{ minWidth: '100%' }}
             >

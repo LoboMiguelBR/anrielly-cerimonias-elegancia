@@ -19,17 +19,15 @@ export const useTestimonialsData = () => {
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [realtimeConnected, setRealtimeConnected] = useState(false);
   
-  const fetchTestimonials = useCallback(async (shouldRandomize: boolean = false) => {
+  const fetchTestimonials = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
       
       console.log('[useTestimonialsData] Buscando depoimentos aprovados do banco...');
       
-      // Use the shared API function to fetch approved testimonials
       const data = await fetchApprovedTestimonials();
       
       console.log('[useTestimonialsData] Depoimentos aprovados carregados:', data?.length);
@@ -40,7 +38,6 @@ export const useTestimonialsData = () => {
         finalTestimonials = data;
         console.log('[useTestimonialsData] Usando depoimentos aprovados do banco:', data);
       } else {
-        // Fallback para depoimentos estáticos quando não há dados aprovados no banco
         console.log('[useTestimonialsData] Usando depoimentos estáticos de fallback');
         const staticData = getStaticTestimonials().map(item => ({
           id: item.id,
@@ -54,14 +51,9 @@ export const useTestimonialsData = () => {
         finalTestimonials = staticData;
       }
       
-      // Aplicar randomização apenas no carregamento inicial
-      if (shouldRandomize && isInitialLoad) {
-        console.log('[useTestimonialsData] Aplicando randomização nos depoimentos');
-        finalTestimonials = shuffleArray(finalTestimonials);
-        setIsInitialLoad(false);
-      }
-      
-      setTestimonials(finalTestimonials);
+      // Aplicar randomização apenas uma vez no carregamento inicial
+      const randomizedTestimonials = shuffleArray(finalTestimonials);
+      setTestimonials(randomizedTestimonials);
     } catch (error: any) {
       console.error('[useTestimonialsData] Erro ao carregar depoimentos:', error);
       setError(error.message || 'Erro ao carregar depoimentos');
@@ -77,19 +69,11 @@ export const useTestimonialsData = () => {
         status: 'approved' as const
       }));
       
-      let finalTestimonials = staticData;
+      const randomizedStaticData = shuffleArray(staticData);
+      console.log('[useTestimonialsData] Dados estáticos de fallback:', randomizedStaticData);
+      setTestimonials(randomizedStaticData);
       
-      // Aplicar randomização apenas no carregamento inicial, mesmo em caso de erro
-      if (shouldRandomize && isInitialLoad) {
-        console.log('[useTestimonialsData] Aplicando randomização nos depoimentos estáticos de fallback');
-        finalTestimonials = shuffleArray(staticData);
-        setIsInitialLoad(false);
-      }
-      
-      console.log('[useTestimonialsData] Dados estáticos de fallback:', finalTestimonials);
-      setTestimonials(finalTestimonials);
-      
-      // Apenas mostrar toast de erro para erros críticos, não para problemas de realtime
+      // Apenas mostrar toast de erro para erros críticos
       if (!error.message?.includes('realtime') && !error.message?.includes('websocket')) {
         toast.error('Erro ao carregar depoimentos', {
           description: error.message
@@ -98,13 +82,13 @@ export const useTestimonialsData = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [isInitialLoad]);
+  }, []); // Remover todas as dependências para evitar re-renders
 
   useEffect(() => {
     console.log('[useTestimonialsData] Inicializando hook');
-    fetchTestimonials(true); // Randomizar no carregamento inicial
+    fetchTestimonials();
     
-    // Set up realtime subscription with enhanced error handling
+    // Set up realtime subscription com tratamento de erro melhorado
     const channel = supabase
       .channel('public:testimonials')
       .on(
@@ -116,7 +100,8 @@ export const useTestimonialsData = () => {
         },
         (payload) => {
           console.log('[useTestimonialsData] Recebeu alteração em tempo real:', payload);
-          fetchTestimonials(false); // Não randomizar em atualizações em tempo real
+          // Não randomizar novamente em atualizações realtime
+          fetchTestimonials();
         }
       )
       .subscribe((status) => {
@@ -128,51 +113,28 @@ export const useTestimonialsData = () => {
         } else if (status === 'CHANNEL_ERROR') {
           console.warn('[useTestimonialsData] Erro na conexão realtime - funcionando sem atualizações automáticas');
           setRealtimeConnected(false);
-          // Não mostrar toast de erro para problemas de realtime
-          // A aplicação continua funcionando normalmente
         } else if (status === 'CLOSED') {
           console.log('[useTestimonialsData] Conexão realtime fechada');
           setRealtimeConnected(false);
         }
       });
     
-    // Implementar polling de fallback caso o realtime falhe
-    let fallbackInterval: NodeJS.Timeout;
-    
-    // Aguardar 5 segundos para verificar se o realtime conectou
-    const realtimeTimeout = setTimeout(() => {
-      if (!realtimeConnected) {
-        console.log('[useTestimonialsData] Realtime não conectou, iniciando polling de fallback');
-        // Polling a cada 30 segundos se realtime não funcionar
-        fallbackInterval = setInterval(() => {
-          fetchTestimonials(false);
-        }, 30000);
-      }
-    }, 5000);
-    
     return () => {
       console.log('[useTestimonialsData] Limpando inscrição em tempo real');
       supabase.removeChannel(channel);
-      clearTimeout(realtimeTimeout);
-      if (fallbackInterval) {
-        clearInterval(fallbackInterval);
-      }
     };
-  }, [fetchTestimonials, realtimeConnected]);
+  }, [fetchTestimonials]);
 
-  // Função para forçar uma nova randomização (caso necessário)
+  // Função para forçar uma nova randomização (removida a dependência problemática)
   const randomizeTestimonials = useCallback(() => {
-    if (testimonials.length > 0) {
-      console.log('[useTestimonialsData] Forçando nova randomização');
-      setTestimonials(shuffleArray(testimonials));
-    }
-  }, [testimonials]);
+    setTestimonials(current => shuffleArray([...current]));
+  }, []);
 
   return {
     testimonials,
     isLoading,
     error,
-    fetchTestimonials: () => fetchTestimonials(false),
+    fetchTestimonials,
     randomizeTestimonials,
     realtimeConnected
   };
