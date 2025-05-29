@@ -138,6 +138,19 @@ const ProposalGeneratorRefactored: React.FC<ProposalGeneratorRefactoredProps> = 
     handleFormChange(field as any, value);
   };
 
+  // Create wrapper functions to match the expected service handler signatures for desktop ServicesSection
+  const handleServiceToggleWrapper = (index: number, included: boolean) => {
+    handleServiceToggle(index.toString());
+  };
+
+  const handleServiceUpdateWrapper = (index: number, updates: any) => {
+    handleServiceUpdate(index.toString(), updates);
+  };
+
+  const handleRemoveServiceWrapper = (index: number) => {
+    handleRemoveService(index.toString());
+  };
+
   const isFormValid = !!(
     formData.client_name &&
     formData.client_email &&
@@ -307,10 +320,10 @@ const ProposalGeneratorRefactored: React.FC<ProposalGeneratorRefactoredProps> = 
         totalPrice={totalPrice}
         discount={discount}
         finalPrice={finalPrice}
-        onServiceToggle={handleServiceToggle}
-        onServiceUpdate={handleServiceUpdate}
+        onServiceToggle={handleServiceToggleWrapper}
+        onServiceUpdate={handleServiceUpdateWrapper}
         onAddService={handleAddService}
-        onRemoveService={handleRemoveService}
+        onRemoveService={handleRemoveServiceWrapper}
         onTotalPriceChange={setTotalPrice}
         onDiscountChange={setDiscount}
         isLoading={isLoading}
