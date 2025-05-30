@@ -77,3 +77,6 @@ verify_jwt = true
 
 [functions.enviar-email-questionario]
 verify_jwt = false
+
+[functions.save-lead]
+verify_jwt = false
