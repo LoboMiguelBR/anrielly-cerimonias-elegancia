@@ -21,8 +21,8 @@ interface QuestionarioCasal {
   nome_responsavel: string;
   email: string;
   status: string | null;
-  historia_gerada: string | null;
-  historia_processada: boolean | null;
+  historia_gerada?: string | null; // Made optional to match data structure
+  historia_processada?: boolean | null;
   data_criacao: string | null;
   data_atualizacao: string | null;
   total_perguntas_resp: number | null;
@@ -43,6 +43,7 @@ const QuestionariosTab = () => {
   // Convert Questionario to QuestionarioCasal format
   const questionariosExtended: QuestionarioCasal[] = questionarios.map(q => ({
     ...q,
+    historia_gerada: q.historia_gerada || null,
     historia_processada: q.historia_processada || false,
     senha_hash: q.senha_hash || '',
     status: q.status || 'rascunho'
