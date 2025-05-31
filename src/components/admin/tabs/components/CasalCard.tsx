@@ -1,10 +1,11 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Json } from '@/integrations/supabase/types';
 import CasalCardHeader from './CasalCardHeader';
 import CasalCardContent from './CasalCardContent';
 import CasalCardActions from './CasalCardActions';
+import { usePersonalizacaoIA } from '@/hooks/usePersonalizacaoIA';
 
 interface QuestionarioCasal {
   id: string;
@@ -39,17 +40,28 @@ const CasalCard = ({
   onGerarHistoria,
   onVerHistoria
 }: CasalCardProps) => {
+  const [temPersonalizacao, setTemPersonalizacao] = useState(false);
+  const { buscarPersonalizacao } = usePersonalizacaoIA();
   const primeiroDoGrupo = casalGroup[0];
+
+  useEffect(() => {
+    const verificarPersonalizacao = async () => {
+      const personalizacao = await buscarPersonalizacao(linkPublico);
+      setTemPersonalizacao(!!personalizacao);
+    };
+    
+    verificarPersonalizacao();
+  }, [linkPublico, buscarPersonalizacao]);
+
   const temHistoria = primeiroDoGrupo.historia_gerada;
-  const temPersonalizacao = primeiroDoGrupo.temPersonalizacao;
 
   return (
-    <Card key={linkPublico} className="relative">
+    <Card className="relative">
       <CardHeader>
         <CasalCardHeader
           linkPublico={linkPublico}
           status={primeiroDoGrupo.status}
-          temPersonalizacao={!!temPersonalizacao}
+          temPersonalizacao={temPersonalizacao}
           totalQuestionarios={casalGroup.length}
         />
       </CardHeader>

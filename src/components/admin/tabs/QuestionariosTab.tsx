@@ -4,11 +4,24 @@ import { useQuestionarios } from '@/hooks/useQuestionarios';
 import QuestionarioCreateFormEnhanced from './components/QuestionarioCreateFormEnhanced';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
+import { Search, RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useToast } from '@/components/ui/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { usePersonalizacaoIA } from '@/hooks/usePersonalizacaoIA';
+import ModalPersonalizacao from './components/ModalPersonalizacao';
+import QuestionarioHistoryModal from './components/QuestionarioHistoryModal';
+import CasalCard from './components/CasalCard';
+import HistoriasCasaisEmptyState from './components/HistoriasCasaisEmptyState';
 
 const QuestionariosTab = () => {
   const { questionarios, isLoading, refetch } = useQuestionarios();
   const [searchTerm, setSearchTerm] = useState('');
+  const [isGenerating, setIsGenerating] = useState<string | null>(null);
+  const [showHistory, setShowHistory] = useState<string | null>(null);
+  const [showPersonalizacao, setShowPersonalizacao] = useState<string | null>(null);
+  const { toast } = useToast();
+  const { buscarPersonalizacao } = usePersonalizacaoIA();
 
   const filteredQuestionarios = questionarios.filter(q => 
     q.link_publico.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -20,6 +33,77 @@ const QuestionariosTab = () => {
     refetch();
   };
 
+  const gerarHistoria = async (linkPublico: string) => {
+    setIsGenerating(linkPublico);
+    
+    try {
+      // Buscar todos os questionários deste casal
+      const { data: questionariosData, error } = await supabase
+        .from('questionarios_noivos')
+        .select('nome_responsavel, email, respostas_json')
+        .eq('link_publico', linkPublico)
+        .eq('status', 'preenchido');
+
+      if (error) throw error;
+
+      if (!questionariosData || questionariosData.length < 2) {
+        toast({
+          title: "Questionários insuficientes",
+          description: "São necessários pelo menos 2 questionários completos para gerar a história.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Chamar a Edge Function para gerar a história
+      const { data: result, error: functionError } = await supabase.functions.invoke('gerar-historia-casal', {
+        body: {
+          link_publico: linkPublico,
+          noivos: questionariosData.map(q => ({
+            nome: q.nome_responsavel,
+            email: q.email,
+            respostas: q.respostas_json as Record<string, string> || {}
+          }))
+        }
+      });
+
+      if (functionError) throw functionError;
+
+      if (result.success) {
+        toast({
+          title: "História gerada com sucesso!",
+          description: result.message,
+        });
+        refetch();
+      } else {
+        throw new Error(result.error || 'Erro desconhecido');
+      }
+
+    } catch (error) {
+      console.error('Erro ao gerar história:', error);
+      toast({
+        title: "Erro ao gerar história",
+        description: "Não foi possível gerar a história do casal.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsGenerating(null);
+    }
+  };
+
+  const obterCasalPorLink = (linkPublico: string) => {
+    return questionarios.find(casal => casal.link_publico === linkPublico);
+  };
+
+  // Agrupar questionários por link_publico
+  const groupedCasais = filteredQuestionarios.reduce((acc, casal) => {
+    if (!acc[casal.link_publico]) {
+      acc[casal.link_publico] = [];
+    }
+    acc[casal.link_publico].push(casal);
+    return acc;
+  }, {} as Record<string, any[]>);
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-8">
@@ -30,9 +114,15 @@ const QuestionariosTab = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold mb-2">Questionários dos Noivos</h2>
-        <p className="text-gray-600">Gerencie questionários, visualize respostas e crie eventos vinculados</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold mb-2">Questionários dos Noivos</h2>
+          <p className="text-gray-600">Gerencie questionários, visualize respostas e crie eventos vinculados</p>
+        </div>
+        <Button onClick={refetch} variant="outline">
+          <RefreshCw className="w-4 h-4 mr-2" />
+          Atualizar
+        </Button>
       </div>
 
       <Tabs defaultValue="list" className="w-full">
@@ -57,31 +147,45 @@ const QuestionariosTab = () => {
               />
             </div>
             
-            {filteredQuestionarios.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                {searchTerm ? 'Nenhum questionário encontrado para esta busca.' : 'Nenhum questionário criado ainda.'}
-              </div>
+            {Object.keys(groupedCasais).length === 0 ? (
+              <HistoriasCasaisEmptyState />
             ) : (
-              <div className="space-y-4">
-                {filteredQuestionarios.map((questionario) => (
-                  <div key={questionario.id} className="border rounded-lg p-4 bg-white">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="font-semibold">{questionario.link_publico}</h3>
-                        <p className="text-sm text-gray-600">{questionario.nome_responsavel} - {questionario.email}</p>
-                        <p className="text-xs text-gray-500">Status: {questionario.status}</p>
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        {questionario.total_perguntas_resp || 0} respostas
-                      </div>
-                    </div>
-                  </div>
+              <div className="grid gap-6">
+                {Object.entries(groupedCasais).map(([linkPublico, casalGroup]) => (
+                  <CasalCard
+                    key={linkPublico}
+                    linkPublico={linkPublico}
+                    casalGroup={casalGroup}
+                    isGenerating={isGenerating}
+                    onPersonalizacao={setShowPersonalizacao}
+                    onGerarHistoria={gerarHistoria}
+                    onVerHistoria={setShowHistory}
+                  />
                 ))}
               </div>
             )}
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Modal de Visualização da História */}
+      {showHistory && (
+        <QuestionarioHistoryModal
+          isOpen={!!showHistory}
+          onClose={() => setShowHistory(null)}
+          questionario={obterCasalPorLink(showHistory)}
+        />
+      )}
+
+      {/* Modal de Personalização */}
+      {showPersonalizacao && (
+        <ModalPersonalizacao
+          isOpen={!!showPersonalizacao}
+          onClose={() => setShowPersonalizacao(null)}
+          linkPublico={showPersonalizacao}
+          onPersonalizacaoSalva={refetch}
+        />
+      )}
     </div>
   );
 };
