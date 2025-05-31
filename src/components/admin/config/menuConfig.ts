@@ -1,170 +1,133 @@
-
-import { 
-  BarChart3, 
-  FileText, 
-  Users, 
+import {
+  LayoutDashboard,
+  ListChecks,
+  FileText,
+  FilePlus,
+  Users,
   Calendar,
-  MessageSquare, 
-  ImageIcon, 
-  Heart, 
-  Settings, 
-  UserCheck, 
+  QuestionMarkCircle,
   BookOpen,
-  CalendarDays,
+  MessageSquare,
+  ImageIcon,
+  File,
   Mail,
-  FileImage,
   TrendingUp,
-  Briefcase
+  Globe,
 } from 'lucide-react';
 
-export interface MenuItem {
-  id: string;
-  label: string;
-  icon: any;
-  description?: string;
-}
-
-export interface MenuSection {
-  title: string;
-  items: MenuItem[];
-}
-
-export const adminMenuItems: MenuItem[] = [
+export const ADMIN_MENU_ITEMS = [
   {
     id: 'dashboard',
     label: 'Dashboard',
-    icon: BarChart3,
-    description: 'Visão geral e métricas'
+    icon: LayoutDashboard,
+    description: 'Visão geral do sistema',
+    component: 'DashboardTab'
   },
   {
     id: 'quotes',
     label: 'Orçamentos',
-    icon: FileText,
-    description: 'Solicitações de orçamento'
+    icon: ListChecks,
+    description: 'Gerenciar orçamentos',
+    component: 'QuotesTab'
   },
   {
     id: 'proposals',
     label: 'Propostas',
-    icon: BookOpen,
-    description: 'Propostas comerciais'
-  },
-  {
-    id: 'events',
-    label: 'Eventos',
-    icon: Calendar,
-    description: 'Gestão de eventos'
+    icon: FileText,
+    description: 'Gerenciar propostas',
+    component: 'ProposalsTab'
   },
   {
     id: 'contracts',
     label: 'Contratos',
-    icon: FileImage,
-    description: 'Contratos e assinaturas'
-  },
-  {
-    id: 'questionarios',
-    label: 'Questionários',
-    icon: Heart,
-    description: 'Questionários dos noivos'
-  },
-  {
-    id: 'historias-casais',
-    label: 'Histórias dos Casais',
-    icon: MessageSquare,
-    description: 'Histórias geradas pela IA'
+    icon: FilePlus,
+    description: 'Gerenciar contratos',
+    component: 'ContractsTab'
   },
   {
     id: 'leads',
     label: 'Leads',
     icon: Users,
-    description: 'Gestão de leads'
+    description: 'Gerenciar leads',
+    component: 'LeadsTab'
   },
   {
     id: 'professionals',
     label: 'Profissionais',
-    icon: UserCheck,
-    description: 'Rede de profissionais'
+    icon: Users,
+    description: 'Gerenciar profissionais',
+    component: 'ProfessionalsTab'
   },
   {
-    id: 'gallery',
-    label: 'Galeria',
-    icon: ImageIcon,
-    description: 'Fotos e imagens'
+    id: 'events',
+    label: 'Eventos',
+    icon: Calendar,
+    description: 'Gerenciar eventos',
+    component: 'EventsTab'
+  },
+  {
+    id: 'questionarios',
+    label: 'Questionários',
+    icon: QuestionMarkCircle,
+    description: 'Gerenciar questionários',
+    component: 'QuestionariosTab'
+  },
+  {
+    id: 'historias-casais',
+    label: 'Histórias dos Casais',
+    icon: BookOpen,
+    description: 'Gerenciar histórias dos casais',
+    component: 'HistoriasCasaisTab'
   },
   {
     id: 'testimonials',
     label: 'Depoimentos',
     icon: MessageSquare,
-    description: 'Depoimentos de clientes'
+    description: 'Gerenciar depoimentos',
+    component: 'TestimonialsTab'
+  },
+  {
+    id: 'gallery',
+    label: 'Galeria',
+    icon: ImageIcon,
+    description: 'Gerenciar galeria',
+    component: 'AdminGalleryTab'
+  },
+  {
+    id: 'proposal-templates',
+    label: 'Templates de Proposta',
+    icon: File,
+    description: 'Gerenciar templates de proposta',
+    component: 'ProposalTemplatesTab'
+  },
+  {
+    id: 'contract-templates',
+    label: 'Templates de Contrato',
+    icon: File,
+    description: 'Gerenciar templates de contrato',
+    component: 'ContractTemplatesTab'
+  },
+  {
+    id: 'contract-email-templates',
+    label: 'Templates de Email de Contrato',
+    icon: Mail,
+    description: 'Gerenciar templates de email de contrato',
+    component: 'ContractEmailTemplatesTab'
   },
   {
     id: 'gestao-comercial',
     label: 'Gestão Comercial',
     icon: TrendingUp,
-    description: 'Funil de vendas e financeiro'
+    description: 'Gerenciar dados comerciais',
+    component: 'GestaoComercialTab'
   },
   {
-    id: 'proposal-templates',
-    label: 'Templates de Proposta',
-    icon: Settings,
-    description: 'Templates para propostas'
+    id: 'landing-pages',
+    label: 'Landing Pages',
+    icon: Globe,
+    description: 'Gerencie landing pages dinâmicas',
+    component: 'LandingPagesTab'
   },
-  {
-    id: 'contract-templates',
-    label: 'Templates de Contrato',
-    icon: Settings,
-    description: 'Templates para contratos'
-  },
-  {
-    id: 'contract-email-templates',
-    label: 'Templates de Email',
-    icon: Mail,
-    description: 'Templates para emails de contrato'
-  }
-];
+] as const;
 
-export const menuSections: MenuSection[] = [
-  {
-    title: 'Principal',
-    items: [
-      adminMenuItems.find(item => item.id === 'dashboard')!,
-      adminMenuItems.find(item => item.id === 'quotes')!,
-      adminMenuItems.find(item => item.id === 'proposals')!,
-      adminMenuItems.find(item => item.id === 'events')!,
-      adminMenuItems.find(item => item.id === 'contracts')!,
-    ]
-  },
-  {
-    title: 'Clientes',
-    items: [
-      adminMenuItems.find(item => item.id === 'questionarios')!,
-      adminMenuItems.find(item => item.id === 'historias-casais')!,
-      adminMenuItems.find(item => item.id === 'leads')!,
-      adminMenuItems.find(item => item.id === 'professionals')!,
-    ]
-  },
-  {
-    title: 'Conteúdo',
-    items: [
-      adminMenuItems.find(item => item.id === 'gallery')!,
-      adminMenuItems.find(item => item.id === 'testimonials')!,
-    ]
-  },
-  {
-    title: 'Gestão',
-    items: [
-      adminMenuItems.find(item => item.id === 'gestao-comercial')!,
-    ]
-  },
-  {
-    title: 'Configurações',
-    items: [
-      adminMenuItems.find(item => item.id === 'proposal-templates')!,
-      adminMenuItems.find(item => item.id === 'contract-templates')!,
-      adminMenuItems.find(item => item.id === 'contract-email-templates')!,
-    ]
-  }
-];
-
-export const getAllMenuItems = (): MenuItem[] => {
-  return adminMenuItems;
-};
+export type AdminMenuItemId = typeof ADMIN_MENU_ITEMS[number]['id'];
