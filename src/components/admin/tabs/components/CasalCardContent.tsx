@@ -1,15 +1,7 @@
 
 import React from 'react';
 import { Sparkles } from 'lucide-react';
-import { Json } from '@/integrations/supabase/types';
-
-interface QuestionarioCasal {
-  id: string;
-  nome_responsavel: string;
-  email: string;
-  total_perguntas_resp: number | null;
-  data_atualizacao: string | null;
-}
+import { QuestionarioCasal } from '../types/questionario';
 
 interface CasalCardContentProps {
   casalGroup: QuestionarioCasal[];

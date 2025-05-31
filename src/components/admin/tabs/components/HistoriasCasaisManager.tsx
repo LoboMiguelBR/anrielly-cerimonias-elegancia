@@ -2,29 +2,13 @@
 import React, { useState, useEffect } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Json } from '@/integrations/supabase/types';
 import ModalPersonalizacao from './ModalPersonalizacao';
 import { usePersonalizacaoIA } from '@/hooks/usePersonalizacaoIA';
 import QuestionarioHistoryModal from './QuestionarioHistoryModal';
 import HistoriasCasaisHeader from './HistoriasCasaisHeader';
 import HistoriasCasaisEmptyState from './HistoriasCasaisEmptyState';
 import CasalCard from './CasalCard';
-
-interface QuestionarioCasal {
-  id: string;
-  link_publico: string;
-  nome_responsavel: string;
-  email: string;
-  status: string | null;
-  historia_gerada: string | null;
-  historia_processada: boolean | null;
-  data_criacao: string | null;
-  data_atualizacao: string | null;
-  total_perguntas_resp: number | null;
-  respostas_json: Json | null;
-  senha_hash: string;
-  temPersonalizacao?: boolean;
-}
+import { QuestionarioCasal } from '../types/questionario';
 
 const HistoriasCasaisManager = () => {
   const [casais, setCasais] = useState<QuestionarioCasal[]>([]);
@@ -131,7 +115,7 @@ const HistoriasCasaisManager = () => {
     }
   };
 
-  const obterCasalPorLink = (linkPublico: string) => {
+  const obterCasalPorLink = (linkPublico: string): QuestionarioCasal | undefined => {
     return casais.find(casal => casal.link_publico === linkPublico);
   };
 
