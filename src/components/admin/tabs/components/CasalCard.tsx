@@ -13,8 +13,8 @@ interface QuestionarioCasal {
   nome_responsavel: string;
   email: string;
   status: string | null;
-  historia_gerada: string | null;
-  historia_processada: boolean | null;
+  historia_gerada?: string | null; // Made optional to match QuestionariosTab interface
+  historia_processada?: boolean | null; // Made optional to match QuestionariosTab interface
   data_criacao: string | null;
   data_atualizacao: string | null;
   total_perguntas_resp: number | null;
