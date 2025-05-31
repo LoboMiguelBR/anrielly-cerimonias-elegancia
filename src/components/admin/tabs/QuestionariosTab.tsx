@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useQuestionarios } from '@/hooks/useQuestionarios';
 import QuestionarioCreateFormEnhanced from './components/QuestionarioCreateFormEnhanced';
@@ -13,23 +12,7 @@ import ModalPersonalizacao from './components/ModalPersonalizacao';
 import QuestionarioHistoryModal from './components/QuestionarioHistoryModal';
 import CasalCard from './components/CasalCard';
 import HistoriasCasaisEmptyState from './components/HistoriasCasaisEmptyState';
-
-// Extended interface to match CasalCard expectations
-interface QuestionarioCasal {
-  id: string;
-  link_publico: string;
-  nome_responsavel: string;
-  email: string;
-  status: string | null;
-  historia_gerada?: string | null; // Made optional to match data structure
-  historia_processada?: boolean | null;
-  data_criacao: string | null;
-  data_atualizacao: string | null;
-  total_perguntas_resp: number | null;
-  respostas_json: any;
-  senha_hash: string;
-  temPersonalizacao?: boolean;
-}
+import { QuestionarioCasal } from './types/questionario';
 
 const QuestionariosTab = () => {
   const { questionarios, isLoading, refetch } = useQuestionarios();
@@ -121,7 +104,7 @@ const QuestionariosTab = () => {
     }
   };
 
-  const obterCasalPorLink = (linkPublico: string) => {
+  const obterCasalPorLink = (linkPublico: string): QuestionarioCasal | undefined => {
     return questionariosExtended.find(casal => casal.link_publico === linkPublico);
   };
 

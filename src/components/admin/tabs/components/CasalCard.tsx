@@ -1,27 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Json } from '@/integrations/supabase/types';
 import CasalCardHeader from './CasalCardHeader';
 import CasalCardContent from './CasalCardContent';
 import CasalCardActions from './CasalCardActions';
 import { usePersonalizacaoIA } from '@/hooks/usePersonalizacaoIA';
-
-interface QuestionarioCasal {
-  id: string;
-  link_publico: string;
-  nome_responsavel: string;
-  email: string;
-  status: string | null;
-  historia_gerada?: string | null; // Made optional to match QuestionariosTab interface
-  historia_processada?: boolean | null; // Made optional to match QuestionariosTab interface
-  data_criacao: string | null;
-  data_atualizacao: string | null;
-  total_perguntas_resp: number | null;
-  respostas_json: Json | null;
-  senha_hash: string;
-  temPersonalizacao?: boolean;
-}
+import { QuestionarioCasal } from '../types/questionario';
 
 interface CasalCardProps {
   linkPublico: string;
