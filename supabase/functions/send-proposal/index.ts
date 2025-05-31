@@ -37,7 +37,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send email with the proposal
     const emailResponse = await resend.emails.send({
-      from: "Anrielly Gomes <noreply@anriellygomes.com.br>",
+      from: "Anrielly Gomes <contato@anriellygomes.com.br>",
       to: [to],
       subject: subject || "Proposta de Serviço - Anrielly Gomes",
       html: `
@@ -50,7 +50,7 @@ const handler = async (req: Request): Promise<Response> => {
           
           ${message ? `<p>${message}</p>` : `
           <p>
-            É com grande satisfação que envio a proposta de serviços fotográficos conforme solicitado.
+            É com grande satisfação que envio a proposta de serviços de cerimonial conforme solicitado.
           </p>
           <p>
             Você pode visualizar todos os detalhes no arquivo PDF anexo a este email.
@@ -62,14 +62,14 @@ const handler = async (req: Request): Promise<Response> => {
           
           <div style="margin-top: 30px; padding: 15px; background-color: #f9f9f9; border-left: 4px solid #8A2BE2;">
             <p style="margin-bottom: 0; font-style: italic;">
-              "Capturando momentos especiais com arte e sensibilidade."
+              "Transformando momentos especiais em celebrações inesquecíveis."
             </p>
           </div>
           
           <div style="margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px; font-size: 12px; color: #666;">
-            <p>Anrielly Gomes - Fotografia Profissional</p>
+            <p>Anrielly Gomes - Mestre de Cerimônia</p>
             <p>Website: <a href="https://www.anriellygomes.com.br" style="color: #8A2BE2;">www.anriellygomes.com.br</a></p>
-            <p>Instagram: <a href="https://www.instagram.com/anriellyfotografia" style="color: #8A2BE2;">@anriellyfotografia</a></p>
+            <p>📱 (24) 99268-9947 | 📧 contato@anriellygomes.com.br</p>
           </div>
         </div>
       `,

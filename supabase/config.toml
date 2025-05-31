@@ -75,6 +75,9 @@ enabled = false
 [functions.send-proposal]
 verify_jwt = true
 
+[functions.enviar-email]
+verify_jwt = false
+
 [functions.enviar-email-questionario]
 verify_jwt = false
 
