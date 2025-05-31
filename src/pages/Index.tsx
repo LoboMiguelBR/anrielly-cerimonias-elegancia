@@ -15,7 +15,6 @@ import Experience from '@/components/Experience';
 import ServiceArea from '@/components/ServiceArea';
 import FinalCTA from '@/components/FinalCTA';
 import PWAInstallPrompt from '@/components/PWAInstallPrompt';
-import FloatingWebChat from '@/components/FloatingWebChat';
 
 const Index = () => {
   useEffect(() => {
@@ -72,7 +71,6 @@ const Index = () => {
       </main>
       <Footer />
       <PWAInstallPrompt />
-      <FloatingWebChat />
     </div>
   );
 };
