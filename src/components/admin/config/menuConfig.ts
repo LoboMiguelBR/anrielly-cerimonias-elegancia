@@ -158,13 +158,13 @@ export const menuSections = [
   {
     title: 'Conteúdo',
     items: ADMIN_MENU_ITEMS.filter(item => 
-      ['questionarios', 'historias-casais', 'testimonials', 'gallery', 'landing-pages'].includes(item.id)
+      ['questionarios', 'historias-casais', 'testimonials', 'gallery'].includes(item.id)
     )
   },
   {
     title: 'Templates',
     items: ADMIN_MENU_ITEMS.filter(item => 
-      ['proposal-templates', 'contract-templates', 'contract-email-templates'].includes(item.id)
+      ['proposal-templates', 'contract-templates', 'contract-email-templates', 'landing-pages'].includes(item.id)
     )
   }
 ];

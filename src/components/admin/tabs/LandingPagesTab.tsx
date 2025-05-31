@@ -4,17 +4,50 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Eye, Edit, Plus, ExternalLink } from "lucide-react";
+import { Eye, Edit, Plus, ExternalLink, Copy, Trash2 } from "lucide-react";
 import { useLandingPageTemplates } from '@/hooks/useLandingPageTemplates';
+import { useLandingPageActions } from '@/hooks/useLandingPageActions';
+import LandingPageCreateModal from '../landing-pages/LandingPageCreateModal';
+import LandingPageEditModal from '../landing-pages/LandingPageEditModal';
+import { LandingPageTemplate } from '@/hooks/useLandingPageData';
 
 const LandingPagesTab = () => {
   const { templates, loading, refetch } = useLandingPageTemplates();
+  const { duplicateTemplate, deleteTemplate } = useLandingPageActions();
   const [searchTerm, setSearchTerm] = useState('');
+  const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<LandingPageTemplate | null>(null);
 
   const filteredTemplates = templates.filter(template =>
     template.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     template.slug.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const handleEdit = (template: LandingPageTemplate) => {
+    setSelectedTemplate(template);
+    setEditModalOpen(true);
+  };
+
+  const handleDuplicate = async (id: string) => {
+    const success = await duplicateTemplate(id);
+    if (success) {
+      refetch();
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (confirm('Tem certeza que deseja deletar este template?')) {
+      const success = await deleteTemplate(id);
+      if (success) {
+        refetch();
+      }
+    }
+  };
+
+  const handleSuccess = () => {
+    refetch();
+  };
 
   if (loading) {
     return (
@@ -31,7 +64,7 @@ const LandingPagesTab = () => {
           <h2 className="text-2xl font-bold mb-2">Landing Pages</h2>
           <p className="text-gray-600">Gerencie templates de landing pages dinâmicas</p>
         </div>
-        <Button>
+        <Button onClick={() => setCreateModalOpen(true)}>
           <Plus className="w-4 h-4 mr-2" />
           Nova Landing Page
         </Button>
@@ -74,14 +107,30 @@ const LandingPagesTab = () => {
                   </code>
                 </div>
                 
-                <div className="flex gap-2">
-                  <Button size="sm" variant="outline">
+                <div className="flex gap-2 flex-wrap">
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={() => window.open(`/${template.slug}`, '_blank')}
+                  >
                     <Eye className="w-4 h-4 mr-2" />
                     Visualizar
                   </Button>
-                  <Button size="sm" variant="outline">
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={() => handleEdit(template)}
+                  >
                     <Edit className="w-4 h-4 mr-2" />
                     Editar
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={() => handleDuplicate(template.id)}
+                  >
+                    <Copy className="w-4 h-4 mr-2" />
+                    Duplicar
                   </Button>
                   <Button 
                     size="sm" 
@@ -90,6 +139,14 @@ const LandingPagesTab = () => {
                   >
                     <ExternalLink className="w-4 h-4 mr-2" />
                     Abrir
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="destructive"
+                    onClick={() => handleDelete(template.id)}
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Deletar
                   </Button>
                 </div>
               </div>
@@ -103,6 +160,19 @@ const LandingPagesTab = () => {
           <p>Nenhuma landing page encontrada.</p>
         </div>
       )}
+
+      <LandingPageCreateModal
+        open={createModalOpen}
+        onOpenChange={setCreateModalOpen}
+        onSuccess={handleSuccess}
+      />
+
+      <LandingPageEditModal
+        open={editModalOpen}
+        onOpenChange={setEditModalOpen}
+        onSuccess={handleSuccess}
+        template={selectedTemplate}
+      />
     </div>
   );
 };
