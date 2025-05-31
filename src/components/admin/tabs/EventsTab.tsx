@@ -7,10 +7,12 @@ import { Badge } from '@/components/ui/badge';
 import { Calendar, MapPin, Users, Plus } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import CreateEventModal from '../events/CreateEventModal';
 
 const EventsTab = () => {
-  const { events, participants, isLoading, getParticipantsByEvent } = useEvents();
+  const { events, participants, isLoading, getParticipantsByEvent, fetchEvents } = useEvents();
   const [selectedEvent, setSelectedEvent] = useState<string | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -46,6 +48,11 @@ const EventsTab = () => {
     return participants.filter(p => p.event_id === eventId);
   };
 
+  const handleEventCreated = () => {
+    fetchEvents();
+    setShowCreateModal(false);
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-8">
@@ -61,7 +68,7 @@ const EventsTab = () => {
           <h2 className="text-2xl font-bold">Gestão de Eventos</h2>
           <p className="text-gray-600">Gerencie eventos, participantes e cronogramas</p>
         </div>
-        <Button>
+        <Button onClick={() => setShowCreateModal(true)}>
           <Plus className="w-4 h-4 mr-2" />
           Novo Evento
         </Button>
@@ -75,8 +82,12 @@ const EventsTab = () => {
               <Calendar className="w-12 h-12 text-gray-400 mb-4" />
               <h3 className="text-lg font-semibold text-gray-600 mb-2">Nenhum evento encontrado</h3>
               <p className="text-gray-500 text-center mb-4">
-                Os eventos são criados automaticamente quando uma proposta é aceita
+                Crie eventos manualmente ou eles serão criados automaticamente quando uma proposta for aceita
               </p>
+              <Button onClick={() => setShowCreateModal(true)}>
+                <Plus className="w-4 h-4 mr-2" />
+                Criar Primeiro Evento
+              </Button>
             </CardContent>
           </Card>
         ) : (
@@ -182,6 +193,13 @@ const EventsTab = () => {
           })
         )}
       </div>
+
+      {/* Modal de Criação de Evento */}
+      <CreateEventModal
+        open={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onEventCreated={handleEventCreated}
+      />
     </div>
   );
 };
