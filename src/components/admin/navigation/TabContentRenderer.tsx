@@ -21,13 +21,18 @@ interface TabContentRendererProps {
 }
 
 const TabContentRenderer: React.FC<TabContentRendererProps> = ({ activeTab }) => {
+  const handleNavigate = (tab: string) => {
+    // This would be handled by the parent component
+    console.log('Navigate to:', tab);
+  };
+
   switch (activeTab) {
     case 'dashboard':
-      return <DashboardTab />;
+      return <DashboardTab onNavigate={handleNavigate} />;
     case 'quotes':
       return <QuotesTab />;
     case 'proposals':
-      return <ProposalsTab />;
+      return <ProposalsTab quoteRequests={[]} />;
     case 'events':
       return <EventsTab />;
     case 'contracts':
@@ -53,7 +58,7 @@ const TabContentRenderer: React.FC<TabContentRendererProps> = ({ activeTab }) =>
     case 'contract-email-templates':
       return <ContractEmailTemplatesTab />;
     default:
-      return <DashboardTab />;
+      return <DashboardTab onNavigate={handleNavigate} />;
   }
 };
 

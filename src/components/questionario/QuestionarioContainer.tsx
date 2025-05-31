@@ -64,6 +64,11 @@ const QuestionarioContainer = ({
     }
   };
 
+  // Wrapper function to convert string-based campo to index-based for compatibility
+  const handleRespostaChange = (index: number, valor: string) => {
+    updateResposta(index.toString(), valor);
+  };
+
   const getRoleLabel = (role: string) => {
     switch (role) {
       case 'noivo': return 'Noivo';
@@ -115,7 +120,7 @@ const QuestionarioContainer = ({
             <QuestionarioContent
               respostas={respostas}
               podeEditar={podeEditar}
-              onRespostaChange={updateResposta}
+              onRespostaChange={handleRespostaChange}
             />
             
             <QuestionarioFooter
@@ -139,7 +144,7 @@ const QuestionarioContainer = ({
           <QuestionarioContent
             respostas={respostas}
             podeEditar={podeEditar}
-            onRespostaChange={updateResposta}
+            onRespostaChange={handleRespostaChange}
           />
           
           <QuestionarioFooter

@@ -25,8 +25,8 @@ const QuestionarioFormulario = () => {
 
   // Initialize respostas when questionario changes
   useEffect(() => {
-    if (questionario?.respostas_json) {
-      setRespostas(questionario.respostas_json);
+    if (questionario?.respostasJson) {
+      setRespostas(questionario.respostasJson);
     }
   }, [questionario]);
 
@@ -55,7 +55,7 @@ const QuestionarioFormulario = () => {
       if (eventId && participantRole && questionario) {
         const nomeCompleto = `${finalRespostas.nome_noivo || ''} ${finalRespostas.sobrenome_noivo || ''}`.trim() ||
                            `${finalRespostas.nome_noiva || ''} ${finalRespostas.sobrenome_noiva || ''}`.trim() ||
-                           questionario.nome_responsavel;
+                           questionario.nomeResponsavel;
         
         const email = finalRespostas.email_principal || questionario.email;
 
