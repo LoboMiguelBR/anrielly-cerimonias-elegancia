@@ -1,10 +1,10 @@
 
 <!doctype html>
-<html lang="en">
+<html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/lovable-uploads/51ec6ddc-43be-45c4-9c33-1f407dba1411.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>Anrielly Gomes - Mestre de Cerimônia</title>
     <meta name="description" content="Anrielly Gomes é uma mestre de cerimônia especializada em casamentos, formaturas e eventos especiais. Transforme seu momento único em uma celebração inesquecível." />
     
@@ -13,6 +13,7 @@
     <meta property="og:description" content="Transforme seu momento único em uma celebração inesquecível com uma mestre de cerimônia experiente." />
     <meta property="og:image" content="/lovable-uploads/51ec6ddc-43be-45c4-9c33-1f407dba1411.png" />
     <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://anriellygomes.com.br" />
     
     <!-- Twitter Card Meta Tags -->
     <meta name="twitter:card" content="summary_large_image" />
@@ -20,11 +21,51 @@
     <meta name="twitter:description" content="Transforme seu momento único em uma celebração inesquecível com uma mestre de cerimônia experiente." />
     <meta name="twitter:image" content="/lovable-uploads/51ec6ddc-43be-45c4-9c33-1f407dba1411.png" />
     
+    <!-- PWA Meta Tags -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="AG Cerimonias" />
+    <meta name="application-name" content="AG Cerimonias" />
+    <meta name="msapplication-TileColor" content="#D4AF37" />
+    <meta name="msapplication-config" content="/browserconfig.xml" />
+    <meta name="theme-color" content="#D4AF37" />
+    
     <!-- Favicon -->
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
     <link rel="manifest" href="/manifest.json">
+    
+    <!-- Preload critical resources -->
+    <link rel="preload" href="/lovable-uploads/a1e9c8bb-3ef0-4768-8b5e-9fac87c9d598.png" as="image" type="image/png">
+    
+    <!-- DNS Prefetch -->
+    <link rel="dns-prefetch" href="//cdn.botpress.cloud">
+    <link rel="dns-prefetch" href="//cdn.gpteng.co">
+    
+    <style>
+      /* Critical CSS for faster initial load */
+      html { 
+        scroll-behavior: smooth; 
+        -webkit-text-size-adjust: 100%;
+      }
+      body { 
+        margin: 0; 
+        font-family: 'Montserrat', sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+      #root { 
+        min-height: 100vh; 
+      }
+      /* Prevent flash of unstyled content */
+      .animate-on-scroll {
+        opacity: 0;
+        transform: translateY(10px);
+        transition: opacity 0.7s ease-out, transform 0.7s ease-out;
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>

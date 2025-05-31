@@ -80,10 +80,66 @@
   }
   
   .btn {
-    @apply inline-block px-6 py-3 rounded-full font-medium transition-all duration-300;
+    @apply inline-block px-6 py-3 rounded-full font-medium transition-all duration-300 h-12 md:h-10;
   }
   
   .btn-primary {
     @apply bg-gold/80 hover:bg-gold text-white shadow-md hover:shadow-lg;
+  }
+
+  /* Z-index hierarchy */
+  .z-header {
+    z-index: 50;
+  }
+
+  .z-dropdown {
+    z-index: 60;
+  }
+
+  .z-modal {
+    z-index: 70;
+  }
+
+  .z-toast {
+    z-index: 80;
+  }
+
+  .z-tooltip {
+    z-index: 90;
+  }
+
+  /* Mobile optimizations */
+  @media (max-width: 768px) {
+    .mobile-optimized {
+      font-size: 16px; /* Prevent zoom on iOS */
+    }
+    
+    .mobile-form-field {
+      min-height: 44px; /* iOS minimum touch target */
+    }
+  }
+
+  /* Ensure dropdowns have solid backgrounds */
+  [data-radix-select-content],
+  [data-radix-dropdown-menu-content],
+  [data-radix-popover-content] {
+    @apply bg-white shadow-lg border backdrop-blur-sm;
+  }
+}
+
+/* PWA specific styles */
+@media (display-mode: standalone) {
+  body {
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-text-size-adjust: none;
+  }
+}
+
+/* Improve touch targets for mobile */
+@media (max-width: 768px) {
+  button, [role="button"], input, select, textarea {
+    min-height: 44px;
+    min-width: 44px;
   }
 }

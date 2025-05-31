@@ -14,6 +14,7 @@ import Testimonials from '@/components/Testimonials';
 import Experience from '@/components/Experience';
 import ServiceArea from '@/components/ServiceArea';
 import FinalCTA from '@/components/FinalCTA';
+import PWAInstallPrompt from '@/components/PWAInstallPrompt';
 
 const Index = () => {
   useEffect(() => {
@@ -69,6 +70,7 @@ const Index = () => {
         <ContactSection />
       </main>
       <Footer />
+      <PWAInstallPrompt />
     </div>
   );
 };

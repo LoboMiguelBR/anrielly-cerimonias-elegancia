@@ -1,13 +1,17 @@
 
 {
-  "name": "Anrielly Gomes Cerimonialista",
+  "name": "Anrielly Gomes - Mestre de Cerimônia",
   "short_name": "AG Cerimonias",
-  "description": "Tornando seus sonhos realidade com elegância e sofisticação",
+  "description": "Transformando seus sonhos em realidade com elegância e sofisticação. Serviços de cerimonial para casamentos, formaturas e eventos especiais.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#fdf2f8",
-  "theme_color": "#e11d48",
+  "theme_color": "#D4AF37",
   "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "pt-BR",
+  "dir": "ltr",
+  "categories": ["business", "lifestyle", "wedding"],
   "icons": [
     {
       "src": "/LogoAG_192x192.png",
@@ -20,6 +24,21 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
+    },
+    {
+      "src": "/lovable-uploads/51ec6ddc-43be-45c4-9c33-1f407dba1411.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/lovable-uploads/a1e9c8bb-3ef0-4768-8b5e-9fac87c9d598.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Página inicial do site"
     }
   ],
   "shortcuts": [
@@ -37,7 +56,18 @@
     {
       "name": "Contato",
       "description": "Entre em contato conosco",
-      "url": "/#contact",
+      "url": "/#contato",
+      "icons": [
+        {
+          "src": "/LogoAG_192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Galeria",
+      "description": "Veja nossos trabalhos",
+      "url": "/#galeria",
       "icons": [
         {
           "src": "/LogoAG_192x192.png",
@@ -46,7 +76,12 @@
       ]
     }
   ],
-  "categories": ["business", "lifestyle", "wedding"],
-  "lang": "pt-BR",
-  "dir": "ltr"
+  "prefer_related_applications": false,
+  "related_applications": [],
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  }
 }
