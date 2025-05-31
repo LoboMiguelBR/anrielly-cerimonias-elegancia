@@ -9,6 +9,7 @@ import QuestionarioFormulario from './pages/QuestionarioFormulario';
 import ContractSigning from './pages/ContractSigning/index';
 import NotFound from './pages/NotFound';
 import AdminProtectedRoute from './components/AdminProtectedRoute';
+import WebChat from './components/WebChat';
 import { Toaster } from 'sonner';
 import { GalleryProvider } from './components/gallery/GalleryContext';
 
@@ -25,6 +26,7 @@ function App() {
         <Route path="/contrato/:slug" element={<ContractSigning />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
+      <WebChat />
       <Toaster position="top-right" richColors />
     </GalleryProvider>
   );
