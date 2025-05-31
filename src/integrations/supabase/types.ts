@@ -223,6 +223,120 @@ export type Database = {
           },
         ]
       }
+      event_participants: {
+        Row: {
+          accepted: boolean | null
+          created_at: string | null
+          event_id: string
+          id: string
+          invited: boolean | null
+          magic_link_token: string | null
+          name: string | null
+          role: Database["public"]["Enums"]["participant_role"]
+          updated_at: string | null
+          user_email: string
+        }
+        Insert: {
+          accepted?: boolean | null
+          created_at?: string | null
+          event_id: string
+          id?: string
+          invited?: boolean | null
+          magic_link_token?: string | null
+          name?: string | null
+          role: Database["public"]["Enums"]["participant_role"]
+          updated_at?: string | null
+          user_email: string
+        }
+        Update: {
+          accepted?: boolean | null
+          created_at?: string | null
+          event_id?: string
+          id?: string
+          invited?: boolean | null
+          magic_link_token?: string | null
+          name?: string | null
+          role?: Database["public"]["Enums"]["participant_role"]
+          updated_at?: string | null
+          user_email?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_participants_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      events: {
+        Row: {
+          contract_id: string | null
+          created_at: string | null
+          date: string | null
+          id: string
+          location: string | null
+          notes: string | null
+          proposal_id: string | null
+          quote_id: string | null
+          status: Database["public"]["Enums"]["event_status"] | null
+          tenant_id: string | null
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          contract_id?: string | null
+          created_at?: string | null
+          date?: string | null
+          id?: string
+          location?: string | null
+          notes?: string | null
+          proposal_id?: string | null
+          quote_id?: string | null
+          status?: Database["public"]["Enums"]["event_status"] | null
+          tenant_id?: string | null
+          type: string
+          updated_at?: string | null
+        }
+        Update: {
+          contract_id?: string | null
+          created_at?: string | null
+          date?: string | null
+          id?: string
+          location?: string | null
+          notes?: string | null
+          proposal_id?: string | null
+          quote_id?: string | null
+          status?: Database["public"]["Enums"]["event_status"] | null
+          tenant_id?: string | null
+          type?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "events_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "events_proposal_id_fkey"
+            columns: ["proposal_id"]
+            isOneToOne: false
+            referencedRelation: "proposals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "events_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quote_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       gallery: {
         Row: {
           created_at: string
@@ -699,7 +813,13 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      event_status: "em_planejamento" | "contratado" | "concluido" | "cancelado"
+      participant_role:
+        | "noivo"
+        | "noiva"
+        | "cerimonialista"
+        | "cliente"
+        | "admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -814,6 +934,15 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      event_status: ["em_planejamento", "contratado", "concluido", "cancelado"],
+      participant_role: [
+        "noivo",
+        "noiva",
+        "cerimonialista",
+        "cliente",
+        "admin",
+      ],
+    },
   },
 } as const

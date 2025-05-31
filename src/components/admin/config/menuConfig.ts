@@ -1,17 +1,20 @@
+
 import { 
   BarChart3, 
-  MessageSquare, 
-  Users, 
   FileText, 
-  Image, 
-  Star,
-  File,
+  Users, 
+  Calendar,
+  MessageSquare, 
+  ImageIcon, 
+  Heart, 
+  Settings, 
+  UserCheck, 
+  BookOpen,
+  CalendarDays,
   Mail,
   FileImage,
-  UserCheck,
-  Heart,
-  Sparkles,
-  TrendingUp
+  TrendingUp,
+  Briefcase
 } from 'lucide-react';
 
 export interface MenuItem {
@@ -21,119 +24,95 @@ export interface MenuItem {
   description?: string;
 }
 
-export const dashboardMenuItems: MenuItem[] = [
+export const adminMenuItems: MenuItem[] = [
   {
-    id: "dashboard",
-    label: "Dashboard",
+    id: 'dashboard',
+    label: 'Dashboard',
     icon: BarChart3,
-    description: "Visão geral e estatísticas"
-  }
-];
-
-export const businessMenuItems: MenuItem[] = [
-  {
-    id: "quotes",
-    label: "Solicitações",
-    icon: MessageSquare,
-    description: "Solicitações de orçamento"
+    description: 'Visão geral e métricas'
   },
   {
-    id: "proposals",
-    label: "Propostas",
+    id: 'quotes',
+    label: 'Orçamentos',
     icon: FileText,
-    description: "Geração e envio de propostas"
+    description: 'Solicitações de orçamento'
   },
   {
-    id: "contracts",
-    label: "Contratos",
-    icon: File,
-    description: "Contratos e assinaturas"
+    id: 'proposals',
+    label: 'Propostas',
+    icon: BookOpen,
+    description: 'Propostas comerciais'
   },
   {
-    id: "gestao-comercial",
-    label: "Gestão Comercial",
-    icon: TrendingUp,
-    description: "Funil de vendas e painel financeiro"
-  }
-];
-
-export const contentMenuItems: MenuItem[] = [
-  {
-    id: "gallery",
-    label: "Galeria",
-    icon: Image,
-    description: "Gerenciar fotos da galeria"
+    id: 'events',
+    label: 'Eventos',
+    icon: Calendar,
+    description: 'Gestão de eventos'
   },
   {
-    id: "testimonials",
-    label: "Depoimentos",
-    icon: Star,
-    description: "Gerenciar depoimentos"
-  },
-  {
-    id: "questionarios",
-    label: "Questionários",
-    icon: Heart,
-    description: "Questionários de noivos"
-  },
-  {
-    id: "historias-casais",
-    label: "Histórias IA",
-    icon: Sparkles,
-    description: "Histórias dos casais geradas por IA"
-  }
-];
-
-export const managementMenuItems: MenuItem[] = [
-  {
-    id: "leads",
-    label: "Leads",
-    icon: Users,
-    description: "Gerenciar leads e clientes"
-  },
-  {
-    id: "professionals",
-    label: "Profissionais",
-    icon: UserCheck,
-    description: "Rede de profissionais"
-  }
-];
-
-export const templatesMenuItems: MenuItem[] = [
-  {
-    id: "proposal-templates",
-    label: "Templates Propostas",
+    id: 'contracts',
+    label: 'Contratos',
     icon: FileImage,
-    description: "Templates para propostas"
+    description: 'Contratos e assinaturas'
   },
   {
-    id: "contract-templates",
-    label: "Templates Contratos",
-    icon: File,
-    description: "Templates para contratos"
+    id: 'questionarios',
+    label: 'Questionários',
+    icon: Heart,
+    description: 'Questionários dos noivos'
   },
   {
-    id: "contract-email-templates",
-    label: "Templates Email",
+    id: 'historias-casais',
+    label: 'Histórias dos Casais',
+    icon: MessageSquare,
+    description: 'Histórias geradas pela IA'
+  },
+  {
+    id: 'leads',
+    label: 'Leads',
+    icon: Users,
+    description: 'Gestão de leads'
+  },
+  {
+    id: 'professionals',
+    label: 'Profissionais',
+    icon: UserCheck,
+    description: 'Rede de profissionais'
+  },
+  {
+    id: 'gallery',
+    label: 'Galeria',
+    icon: ImageIcon,
+    description: 'Fotos e imagens'
+  },
+  {
+    id: 'testimonials',
+    label: 'Depoimentos',
+    icon: MessageSquare,
+    description: 'Depoimentos de clientes'
+  },
+  {
+    id: 'gestao-comercial',
+    label: 'Gestão Comercial',
+    icon: TrendingUp,
+    description: 'Funil de vendas e financeiro'
+  },
+  {
+    id: 'proposal-templates',
+    label: 'Templates de Proposta',
+    icon: Settings,
+    description: 'Templates para propostas'
+  },
+  {
+    id: 'contract-templates',
+    label: 'Templates de Contrato',
+    icon: Settings,
+    description: 'Templates para contratos'
+  },
+  {
+    id: 'contract-email-templates',
+    label: 'Templates de Email',
     icon: Mail,
-    description: "Templates de email"
+    description: 'Templates para emails de contrato'
   }
 ];
-
-export const menuSections = [
-  { title: "Dashboard", items: dashboardMenuItems },
-  { title: "Negócio", items: businessMenuItems },
-  { title: "Conteúdo", items: contentMenuItems },
-  { title: "Gestão", items: managementMenuItems },
-  { title: "Templates", items: templatesMenuItems }
-];
-
-export const getAllMenuItems = (): MenuItem[] => {
-  return [
-    ...dashboardMenuItems,
-    ...businessMenuItems,
-    ...contentMenuItems,
-    ...managementMenuItems,
-    ...templatesMenuItems
-  ];
-};
