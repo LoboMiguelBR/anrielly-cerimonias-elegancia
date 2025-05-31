@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -172,6 +171,10 @@ const QuestionarioCreateFormEnhanced = ({ onQuestionarioCreated }: QuestionarioC
     }
   };
 
+  const handleCreateEventChange = (checked: boolean) => {
+    setCreateEvent(checked);
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -205,7 +208,7 @@ const QuestionarioCreateFormEnhanced = ({ onQuestionarioCreated }: QuestionarioC
               <Checkbox 
                 id="create-event" 
                 checked={createEvent}
-                onCheckedChange={setCreateEvent}
+                onCheckedChange={handleCreateEventChange}
               />
               <Label htmlFor="create-event" className="font-medium">
                 Criar evento vinculado ao questionário

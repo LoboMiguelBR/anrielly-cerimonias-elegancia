@@ -9,30 +9,48 @@ interface QuestionarioStats {
   concluidos: number
 }
 
-const fetcher = async (): Promise<QuestionarioStats> => {
+interface Questionario {
+  id: string;
+  link_publico: string;
+  nome_responsavel: string;
+  email: string;
+  status: string;
+  data_criacao: string;
+  data_atualizacao: string;
+  respostas_json: Record<string, string> | null;
+  total_perguntas_resp: number;
+  historia_gerada?: string;
+}
+
+const fetcher = async (): Promise<{ questionarios: Questionario[], stats: QuestionarioStats }> => {
   const { data, error } = await supabase
     .from('questionarios_noivos')
-    .select('status')
+    .select('*')
+    .order('data_criacao', { ascending: false })
     
   if (error) throw error
   
   const questionarios = data || []
   
-  return {
+  const stats = {
     total: questionarios.length,
     preenchidos: questionarios.filter(q => q.status === 'preenchido').length,
     rascunhos: questionarios.filter(q => q.status === 'rascunho').length,
     concluidos: questionarios.filter(q => q.status === 'concluido').length
   }
+
+  return { questionarios, stats }
 }
 
 export const useQuestionarios = () => {
-  const { data, error, mutate } = useSWR('questionarios-stats', fetcher)
+  const { data, error, mutate } = useSWR('questionarios-full', fetcher)
   
   return {
-    stats: data,
+    questionarios: data?.questionarios || [],
+    stats: data?.stats,
     isLoading: !error && !data,
     error,
-    mutate
+    mutate,
+    refetch: mutate
   }
 }

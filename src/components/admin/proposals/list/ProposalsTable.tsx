@@ -21,6 +21,11 @@ const ProposalsTable: React.FC<ProposalsTableProps> = ({
   onEdit, 
   onDelete 
 }) => {
+  const handleView = (proposal: ProposalData) => {
+    // For now, viewing is the same as editing
+    onEdit(proposal);
+  };
+
   return (
     <div className="border rounded-md overflow-hidden">
       <Table>
@@ -39,6 +44,7 @@ const ProposalsTable: React.FC<ProposalsTableProps> = ({
             <ProposalItem
               key={proposal.id}
               proposal={proposal}
+              onView={handleView}
               onEdit={onEdit}
               onDelete={onDelete}
             />
