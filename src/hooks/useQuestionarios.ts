@@ -1,6 +1,7 @@
 
 import useSWR from 'swr'
 import { supabase } from "@/integrations/supabase/client"
+import type { Json } from "@/integrations/supabase/types"
 
 interface QuestionarioStats {
   total: number
@@ -17,7 +18,7 @@ interface Questionario {
   status: string;
   data_criacao: string;
   data_atualizacao: string;
-  respostas_json: Record<string, string> | null;
+  respostas_json: Json | null;
   total_perguntas_resp: number;
   historia_gerada?: string;
 }
