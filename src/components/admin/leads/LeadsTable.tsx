@@ -5,9 +5,13 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Eye, Search, Filter, Phone, Mail } from 'lucide-react';
+import { Eye, Search, Filter, Phone, Mail, Edit, Trash2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useMobileLayout } from '@/hooks/useMobileLayout';
+import { useLeadActions } from '@/hooks/useLeadActions';
+import EditLeadModal from './EditLeadModal';
+import LeadStatusSelect from './LeadStatusSelect';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -27,13 +31,17 @@ interface Lead {
 interface LeadsTableProps {
   leads: Lead[];
   isLoading: boolean;
+  onRefresh: () => void;
 }
 
-const LeadsTable = ({ leads, isLoading }: LeadsTableProps) => {
+const LeadsTable = ({ leads, isLoading, onRefresh }: LeadsTableProps) => {
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
+  const [editingLead, setEditingLead] = useState<Lead | null>(null);
+  const [deletingLead, setDeletingLead] = useState<Lead | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const { isMobile } = useMobileLayout();
+  const { deleteLead, loading: actionLoading } = useLeadActions();
 
   const getStatusBadge = (status?: string) => {
     switch (status) {
@@ -70,6 +78,25 @@ const LeadsTable = ({ leads, isLoading }: LeadsTableProps) => {
     
     return matchesStatus && matchesSearch;
   });
+
+  const handleDelete = async () => {
+    if (!deletingLead) return;
+    
+    const success = await deleteLead(deletingLead.id);
+    if (success) {
+      onRefresh();
+      setDeletingLead(null);
+    }
+  };
+
+  const handleEditSuccess = () => {
+    onRefresh();
+    setEditingLead(null);
+  };
+
+  const handleStatusChange = () => {
+    onRefresh();
+  };
 
   if (isLoading) {
     return (
@@ -128,8 +155,24 @@ const LeadsTable = ({ leads, isLoading }: LeadsTableProps) => {
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
                       <h3 className="font-semibold text-gray-900">{lead.name}</h3>
-                      {getStatusBadge(lead.status)}
+                      {!isMobile && (
+                        <LeadStatusSelect
+                          leadId={lead.id}
+                          currentStatus={lead.status || 'aguardando'}
+                          onStatusChange={handleStatusChange}
+                        />
+                      )}
                     </div>
+                    
+                    {isMobile && (
+                      <div className="mb-2">
+                        <LeadStatusSelect
+                          leadId={lead.id}
+                          currentStatus={lead.status || 'aguardando'}
+                          onStatusChange={handleStatusChange}
+                        />
+                      </div>
+                    )}
                     
                     <div className={`grid gap-2 text-sm text-gray-600 ${isMobile ? 'grid-cols-1' : 'grid-cols-2 lg:grid-cols-4'}`}>
                       <div className="flex items-center gap-1">
@@ -159,15 +202,35 @@ const LeadsTable = ({ leads, isLoading }: LeadsTableProps) => {
                     </div>
                   </div>
                   
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setSelectedLead(lead)}
-                    className={isMobile ? 'w-full' : ''}
-                  >
-                    <Eye className="w-4 h-4 mr-2" />
-                    Ver Detalhes
-                  </Button>
+                  <div className={`flex gap-2 ${isMobile ? 'w-full' : ''}`}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setSelectedLead(lead)}
+                      className={isMobile ? 'flex-1' : ''}
+                    >
+                      <Eye className="w-4 h-4 mr-2" />
+                      Ver
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setEditingLead(lead)}
+                      className={isMobile ? 'flex-1' : ''}
+                    >
+                      <Edit className="w-4 h-4 mr-2" />
+                      Editar
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => setDeletingLead(lead)}
+                      className={isMobile ? 'flex-1' : ''}
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Deletar
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -175,6 +238,7 @@ const LeadsTable = ({ leads, isLoading }: LeadsTableProps) => {
         )}
       </div>
 
+      {/* Modal de Detalhes */}
       <Dialog open={!!selectedLead} onOpenChange={() => setSelectedLead(null)}>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
@@ -236,6 +300,32 @@ const LeadsTable = ({ leads, isLoading }: LeadsTableProps) => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Modal de Edição */}
+      <EditLeadModal
+        open={!!editingLead}
+        onOpenChange={() => setEditingLead(null)}
+        onSuccess={handleEditSuccess}
+        lead={editingLead}
+      />
+
+      {/* Dialog de Confirmação de Exclusão */}
+      <AlertDialog open={!!deletingLead} onOpenChange={() => setDeletingLead(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja deletar o lead "{deletingLead?.name}"? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} disabled={actionLoading}>
+              {actionLoading ? 'Deletando...' : 'Deletar'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
