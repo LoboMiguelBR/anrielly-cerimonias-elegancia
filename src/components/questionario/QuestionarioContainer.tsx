@@ -7,6 +7,7 @@ import QuestionarioFooter from './QuestionarioFooter';
 import MobileQuestionarioNav from './MobileQuestionarioNav';
 import { Badge } from '@/components/ui/badge';
 import { Heart } from 'lucide-react';
+import useQuestionarioForm from '@/hooks/useQuestionarioForm';
 
 interface QuestionarioContainerProps {
   questionario: any;
@@ -31,10 +32,33 @@ const QuestionarioContainer = ({
 }: QuestionarioContainerProps) => {
   const [isSaving, setIsSaving] = useState(false);
 
+  // Use the existing hook for form state
+  const {
+    progresso,
+    respostasPreenchidas,
+    podeEditar,
+    canFinalize,
+    perguntas,
+    salvarRespostas
+  } = useQuestionarioForm({ 
+    questionario, 
+    updateQuestionario: () => {},
+    logout: () => {} 
+  });
+
   const handleSave = async () => {
     setIsSaving(true);
     try {
       await saveRespostas(respostas);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleFinalize = async () => {
+    setIsSaving(true);
+    try {
+      await salvarRespostas(true);
     } finally {
       setIsSaving(false);
     }
@@ -51,7 +75,13 @@ const QuestionarioContainer = ({
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50">
-      <QuestionarioHeader questionario={questionario} />
+      <QuestionarioHeader 
+        nomeResponsavel={questionario.nome_responsavel}
+        progresso={progresso}
+        respostasPreenchidas={respostasPreenchidas}
+        totalPerguntas={perguntas.length}
+        onLogout={() => {}}
+      />
       
       {/* Event Link Indicator */}
       {isLinkedToEvent && eventRole && (
@@ -75,25 +105,25 @@ const QuestionarioContainer = ({
         <div className="hidden lg:grid lg:grid-cols-4 gap-8">
           <div className="lg:col-span-1">
             <QuestionarioSidebar 
-              secaoAtual={secaoAtual} 
-              setSecaoAtual={setSecaoAtual}
               respostas={respostas}
+              onNavigateToSection={(sectionId) => setSecaoAtual(parseInt(sectionId))}
+              currentSection={secaoAtual.toString()}
             />
           </div>
           
           <div className="lg:col-span-3">
             <QuestionarioContent
-              secaoAtual={secaoAtual}
               respostas={respostas}
-              updateResposta={updateResposta}
+              podeEditar={podeEditar}
+              onRespostaChange={updateResposta}
             />
             
             <QuestionarioFooter
-              secaoAtual={secaoAtual}
-              setSecaoAtual={setSecaoAtual}
-              onSave={handleSave}
               isSaving={isSaving}
-              respostas={respostas}
+              canFinalize={canFinalize}
+              podeEditar={podeEditar}
+              onSave={handleSave}
+              onFinalize={handleFinalize}
             />
           </div>
         </div>
@@ -101,23 +131,23 @@ const QuestionarioContainer = ({
         {/* Mobile Layout */}
         <div className="lg:hidden">
           <MobileQuestionarioNav 
-            secaoAtual={secaoAtual} 
-            setSecaoAtual={setSecaoAtual}
             respostas={respostas}
+            onNavigateToSection={(sectionId) => setSecaoAtual(parseInt(sectionId))}
+            currentSection={secaoAtual.toString()}
           />
           
           <QuestionarioContent
-            secaoAtual={secaoAtual}
             respostas={respostas}
-            updateResposta={updateResposta}
+            podeEditar={podeEditar}
+            onRespostaChange={updateResposta}
           />
           
           <QuestionarioFooter
-            secaoAtual={secaoAtual}
-            setSecaoAtual={setSecaoAtual}
-            onSave={handleSave}
             isSaving={isSaving}
-            respostas={respostas}
+            canFinalize={canFinalize}
+            podeEditar={podeEditar}
+            onSave={handleSave}
+            onFinalize={handleFinalize}
           />
         </div>
       </div>

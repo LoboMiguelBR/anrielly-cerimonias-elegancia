@@ -24,6 +24,11 @@ export interface MenuItem {
   description?: string;
 }
 
+export interface MenuSection {
+  title: string;
+  items: MenuItem[];
+}
+
 export const adminMenuItems: MenuItem[] = [
   {
     id: 'dashboard',
@@ -116,3 +121,50 @@ export const adminMenuItems: MenuItem[] = [
     description: 'Templates para emails de contrato'
   }
 ];
+
+export const menuSections: MenuSection[] = [
+  {
+    title: 'Principal',
+    items: [
+      adminMenuItems.find(item => item.id === 'dashboard')!,
+      adminMenuItems.find(item => item.id === 'quotes')!,
+      adminMenuItems.find(item => item.id === 'proposals')!,
+      adminMenuItems.find(item => item.id === 'events')!,
+      adminMenuItems.find(item => item.id === 'contracts')!,
+    ]
+  },
+  {
+    title: 'Clientes',
+    items: [
+      adminMenuItems.find(item => item.id === 'questionarios')!,
+      adminMenuItems.find(item => item.id === 'historias-casais')!,
+      adminMenuItems.find(item => item.id === 'leads')!,
+      adminMenuItems.find(item => item.id === 'professionals')!,
+    ]
+  },
+  {
+    title: 'Conteúdo',
+    items: [
+      adminMenuItems.find(item => item.id === 'gallery')!,
+      adminMenuItems.find(item => item.id === 'testimonials')!,
+    ]
+  },
+  {
+    title: 'Gestão',
+    items: [
+      adminMenuItems.find(item => item.id === 'gestao-comercial')!,
+    ]
+  },
+  {
+    title: 'Configurações',
+    items: [
+      adminMenuItems.find(item => item.id === 'proposal-templates')!,
+      adminMenuItems.find(item => item.id === 'contract-templates')!,
+      adminMenuItems.find(item => item.id === 'contract-email-templates')!,
+    ]
+  }
+];
+
+export const getAllMenuItems = (): MenuItem[] => {
+  return adminMenuItems;
+};

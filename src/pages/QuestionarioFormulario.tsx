@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
-import { useQuestionarioForm } from '@/hooks/useQuestionarioForm';
+import useQuestionarioForm from '@/hooks/useQuestionarioForm';
 import { useQuestionarioAuth } from '@/hooks/useQuestionarioAuth';
 import { useEvents } from '@/hooks/useEvents';
 import QuestionarioContainer from '@/components/questionario/QuestionarioContainer';
@@ -20,20 +20,36 @@ const QuestionarioFormulario = () => {
   const participantRole = searchParams.get('role') as 'noivo' | 'noiva' | 'cliente' | null;
 
   const { questionario, isLoading: authLoading } = useQuestionarioAuth(linkPublico!);
-  const {
-    respostas,
-    secaoAtual,
-    setSecaoAtual,
-    updateResposta,
-    isLoading: formLoading,
-    saveRespostas
-  } = useQuestionarioForm(linkPublico || '');
+  const [currentSection, setCurrentSection] = useState(0);
+  const [respostas, setRespostas] = useState<Record<string, string>>({});
+
+  // Initialize respostas when questionario changes
+  useEffect(() => {
+    if (questionario?.respostas_json) {
+      setRespostas(questionario.respostas_json);
+    }
+  }, [questionario]);
+
+  const updateResposta = (campo: string, valor: any) => {
+    setRespostas(prev => ({
+      ...prev,
+      [campo]: valor
+    }));
+  };
 
   // Enhanced save function to also register as event participant
   const handleSaveWithEventLink = async (finalRespostas: any) => {
     try {
-      // Save normal questionnaire data
-      await saveRespostas(finalRespostas);
+      // Save normal questionnaire data using edge function
+      const { data, error } = await supabase.functions.invoke('questionario-respostas', {
+        body: {
+          questionarioId: questionario.id,
+          respostas: finalRespostas,
+          finalizar: false
+        }
+      });
+
+      if (error) throw error;
 
       // If we have event linking parameters, register as participant
       if (eventId && participantRole && questionario) {
@@ -52,6 +68,11 @@ const QuestionarioFormulario = () => {
           });
         }
       }
+
+      toast({
+        title: "Respostas salvas",
+        description: "Suas respostas foram salvas com sucesso!",
+      });
     } catch (error) {
       console.error('Error saving questionnaire with event link:', error);
       toast({
@@ -62,7 +83,7 @@ const QuestionarioFormulario = () => {
     }
   };
 
-  if (authLoading || formLoading) {
+  if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -88,8 +109,8 @@ const QuestionarioFormulario = () => {
     <QuestionarioContainer
       questionario={questionario}
       respostas={respostas}
-      secaoAtual={secaoAtual}
-      setSecaoAtual={setSecaoAtual}
+      secaoAtual={currentSection}
+      setSecaoAtual={setCurrentSection}
       updateResposta={updateResposta}
       saveRespostas={handleSaveWithEventLink}
       isLinkedToEvent={!!eventId && !!participantRole}
