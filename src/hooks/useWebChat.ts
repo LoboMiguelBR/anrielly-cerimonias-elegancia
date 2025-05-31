@@ -1,5 +1,6 @@
 
 import { useState, useEffect } from 'react';
+import { useMobileLayout } from './useMobileLayout';
 
 interface WebChatState {
   isLoaded: boolean;
@@ -8,6 +9,7 @@ interface WebChatState {
 }
 
 export const useWebChat = () => {
+  const { isMobile } = useMobileLayout();
   const [state, setState] = useState<WebChatState>({
     isLoaded: false,
     isOpen: false,
@@ -20,17 +22,27 @@ export const useWebChat = () => {
       if (window.botpress) {
         setState(prev => ({ ...prev, isLoaded: true }));
         
-        // Ocultar o botão padrão do Botpress
-        const style = document.createElement('style');
-        style.textContent = `
-          .bpw-floating-button {
-            display: none !important;
+        // Aplicar estilos apenas no mobile
+        if (isMobile) {
+          // Ocultar o botão padrão do Botpress apenas no mobile
+          const style = document.createElement('style');
+          style.id = 'mobile-webchat-styles';
+          style.textContent = `
+            .bpw-floating-button {
+              display: none !important;
+            }
+            .bpw-widget {
+              z-index: 9998 !important;
+            }
+          `;
+          document.head.appendChild(style);
+        } else {
+          // Remover estilos se existirem (para quando muda de mobile para desktop)
+          const existingStyle = document.getElementById('mobile-webchat-styles');
+          if (existingStyle) {
+            existingStyle.remove();
           }
-          .bpw-widget {
-            z-index: 9998 !important;
-          }
-        `;
-        document.head.appendChild(style);
+        }
 
         return true;
       }
@@ -47,8 +59,11 @@ export const useWebChat = () => {
       }, 500);
 
       return () => clearInterval(interval);
+    } else {
+      // Se já estiver carregado, aplicar estilos baseado no layout atual
+      checkBotpress();
     }
-  }, []);
+  }, [isMobile]);
 
   const openChat = () => {
     if (window.botpress && window.botpress.open) {

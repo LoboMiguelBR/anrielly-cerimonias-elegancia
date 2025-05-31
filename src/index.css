@@ -108,7 +108,7 @@
     z-index: 90;
   }
 
-  /* WebChat specific z-index */
+  /* WebChat specific z-index - apenas para mobile */
   .z-webchat {
     z-index: 9999;
   }
@@ -126,6 +126,45 @@
     .mobile-form-field {
       min-height: 44px; /* iOS minimum touch target */
     }
+
+    /* WebChat customizations - apenas mobile */
+    .floating-webchat {
+      @apply fixed z-webchat;
+      touch-action: none;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+
+    .floating-webchat.dragging {
+      @apply scale-110 shadow-2xl;
+    }
+
+    /* Hide Botpress default button apenas no mobile */
+    .bpw-floating-button {
+      display: none !important;
+    }
+
+    /* Ensure Botpress widget stays below our custom button apenas no mobile */
+    .bpw-widget {
+      z-index: 9998 !important;
+    }
+
+    /* Touch improvements for drag apenas no mobile */
+    .touch-drag {
+      touch-action: none;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+
+    /* Better drag feedback on mobile */
+    .floating-webchat.dragging {
+      @apply shadow-2xl;
+      transform: scale(1.1);
+      opacity: 0.9;
+    }
   }
 
   /* Ensure dropdowns have solid backgrounds */
@@ -133,38 +172,6 @@
   [data-radix-dropdown-menu-content],
   [data-radix-popover-content] {
     @apply bg-white shadow-lg border backdrop-blur-sm;
-  }
-
-  /* WebChat customizations */
-  .floating-webchat {
-    @apply fixed z-webchat;
-    touch-action: none;
-    user-select: none;
-    -webkit-user-drag: none;
-  }
-
-  .floating-webchat.dragging {
-    @apply scale-110 shadow-2xl;
-  }
-
-  /* Hide Botpress default button */
-  .bpw-floating-button {
-    display: none !important;
-  }
-
-  /* Ensure Botpress widget stays below our custom button */
-  .bpw-widget {
-    z-index: 9998 !important;
-  }
-
-  /* Touch improvements for drag */
-  .touch-drag {
-    touch-action: none;
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
   }
 }
 
@@ -189,13 +196,6 @@
     /* Ensure adequate touch area */
     min-width: 60px;
     min-height: 60px;
-  }
-
-  /* Better drag feedback on mobile */
-  .floating-webchat.dragging {
-    @apply shadow-2xl;
-    transform: scale(1.1);
-    opacity: 0.9;
   }
 }
 

@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useMobileLayout } from '@/hooks/useMobileLayout';
+import { useWebChat } from '@/hooks/useWebChat';
 
 interface Position {
   x: number;
@@ -9,6 +10,7 @@ interface Position {
 
 const FloatingWebChat: React.FC = () => {
   const { isMobile } = useMobileLayout();
+  const { openChat } = useWebChat();
   const [position, setPosition] = useState<Position>({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
@@ -31,7 +33,7 @@ const FloatingWebChat: React.FC = () => {
         parsed.x >= 0 && 
         parsed.x <= viewportWidth - buttonSize &&
         parsed.y >= 0 && 
-        parsed.y <= viewportHeight - buttonSize - 100 // margem extra para footer
+        parsed.y <= viewportHeight - buttonSize - 100
       ) {
         return parsed;
       }
@@ -40,7 +42,7 @@ const FloatingWebChat: React.FC = () => {
     // Posição padrão: canto inferior direito, evitando footer
     return {
       x: viewportWidth - buttonSize - margin,
-      y: viewportHeight - buttonSize - (isMobile ? 120 : 80) // mais espaço no mobile
+      y: viewportHeight - buttonSize - (isMobile ? 120 : 80)
     };
   }, [isMobile]);
 
@@ -57,7 +59,7 @@ const FloatingWebChat: React.FC = () => {
     newPos.x = Math.max(margin, Math.min(viewportWidth - buttonSize - margin, newPos.x));
     newPos.y = Math.max(margin, Math.min(viewportHeight - buttonSize - margin, newPos.y));
 
-    // Detectar conflito com footer (últimos 100px no mobile, 80px no desktop)
+    // Detectar conflito com footer
     const footerHeight = isMobile ? 100 : 80;
     if (newPos.y > viewportHeight - buttonSize - footerHeight) {
       newPos.y = viewportHeight - buttonSize - footerHeight;
@@ -66,16 +68,22 @@ const FloatingWebChat: React.FC = () => {
     return newPos;
   }, [isMobile]);
 
-  // Inicializar posição
+  // Inicializar posição apenas no mobile
   useEffect(() => {
-    const initialPos = getInitialPosition();
-    const safePos = detectConflicts(initialPos);
-    setPosition(safePos);
-    setIsInitialized(true);
-  }, [getInitialPosition, detectConflicts]);
+    if (isMobile) {
+      const initialPos = getInitialPosition();
+      const safePos = detectConflicts(initialPos);
+      setPosition(safePos);
+      setIsInitialized(true);
+    } else {
+      setIsInitialized(false);
+    }
+  }, [isMobile, getInitialPosition, detectConflicts]);
 
   // Lidar com redimensionamento da janela
   useEffect(() => {
+    if (!isMobile) return;
+
     const handleResize = () => {
       setPosition(prevPos => detectConflicts(prevPos));
     };
@@ -87,11 +95,11 @@ const FloatingWebChat: React.FC = () => {
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('orientationchange', handleResize);
     };
-  }, [detectConflicts]);
+  }, [detectConflicts, isMobile]);
 
   // Eventos de mouse
   const handleMouseDown = (e: React.MouseEvent) => {
-    if (!chatRef.current) return;
+    if (!chatRef.current || !isMobile) return;
     
     const rect = chatRef.current.getBoundingClientRect();
     dragOffset.current = {
@@ -102,7 +110,7 @@ const FloatingWebChat: React.FC = () => {
   };
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
-    if (!isDragging) return;
+    if (!isDragging || !isMobile) return;
 
     const newPos = {
       x: e.clientX - dragOffset.current.x,
@@ -110,18 +118,18 @@ const FloatingWebChat: React.FC = () => {
     };
 
     setPosition(detectConflicts(newPos));
-  }, [isDragging, detectConflicts]);
+  }, [isDragging, detectConflicts, isMobile]);
 
   const handleMouseUp = useCallback(() => {
-    if (isDragging) {
+    if (isDragging && isMobile) {
       setIsDragging(false);
       localStorage.setItem('webchat-position', JSON.stringify(position));
     }
-  }, [isDragging, position]);
+  }, [isDragging, position, isMobile]);
 
   // Eventos de touch
   const handleTouchStart = (e: React.TouchEvent) => {
-    if (!chatRef.current) return;
+    if (!chatRef.current || !isMobile) return;
     
     const touch = e.touches[0];
     const rect = chatRef.current.getBoundingClientRect();
@@ -133,7 +141,7 @@ const FloatingWebChat: React.FC = () => {
   };
 
   const handleTouchMove = useCallback((e: TouchEvent) => {
-    if (!isDragging) return;
+    if (!isDragging || !isMobile) return;
     e.preventDefault();
 
     const touch = e.touches[0];
@@ -143,18 +151,18 @@ const FloatingWebChat: React.FC = () => {
     };
 
     setPosition(detectConflicts(newPos));
-  }, [isDragging, detectConflicts]);
+  }, [isDragging, detectConflicts, isMobile]);
 
   const handleTouchEnd = useCallback(() => {
-    if (isDragging) {
+    if (isDragging && isMobile) {
       setIsDragging(false);
       localStorage.setItem('webchat-position', JSON.stringify(position));
     }
-  }, [isDragging, position]);
+  }, [isDragging, position, isMobile]);
 
   // Adicionar event listeners globais
   useEffect(() => {
-    if (isDragging) {
+    if (isDragging && isMobile) {
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
       document.addEventListener('touchmove', handleTouchMove, { passive: false });
@@ -167,9 +175,10 @@ const FloatingWebChat: React.FC = () => {
         document.removeEventListener('touchend', handleTouchEnd);
       };
     }
-  }, [isDragging, handleMouseMove, handleMouseUp, handleTouchMove, handleTouchEnd]);
+  }, [isDragging, handleMouseMove, handleMouseUp, handleTouchMove, handleTouchEnd, isMobile]);
 
-  if (!isInitialized) return null;
+  // Renderizar apenas no mobile
+  if (!isMobile || !isInitialized) return null;
 
   return (
     <div
@@ -195,10 +204,7 @@ const FloatingWebChat: React.FC = () => {
         }}
         onClick={() => {
           if (!isDragging) {
-            // Abrir o chat do Botpress
-            if (window.botpress && window.botpress.open) {
-              window.botpress.open();
-            }
+            openChat();
           }
         }}
       >
