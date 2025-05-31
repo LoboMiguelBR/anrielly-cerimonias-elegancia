@@ -117,6 +117,30 @@
     .mobile-form-field {
       min-height: 44px; /* iOS minimum touch target */
     }
+    
+    /* WebChat mobile adjustments */
+    [data-widget-id] {
+      transform: scale(0.85) !important;
+      bottom: 90px !important;
+      right: 16px !important;
+      z-index: 85 !important;
+    }
+    
+    /* Botpress WebChat mobile specific adjustments */
+    .bp-widget-button {
+      width: 48px !important;
+      height: 48px !important;
+      bottom: 90px !important;
+      right: 16px !important;
+      z-index: 85 !important;
+    }
+    
+    /* WebChat iframe container for mobile */
+    .bp-widget-container {
+      bottom: 140px !important;
+      right: 16px !important;
+      z-index: 85 !important;
+    }
   }
 
   /* Ensure dropdowns have solid backgrounds */
@@ -133,6 +157,18 @@
     -webkit-user-select: none;
     -webkit-touch-callout: none;
     -webkit-text-size-adjust: none;
+  }
+  
+  /* PWA WebChat adjustments */
+  @media (max-width: 768px) {
+    [data-widget-id],
+    .bp-widget-button {
+      bottom: 110px !important;
+    }
+    
+    .bp-widget-container {
+      bottom: 160px !important;
+    }
   }
 }
 
