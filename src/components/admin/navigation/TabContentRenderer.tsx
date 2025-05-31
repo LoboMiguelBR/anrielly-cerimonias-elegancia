@@ -25,11 +25,11 @@ const TabContentRenderer: React.FC<TabContentRendererProps> = ({ activeTab }) =>
   const renderTabContent = () => {
     switch (activeTab) {
       case 'dashboard':
-        return <DashboardTab />;
+        return <DashboardTab onNavigate={(tab: string) => {}} />;
       case 'quotes':
         return <QuotesTab />;
       case 'proposals':
-        return <ProposalsTab />;
+        return <ProposalsTab quoteRequests={[]} />;
       case 'contracts':
         return <ContractsTab />;
       case 'leads':
@@ -57,7 +57,7 @@ const TabContentRenderer: React.FC<TabContentRendererProps> = ({ activeTab }) =>
       case 'landing-pages':
         return <LandingPagesTab />;
       default:
-        return <DashboardTab />;
+        return <DashboardTab onNavigate={(tab: string) => {}} />;
     }
   };
 

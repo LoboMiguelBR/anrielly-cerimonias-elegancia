@@ -1,3 +1,4 @@
+
 import {
   LayoutDashboard,
   ListChecks,
@@ -5,7 +6,7 @@ import {
   FilePlus,
   Users,
   Calendar,
-  QuestionMarkCircle,
+  HelpCircle,
   BookOpen,
   MessageSquare,
   ImageIcon,
@@ -14,6 +15,14 @@ import {
   TrendingUp,
   Globe,
 } from 'lucide-react';
+
+export interface MenuItem {
+  id: string;
+  label: string;
+  icon: React.ComponentType<any>;
+  description: string;
+  component: string;
+}
 
 export const ADMIN_MENU_ITEMS = [
   {
@@ -68,7 +77,7 @@ export const ADMIN_MENU_ITEMS = [
   {
     id: 'questionarios',
     label: 'Questionários',
-    icon: QuestionMarkCircle,
+    icon: HelpCircle,
     description: 'Gerenciar questionários',
     component: 'QuestionariosTab'
   },
@@ -131,3 +140,36 @@ export const ADMIN_MENU_ITEMS = [
 ] as const;
 
 export type AdminMenuItemId = typeof ADMIN_MENU_ITEMS[number]['id'];
+
+// Group menu items into sections for organized navigation
+export const menuSections = [
+  {
+    title: 'Principal',
+    items: ADMIN_MENU_ITEMS.filter(item => 
+      ['dashboard', 'quotes', 'proposals', 'contracts'].includes(item.id)
+    )
+  },
+  {
+    title: 'Gestão',
+    items: ADMIN_MENU_ITEMS.filter(item => 
+      ['leads', 'professionals', 'events', 'gestao-comercial'].includes(item.id)
+    )
+  },
+  {
+    title: 'Conteúdo',
+    items: ADMIN_MENU_ITEMS.filter(item => 
+      ['questionarios', 'historias-casais', 'testimonials', 'gallery', 'landing-pages'].includes(item.id)
+    )
+  },
+  {
+    title: 'Templates',
+    items: ADMIN_MENU_ITEMS.filter(item => 
+      ['proposal-templates', 'contract-templates', 'contract-email-templates'].includes(item.id)
+    )
+  }
+];
+
+// Helper function to get all menu items
+export const getAllMenuItems = (): MenuItem[] => {
+  return ADMIN_MENU_ITEMS as unknown as MenuItem[];
+};
