@@ -14,6 +14,23 @@ import QuestionarioHistoryModal from './components/QuestionarioHistoryModal';
 import CasalCard from './components/CasalCard';
 import HistoriasCasaisEmptyState from './components/HistoriasCasaisEmptyState';
 
+// Extended interface to match CasalCard expectations
+interface QuestionarioCasal {
+  id: string;
+  link_publico: string;
+  nome_responsavel: string;
+  email: string;
+  status: string | null;
+  historia_gerada: string | null;
+  historia_processada: boolean | null;
+  data_criacao: string | null;
+  data_atualizacao: string | null;
+  total_perguntas_resp: number | null;
+  respostas_json: any;
+  senha_hash: string;
+  temPersonalizacao?: boolean;
+}
+
 const QuestionariosTab = () => {
   const { questionarios, isLoading, refetch } = useQuestionarios();
   const [searchTerm, setSearchTerm] = useState('');
@@ -23,13 +40,25 @@ const QuestionariosTab = () => {
   const { toast } = useToast();
   const { buscarPersonalizacao } = usePersonalizacaoIA();
 
-  const filteredQuestionarios = questionarios.filter(q => 
+  // Convert Questionario to QuestionarioCasal format
+  const questionariosExtended: QuestionarioCasal[] = questionarios.map(q => ({
+    ...q,
+    historia_processada: q.historia_processada || false,
+    senha_hash: q.senha_hash || '',
+    status: q.status || 'rascunho'
+  }));
+
+  const filteredQuestionarios = questionariosExtended.filter(q => 
     q.link_publico.toLowerCase().includes(searchTerm.toLowerCase()) ||
     q.nome_responsavel.toLowerCase().includes(searchTerm.toLowerCase()) ||
     q.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleQuestionarioCreated = () => {
+    refetch();
+  };
+
+  const handleRefresh = () => {
     refetch();
   };
 
@@ -92,7 +121,7 @@ const QuestionariosTab = () => {
   };
 
   const obterCasalPorLink = (linkPublico: string) => {
-    return questionarios.find(casal => casal.link_publico === linkPublico);
+    return questionariosExtended.find(casal => casal.link_publico === linkPublico);
   };
 
   // Agrupar questionários por link_publico
@@ -102,7 +131,7 @@ const QuestionariosTab = () => {
     }
     acc[casal.link_publico].push(casal);
     return acc;
-  }, {} as Record<string, any[]>);
+  }, {} as Record<string, QuestionarioCasal[]>);
 
   if (isLoading) {
     return (
@@ -119,7 +148,7 @@ const QuestionariosTab = () => {
           <h2 className="text-2xl font-bold mb-2">Questionários dos Noivos</h2>
           <p className="text-gray-600">Gerencie questionários, visualize respostas e crie eventos vinculados</p>
         </div>
-        <Button onClick={refetch} variant="outline">
+        <Button onClick={handleRefresh} variant="outline">
           <RefreshCw className="w-4 h-4 mr-2" />
           Atualizar
         </Button>

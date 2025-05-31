@@ -20,7 +20,9 @@ interface Questionario {
   data_atualizacao: string;
   respostas_json: Json | null;
   total_perguntas_resp: number;
-  historia_gerada?: string;
+  historia_gerada?: string | null;
+  historia_processada?: boolean | null;
+  senha_hash: string;
 }
 
 const fetcher = async (): Promise<{ questionarios: Questionario[], stats: QuestionarioStats }> => {
