@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,12 +11,12 @@ import { useMobileLayout } from '@/hooks/useMobileLayout';
 
 const LeadsTab = () => {
   const [showAddDialog, setShowAddDialog] = useState(false);
-  const { data: leads, isLoading, refetch } = useQuoteRequests();
+  const { data: leads, isLoading, mutate } = useQuoteRequests();
   const { isMobile } = useMobileLayout();
 
   const handleLeadAdded = () => {
     setShowAddDialog(false);
-    refetch();
+    mutate();
   };
 
   return (
@@ -90,7 +91,7 @@ const LeadsTab = () => {
         </Card>
       </div>
 
-      <LeadsTable leads={leads || []} isLoading={isLoading} onRefresh={refetch} />
+      <LeadsTable leads={leads || []} isLoading={isLoading} onRefresh={mutate} />
     </div>
   );
 };

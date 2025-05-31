@@ -1,18 +1,42 @@
 
 import React, { useState } from 'react';
 import { useEvents } from '@/hooks/useEvents';
+import { useEventActions } from '@/hooks/useEventActions';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, MapPin, Users, Plus } from 'lucide-react';
+import { Calendar, MapPin, Users, Plus, Edit, Trash2, UserPlus } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import CreateEventModal from '../events/CreateEventModal';
+import EditEventModal from '../events/EditEventModal';
+import EventStatusSelect from '../events/EventStatusSelect';
+import ManageParticipantsModal from '../events/ManageParticipantsModal';
+
+interface Event {
+  id: string;
+  quote_id?: string;
+  proposal_id?: string;
+  contract_id?: string;
+  type: string;
+  date?: string;
+  location?: string;
+  status: 'em_planejamento' | 'contratado' | 'concluido' | 'cancelado';
+  tenant_id?: string;
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+}
 
 const EventsTab = () => {
   const { events, participants, isLoading, getParticipantsByEvent, fetchEvents } = useEvents();
+  const { deleteEvent, loading: actionLoading } = useEventActions();
   const [selectedEvent, setSelectedEvent] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [editingEvent, setEditingEvent] = useState<Event | null>(null);
+  const [deletingEvent, setDeletingEvent] = useState<Event | null>(null);
+  const [managingParticipants, setManagingParticipants] = useState<string | null>(null);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -51,6 +75,29 @@ const EventsTab = () => {
   const handleEventCreated = () => {
     fetchEvents();
     setShowCreateModal(false);
+  };
+
+  const handleEventUpdated = () => {
+    fetchEvents();
+    setEditingEvent(null);
+  };
+
+  const handleStatusChange = () => {
+    fetchEvents();
+  };
+
+  const handleDelete = async () => {
+    if (!deletingEvent) return;
+    
+    const success = await deleteEvent(deletingEvent.id);
+    if (success) {
+      fetchEvents();
+      setDeletingEvent(null);
+    }
+  };
+
+  const handleParticipantsUpdated = () => {
+    fetchEvents();
   };
 
   if (isLoading) {
@@ -98,14 +145,16 @@ const EventsTab = () => {
               <Card key={event.id} className="hover:shadow-md transition-shadow">
                 <CardHeader>
                   <div className="flex justify-between items-start">
-                    <div>
-                      <CardTitle className="flex items-center gap-2">
+                    <div className="flex-1">
+                      <CardTitle className="flex items-center gap-2 mb-2">
                         {event.type}
-                        <Badge className={getStatusColor(event.status)}>
-                          {getStatusLabel(event.status)}
-                        </Badge>
+                        <EventStatusSelect
+                          eventId={event.id}
+                          currentStatus={event.status}
+                          onStatusChange={handleStatusChange}
+                        />
                       </CardTitle>
-                      <div className="flex items-center gap-4 text-sm text-gray-600 mt-2">
+                      <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
                         {event.date && (
                           <div className="flex items-center gap-1">
                             <Calendar className="w-4 h-4" />
@@ -124,13 +173,40 @@ const EventsTab = () => {
                         </div>
                       </div>
                     </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setSelectedEvent(selectedEvent === event.id ? null : event.id)}
-                    >
-                      {selectedEvent === event.id ? 'Ocultar' : 'Ver Detalhes'}
-                    </Button>
+                    
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setSelectedEvent(selectedEvent === event.id ? null : event.id)}
+                      >
+                        {selectedEvent === event.id ? 'Ocultar' : 'Ver Detalhes'}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setEditingEvent(event)}
+                      >
+                        <Edit className="w-4 h-4 mr-2" />
+                        Editar
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setManagingParticipants(event.id)}
+                      >
+                        <UserPlus className="w-4 h-4 mr-2" />
+                        Participantes
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => setDeletingEvent(event)}
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Deletar
+                      </Button>
+                    </div>
                   </div>
                 </CardHeader>
 
@@ -175,7 +251,7 @@ const EventsTab = () => {
                       {event.notes && (
                         <div>
                           <h4 className="font-semibold mb-2">Observações</h4>
-                          <p className="text-gray-700">{event.notes}</p>
+                          <p className="text-gray-700 bg-gray-50 p-3 rounded-md">{event.notes}</p>
                         </div>
                       )}
 
@@ -200,6 +276,40 @@ const EventsTab = () => {
         onClose={() => setShowCreateModal(false)}
         onEventCreated={handleEventCreated}
       />
+
+      {/* Modal de Edição */}
+      <EditEventModal
+        open={!!editingEvent}
+        onOpenChange={() => setEditingEvent(null)}
+        onSuccess={handleEventUpdated}
+        event={editingEvent}
+      />
+
+      {/* Modal de Gerenciar Participantes */}
+      <ManageParticipantsModal
+        open={!!managingParticipants}
+        onOpenChange={() => setManagingParticipants(null)}
+        eventId={managingParticipants}
+        onSuccess={handleParticipantsUpdated}
+      />
+
+      {/* Dialog de Confirmação de Exclusão */}
+      <AlertDialog open={!!deletingEvent} onOpenChange={() => setDeletingEvent(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja deletar o evento "{deletingEvent?.type}"? Esta ação não pode ser desfeita e também removerá todos os participantes.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} disabled={actionLoading}>
+              {actionLoading ? 'Deletando...' : 'Deletar'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

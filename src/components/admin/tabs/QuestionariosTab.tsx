@@ -1,116 +1,118 @@
 
-import { useState } from 'react';
 import { useQuestionarios } from '@/hooks/useQuestionarios';
-import { useQuestionariosLogic } from '@/hooks/useQuestionariosLogic';
+import QuestionariosTableEnhanced from '../questionarios/QuestionariosTableEnhanced';
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Plus, FileText, CheckCircle, Clock, AlertCircle } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import QuestionarioCreateFormEnhanced from './components/QuestionarioCreateFormEnhanced';
-import QuestionariosHeader from './components/QuestionariosHeader';
-import QuestionariosSearch from './components/QuestionariosSearch';
-import QuestionariosListContent from './components/QuestionariosListContent';
-import ModalPersonalizacao from './components/ModalPersonalizacao';
-import QuestionarioHistoryModal from './components/QuestionarioHistoryModal';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { QuestionarioCasal } from './types/questionario';
+import { useState } from 'react';
 
 const QuestionariosTab = () => {
   const { questionarios, isLoading, refetch } = useQuestionarios();
-  const [searchTerm, setSearchTerm] = useState('');
-  
-  const {
-    isGenerating,
-    showHistory,
-    showPersonalizacao,
-    setShowHistory,
-    setShowPersonalizacao,
-    gerarHistoria,
-    obterCasalPorLink
-  } = useQuestionariosLogic(refetch);
-
-  // Convert Questionario to QuestionarioCasal format
-  const questionariosExtended: QuestionarioCasal[] = questionarios.map(q => ({
-    ...q,
-    historia_gerada: q.historia_gerada || null,
-    historia_processada: q.historia_processada || false,
-    senha_hash: q.senha_hash || '',
-    status: q.status || 'rascunho'
-  }));
-
-  const filteredQuestionarios = questionariosExtended.filter(q => 
-    q.link_publico.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    q.nome_responsavel.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    q.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
 
   const handleQuestionarioCreated = () => {
+    setShowCreateDialog(false);
     refetch();
   };
 
-  // Agrupar questionários por link_publico
-  const groupedCasais = filteredQuestionarios.reduce((acc, casal) => {
-    if (!acc[casal.link_publico]) {
-      acc[casal.link_publico] = [];
-    }
-    acc[casal.link_publico].push(casal);
-    return acc;
-  }, {} as Record<string, QuestionarioCasal[]>);
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center p-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
-      </div>
-    );
-  }
+  const stats = {
+    total: questionarios?.length || 0,
+    rascunho: questionarios?.filter(q => q.status === 'rascunho').length || 0,
+    enviados: questionarios?.filter(q => q.status === 'enviado').length || 0,
+    respondidos: questionarios?.filter(q => q.status === 'respondido').length || 0,
+    processados: questionarios?.filter(q => q.status === 'processado').length || 0,
+  };
 
   return (
     <div className="space-y-6">
-      <QuestionariosHeader onRefresh={refetch} />
-
-      <Tabs defaultValue="list" className="w-full">
-        <TabsList>
-          <TabsTrigger value="list">Lista de Questionários</TabsTrigger>
-          <TabsTrigger value="create">Criar Novo</TabsTrigger>
-        </TabsList>
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-2xl font-bold">Gestão de Questionários</h2>
+          <p className="text-gray-600">Gerencie questionários dos noivos e suas respostas</p>
+        </div>
         
-        <TabsContent value="create">
-          <QuestionarioCreateFormEnhanced onQuestionarioCreated={handleQuestionarioCreated} />
-        </TabsContent>
+        <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="w-4 h-4 mr-2" />
+              Novo Questionário
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[600px]">
+            <DialogHeader>
+              <DialogTitle>Criar Novo Questionário</DialogTitle>
+            </DialogHeader>
+            <QuestionarioCreateFormEnhanced onSuccess={handleQuestionarioCreated} />
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      {/* Cards de Estatísticas */}
+      <div className="grid gap-4 md:grid-cols-5">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total</CardTitle>
+            <FileText className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.total}</div>
+            <p className="text-xs text-muted-foreground">Questionários criados</p>
+          </CardContent>
+        </Card>
         
-        <TabsContent value="list">
-          <div className="space-y-4">
-            <QuestionariosSearch 
-              searchTerm={searchTerm}
-              onSearchChange={setSearchTerm}
-            />
-            
-            <QuestionariosListContent
-              groupedCasais={groupedCasais}
-              isGenerating={isGenerating}
-              onPersonalizacao={setShowPersonalizacao}
-              onGerarHistoria={gerarHistoria}
-              onVerHistoria={setShowHistory}
-            />
-          </div>
-        </TabsContent>
-      </Tabs>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Rascunhos</CardTitle>
+            <Clock className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-gray-600">{stats.rascunho}</div>
+            <p className="text-xs text-muted-foreground">Ainda não enviados</p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Enviados</CardTitle>
+            <AlertCircle className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-blue-600">{stats.enviados}</div>
+            <p className="text-xs text-muted-foreground">Aguardando resposta</p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Respondidos</CardTitle>
+            <CheckCircle className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">{stats.respondidos}</div>
+            <p className="text-xs text-muted-foreground">Com respostas</p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Processados</CardTitle>
+            <CheckCircle className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-purple-600">{stats.processados}</div>
+            <p className="text-xs text-muted-foreground">História gerada</p>
+          </CardContent>
+        </Card>
+      </div>
 
-      {/* Modal de Visualização da História */}
-      {showHistory && (
-        <QuestionarioHistoryModal
-          isOpen={!!showHistory}
-          onClose={() => setShowHistory(null)}
-          questionario={obterCasalPorLink(questionariosExtended, showHistory)}
-        />
-      )}
-
-      {/* Modal de Personalização */}
-      {showPersonalizacao && (
-        <ModalPersonalizacao
-          isOpen={!!showPersonalizacao}
-          onClose={() => setShowPersonalizacao(null)}
-          linkPublico={showPersonalizacao}
-          onPersonalizacaoSalva={refetch}
-        />
-      )}
+      {/* Tabela de Questionários */}
+      <QuestionariosTableEnhanced 
+        questionarios={questionarios || []} 
+        isLoading={isLoading} 
+        onRefresh={refetch} 
+      />
     </div>
   );
 };
