@@ -22,8 +22,8 @@ interface Questionario {
   total_perguntas_resp: number;
   data_criacao: string;
   data_atualizacao: string;
-  historia_processada: boolean;
-  historia_gerada?: string;
+  historia_processada?: boolean | null; // Tornado opcional
+  historia_gerada?: string | null;
   respostas_json: any;
 }
 

@@ -21,7 +21,7 @@ interface Questionario {
   respostas_json: Json | null;
   total_perguntas_resp: number;
   historia_gerada?: string | null;
-  historia_processada?: boolean | null;
+  historia_processada?: boolean | null; // Tornado opcional para compatibilidade
   senha_hash: string;
 }
 
