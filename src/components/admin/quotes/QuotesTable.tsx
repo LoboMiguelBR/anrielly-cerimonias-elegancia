@@ -10,9 +10,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import QuoteStatusBadge from './QuoteStatusBadge';
 import { useMobileLayout } from '@/hooks/useMobileLayout';
-import { Phone, Mail, MapPin, Calendar, User } from 'lucide-react';
+import { Phone, Mail, MapPin, Calendar, User, Trash2 } from 'lucide-react';
+import { useQuoteActions } from '@/hooks/useQuoteActions';
 
 interface QuoteRequest {
   id: string;
@@ -28,10 +30,19 @@ interface QuoteRequest {
 interface QuotesTableProps {
   quoteRequests: QuoteRequest[] | undefined;
   onViewDetails: (id: string) => void;
+  onRefresh: () => void;
 }
 
-const QuotesTable: React.FC<QuotesTableProps> = ({ quoteRequests, onViewDetails }) => {
+const QuotesTable: React.FC<QuotesTableProps> = ({ quoteRequests, onViewDetails, onRefresh }) => {
   const { isMobile } = useMobileLayout();
+  const { deleteQuote, loading } = useQuoteActions();
+
+  const handleDelete = async (id: string) => {
+    const success = await deleteQuote(id);
+    if (success) {
+      onRefresh();
+    }
+  };
 
   if (!quoteRequests || quoteRequests.length === 0) {
     return (
@@ -86,14 +97,42 @@ const QuotesTable: React.FC<QuotesTableProps> = ({ quoteRequests, onViewDetails 
                   <span className="text-sm font-medium text-gray-700">
                     {request.event_type}
                   </span>
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
-                    className="text-xs"
-                    onClick={() => onViewDetails(request.id)}
-                  >
-                    Ver Detalhes
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="text-xs"
+                      onClick={() => onViewDetails(request.id)}
+                    >
+                      Ver Detalhes
+                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button size="sm" variant="outline" className="text-red-600 hover:text-red-700">
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Tem certeza que deseja excluir a solicitação de "{request.name}"? 
+                            Esta ação não pode ser desfeita.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => handleDelete(request.id)}
+                            disabled={loading}
+                            className="bg-red-600 hover:bg-red-700"
+                          >
+                            {loading ? 'Excluindo...' : 'Excluir'}
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -136,14 +175,42 @@ const QuotesTable: React.FC<QuotesTableProps> = ({ quoteRequests, onViewDetails 
                 <QuoteStatusBadge status={request.status} />
               </TableCell>
               <TableCell>
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  className="text-xs"
-                  onClick={() => onViewDetails(request.id)}
-                >
-                  Ver Detalhes
-                </Button>
+                <div className="flex gap-2">
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="text-xs"
+                    onClick={() => onViewDetails(request.id)}
+                  >
+                    Ver Detalhes
+                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button size="sm" variant="outline" className="text-red-600 hover:text-red-700">
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Tem certeza que deseja excluir a solicitação de "{request.name}"? 
+                          Esta ação não pode ser desfeita.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => handleDelete(request.id)}
+                          disabled={loading}
+                          className="bg-red-600 hover:bg-red-700"
+                        >
+                          {loading ? 'Excluindo...' : 'Excluir'}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
               </TableCell>
             </TableRow>
           ))}

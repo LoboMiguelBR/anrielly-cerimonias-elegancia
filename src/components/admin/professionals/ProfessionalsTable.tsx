@@ -5,18 +5,20 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Eye, Search, Filter, Phone, Mail, Globe, Instagram, Trash2 } from 'lucide-react';
+import { Eye, Search, Filter, Phone, Mail, Globe, Instagram, Trash2, Edit } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useMobileLayout } from '@/hooks/useMobileLayout';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Professional } from '@/hooks/useProfessionals';
+import EditProfessionalModal from './EditProfessionalModal';
 
 interface ProfessionalsTableProps {
   professionals: Professional[];
   isLoading: boolean;
   onDelete: (id: string) => void;
+  onRefresh: () => void;
 }
 
 const CATEGORY_LABELS: { [key: string]: string } = {
@@ -37,8 +39,9 @@ const CATEGORY_LABELS: { [key: string]: string } = {
   'outro': 'Outro'
 };
 
-const ProfessionalsTable = ({ professionals, isLoading, onDelete }: ProfessionalsTableProps) => {
+const ProfessionalsTable = ({ professionals, isLoading, onDelete, onRefresh }: ProfessionalsTableProps) => {
   const [selectedProfessional, setSelectedProfessional] = useState<Professional | null>(null);
+  const [editingProfessional, setEditingProfessional] = useState<Professional | null>(null);
   const [filterCategory, setFilterCategory] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const { isMobile } = useMobileLayout();
@@ -59,6 +62,11 @@ const ProfessionalsTable = ({ professionals, isLoading, onDelete }: Professional
   });
 
   const uniqueCategories = Array.from(new Set(professionals.map(p => p.category)));
+
+  const handleEditSuccess = () => {
+    setEditingProfessional(null);
+    onRefresh();
+  };
 
   if (isLoading) {
     return (
@@ -176,6 +184,15 @@ const ProfessionalsTable = ({ professionals, isLoading, onDelete }: Professional
                       Ver Detalhes
                     </Button>
                     
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setEditingProfessional(professional)}
+                      className="text-blue-600 hover:text-blue-700"
+                    >
+                      <Edit className="w-4 h-4" />
+                    </Button>
+                    
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
                         <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">
@@ -209,6 +226,7 @@ const ProfessionalsTable = ({ professionals, isLoading, onDelete }: Professional
         )}
       </div>
 
+      {/* Modal de Detalhes */}
       <Dialog open={!!selectedProfessional} onOpenChange={() => setSelectedProfessional(null)}>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
@@ -287,6 +305,14 @@ const ProfessionalsTable = ({ professionals, isLoading, onDelete }: Professional
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Modal de Edição */}
+      <EditProfessionalModal
+        open={!!editingProfessional}
+        onOpenChange={() => setEditingProfessional(null)}
+        onSuccess={handleEditSuccess}
+        professional={editingProfessional}
+      />
     </div>
   );
 };

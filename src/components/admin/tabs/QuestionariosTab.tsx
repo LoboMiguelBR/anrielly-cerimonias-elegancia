@@ -2,7 +2,7 @@
 import { useQuestionarios } from '@/hooks/useQuestionarios';
 import QuestionariosTableEnhanced from '../questionarios/QuestionariosTableEnhanced';
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, FileText, CheckCircle, Clock, AlertCircle } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import QuestionarioCreateFormEnhanced from './components/QuestionarioCreateFormEnhanced';

@@ -35,7 +35,7 @@ const EditEventModal = ({ open, onOpenChange, onSuccess, event }: EditEventModal
     type: '',
     date: '',
     location: '',
-    status: 'em_planejamento' as const,
+    status: 'em_planejamento' as 'em_planejamento' | 'contratado' | 'concluido' | 'cancelado',
     notes: ''
   });
 
@@ -114,7 +114,12 @@ const EditEventModal = ({ open, onOpenChange, onSuccess, event }: EditEventModal
 
           <div>
             <Label htmlFor="status">Status</Label>
-            <Select value={formData.status} onValueChange={(value: any) => setFormData({ ...formData, status: value })}>
+            <Select 
+              value={formData.status} 
+              onValueChange={(value: 'em_planejamento' | 'contratado' | 'concluido' | 'cancelado') => 
+                setFormData({ ...formData, status: value })
+              }
+            >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>

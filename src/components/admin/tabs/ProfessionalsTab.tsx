@@ -10,7 +10,7 @@ import { useProfessionals } from '@/hooks/useProfessionals';
 
 const ProfessionalsTab = () => {
   const [showAddDialog, setShowAddDialog] = useState(false);
-  const { professionals, isLoading, addProfessional, deleteProfessional } = useProfessionals();
+  const { professionals, isLoading, addProfessional, deleteProfessional, refetch } = useProfessionals();
 
   const handleProfessionalAdded = () => {
     setShowAddDialog(false);
@@ -120,6 +120,7 @@ const ProfessionalsTab = () => {
         professionals={professionals} 
         isLoading={isLoading}
         onDelete={deleteProfessional}
+        onRefresh={refetch}
       />
     </div>
   );

@@ -30,6 +30,10 @@ const QuotesTab = () => {
     );
   };
 
+  const handleRefresh = () => {
+    mutate();
+  };
+
   const selectedQuoteData = quoteRequests?.find(quote => quote.id === selectedQuote);
 
   if (error) {
@@ -58,7 +62,8 @@ const QuotesTab = () => {
       ) : (
         <QuotesTable 
           quoteRequests={quoteRequests} 
-          onViewDetails={setSelectedQuote} 
+          onViewDetails={setSelectedQuote}
+          onRefresh={handleRefresh}
         />
       )}
 
