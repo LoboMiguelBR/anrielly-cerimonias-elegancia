@@ -108,6 +108,15 @@
     z-index: 90;
   }
 
+  /* WebChat specific z-index */
+  .z-webchat {
+    z-index: 9999;
+  }
+
+  .z-webchat-widget {
+    z-index: 9998;
+  }
+
   /* Mobile optimizations */
   @media (max-width: 768px) {
     .mobile-optimized {
@@ -125,6 +134,38 @@
   [data-radix-popover-content] {
     @apply bg-white shadow-lg border backdrop-blur-sm;
   }
+
+  /* WebChat customizations */
+  .floating-webchat {
+    @apply fixed z-webchat;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-drag: none;
+  }
+
+  .floating-webchat.dragging {
+    @apply scale-110 shadow-2xl;
+  }
+
+  /* Hide Botpress default button */
+  .bpw-floating-button {
+    display: none !important;
+  }
+
+  /* Ensure Botpress widget stays below our custom button */
+  .bpw-widget {
+    z-index: 9998 !important;
+  }
+
+  /* Touch improvements for drag */
+  .touch-drag {
+    touch-action: none;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
 }
 
 /* PWA specific styles */
@@ -141,5 +182,30 @@
   button, [role="button"], input, select, textarea {
     min-height: 44px;
     min-width: 44px;
+  }
+
+  /* Specific webchat mobile adjustments */
+  .floating-webchat {
+    /* Ensure adequate touch area */
+    min-width: 60px;
+    min-height: 60px;
+  }
+
+  /* Better drag feedback on mobile */
+  .floating-webchat.dragging {
+    @apply shadow-2xl;
+    transform: scale(1.1);
+    opacity: 0.9;
+  }
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+  .floating-webchat {
+    transition: none !important;
+  }
+  
+  .floating-webchat.dragging {
+    transform: none !important;
   }
 }
