@@ -24,7 +24,7 @@ export const useWebChat = () => {
         
         // Aplicar estilos apenas no mobile
         if (isMobile) {
-          // Ocultar o botão padrão do Botpress apenas no mobile
+          // Ocultar completamente o botão padrão do Botpress no mobile
           const style = document.createElement('style');
           style.id = 'mobile-webchat-styles';
           style.textContent = `
