@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Eye, Search, Edit, Trash2, Mail, ExternalLink } from 'lucide-react';
+import { Eye, Search, Edit, Trash2, Mail, ExternalLink, Users } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useQuestionarioActions } from '@/hooks/useQuestionarioActions';
@@ -22,7 +22,7 @@ interface Questionario {
   total_perguntas_resp: number;
   data_criacao: string;
   data_atualizacao: string;
-  historia_processada?: boolean | null; // Tornado opcional
+  historia_processada?: boolean | null;
   historia_gerada?: string | null;
   respostas_json: any;
 }
@@ -58,11 +58,24 @@ const QuestionariosTableEnhanced = ({ questionarios, isLoading, onRefresh }: Que
     }
   };
 
-  const filteredQuestionarios = questionarios.filter(q => 
-    searchTerm === '' || 
-    q.nome_responsavel.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    q.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Agrupar questionários por link_publico para mostrar casais
+  const questionariosPorCasal = questionarios.reduce((acc, q) => {
+    if (!acc[q.link_publico]) {
+      acc[q.link_publico] = [];
+    }
+    acc[q.link_publico].push(q);
+    return acc;
+  }, {} as Record<string, Questionario[]>);
+
+  const casaisComFiltro = Object.entries(questionariosPorCasal).filter(([linkPublico, questionariosDoCasal]) => {
+    if (searchTerm === '') return true;
+    
+    return questionariosDoCasal.some(q => 
+      q.nome_responsavel.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      q.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      linkPublico.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  });
 
   const handleDelete = async () => {
     if (!deletingQuestionario) return;
@@ -107,7 +120,7 @@ const QuestionariosTableEnhanced = ({ questionarios, isLoading, onRefresh }: Que
       <div className="relative">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
         <Input
-          placeholder="Buscar por nome ou email..."
+          placeholder="Buscar por nome, email ou link público..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="pl-10"
@@ -115,91 +128,107 @@ const QuestionariosTableEnhanced = ({ questionarios, isLoading, onRefresh }: Que
       </div>
 
       <div className="space-y-3">
-        {filteredQuestionarios.length === 0 ? (
+        {casaisComFiltro.length === 0 ? (
           <Card>
             <CardContent className="p-8 text-center">
               <p className="text-gray-500">Nenhum questionário encontrado</p>
             </CardContent>
           </Card>
         ) : (
-          filteredQuestionarios.map((questionario) => (
-            <Card key={questionario.id} className="hover:shadow-md transition-shadow">
-              <CardContent className="p-4">
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <h3 className="font-semibold text-gray-900">{questionario.nome_responsavel}</h3>
-                      <QuestionarioStatusSelect
-                        questionarioId={questionario.id}
-                        currentStatus={questionario.status}
-                        onStatusChange={handleStatusChange}
-                      />
+          casaisComFiltro.map(([linkPublico, questionariosDoCasal]) => {
+            const primeiroQuestionario = questionariosDoCasal[0];
+            const totalRespostas = questionariosDoCasal.reduce((sum, q) => sum + (q.total_perguntas_resp || 0), 0);
+            const temHistoria = questionariosDoCasal.some(q => q.historia_gerada);
+            
+            return (
+              <Card key={linkPublico} className="hover:shadow-md transition-shadow">
+                <CardContent className="p-4">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Users className="w-4 h-4 text-gray-500" />
+                        <h3 className="font-semibold text-gray-900">Casal: {linkPublico}</h3>
+                        <QuestionarioStatusSelect
+                          questionarioId={primeiroQuestionario.id}
+                          currentStatus={primeiroQuestionario.status}
+                          onStatusChange={handleStatusChange}
+                        />
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm text-gray-600 mb-2">
+                        <div>
+                          <strong>Participantes:</strong> {questionariosDoCasal.length}
+                        </div>
+                        <div>
+                          <strong>Total Respostas:</strong> {totalRespostas}
+                        </div>
+                        <div>
+                          <strong>História:</strong> {temHistoria ? 'Gerada' : 'Pendente'}
+                        </div>
+                      </div>
+
+                      {/* Lista dos participantes */}
+                      <div className="mb-2">
+                        <strong className="text-sm text-gray-700">Participantes:</strong>
+                        <div className="ml-2 mt-1 space-y-1">
+                          {questionariosDoCasal.map((q) => (
+                            <div key={q.id} className="text-sm text-gray-600 flex items-center gap-2">
+                              <span>• {q.nome_responsavel}</span>
+                              <span className="text-gray-400">({q.email})</span>
+                              <span className="text-gray-400">- {q.total_perguntas_resp || 0} respostas</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      
+                      <div className="text-xs text-gray-500">
+                        Criado em {format(new Date(primeiroQuestionario.data_criacao), 'dd/MM/yyyy HH:mm', { locale: ptBR })}
+                      </div>
                     </div>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm text-gray-600 mb-2">
-                      <div>
-                        <strong>Email:</strong> {questionario.email}
-                      </div>
-                      <div>
-                        <strong>Respostas:</strong> {questionario.total_perguntas_resp || 0}
-                      </div>
-                      <div>
-                        <strong>História:</strong> {questionario.historia_processada ? 'Processada' : 'Pendente'}
-                      </div>
-                    </div>
-                    
-                    <div className="text-xs text-gray-500">
-                      Criado em {format(new Date(questionario.data_criacao), 'dd/MM/yyyy HH:mm', { locale: ptBR })}
+                    <div className="flex gap-2 flex-wrap">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setSelectedQuestionario(primeiroQuestionario)}
+                      >
+                        <Eye className="w-4 h-4 mr-2" />
+                        Ver Detalhes
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => window.open(`/questionario/${linkPublico}`, '_blank')}
+                      >
+                        <ExternalLink className="w-4 h-4 mr-2" />
+                        Abrir Link
+                      </Button>
+                      {questionariosDoCasal.map((q) => (
+                        <div key={q.id} className="flex gap-1">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setEditingQuestionario(q)}
+                            title={`Editar ${q.nome_responsavel}`}
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => setDeletingQuestionario(q)}
+                            title={`Deletar ${q.nome_responsavel}`}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      ))}
                     </div>
                   </div>
-                  
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setSelectedQuestionario(questionario)}
-                    >
-                      <Eye className="w-4 h-4 mr-2" />
-                      Ver
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setEditingQuestionario(questionario)}
-                    >
-                      <Edit className="w-4 h-4 mr-2" />
-                      Editar
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleResendEmail(questionario)}
-                      disabled={actionLoading}
-                    >
-                      <Mail className="w-4 h-4 mr-2" />
-                      Reenviar
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => window.open(`/questionario-login?link=${questionario.link_publico}`, '_blank')}
-                    >
-                      <ExternalLink className="w-4 h-4 mr-2" />
-                      Abrir
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => setDeletingQuestionario(questionario)}
-                    >
-                      <Trash2 className="w-4 h-4 mr-2" />
-                      Deletar
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))
+                </CardContent>
+              </Card>
+            );
+          })
         )}
       </div>
 
@@ -214,12 +243,16 @@ const QuestionariosTableEnhanced = ({ questionarios, isLoading, onRefresh }: Que
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Nome</label>
-                  <p className="text-gray-900">{selectedQuestionario.nome_responsavel}</p>
+                  <label className="text-sm font-medium text-gray-700">Link Público</label>
+                  <p className="text-gray-900 break-all">{selectedQuestionario.link_publico}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-700">Status</label>
                   <div className="mt-1">{getStatusBadge(selectedQuestionario.status)}</div>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Nome</label>
+                  <p className="text-gray-900">{selectedQuestionario.nome_responsavel}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-700">Email</label>
@@ -228,10 +261,6 @@ const QuestionariosTableEnhanced = ({ questionarios, isLoading, onRefresh }: Que
                 <div>
                   <label className="text-sm font-medium text-gray-700">Respostas</label>
                   <p className="text-gray-900">{selectedQuestionario.total_perguntas_resp || 0} respondidas</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-700">Link Público</label>
-                  <p className="text-gray-900 break-all">{selectedQuestionario.link_publico}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-700">História Processada</label>
