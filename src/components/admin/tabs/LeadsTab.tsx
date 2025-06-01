@@ -8,6 +8,7 @@ import QuoteRequestsTable from '../QuoteRequestsTable';
 import AddLeadForm from '../leads/AddLeadForm';
 import { useQuoteRequests } from '@/hooks/useQuoteRequests';
 import { useMobileLayout } from '@/hooks/useMobileLayout';
+import { transformQuoteRequests } from '../utils/dataTransforms';
 
 const LeadsTab = () => {
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -26,6 +27,9 @@ const LeadsTab = () => {
     convertido: leads?.filter(l => l.status === 'convertido').length || 0,
     rejeitado: leads?.filter(l => l.status === 'rejeitado').length || 0,
   };
+
+  // Transform leads data to match the table interface
+  const transformedLeads = leads ? transformQuoteRequests(leads) : [];
 
   return (
     <div className={`space-y-4 min-h-screen ${isMobile ? 'p-2' : ''}`}>
@@ -131,7 +135,7 @@ const LeadsTab = () => {
       </div>
 
       <QuoteRequestsTable 
-        quoteRequests={leads || []} 
+        quoteRequests={transformedLeads} 
         isLoading={isLoading} 
         onRefresh={() => mutate()} 
       />
