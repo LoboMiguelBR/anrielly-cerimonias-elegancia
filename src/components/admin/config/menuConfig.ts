@@ -4,7 +4,7 @@ import { LayoutDashboard, ListChecks, FileText, Users, Calendar, Settings } from
 export interface MenuItem {
   id: string;
   label: string;
-  icon: keyof typeof Icons;
+  icon: any;
   component?: string;
 }
 
@@ -17,15 +17,6 @@ interface MenuConfig {
   [key: string]: MenuSection;
 }
 
-const Icons = {
-  LayoutDashboard,
-  ListChecks,
-  FileText,
-  Users,
-  Calendar,
-  Settings
-};
-
 export const menuConfig: MenuConfig = {
   dashboard: {
     title: 'Dashboard',
@@ -33,7 +24,7 @@ export const menuConfig: MenuConfig = {
       {
         id: 'dashboard',
         label: 'Resumo',
-        icon: 'LayoutDashboard',
+        icon: LayoutDashboard,
         component: 'DashboardSummary'
       }
     ]
@@ -45,43 +36,43 @@ export const menuConfig: MenuConfig = {
       {
         id: 'leads',
         label: 'Leads',
-        icon: 'Users',
+        icon: Users,
         component: 'LeadsTab'
       },
       {
         id: 'propostas',
         label: 'Propostas',
-        icon: 'FileText',
+        icon: FileText,
         component: 'ProposalsMain'
       },
       {
         id: 'contratos',
         label: 'Contratos',
-        icon: 'ListChecks',
+        icon: ListChecks,
         component: 'ContractsMain'
       },
       {
         id: 'clientes',
         label: 'Clientes',
-        icon: 'Users',
+        icon: Users,
         component: 'ClientesTab'
       },
       {
         id: 'eventos',
         label: 'Eventos',
-        icon: 'Calendar',
+        icon: Calendar,
         component: 'EventsTab'
       },
       {
         id: 'questionarios',
         label: 'Questionários',
-        icon: 'FileText',
+        icon: FileText,
         component: 'QuestionariosTab'
       },
       {
         id: 'professionals',
         label: 'Profissionais',
-        icon: 'Users',
+        icon: Users,
         component: 'ProfessionalsTab'
       }
     ]
@@ -93,7 +84,7 @@ export const menuConfig: MenuConfig = {
       {
         id: 'settings',
         label: 'Geral',
-        icon: 'Settings',
+        icon: Settings,
         component: 'SettingsTab'
       }
     ]

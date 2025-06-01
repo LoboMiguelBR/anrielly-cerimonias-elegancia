@@ -12,7 +12,10 @@ export const useEventActions = () => {
       setLoading(true);
       const { data, error } = await supabase
         .from('events')
-        .insert([eventData])
+        .insert([{
+          ...eventData,
+          status: eventData.status as any
+        }])
         .select()
         .single();
 
@@ -32,9 +35,14 @@ export const useEventActions = () => {
   const updateEvent = async (id: string, data: Partial<Event>) => {
     try {
       setLoading(true);
+      const updateData: any = { ...data };
+      if (updateData.status) {
+        updateData.status = updateData.status as any;
+      }
+      
       const { error } = await supabase
         .from('events')
-        .update(data)
+        .update(updateData)
         .eq('id', id);
 
       if (error) throw error;
@@ -55,7 +63,7 @@ export const useEventActions = () => {
       setLoading(true);
       const { error } = await supabase
         .from('events')
-        .update({ status })
+        .update({ status: status as any })
         .eq('id', id);
 
       if (error) throw error;
@@ -97,7 +105,10 @@ export const useEventActions = () => {
       setLoading(true);
       const { error } = await supabase
         .from('event_participants')
-        .insert([participantData]);
+        .insert([{
+          ...participantData,
+          role: participantData.role as any
+        }]);
 
       if (error) throw error;
 
@@ -147,7 +158,10 @@ export const useEventActions = () => {
 
       const { data, error } = await supabase
         .from('events')
-        .insert([eventData])
+        .insert([{
+          ...eventData,
+          status: eventData.status as any
+        }])
         .select()
         .single();
 

@@ -34,22 +34,24 @@ export const useProfessionals = () => {
   const { data, error, mutate } = useSWR('professionals', fetcher);
   const [loading, setLoading] = useState(false);
 
-  const addProfessional = async (professionalData: Partial<Professional>) => {
+  const addProfessional = async (professionalData: Partial<Professional>): Promise<Professional> => {
     try {
       setLoading(true);
-      const { error } = await supabase
+      const { data: newProfessional, error } = await supabase
         .from('professionals')
-        .insert([professionalData]);
+        .insert([professionalData])
+        .select()
+        .single();
 
       if (error) throw error;
 
       toast.success('Profissional adicionado com sucesso!');
       mutate();
-      return true;
+      return newProfessional;
     } catch (err) {
       console.error('Erro ao adicionar profissional:', err);
       toast.error('Erro ao adicionar profissional');
-      return false;
+      throw err;
     } finally {
       setLoading(false);
     }

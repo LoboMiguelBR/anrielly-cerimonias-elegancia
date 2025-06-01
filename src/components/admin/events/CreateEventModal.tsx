@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useEventActions } from '@/hooks/useEventActions';
 import { useClientes } from '@/hooks/useClientes';
+import { Event } from '@/hooks/useEvents';
 
 interface CreateEventModalProps {
   open: boolean;
@@ -20,7 +21,7 @@ const CreateEventModal = ({ open, onOpenChange, onSuccess }: CreateEventModalPro
     type: '',
     date: '',
     location: '',
-    status: 'em_planejamento',
+    status: 'em_planejamento' as Event['status'],
     notes: '',
     description: '',
     client_id: ''
@@ -34,8 +35,8 @@ const CreateEventModal = ({ open, onOpenChange, onSuccess }: CreateEventModalPro
     
     const eventData = {
       ...formData,
-      client_id: formData.client_id || null,
-      date: formData.date || null
+      client_id: formData.client_id || undefined,
+      date: formData.date || undefined
     };
 
     const success = await createEvent(eventData);
@@ -120,7 +121,7 @@ const CreateEventModal = ({ open, onOpenChange, onSuccess }: CreateEventModalPro
 
           <div>
             <Label htmlFor="status">Status</Label>
-            <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
+            <Select value={formData.status} onValueChange={(value: Event['status']) => setFormData({ ...formData, status: value })}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>

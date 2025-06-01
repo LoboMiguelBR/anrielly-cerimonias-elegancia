@@ -22,7 +22,7 @@ const DesktopSidebar = ({ activeTab, onTabChange }: DesktopSidebarProps) => {
               
               <div className="space-y-1">
                 {section.items.map((item: MenuItem) => {
-                  const Icon = item.icon;
+                  const IconComponent = item.icon;
                   return (
                     <button
                       key={item.id}
@@ -33,7 +33,7 @@ const DesktopSidebar = ({ activeTab, onTabChange }: DesktopSidebarProps) => {
                           : 'text-gray-700 hover:bg-gray-50'
                       }`}
                     >
-                      <Icon className="h-4 w-4 mr-3" />
+                      <IconComponent className="h-4 w-4 mr-3" />
                       {item.label}
                     </button>
                   );
