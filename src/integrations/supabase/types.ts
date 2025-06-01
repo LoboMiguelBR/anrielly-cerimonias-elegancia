@@ -351,6 +351,7 @@ export type Database = {
       }
       events: {
         Row: {
+          cerimonialista_id: string | null
           client_id: string | null
           contract_id: string | null
           created_at: string | null
@@ -367,6 +368,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          cerimonialista_id?: string | null
           client_id?: string | null
           contract_id?: string | null
           created_at?: string | null
@@ -383,6 +385,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          cerimonialista_id?: string | null
           client_id?: string | null
           contract_id?: string | null
           created_at?: string | null
@@ -399,6 +402,13 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "events_cerimonialista_id_fkey"
+            columns: ["cerimonialista_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "events_client_id_fkey"
             columns: ["client_id"]
@@ -585,6 +595,39 @@ export type Database = {
           tags?: string[] | null
           updated_at?: string
           website?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          email: string
+          id: string
+          name: string | null
+          phone: string | null
+          role: string
+          updated_at: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email: string
+          id: string
+          name?: string | null
+          phone?: string | null
+          role: string
+          updated_at?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email?: string
+          id?: string
+          name?: string | null
+          phone?: string | null
+          role?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -788,6 +831,7 @@ export type Database = {
           senha_hash: string
           status: string | null
           total_perguntas_resp: number | null
+          user_id: string | null
         }
         Insert: {
           data_atualizacao?: string | null
@@ -802,6 +846,7 @@ export type Database = {
           senha_hash: string
           status?: string | null
           total_perguntas_resp?: number | null
+          user_id?: string | null
         }
         Update: {
           data_atualizacao?: string | null
@@ -816,6 +861,7 @@ export type Database = {
           senha_hash?: string
           status?: string | null
           total_perguntas_resp?: number | null
+          user_id?: string | null
         }
         Relationships: []
       }

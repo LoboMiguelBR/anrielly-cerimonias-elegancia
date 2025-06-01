@@ -8,6 +8,7 @@ export interface UserProfile {
   email: string;
   name?: string;
   role: 'noivo' | 'noiva' | 'cliente' | 'cerimonialista' | 'admin';
+  phone?: string;
   avatar_url?: string;
   created_at: string;
   updated_at: string;
@@ -19,8 +20,27 @@ export const useAuth = () => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const fetchProfile = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Erro ao buscar perfil:', error);
+        return null;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Erro ao buscar perfil:', error);
+      return null;
+    }
+  };
+
   useEffect(() => {
-    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('Auth event:', event, session?.user?.email);
@@ -28,20 +48,8 @@ export const useAuth = () => {
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Simular fetch do perfil até que o Supabase types seja atualizado
-          // Por enquanto, usamos uma implementação temporária
-          const mockProfile: UserProfile = {
-            id: session.user.id,
-            email: session.user.email || '',
-            name: session.user.user_metadata?.name || session.user.email?.split('@')[0],
-            role: session.user.user_metadata?.role || 'cliente',
-            avatar_url: session.user.user_metadata?.avatar_url,
-            created_at: session.user.created_at,
-            updated_at: new Date().toISOString()
-          };
-          
-          console.log('Profile criado:', mockProfile);
-          setProfile(mockProfile);
+          const profileData = await fetchProfile(session.user.id);
+          setProfile(profileData);
         } else {
           setProfile(null);
         }
@@ -49,23 +57,14 @@ export const useAuth = () => {
       }
     );
 
-    // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       console.log('Session inicial:', session?.user?.email);
       setSession(session);
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        const mockProfile: UserProfile = {
-          id: session.user.id,
-          email: session.user.email || '',
-          name: session.user.user_metadata?.name || session.user.email?.split('@')[0],
-          role: session.user.user_metadata?.role || 'cliente',
-          avatar_url: session.user.user_metadata?.avatar_url,
-          created_at: session.user.created_at,
-          updated_at: new Date().toISOString()
-        };
-        setProfile(mockProfile);
+        const profileData = await fetchProfile(session.user.id);
+        setProfile(profileData);
       }
       
       setLoading(false);
@@ -101,9 +100,18 @@ export const useAuth = () => {
   const updateProfile = async (updates: Partial<UserProfile>) => {
     if (!user) return { error: new Error('No user logged in') };
 
-    // Implementação temporária até que o Supabase types seja atualizado
-    setProfile(prev => prev ? { ...prev, ...updates } : null);
-    return { data: profile, error: null };
+    const { data, error } = await supabase
+      .from('profiles')
+      .update(updates)
+      .eq('id', user.id)
+      .select()
+      .single();
+
+    if (!error && data) {
+      setProfile(data);
+    }
+
+    return { data, error };
   };
 
   return {

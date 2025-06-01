@@ -2,8 +2,9 @@
 import { useAuth } from '@/hooks/useAuth';
 import NoivoDashboard from './NoivoDashboard';
 import NoivaDashboard from './NoivaDashboard';
-import ClienteDashboard from './ClienteDashboard';
+import ClienteDashboard from '../../dashboards/ClienteDashboard';
 import CerimoniaListaDashboard from './CerimoniaListaDashboard';
+import CerimonialistaDashboard from '../../dashboards/CerimonialistaDashboard';
 import DashboardSummary from '../DashboardSummary';
 
 const DashboardManager = () => {
@@ -32,7 +33,7 @@ const DashboardManager = () => {
     case 'cliente':
       return <ClienteDashboard />;
     case 'cerimonialista':
-      return <CerimoniaListaDashboard />;
+      return <CerimonialistaDashboard />;
     case 'admin':
       return <DashboardSummary />;
     default:

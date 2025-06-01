@@ -6,6 +6,8 @@ import AdminDashboard from './pages/AdminDashboard';
 import Dashboard from './pages/Dashboard';
 import AdminLogin from './pages/AdminLogin';
 import AuthPage from './components/auth/AuthPage';
+import AreaCliente from './pages/AreaCliente';
+import AreaProfissional from './pages/AreaProfissional';
 import QuestionarioLogin from './pages/QuestionarioLogin';
 import QuestionarioFormulario from './pages/QuestionarioFormulario';
 import ContractSigning from './pages/ContractSigning/index';
@@ -26,6 +28,10 @@ function App() {
         {/* Rotas de autenticação */}
         <Route path="/auth" element={<AuthPage />} />
         <Route path="/admin/login" element={<AdminLogin />} />
+        
+        {/* Áreas específicas */}
+        <Route path="/area-cliente" element={<AreaCliente />} />
+        <Route path="/area-profissional" element={<AreaProfissional />} />
         
         {/* Dashboard para usuários não-admin */}
         <Route 

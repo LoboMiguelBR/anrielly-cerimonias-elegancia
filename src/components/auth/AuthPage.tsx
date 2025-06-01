@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuth, UserProfile } from '@/hooks/useAuth';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -18,8 +18,49 @@ const AuthPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, profile } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirectParam = searchParams.get('redirect');
+
+  useEffect(() => {
+    // Se o usuário já está autenticado, redireciona baseado no parâmetro
+    if (profile) {
+      handleRedirect();
+    }
+  }, [profile]);
+
+  const handleRedirect = () => {
+    if (redirectParam) {
+      switch (redirectParam) {
+        case 'area-cliente':
+          navigate('/area-cliente');
+          break;
+        case 'area-profissional':
+          navigate('/area-profissional');
+          break;
+        default:
+          navigate('/dashboard');
+      }
+    } else {
+      // Redirecionamento padrão baseado no role
+      switch (profile?.role) {
+        case 'admin':
+          navigate('/admin/dashboard');
+          break;
+        case 'cerimonialista':
+          navigate('/area-profissional');
+          break;
+        case 'cliente':
+        case 'noivo':
+        case 'noiva':
+          navigate('/area-cliente');
+          break;
+        default:
+          navigate('/dashboard');
+      }
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,16 +72,45 @@ const AuthPage = () => {
         const { error } = await signIn(email, password);
         if (error) throw error;
       } else {
-        const { error } = await signUp(email, password, name, role);
+        // Definir role baseado no redirecionamento
+        let userRole = role;
+        if (redirectParam === 'area-profissional') {
+          userRole = 'cerimonialista';
+        } else if (redirectParam === 'area-cliente') {
+          userRole = 'cliente';
+        }
+
+        const { error } = await signUp(email, password, name, userRole);
         if (error) throw error;
       }
       
-      // Redirect baseado no role será feito pelo useAuth
-      navigate('/dashboard');
+      // O redirecionamento será feito pelo useEffect quando o profile for carregado
     } catch (err: any) {
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const getPageTitle = () => {
+    switch (redirectParam) {
+      case 'area-cliente':
+        return 'Área do Cliente';
+      case 'area-profissional':
+        return 'Área do Profissional';
+      default:
+        return 'Portal de Acesso';
+    }
+  };
+
+  const getRoleLabel = () => {
+    switch (redirectParam) {
+      case 'area-cliente':
+        return 'Cliente';
+      case 'area-profissional':
+        return 'Cerimonialista';
+      default:
+        return 'Usuário';
     }
   };
 
@@ -49,10 +119,10 @@ const AuthPage = () => {
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
           <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
-            {isLogin ? 'Entre na sua conta' : 'Crie sua conta'}
+            {getPageTitle()}
           </h2>
           <p className="mt-2 text-sm text-gray-600">
-            {isLogin ? 'Acesse seu painel personalizado' : 'Junte-se à nossa plataforma'}
+            {isLogin ? 'Entre na sua conta' : `Crie sua conta como ${getRoleLabel()}`}
           </p>
         </div>
 
@@ -103,7 +173,7 @@ const AuthPage = () => {
                 />
               </div>
 
-              {!isLogin && (
+              {!isLogin && !redirectParam && (
                 <div>
                   <Label htmlFor="role">Tipo de Usuário</Label>
                   <Select value={role} onValueChange={(value: UserProfile['role']) => setRole(value)}>
