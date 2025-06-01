@@ -32,7 +32,7 @@ const ManageParticipantsModal = ({ open, onOpenChange, onSuccess, event }: Manag
     user_email: '',
     name: '',
     participant_type: 'cliente',
-    role: 'participante',
+    role: 'cliente',
     invited: true,
     accepted: false
   });
@@ -57,7 +57,7 @@ const ManageParticipantsModal = ({ open, onOpenChange, onSuccess, event }: Manag
         user_email: '',
         name: '',
         participant_type: 'cliente',
-        role: 'participante',
+        role: 'cliente',
         invited: true,
         accepted: false
       });

@@ -10,7 +10,7 @@ const CerimoniaListaDashboard = () => {
     event.participants?.some(p => p.participant_type === 'cerimonialista')
   );
 
-  const upcomingEvents = myEvents.filter(event => event.status === 'confirmado');
+  const upcomingEvents = myEvents.filter(event => event.status === 'contratado');
   const planningEvents = myEvents.filter(event => event.status === 'em_planejamento');
 
   return (
@@ -33,7 +33,7 @@ const CerimoniaListaDashboard = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Confirmados</CardTitle>
+            <CardTitle className="text-sm font-medium">Contratados</CardTitle>
             <Users className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
@@ -79,13 +79,13 @@ const CerimoniaListaDashboard = () => {
                       <p className="text-sm text-gray-500">{event.location}</p>
                     </div>
                     <span className="text-sm bg-green-100 text-green-800 px-2 py-1 rounded">
-                      Confirmado
+                      Contratado
                     </span>
                   </div>
                 ))
               ) : (
                 <div className="text-center py-8 text-gray-500">
-                  Nenhuma cerimônia confirmada
+                  Nenhuma cerimônia contratada
                 </div>
               )}
             </div>

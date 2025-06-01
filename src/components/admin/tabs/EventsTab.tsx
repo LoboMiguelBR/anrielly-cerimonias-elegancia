@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -84,8 +85,7 @@ const EventsTab = () => {
   const stats = {
     total: events?.length || 0,
     planejamento: events?.filter(e => e.status === 'em_planejamento').length || 0,
-    confirmados: events?.filter(e => e.status === 'confirmado').length || 0,
-    andamento: events?.filter(e => e.status === 'em_andamento').length || 0,
+    contratados: events?.filter(e => e.status === 'contratado').length || 0,
     concluidos: events?.filter(e => e.status === 'concluido').length || 0,
     cancelados: events?.filter(e => e.status === 'cancelado').length || 0,
   };
@@ -120,7 +120,7 @@ const EventsTab = () => {
         </Dialog>
       </div>
 
-      <div className={`grid gap-4 mb-6 ${isMobile ? 'grid-cols-2' : 'grid-cols-2 md:grid-cols-6'}`}>
+      <div className={`grid gap-4 mb-6 ${isMobile ? 'grid-cols-2' : 'grid-cols-2 md:grid-cols-5'}`}>
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className={`${isMobile ? 'text-xs' : 'text-sm'} font-medium text-gray-600 flex items-center gap-1`}>
@@ -153,26 +153,12 @@ const EventsTab = () => {
           <CardHeader className="pb-2">
             <CardTitle className={`${isMobile ? 'text-xs' : 'text-sm'} font-medium text-gray-600 flex items-center gap-1`}>
               <CheckCircle className="w-4 h-4" />
-              Confirmados
+              Contratados
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className={`${isMobile ? 'text-lg' : 'text-2xl'} font-bold text-blue-600`}>
-              {stats.confirmados}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className={`${isMobile ? 'text-xs' : 'text-sm'} font-medium text-gray-600 flex items-center gap-1`}>
-              <AlertCircle className="w-4 h-4" />
-              Andamento
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className={`${isMobile ? 'text-lg' : 'text-2xl'} font-bold text-yellow-600`}>
-              {stats.andamento}
+              {stats.contratados}
             </div>
           </CardContent>
         </Card>
