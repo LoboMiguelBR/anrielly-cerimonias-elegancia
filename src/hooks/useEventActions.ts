@@ -2,37 +2,32 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-
-interface Event {
-  id: string;
-  quote_id?: string;
-  proposal_id?: string;
-  contract_id?: string;
-  type: string;
-  date?: string;
-  location?: string;
-  status: 'em_planejamento' | 'contratado' | 'concluido' | 'cancelado';
-  tenant_id?: string;
-  notes?: string;
-  created_at: string;
-  updated_at: string;
-}
-
-interface EventParticipant {
-  id: string;
-  event_id: string;
-  user_email: string;
-  name?: string;
-  role: 'noivo' | 'noiva' | 'cerimonialista' | 'cliente' | 'admin';
-  invited: boolean;
-  accepted: boolean;
-  magic_link_token?: string;
-  created_at: string;
-  updated_at: string;
-}
+import { Event, EventParticipant } from './useEvents';
 
 export const useEventActions = () => {
   const [loading, setLoading] = useState(false);
+
+  const createEvent = async (eventData: Partial<Event>) => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('events')
+        .insert([eventData])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      toast.success('Evento criado com sucesso!');
+      return data;
+    } catch (err) {
+      console.error('Erro ao criar evento:', err);
+      toast.error('Erro ao criar evento');
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const updateEvent = async (id: string, data: Partial<Event>) => {
     try {
@@ -58,14 +53,6 @@ export const useEventActions = () => {
   const deleteEvent = async (id: string) => {
     try {
       setLoading(true);
-      
-      // Delete participants first
-      await supabase
-        .from('event_participants')
-        .delete()
-        .eq('event_id', id);
-
-      // Then delete the event
       const { error } = await supabase
         .from('events')
         .delete()
@@ -84,23 +71,9 @@ export const useEventActions = () => {
     }
   };
 
-  const updateStatus = async (id: string, status: Event['status']) => {
-    return updateEvent(id, { status });
-  };
-
-  const addParticipant = async (eventId: string, email: string, name: string, role: EventParticipant['role']) => {
+  const addParticipant = async (participantData: Partial<EventParticipant>) => {
     try {
       setLoading(true);
-      const participantData = {
-        event_id: eventId,
-        user_email: email,
-        name: name,
-        role: role,
-        invited: true,
-        accepted: false,
-        magic_link_token: crypto.randomUUID()
-      };
-
       const { error } = await supabase
         .from('event_participants')
         .insert([participantData]);
@@ -140,9 +113,9 @@ export const useEventActions = () => {
   };
 
   return {
+    createEvent,
     updateEvent,
     deleteEvent,
-    updateStatus,
     addParticipant,
     removeParticipant,
     loading

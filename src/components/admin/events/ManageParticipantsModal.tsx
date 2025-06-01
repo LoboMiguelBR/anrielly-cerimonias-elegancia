@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,106 +8,126 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Trash2, Plus } from 'lucide-react';
 import { useEventActions } from '@/hooks/useEventActions';
-import { useEvents } from '@/hooks/useEvents';
-
-interface EventParticipant {
-  id: string;
-  event_id: string;
-  user_email: string;
-  name?: string;
-  role: 'noivo' | 'noiva' | 'cerimonialista' | 'cliente' | 'admin';
-  invited: boolean;
-  accepted: boolean;
-  magic_link_token?: string;
-  created_at: string;
-  updated_at: string;
-}
+import { useClientes } from '@/hooks/useClientes';
+import { useProfessionals } from '@/hooks/useProfessionals';
 
 interface ManageParticipantsModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  eventId: string | null;
   onSuccess: () => void;
+  event: any;
 }
 
-const ManageParticipantsModal = ({ open, onOpenChange, eventId, onSuccess }: ManageParticipantsModalProps) => {
-  const [participants, setParticipants] = useState<EventParticipant[]>([]);
+const ManageParticipantsModal = ({ open, onOpenChange, onSuccess, event }: ManageParticipantsModalProps) => {
   const [newParticipant, setNewParticipant] = useState({
-    email: '',
-    name: '',
-    role: 'cliente' as const
+    user_email: '',
+    participant_type: 'cliente' as 'cliente' | 'cerimonialista',
+    role: '',
+    client_id: '',
+    professional_id: ''
   });
 
   const { addParticipant, removeParticipant, loading } = useEventActions();
-  const { getParticipantsByEvent } = useEvents();
-
-  useEffect(() => {
-    if (eventId && open) {
-      loadParticipants();
-    }
-  }, [eventId, open]);
-
-  const loadParticipants = async () => {
-    if (!eventId) return;
-    const data = await getParticipantsByEvent(eventId);
-    setParticipants(data);
-  };
+  const { clientes } = useClientes();
+  const { data: professionals } = useProfessionals();
 
   const handleAddParticipant = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!eventId) return;
+    
+    if (!event || !newParticipant.user_email) return;
 
-    const success = await addParticipant(
-      eventId,
-      newParticipant.email,
-      newParticipant.name,
-      newParticipant.role
-    );
+    const participantData = {
+      event_id: event.id,
+      user_email: newParticipant.user_email,
+      participant_type: newParticipant.participant_type,
+      role: newParticipant.role || newParticipant.participant_type,
+      client_id: newParticipant.client_id || null,
+      professional_id: newParticipant.professional_id || null,
+      invited: true,
+      accepted: false
+    };
+
+    const success = await addParticipant(participantData);
 
     if (success) {
-      setNewParticipant({ email: '', name: '', role: 'cliente' });
-      await loadParticipants();
       onSuccess();
+      setNewParticipant({
+        user_email: '',
+        participant_type: 'cliente',
+        role: '',
+        client_id: '',
+        professional_id: ''
+      });
     }
   };
 
   const handleRemoveParticipant = async (participantId: string) => {
     const success = await removeParticipant(participantId);
     if (success) {
-      await loadParticipants();
       onSuccess();
+    }
+  };
+
+  const handleClientSelect = (clientId: string) => {
+    const client = clientes.find(c => c.id === clientId);
+    if (client) {
+      setNewParticipant(prev => ({
+        ...prev,
+        client_id: clientId,
+        user_email: client.email,
+        professional_id: ''
+      }));
+    }
+  };
+
+  const handleProfessionalSelect = (professionalId: string) => {
+    const professional = professionals?.find(p => p.id === professionalId);
+    if (professional) {
+      setNewParticipant(prev => ({
+        ...prev,
+        professional_id: professionalId,
+        user_email: professional.email,
+        client_id: ''
+      }));
     }
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Gerenciar Participantes</DialogTitle>
+          <DialogTitle>Gerenciar Participantes - {event?.type}</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4">
-          {/* Lista de participantes */}
+        <div className="space-y-6">
+          {/* Lista de Participantes Existentes */}
           <div>
-            <h4 className="font-semibold mb-2">Participantes Atuais</h4>
-            {participants.length > 0 ? (
-              <div className="space-y-2">
-                {participants.map((participant) => (
-                  <div
-                    key={participant.id}
-                    className="flex items-center justify-between p-2 bg-gray-50 rounded"
-                  >
-                    <div>
-                      <span className="font-medium">{participant.name || participant.user_email}</span>
-                      <span className="text-sm text-gray-600 ml-2">({participant.role})</span>
-                      <div className="flex items-center gap-2 mt-1">
-                        {participant.invited && (
-                          <Badge variant="outline" className="text-xs">
-                            Convidado
+            <h3 className="text-lg font-medium mb-3">Participantes Atuais</h3>
+            <div className="space-y-2">
+              {event?.participants?.length > 0 ? (
+                event.participants.map((participant: any) => (
+                  <div key={participant.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">
+                          {participant.client?.name || participant.professional?.name || participant.user_email}
+                        </span>
+                        <Badge variant="outline" size="sm">
+                          {participant.participant_type}
+                        </Badge>
+                        {participant.role && (
+                          <Badge variant="outline" size="sm">
+                            {participant.role}
                           </Badge>
                         )}
+                      </div>
+                      <p className="text-sm text-gray-600">{participant.user_email}</p>
+                      <div className="flex gap-2 mt-1">
+                        {participant.invited && (
+                          <Badge variant="outline" size="sm">Convidado</Badge>
+                        )}
                         {participant.accepted && (
-                          <Badge variant="outline" className="text-xs bg-green-50 text-green-700">
+                          <Badge variant="outline" className="bg-green-50 text-green-700" size="sm">
                             Aceito
                           </Badge>
                         )}
@@ -122,55 +142,95 @@ const ManageParticipantsModal = ({ open, onOpenChange, eventId, onSuccess }: Man
                       <Trash2 className="w-4 h-4" />
                     </Button>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-gray-500">Nenhum participante adicionado</p>
-            )}
+                ))
+              ) : (
+                <p className="text-gray-500 text-center py-4">Nenhum participante adicionado</p>
+              )}
+            </div>
           </div>
 
-          {/* Formulário para adicionar participante */}
-          <div className="border-t pt-4">
-            <h4 className="font-semibold mb-2">Adicionar Participante</h4>
-            <form onSubmit={handleAddParticipant} className="space-y-3">
+          {/* Formulário para Adicionar Participante */}
+          <div>
+            <h3 className="text-lg font-medium mb-3">Adicionar Participante</h3>
+            <form onSubmit={handleAddParticipant} className="space-y-4">
               <div>
-                <Label htmlFor="name">Nome</Label>
-                <Input
-                  id="name"
-                  value={newParticipant.name}
-                  onChange={(e) => setNewParticipant({ ...newParticipant, name: e.target.value })}
-                  required
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={newParticipant.email}
-                  onChange={(e) => setNewParticipant({ ...newParticipant, email: e.target.value })}
-                  required
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="role">Função</Label>
+                <Label htmlFor="participant_type">Tipo de Participante</Label>
                 <Select 
-                  value={newParticipant.role} 
-                  onValueChange={(value: any) => setNewParticipant({ ...newParticipant, role: value })}
+                  value={newParticipant.participant_type} 
+                  onValueChange={(value: 'cliente' | 'cerimonialista') => 
+                    setNewParticipant(prev => ({ 
+                      ...prev, 
+                      participant_type: value,
+                      client_id: '',
+                      professional_id: '',
+                      user_email: ''
+                    }))
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="noivo">Noivo</SelectItem>
-                    <SelectItem value="noiva">Noiva</SelectItem>
-                    <SelectItem value="cerimonialista">Cerimonialista</SelectItem>
                     <SelectItem value="cliente">Cliente</SelectItem>
-                    <SelectItem value="admin">Admin</SelectItem>
+                    <SelectItem value="cerimonialista">Cerimonialista</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+
+              {newParticipant.participant_type === 'cliente' ? (
+                <div>
+                  <Label htmlFor="client_id">Selecionar Cliente</Label>
+                  <Select value={newParticipant.client_id} onValueChange={handleClientSelect}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione um cliente" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {clientes.map((cliente) => (
+                        <SelectItem key={cliente.id} value={cliente.id}>
+                          {cliente.name} - {cliente.email}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              ) : (
+                <div>
+                  <Label htmlFor="professional_id">Selecionar Profissional</Label>
+                  <Select value={newParticipant.professional_id} onValueChange={handleProfessionalSelect}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione um profissional" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {professionals?.map((professional) => (
+                        <SelectItem key={professional.id} value={professional.id}>
+                          {professional.name} - {professional.email}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              <div>
+                <Label htmlFor="user_email">Email</Label>
+                <Input
+                  id="user_email"
+                  type="email"
+                  value={newParticipant.user_email}
+                  onChange={(e) => setNewParticipant(prev => ({ ...prev, user_email: e.target.value }))}
+                  placeholder="Email do participante"
+                  required
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="role">Função (opcional)</Label>
+                <Input
+                  id="role"
+                  value={newParticipant.role}
+                  onChange={(e) => setNewParticipant(prev => ({ ...prev, role: e.target.value }))}
+                  placeholder="Ex: Organizador, Convidado, etc."
+                />
               </div>
 
               <Button type="submit" disabled={loading} className="w-full">
@@ -178,16 +238,6 @@ const ManageParticipantsModal = ({ open, onOpenChange, eventId, onSuccess }: Man
                 {loading ? 'Adicionando...' : 'Adicionar Participante'}
               </Button>
             </form>
-          </div>
-
-          <div className="flex gap-2 pt-4">
-            <Button
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              className="flex-1"
-            >
-              Fechar
-            </Button>
           </div>
         </div>
       </DialogContent>
