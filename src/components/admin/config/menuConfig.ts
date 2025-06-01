@@ -25,7 +25,7 @@ export const menuConfig: MenuConfig = {
         id: 'dashboard',
         label: 'Resumo',
         icon: LayoutDashboard,
-        component: 'DashboardSummary'
+        component: 'DashboardManager'
       }
     ]
   },

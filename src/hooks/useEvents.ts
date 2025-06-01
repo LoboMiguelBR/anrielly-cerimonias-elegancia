@@ -2,6 +2,21 @@
 import useSWR from 'swr';
 import { supabase } from '@/integrations/supabase/client';
 
+export interface EventParticipant {
+  id: string;
+  event_id: string;
+  user_email: string;
+  name?: string;
+  participant_type: 'cliente' | 'cerimonialista';
+  client_id?: string;
+  professional_id?: string;
+  profile_id?: string;
+  role: string;
+  invited: boolean;
+  accepted: boolean;
+  created_at: string;
+}
+
 export interface Event {
   id: string;
   type: string;
@@ -13,20 +28,7 @@ export interface Event {
   description?: string;
   created_at: string;
   updated_at: string;
-}
-
-export interface EventParticipant {
-  id: string;
-  event_id: string;
-  user_email: string;
-  name?: string;
-  participant_type: 'cliente' | 'cerimonialista';
-  client_id?: string;
-  professional_id?: string;
-  role: string;
-  invited: boolean;
-  accepted: boolean;
-  created_at: string;
+  participants?: EventParticipant[];
 }
 
 const fetcher = async (): Promise<Event[]> => {
@@ -48,7 +50,8 @@ const fetcher = async (): Promise<Event[]> => {
   // Mapear os status do banco para os tipos esperados
   return (data || []).map(event => ({
     ...event,
-    status: mapEventStatus(event.status)
+    status: mapEventStatus(event.status),
+    participants: event.participants || []
   }));
 };
 

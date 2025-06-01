@@ -1,22 +1,17 @@
 
 import React from 'react';
 import { Heart } from 'lucide-react';
+import { useDashboardData } from '@/hooks/useDashboardData';
 
-interface DashboardSummaryProps {
-  quoteRequestsCount: number;
-  proposalsCount: number;
-  galleryCount: number;
-  testimonialsCount: number;
-  questionariosCount: number;
-}
+const DashboardSummary = () => {
+  const { 
+    quoteRequestsCount, 
+    proposalsCount, 
+    galleryCount, 
+    testimonialsCount, 
+    questionariosCount 
+  } = useDashboardData();
 
-const DashboardSummary = ({ 
-  quoteRequestsCount, 
-  proposalsCount, 
-  galleryCount, 
-  testimonialsCount, 
-  questionariosCount 
-}: DashboardSummaryProps) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
       <div className="bg-lavender/10 rounded-lg p-6 text-center">
