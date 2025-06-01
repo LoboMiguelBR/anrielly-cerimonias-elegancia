@@ -1,8 +1,10 @@
 
 import useSWR from 'swr';
 import { supabase } from '@/integrations/supabase/client';
+import { useState } from 'react';
+import { toast } from 'sonner';
 
-interface Professional {
+export interface Professional {
   id: string;
   name: string;
   email: string;
@@ -30,12 +32,83 @@ const fetcher = async (): Promise<Professional[]> => {
 
 export const useProfessionals = () => {
   const { data, error, mutate } = useSWR('professionals', fetcher);
+  const [loading, setLoading] = useState(false);
+
+  const addProfessional = async (professionalData: Partial<Professional>) => {
+    try {
+      setLoading(true);
+      const { error } = await supabase
+        .from('professionals')
+        .insert([professionalData]);
+
+      if (error) throw error;
+
+      toast.success('Profissional adicionado com sucesso!');
+      mutate();
+      return true;
+    } catch (err) {
+      console.error('Erro ao adicionar profissional:', err);
+      toast.error('Erro ao adicionar profissional');
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateProfessional = async (id: string, data: Partial<Professional>) => {
+    try {
+      setLoading(true);
+      const { error } = await supabase
+        .from('professionals')
+        .update(data)
+        .eq('id', id);
+
+      if (error) throw error;
+
+      toast.success('Profissional atualizado com sucesso!');
+      mutate();
+      return true;
+    } catch (err) {
+      console.error('Erro ao atualizar profissional:', err);
+      toast.error('Erro ao atualizar profissional');
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteProfessional = async (id: string) => {
+    try {
+      setLoading(true);
+      const { error } = await supabase
+        .from('professionals')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      toast.success('Profissional deletado com sucesso!');
+      mutate();
+      return true;
+    } catch (err) {
+      console.error('Erro ao deletar profissional:', err);
+      toast.error('Erro ao deletar profissional');
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
   
   return {
     data: data || [],
+    professionals: data || [],
     isLoading: !error && !data,
     error,
     mutate,
-    refetch: mutate
+    refetch: mutate,
+    addProfessional,
+    updateProfessional,
+    deleteProfessional,
+    loading
   };
 };

@@ -25,7 +25,10 @@ const fetcher = async (): Promise<Cliente[]> => {
     .order('created_at', { ascending: false });
     
   if (error) throw error;
-  return data || [];
+  return (data || []).map(item => ({
+    ...item,
+    origin: item.origin as 'lead_convertido' | 'questionario'
+  }));
 };
 
 export const useClientes = () => {

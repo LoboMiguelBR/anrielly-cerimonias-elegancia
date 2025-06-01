@@ -29,7 +29,7 @@ const ManageParticipantsModal = ({ open, onOpenChange, onSuccess, event }: Manag
 
   const { addParticipant, removeParticipant, loading } = useEventActions();
   const { clientes } = useClientes();
-  const { data: professionals } = useProfessionals();
+  const { professionals } = useProfessionals();
 
   const handleAddParticipant = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -112,11 +112,11 @@ const ManageParticipantsModal = ({ open, onOpenChange, onSuccess, event }: Manag
                         <span className="font-medium">
                           {participant.client?.name || participant.professional?.name || participant.user_email}
                         </span>
-                        <Badge variant="outline" size="sm">
+                        <Badge variant="outline">
                           {participant.participant_type}
                         </Badge>
                         {participant.role && (
-                          <Badge variant="outline" size="sm">
+                          <Badge variant="outline">
                             {participant.role}
                           </Badge>
                         )}
@@ -124,10 +124,10 @@ const ManageParticipantsModal = ({ open, onOpenChange, onSuccess, event }: Manag
                       <p className="text-sm text-gray-600">{participant.user_email}</p>
                       <div className="flex gap-2 mt-1">
                         {participant.invited && (
-                          <Badge variant="outline" size="sm">Convidado</Badge>
+                          <Badge variant="outline">Convidado</Badge>
                         )}
                         {participant.accepted && (
-                          <Badge variant="outline" className="bg-green-50 text-green-700" size="sm">
+                          <Badge variant="outline" className="bg-green-50 text-green-700">
                             Aceito
                           </Badge>
                         )}

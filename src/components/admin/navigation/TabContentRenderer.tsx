@@ -1,5 +1,6 @@
+
 import React from 'react';
-import DashboardSummary from '../dashboard/DashboardSummary';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import LeadsTab from '../tabs/LeadsTab';
 import ProposalsMain from '../proposals/ProposalsMain';
 import ContractsMain from '../contracts/ContractsMain';
@@ -19,6 +20,53 @@ const TabContentRenderer: React.FC<TabContentRendererProps> = ({
   quoteRequests, 
   quoteIdFromUrl 
 }) => {
+  
+  const DashboardSummary = () => (
+    <div className="space-y-6">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total de Leads</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{quoteRequests.length}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Leads Aguardando</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {quoteRequests.filter(q => q.status === 'aguardando').length}
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Leads Convertidos</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {quoteRequests.filter(q => q.status === 'convertido').length}
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Taxa de Conversão</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {quoteRequests.length > 0 
+                ? Math.round((quoteRequests.filter(q => q.status === 'convertido').length / quoteRequests.length) * 100)
+                : 0}%
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
   
   const renderTabContent = () => {
     switch (activeTab) {

@@ -7,7 +7,7 @@ export interface Event {
   type: string;
   date?: string;
   location?: string;
-  status: string;
+  status: 'em_planejamento' | 'confirmado' | 'em_andamento' | 'concluido' | 'cancelado';
   notes?: string;
   client_id?: string;
   description?: string;

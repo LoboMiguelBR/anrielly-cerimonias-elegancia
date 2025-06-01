@@ -7,7 +7,7 @@ import { Cliente } from './useClientes';
 export const useClienteActions = () => {
   const [loading, setLoading] = useState(false);
 
-  const createCliente = async (clienteData: Partial<Cliente>) => {
+  const createCliente = async (clienteData: Omit<Cliente, 'id' | 'created_at' | 'updated_at'>) => {
     try {
       setLoading(true);
       const { error } = await supabase

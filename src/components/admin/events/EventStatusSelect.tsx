@@ -22,8 +22,10 @@ const EventStatusSelect = ({ eventId, currentStatus, onStatusChange }: EventStat
     switch (status) {
       case 'em_planejamento':
         return 'Em Planejamento';
-      case 'contratado':
-        return 'Contratado';
+      case 'confirmado':
+        return 'Confirmado';
+      case 'em_andamento':
+        return 'Em Andamento';
       case 'concluido':
         return 'Concluído';
       case 'cancelado':
@@ -42,7 +44,8 @@ const EventStatusSelect = ({ eventId, currentStatus, onStatusChange }: EventStat
       </SelectTrigger>
       <SelectContent>
         <SelectItem value="em_planejamento">Em Planejamento</SelectItem>
-        <SelectItem value="contratado">Contratado</SelectItem>
+        <SelectItem value="confirmado">Confirmado</SelectItem>
+        <SelectItem value="em_andamento">Em Andamento</SelectItem>
         <SelectItem value="concluido">Concluído</SelectItem>
         <SelectItem value="cancelado">Cancelado</SelectItem>
       </SelectContent>

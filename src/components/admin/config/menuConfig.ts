@@ -1,13 +1,14 @@
+
 import { LayoutDashboard, ListChecks, FileText, Users, Calendar, Settings } from 'lucide-react';
 
-interface MenuItem {
+export interface MenuItem {
   id: string;
   label: string;
   icon: keyof typeof Icons;
   component?: string;
 }
 
-interface MenuSection {
+export interface MenuSection {
   title: string;
   items: MenuItem[];
 }
@@ -30,7 +31,7 @@ export const menuConfig: MenuConfig = {
     title: 'Dashboard',
     items: [
       {
-        id: 'summary',
+        id: 'dashboard',
         label: 'Resumo',
         icon: 'LayoutDashboard',
         component: 'DashboardSummary'
@@ -48,13 +49,13 @@ export const menuConfig: MenuConfig = {
         component: 'LeadsTab'
       },
       {
-        id: 'proposals',
+        id: 'propostas',
         label: 'Propostas',
         icon: 'FileText',
         component: 'ProposalsMain'
       },
       {
-        id: 'contracts',
+        id: 'contratos',
         label: 'Contratos',
         icon: 'ListChecks',
         component: 'ContractsMain'
@@ -98,3 +99,5 @@ export const menuConfig: MenuConfig = {
     ]
   }
 };
+
+export const menuSections = Object.values(menuConfig);

@@ -255,10 +255,10 @@ const EventsTable = ({ events, isLoading, onRefresh }: EventsTableProps) => {
                         </div>
                         <div className="flex gap-2">
                           {participant.invited && (
-                            <Badge variant="outline" size="sm">Convidado</Badge>
+                            <Badge variant="outline">Convidado</Badge>
                           )}
                           {participant.accepted && (
-                            <Badge variant="outline" className="bg-green-50 text-green-700" size="sm">Aceito</Badge>
+                            <Badge variant="outline" className="bg-green-50 text-green-700">Aceito</Badge>
                           )}
                         </div>
                       </div>
