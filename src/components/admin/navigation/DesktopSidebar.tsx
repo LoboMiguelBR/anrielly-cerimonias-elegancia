@@ -1,6 +1,7 @@
 
 import { Separator } from "@/components/ui/separator";
 import { menuSections, MenuItem } from "../config/menuConfig";
+import { useAuth } from '@/hooks/useAuth';
 
 interface DesktopSidebarProps {
   activeTab: string;
@@ -8,6 +9,17 @@ interface DesktopSidebarProps {
 }
 
 const DesktopSidebar = ({ activeTab, onTabChange }: DesktopSidebarProps) => {
+  const { profile } = useAuth();
+
+  // Função para verificar se o usuário tem acesso ao item
+  const hasAccess = (itemId: string) => {
+    const restrictedItems = ['leads', 'clientes', 'professionals'];
+    if (restrictedItems.includes(itemId)) {
+      return profile?.role === 'admin';
+    }
+    return true;
+  };
+
   return (
     <aside className="hidden lg:block w-80 bg-white shadow-sm border-r h-[calc(100vh-80px)] overflow-y-auto">
       <div className="p-6">
@@ -23,18 +35,26 @@ const DesktopSidebar = ({ activeTab, onTabChange }: DesktopSidebarProps) => {
               <div className="space-y-1">
                 {section.items.map((item: MenuItem) => {
                   const IconComponent = item.icon;
+                  const accessAllowed = hasAccess(item.id);
+                  
                   return (
                     <button
                       key={item.id}
-                      onClick={() => onTabChange(item.id)}
+                      onClick={() => accessAllowed && onTabChange(item.id)}
+                      disabled={!accessAllowed}
                       className={`w-full flex items-center px-3 py-2 text-sm rounded-lg transition-colors ${
                         activeTab === item.id
                           ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                          : 'text-gray-700 hover:bg-gray-50'
+                          : accessAllowed
+                          ? 'text-gray-700 hover:bg-gray-50'
+                          : 'text-gray-400 cursor-not-allowed'
                       }`}
                     >
                       <IconComponent className="h-4 w-4 mr-3" />
-                      {item.label}
+                      <span className="flex-1 text-left">{item.label}</span>
+                      {!accessAllowed && (
+                        <span className="text-xs text-gray-400 ml-2">Admin</span>
+                      )}
                     </button>
                   );
                 })}

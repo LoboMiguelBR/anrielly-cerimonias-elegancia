@@ -1,5 +1,21 @@
 
-import { LayoutDashboard, ListChecks, FileText, Users, Calendar, Settings } from 'lucide-react';
+import { 
+  LayoutDashboard, 
+  ListChecks, 
+  FileText, 
+  Users, 
+  Calendar, 
+  Settings,
+  DollarSign,
+  Quote,
+  TrendingUp,
+  Image,
+  MessageSquare,
+  Heart,
+  Mail,
+  FileTemplate,
+  Briefcase
+} from 'lucide-react';
 
 export interface MenuItem {
   id: string;
@@ -30,8 +46,8 @@ export const menuConfig: MenuConfig = {
     ]
   },
   
-  gestao: {
-    title: 'Gestão',
+  comercial: {
+    title: 'Gestão Comercial',
     items: [
       {
         id: 'leads',
@@ -39,6 +55,24 @@ export const menuConfig: MenuConfig = {
         icon: Users,
         component: 'LeadsTab'
       },
+      {
+        id: 'quotes',
+        label: 'Orçamentos',
+        icon: Quote,
+        component: 'QuotesTab'
+      },
+      {
+        id: 'gestao-comercial',
+        label: 'Funil de Vendas',
+        icon: TrendingUp,
+        component: 'GestaoComercialTab'
+      }
+    ]
+  },
+  
+  gestao: {
+    title: 'Gestão de Projetos',
+    items: [
       {
         id: 'propostas',
         label: 'Propostas',
@@ -52,12 +86,6 @@ export const menuConfig: MenuConfig = {
         component: 'ContractsMain'
       },
       {
-        id: 'clientes',
-        label: 'Clientes',
-        icon: Users,
-        component: 'ClientesTab'
-      },
-      {
         id: 'eventos',
         label: 'Eventos',
         icon: Calendar,
@@ -68,12 +96,72 @@ export const menuConfig: MenuConfig = {
         label: 'Questionários',
         icon: FileText,
         component: 'QuestionariosTab'
+      }
+    ]
+  },
+
+  pessoas: {
+    title: 'Gestão de Pessoas',
+    items: [
+      {
+        id: 'clientes',
+        label: 'Clientes',
+        icon: Users,
+        component: 'ClientesTab'
       },
       {
         id: 'professionals',
         label: 'Profissionais',
-        icon: Users,
+        icon: Briefcase,
         component: 'ProfessionalsTab'
+      }
+    ]
+  },
+
+  conteudo: {
+    title: 'Gestão de Conteúdo',
+    items: [
+      {
+        id: 'gallery',
+        label: 'Galeria',
+        icon: Image,
+        component: 'AdminGalleryTab'
+      },
+      {
+        id: 'testimonials',
+        label: 'Depoimentos',
+        icon: MessageSquare,
+        component: 'TestimonialsTab'
+      },
+      {
+        id: 'historias-casais',
+        label: 'Histórias dos Casais',
+        icon: Heart,
+        component: 'HistoriasCasaisTab'
+      }
+    ]
+  },
+
+  templates: {
+    title: 'Templates',
+    items: [
+      {
+        id: 'proposal-templates',
+        label: 'Templates de Proposta',
+        icon: FileTemplate,
+        component: 'ProposalTemplatesTab'
+      },
+      {
+        id: 'contract-templates',
+        label: 'Templates de Contrato',
+        icon: FileTemplate,
+        component: 'ContractTemplatesTab'
+      },
+      {
+        id: 'contract-email-templates',
+        label: 'Templates de Email',
+        icon: Mail,
+        component: 'ContractEmailTemplatesTab'
       }
     ]
   },

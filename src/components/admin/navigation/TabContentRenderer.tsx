@@ -9,6 +9,15 @@ import ProfessionalsTab from '../tabs/ProfessionalsTab';
 import ClientesTab from '../tabs/ClientesTab';
 import EventsTab from '../tabs/EventsTab';
 import DashboardManager from '../dashboards/DashboardManager';
+import QuotesTab from '../tabs/QuotesTab';
+import GestaoComercialTab from '../tabs/GestaoComercialTab';
+import AdminGalleryTab from '../tabs/AdminGalleryTab';
+import TestimonialsTab from '../tabs/TestimonialsTab';
+import HistoriasCasaisTab from '../tabs/HistoriasCasaisTab';
+import ProposalTemplatesTab from '../tabs/ProposalTemplatesTab';
+import ContractTemplatesTab from '../tabs/ContractTemplatesTab';
+import ContractEmailTemplatesTab from '../tabs/ContractEmailTemplatesTab';
+import SettingsTab from '../tabs/SettingsTab';
 import { useQuoteRequests } from '@/hooks/useQuoteRequests';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -39,6 +48,12 @@ const TabContentRenderer: React.FC<TabContentRendererProps> = ({
         }
         return <LeadsTab />;
 
+      case 'quotes':
+        return <QuotesTab />;
+
+      case 'gestao-comercial':
+        return <GestaoComercialTab />;
+
       case 'propostas':
         return <ProposalsMain 
           quoteRequests={quoteRequests || []} 
@@ -48,8 +63,18 @@ const TabContentRenderer: React.FC<TabContentRendererProps> = ({
       case 'contratos':
         return <ContractsMain />;
 
+      case 'eventos':
+        return <EventsTab />;
+
       case 'questionarios':
         return <QuestionariosTab />;
+
+      case 'clientes':
+        // Apenas admin pode gerenciar clientes
+        if (profile?.role !== 'admin') {
+          return <div className="text-center py-8 text-gray-500">Acesso restrito</div>;
+        }
+        return <ClientesTab />;
 
       case 'professionals':
         // Apenas admin pode gerenciar profissionais
@@ -57,16 +82,27 @@ const TabContentRenderer: React.FC<TabContentRendererProps> = ({
           return <div className="text-center py-8 text-gray-500">Acesso restrito</div>;
         }
         return <ProfessionalsTab />;
-        
-      case 'clientes':
-        // Apenas admin pode gerenciar clientes
-        if (profile?.role !== 'admin') {
-          return <div className="text-center py-8 text-gray-500">Acesso restrito</div>;
-        }
-        return <ClientesTab />;
-        
-      case 'eventos':
-        return <EventsTab />;
+
+      case 'gallery':
+        return <AdminGalleryTab />;
+
+      case 'testimonials':
+        return <TestimonialsTab />;
+
+      case 'historias-casais':
+        return <HistoriasCasaisTab />;
+
+      case 'proposal-templates':
+        return <ProposalTemplatesTab />;
+
+      case 'contract-templates':
+        return <ContractTemplatesTab />;
+
+      case 'contract-email-templates':
+        return <ContractEmailTemplatesTab />;
+
+      case 'settings':
+        return <SettingsTab />;
       
       default:
         return <DashboardManager />;
