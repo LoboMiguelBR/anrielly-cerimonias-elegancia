@@ -2,28 +2,40 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { Database } from '@/integrations/supabase/types';
 
-export interface CreateEventData {
-  type: string;
-  date?: string;
-  location?: string;
-  description?: string;
-  status: 'em_planejamento' | 'confirmado' | 'em_andamento' | 'concluido' | 'cancelado';
-  client_id?: string;
-  cerimonialista_id?: string;
-}
+type EventInsert = Database['public']['Tables']['events']['Insert'];
+type EventUpdate = Database['public']['Tables']['events']['Update'];
 
 export const useEventActions = () => {
   const [loading, setLoading] = useState(false);
 
-  const createEvent = async (eventData: CreateEventData) => {
+  const createEvent = async (eventData: {
+    type: string;
+    date?: string;
+    location?: string;
+    description?: string;
+    status?: 'em_planejamento' | 'contratado' | 'concluido' | 'cancelado';
+    client_id?: string;
+    cerimonialista_id?: string;
+  }) => {
     setLoading(true);
     try {
       console.log('Creating event:', eventData);
       
+      const insertData: EventInsert = {
+        type: eventData.type,
+        date: eventData.date || null,
+        location: eventData.location || null,
+        description: eventData.description || null,
+        status: eventData.status || 'em_planejamento',
+        client_id: eventData.client_id || null,
+        cerimonialista_id: eventData.cerimonialista_id || null,
+      };
+
       const { data, error } = await supabase
         .from('events')
-        .insert([eventData])
+        .insert(insertData)
         .select()
         .single();
 
@@ -45,7 +57,7 @@ export const useEventActions = () => {
     }
   };
 
-  const updateEvent = async (eventId: string, updates: Partial<CreateEventData>) => {
+  const updateEvent = async (eventId: string, updates: Partial<EventUpdate>) => {
     setLoading(true);
     try {
       console.log('Updating event:', eventId, updates);

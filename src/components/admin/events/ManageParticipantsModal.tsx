@@ -9,6 +9,9 @@ import { Badge } from "@/components/ui/badge";
 import { Trash2, Plus } from 'lucide-react';
 import { useParticipants } from '@/hooks/useParticipants';
 import { toast } from 'sonner';
+import { Database } from '@/integrations/supabase/types';
+
+type ParticipantRole = Database['public']['Enums']['participant_role'];
 
 interface ManageParticipantsModalProps {
   open: boolean;
@@ -21,8 +24,8 @@ const ManageParticipantsModal = ({ open, onOpenChange, onSuccess, event }: Manag
   const [newParticipant, setNewParticipant] = useState<{
     user_email: string;
     name: string;
-    participant_type: 'cliente' | 'cerimonialista';
-    role: string;
+    participant_type: string;
+    role: ParticipantRole;
     invited: boolean;
     accepted: boolean;
   }>({
@@ -165,7 +168,7 @@ const ManageParticipantsModal = ({ open, onOpenChange, onSuccess, event }: Manag
                   <Label htmlFor="participant_type">Tipo</Label>
                   <Select 
                     value={newParticipant.participant_type} 
-                    onValueChange={(value: 'cliente' | 'cerimonialista') => setNewParticipant(prev => ({
+                    onValueChange={(value: string) => setNewParticipant(prev => ({
                       ...prev,
                       participant_type: value
                     }))}
@@ -182,15 +185,24 @@ const ManageParticipantsModal = ({ open, onOpenChange, onSuccess, event }: Manag
 
                 <div>
                   <Label htmlFor="role">Função</Label>
-                  <Input
-                    id="role"
-                    value={newParticipant.role}
-                    onChange={(e) => setNewParticipant(prev => ({
+                  <Select 
+                    value={newParticipant.role} 
+                    onValueChange={(value: ParticipantRole) => setNewParticipant(prev => ({
                       ...prev,
-                      role: e.target.value
+                      role: value
                     }))}
-                    placeholder="Ex: noivo, noiva, cerimonialista"
-                  />
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="noivo">Noivo</SelectItem>
+                      <SelectItem value="noiva">Noiva</SelectItem>
+                      <SelectItem value="cliente">Cliente</SelectItem>
+                      <SelectItem value="cerimonialista">Cerimonialista</SelectItem>
+                      <SelectItem value="admin">Admin</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 

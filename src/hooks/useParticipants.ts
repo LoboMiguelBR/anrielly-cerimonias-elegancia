@@ -2,16 +2,20 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { Database } from '@/integrations/supabase/types';
+
+type ParticipantInsert = Database['public']['Tables']['event_participants']['Insert'];
+type ParticipantRole = Database['public']['Enums']['participant_role'];
 
 export interface Participant {
   id?: string;
   event_id: string;
   user_email: string;
-  name: string;
-  participant_type: 'cliente' | 'cerimonialista';
-  role: string;
-  invited: boolean;
-  accepted: boolean;
+  name?: string;
+  participant_type?: string;
+  role: ParticipantRole;
+  invited?: boolean;
+  accepted?: boolean;
   client_id?: string;
   professional_id?: string;
 }
@@ -24,9 +28,21 @@ export const useParticipants = () => {
     try {
       console.log('Adding participant:', participant);
       
+      const insertData: ParticipantInsert = {
+        event_id: participant.event_id,
+        user_email: participant.user_email,
+        name: participant.name || null,
+        participant_type: participant.participant_type || null,
+        role: participant.role,
+        invited: participant.invited || false,
+        accepted: participant.accepted || false,
+        client_id: participant.client_id || null,
+        professional_id: participant.professional_id || null,
+      };
+
       const { data, error } = await supabase
         .from('event_participants')
-        .insert([participant])
+        .insert(insertData)
         .select()
         .single();
 

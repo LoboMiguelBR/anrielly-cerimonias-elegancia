@@ -1,34 +1,18 @@
 
 import useSWR from 'swr';
 import { supabase } from '@/integrations/supabase/client';
+import { Database } from '@/integrations/supabase/types';
 
-export interface EventParticipant {
-  id: string;
-  event_id: string;
-  user_email: string;
-  name?: string;
-  participant_type: string;
-  client_id?: string;
-  professional_id?: string;
-  profile_id?: string;
-  role: string;
-  invited: boolean;
-  accepted: boolean;
-  created_at: string;
+type EventRow = Database['public']['Tables']['events']['Row'];
+type ParticipantRow = Database['public']['Tables']['event_participants']['Row'];
+
+export interface EventParticipant extends ParticipantRow {
+  client?: { name: string; email: string; } | null;
+  professional?: { name: string; email: string; } | null;
 }
 
-export interface Event {
-  id: string;
-  type: string;
-  date?: string;
-  location?: string;
-  status: 'em_planejamento' | 'confirmado' | 'em_andamento' | 'concluido' | 'cancelado';
-  notes?: string;
-  client_id?: string;
-  cerimonialista_id?: string;
-  description?: string;
-  created_at: string;
-  updated_at: string;
+export interface Event extends EventRow {
+  client?: { name: string; email: string; phone: string; } | null;
   participants?: EventParticipant[];
 }
 
@@ -56,41 +40,11 @@ const fetcher = async (): Promise<Event[]> => {
       throw new Error(`Erro ao carregar eventos: ${error.message}`);
     }
     
-    // Mapear os status do banco para os tipos esperados
-    const mappedEvents = (data || []).map(event => ({
-      ...event,
-      status: mapEventStatus(event.status),
-      participants: (event.participants || []).map((p: any) => ({
-        id: p.id,
-        event_id: p.event_id,
-        user_email: p.user_email,
-        name: p.name,
-        participant_type: p.participant_type || 'cliente',
-        client_id: p.client_id,
-        professional_id: p.professional_id,
-        profile_id: p.profile_id,
-        role: p.role,
-        invited: p.invited || false,
-        accepted: p.accepted || false,
-        created_at: p.created_at
-      }))
-    }));
-    
-    console.log('Mapped events:', mappedEvents);
-    return mappedEvents;
+    console.log('Mapped events:', data);
+    return data || [];
   } catch (err) {
     console.error('Error in events fetcher:', err);
     throw err;
-  }
-};
-
-// Função para mapear status do banco para tipos da interface
-const mapEventStatus = (status: string): Event['status'] => {
-  switch (status) {
-    case 'contratado':
-      return 'confirmado';
-    default:
-      return status as Event['status'];
   }
 };
 
@@ -110,48 +64,11 @@ export const useEvents = () => {
     isLoading: !error && !data
   });
   
-  const createEventFromProposal = async (proposalData: any) => {
-    try {
-      console.log('Creating event from proposal:', proposalData);
-      
-      const eventData = {
-        type: proposalData.event_type,
-        date: proposalData.event_date,
-        location: proposalData.event_location,
-        status: 'em_planejamento' as const,
-        description: `Evento criado a partir da proposta para ${proposalData.client_name}`,
-        client_id: null
-      };
-
-      const { data: newEvent, error } = await supabase
-        .from('events')
-        .insert([{
-          ...eventData,
-          status: eventData.status as any
-        }])
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Error creating event from proposal:', error);
-        throw error;
-      }
-
-      console.log('Event created from proposal:', newEvent);
-      mutate();
-      return newEvent;
-    } catch (err) {
-      console.error('Erro ao criar evento a partir da proposta:', err);
-      throw err;
-    }
-  };
-  
   return {
     events: data || [],
     isLoading: !error && !data,
     error,
     mutate,
     refetch: mutate,
-    createEventFromProposal
   };
 };

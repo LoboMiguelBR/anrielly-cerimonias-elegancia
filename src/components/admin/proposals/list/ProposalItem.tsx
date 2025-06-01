@@ -22,7 +22,7 @@ const ProposalItem: React.FC<ProposalItemProps> = ({
   onEdit,
   onDelete
 }) => {
-  const { createEventFromProposal } = useEventActions();
+  const { createEvent } = useEventActions();
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -56,7 +56,15 @@ const ProposalItem: React.FC<ProposalItemProps> = ({
 
   const handleCreateEvent = async () => {
     try {
-      await createEventFromProposal(proposal);
+      const eventData = {
+        type: proposal.event_type,
+        date: proposal.event_date,
+        location: proposal.event_location,
+        status: 'em_planejamento' as const,
+        description: `Evento criado a partir da proposta para ${proposal.client_name}`,
+      };
+
+      await createEvent(eventData);
       toast.success('Evento criado automaticamente a partir da proposta aceita');
     } catch (error) {
       console.error('Error creating event:', error);
