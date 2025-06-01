@@ -14,15 +14,31 @@ const CerimonialistaDashboard = () => {
   const { events } = useEvents();
   const [activeTab, setActiveTab] = useState('agenda');
 
-  // Filtrar eventos do cerimonialista
-  const myEvents = events.filter(event => 
-    event.cerimonialista_id === profile?.id ||
-    event.participants?.some(p => p.user_email === profile?.email && p.role === 'cerimonialista')
-  );
+  // Filtrar eventos do cerimonialista com verificação de segurança
+  const myEvents = events.filter(event => {
+    if (!profile) return false;
+    
+    return event.cerimonialista_id === profile.id ||
+      event.participants?.some(p => 
+        p.user_email === profile.email && p.role === 'cerimonialista'
+      );
+  });
 
-  const upcomingEvents = myEvents.filter(event => 
-    event.date && new Date(event.date) >= new Date()
-  ).sort((a, b) => new Date(a.date || '').getTime() - new Date(b.date || '').getTime());
+  const upcomingEvents = myEvents.filter(event => {
+    if (!event.date) return false;
+    try {
+      return new Date(event.date) >= new Date();
+    } catch {
+      return false;
+    }
+  }).sort((a, b) => {
+    if (!a.date || !b.date) return 0;
+    try {
+      return new Date(a.date).getTime() - new Date(b.date).getTime();
+    } catch {
+      return 0;
+    }
+  });
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -31,6 +47,24 @@ const CerimonialistaDashboard = () => {
       case 'concluido': return 'bg-gray-100 text-gray-800';
       case 'cancelado': return 'bg-red-100 text-red-800';
       default: return 'bg-yellow-100 text-yellow-800';
+    }
+  };
+
+  const formatEventDate = (dateString: string | undefined) => {
+    if (!dateString) return 'Data não definida';
+    try {
+      return format(new Date(dateString), "dd 'de' MMMM", { locale: ptBR });
+    } catch {
+      return 'Data inválida';
+    }
+  };
+
+  const formatEventDateShort = (dateString: string | undefined) => {
+    if (!dateString) return 'Data não definida';
+    try {
+      return format(new Date(dateString), "dd/MM/yyyy", { locale: ptBR });
+    } catch {
+      return 'Data inválida';
     }
   };
 
@@ -46,7 +80,7 @@ const CerimonialistaDashboard = () => {
             </div>
             <div className="flex items-center space-x-4">
               <span className="text-sm text-gray-600">
-                Olá, {profile?.name}
+                Olá, {profile?.name || 'Profissional'}
               </span>
               <Button variant="outline" size="sm" onClick={signOut}>
                 Sair
@@ -131,9 +165,9 @@ const CerimonialistaDashboard = () => {
                     <div key={event.id} className="flex items-center justify-between p-4 border rounded-lg">
                       <div className="flex-1">
                         <h3 className="font-medium">{event.type}</h3>
-                        <p className="text-sm text-gray-600">{event.location}</p>
+                        <p className="text-sm text-gray-600">{event.location || 'Local não definido'}</p>
                         <p className="text-sm text-gray-500">
-                          {event.date && format(new Date(event.date), "dd 'de' MMMM", { locale: ptBR })}
+                          {formatEventDate(event.date)}
                         </p>
                       </div>
                       <Badge className={getStatusColor(event.status)}>
@@ -163,9 +197,9 @@ const CerimonialistaDashboard = () => {
                     <div key={event.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
                       <div className="flex-1">
                         <h3 className="font-medium">{event.type}</h3>
-                        <p className="text-sm text-gray-600">{event.location}</p>
+                        <p className="text-sm text-gray-600">{event.location || 'Local não definido'}</p>
                         <p className="text-sm text-gray-500">
-                          {event.date ? format(new Date(event.date), "dd/MM/yyyy", { locale: ptBR }) : 'Data não definida'}
+                          {formatEventDateShort(event.date)}
                         </p>
                         {event.description && (
                           <p className="text-sm text-gray-600 mt-1">{event.description}</p>

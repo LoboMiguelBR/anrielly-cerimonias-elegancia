@@ -14,14 +14,16 @@ const ClienteDashboard = () => {
   const { events } = useEvents();
   const [activeTab, setActiveTab] = useState('evento');
 
-  // Filtrar eventos do cliente
-  const myEvents = events.filter(event => 
-    event.client_id === profile?.id ||
-    event.participants?.some(p => 
-      p.user_email === profile?.email && 
-      ['cliente', 'noivo', 'noiva'].includes(p.role)
-    )
-  );
+  // Filtrar eventos do cliente com verificação de segurança
+  const myEvents = events.filter(event => {
+    if (!profile) return false;
+    
+    return event.client_id === profile.id ||
+      event.participants?.some(p => 
+        p.user_email === profile.email && 
+        ['cliente', 'noivo', 'noiva'].includes(p.role)
+      );
+  });
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -30,6 +32,24 @@ const ClienteDashboard = () => {
       case 'concluido': return 'bg-gray-100 text-gray-800';
       case 'cancelado': return 'bg-red-100 text-red-800';
       default: return 'bg-yellow-100 text-yellow-800';
+    }
+  };
+
+  const formatEventDate = (dateString: string | undefined) => {
+    if (!dateString) return 'Data não definida';
+    try {
+      return format(new Date(dateString), "dd/MM/yyyy", { locale: ptBR });
+    } catch {
+      return 'Data inválida';
+    }
+  };
+
+  const formatEventDateFull = (dateString: string | undefined) => {
+    if (!dateString) return 'Data não definida';
+    try {
+      return format(new Date(dateString), "dd 'de' MMMM 'de' yyyy", { locale: ptBR });
+    } catch {
+      return 'Data inválida';
     }
   };
 
@@ -45,7 +65,7 @@ const ClienteDashboard = () => {
             </div>
             <div className="flex items-center space-x-4">
               <span className="text-sm text-gray-600">
-                Olá, {profile?.name}
+                Olá, {profile?.name || 'Usuário'}
               </span>
               <Button variant="outline" size="sm" onClick={signOut}>
                 Sair
@@ -86,7 +106,7 @@ const ClienteDashboard = () => {
             <CardContent>
               <div className="text-sm">
                 {myEvents.length > 0 && myEvents[0].date
-                  ? format(new Date(myEvents[0].date), "dd/MM/yyyy", { locale: ptBR })
+                  ? formatEventDate(myEvents[0].date)
                   : 'Não definida'
                 }
               </div>
@@ -154,12 +174,7 @@ const ClienteDashboard = () => {
                           <div className="space-y-2 text-sm">
                             <div className="flex items-center">
                               <Calendar className="w-4 h-4 mr-2 text-gray-500" />
-                              <span>
-                                {event.date 
-                                  ? format(new Date(event.date), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })
-                                  : 'Data não definida'
-                                }
-                              </span>
+                              <span>{formatEventDateFull(event.date)}</span>
                             </div>
                             <div className="flex items-center">
                               <MapPin className="w-4 h-4 mr-2 text-gray-500" />
