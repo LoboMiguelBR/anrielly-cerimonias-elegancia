@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -73,7 +72,7 @@ const EventsTab = () => {
             <p className="text-gray-600 mb-4">
               {error?.message || 'Ocorreu um erro ao carregar os eventos.'}
             </p>
-            <Button onClick={refetch} variant="outline">
+            <Button onClick={() => refetch()} variant="outline">
               Tentar Novamente
             </Button>
           </CardContent>
@@ -207,7 +206,7 @@ const EventsTab = () => {
         </Card>
       </div>
 
-      <EventsTable events={events || []} isLoading={isLoading} onRefresh={refetch} />
+      <EventsTable events={events || []} isLoading={isLoading} onRefresh={() => refetch()} />
     </div>
   );
 };

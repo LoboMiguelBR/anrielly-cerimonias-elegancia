@@ -18,10 +18,17 @@ interface ManageParticipantsModalProps {
 }
 
 const ManageParticipantsModal = ({ open, onOpenChange, onSuccess, event }: ManageParticipantsModalProps) => {
-  const [newParticipant, setNewParticipant] = useState({
+  const [newParticipant, setNewParticipant] = useState<{
+    user_email: string;
+    name: string;
+    participant_type: 'cliente' | 'cerimonialista';
+    role: string;
+    invited: boolean;
+    accepted: boolean;
+  }>({
     user_email: '',
     name: '',
-    participant_type: 'cliente' as const,
+    participant_type: 'cliente',
     role: 'participante',
     invited: true,
     accepted: false
@@ -158,9 +165,9 @@ const ManageParticipantsModal = ({ open, onOpenChange, onSuccess, event }: Manag
                   <Label htmlFor="participant_type">Tipo</Label>
                   <Select 
                     value={newParticipant.participant_type} 
-                    onValueChange={(value) => setNewParticipant(prev => ({
+                    onValueChange={(value: 'cliente' | 'cerimonialista') => setNewParticipant(prev => ({
                       ...prev,
-                      participant_type: value as 'cliente' | 'cerimonialista'
+                      participant_type: value
                     }))}
                   >
                     <SelectTrigger>
