@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -28,7 +27,6 @@ const LeadsTab = () => {
     rejeitado: leads?.filter(l => l.status === 'rejeitado').length || 0,
   };
 
-  // Transform leads data to match the table interface
   const transformedLeads = leads ? transformQuoteRequests(leads) : [];
 
   return (
@@ -41,8 +39,7 @@ const LeadsTab = () => {
           <p className={`text-gray-600 ${isMobile ? 'text-sm' : ''}`}>
             {isMobile 
               ? 'Gerencie seus leads'
-              : 'Gerencie solicitações de orçamento e leads'
-            }
+              : 'Gerencie solicitações de orçamento e leads'}
           </p>
         </div>
         
@@ -135,8 +132,7 @@ const LeadsTab = () => {
       </div>
 
       <QuoteRequestsTable 
-        quoteRequests={transformedLeads} 
-        isLoading={isLoading} 
+        quoteRequests={transformedLeads}
         onRefresh={() => mutate()} 
       />
     </div>
