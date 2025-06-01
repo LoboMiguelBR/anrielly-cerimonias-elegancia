@@ -1,46 +1,17 @@
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useEventActions } from '@/hooks/useEventActions';
 
 interface EventStatusSelectProps {
-  eventId: string;
-  currentStatus: string;
-  onStatusChange: () => void;
+  value: string;
+  onChange: (value: string) => void;
+  disabled?: boolean;
 }
 
-const EventStatusSelect = ({ eventId, currentStatus, onStatusChange }: EventStatusSelectProps) => {
-  const { updateStatus, loading } = useEventActions();
-
-  const handleStatusChange = async (newStatus: string) => {
-    const success = await updateStatus(eventId, newStatus as any);
-    if (success) {
-      onStatusChange();
-    }
-  };
-
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'em_planejamento':
-        return 'Em Planejamento';
-      case 'confirmado':
-        return 'Confirmado';
-      case 'em_andamento':
-        return 'Em Andamento';
-      case 'concluido':
-        return 'Concluído';
-      case 'cancelado':
-        return 'Cancelado';
-      default:
-        return status;
-    }
-  };
-
+const EventStatusSelect = ({ value, onChange, disabled }: EventStatusSelectProps) => {
   return (
-    <Select value={currentStatus} onValueChange={handleStatusChange} disabled={loading}>
-      <SelectTrigger className="w-36">
-        <SelectValue>
-          {getStatusLabel(currentStatus)}
-        </SelectValue>
+    <Select value={value} onValueChange={onChange} disabled={disabled}>
+      <SelectTrigger>
+        <SelectValue placeholder="Selecione o status" />
       </SelectTrigger>
       <SelectContent>
         <SelectItem value="em_planejamento">Em Planejamento</SelectItem>

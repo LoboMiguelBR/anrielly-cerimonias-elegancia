@@ -7,7 +7,7 @@ export interface EventParticipant {
   event_id: string;
   user_email: string;
   name?: string;
-  participant_type: string; // Mudado para string para aceitar qualquer valor do banco
+  participant_type: string;
   client_id?: string;
   professional_id?: string;
   profile_id?: string;
@@ -33,40 +33,55 @@ export interface Event {
 }
 
 const fetcher = async (): Promise<Event[]> => {
-  const { data, error } = await supabase
-    .from('events')
-    .select(`
-      *,
-      client:clientes(name, email, phone),
-      participants:event_participants(
-        *,
-        client:clientes(name, email),
-        professional:professionals(name, email)
-      )
-    `)
-    .order('created_at', { ascending: false });
-    
-  if (error) throw error;
+  console.log('Fetching events from Supabase...');
   
-  // Mapear os status do banco para os tipos esperados
-  return (data || []).map(event => ({
-    ...event,
-    status: mapEventStatus(event.status),
-    participants: (event.participants || []).map((p: any) => ({
-      id: p.id,
-      event_id: p.event_id,
-      user_email: p.user_email,
-      name: p.name,
-      participant_type: p.participant_type || 'cliente',
-      client_id: p.client_id,
-      professional_id: p.professional_id,
-      profile_id: p.profile_id,
-      role: p.role,
-      invited: p.invited || false,
-      accepted: p.accepted || false,
-      created_at: p.created_at
-    }))
-  }));
+  try {
+    const { data, error } = await supabase
+      .from('events')
+      .select(`
+        *,
+        client:clientes(name, email, phone),
+        participants:event_participants(
+          *,
+          client:clientes(name, email),
+          professional:professionals(name, email)
+        )
+      `)
+      .order('created_at', { ascending: false });
+    
+    console.log('Events fetch result:', { data, error, count: data?.length });
+    
+    if (error) {
+      console.error('Supabase error:', error);
+      throw new Error(`Erro ao carregar eventos: ${error.message}`);
+    }
+    
+    // Mapear os status do banco para os tipos esperados
+    const mappedEvents = (data || []).map(event => ({
+      ...event,
+      status: mapEventStatus(event.status),
+      participants: (event.participants || []).map((p: any) => ({
+        id: p.id,
+        event_id: p.event_id,
+        user_email: p.user_email,
+        name: p.name,
+        participant_type: p.participant_type || 'cliente',
+        client_id: p.client_id,
+        professional_id: p.professional_id,
+        profile_id: p.profile_id,
+        role: p.role,
+        invited: p.invited || false,
+        accepted: p.accepted || false,
+        created_at: p.created_at
+      }))
+    }));
+    
+    console.log('Mapped events:', mappedEvents);
+    return mappedEvents;
+  } catch (err) {
+    console.error('Error in events fetcher:', err);
+    throw err;
+  }
 };
 
 // Função para mapear status do banco para tipos da interface
@@ -80,10 +95,25 @@ const mapEventStatus = (status: string): Event['status'] => {
 };
 
 export const useEvents = () => {
-  const { data, error, mutate } = useSWR('events-full', fetcher);
+  const { data, error, mutate } = useSWR('events-full', fetcher, {
+    onError: (error) => {
+      console.error('SWR error in useEvents:', error);
+    },
+    onSuccess: (data) => {
+      console.log('SWR success in useEvents:', data?.length, 'events loaded');
+    }
+  });
+  
+  console.log('useEvents hook state:', {
+    data: data?.length,
+    error: error?.message,
+    isLoading: !error && !data
+  });
   
   const createEventFromProposal = async (proposalData: any) => {
     try {
+      console.log('Creating event from proposal:', proposalData);
+      
       const eventData = {
         type: proposalData.event_type,
         date: proposalData.event_date,
@@ -102,8 +132,12 @@ export const useEvents = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error creating event from proposal:', error);
+        throw error;
+      }
 
+      console.log('Event created from proposal:', newEvent);
       mutate();
       return newEvent;
     } catch (err) {

@@ -1,31 +1,94 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Calendar, CheckCircle, Clock, AlertCircle, XCircle } from 'lucide-react';
+import { Plus, Calendar, CheckCircle, Clock, AlertCircle, XCircle, AlertTriangle } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import EventsTable from '../events/EventsTable';
 import CreateEventModal from '../events/CreateEventModal';
 import { useEvents } from '@/hooks/useEvents';
 import { useMobileLayout } from '@/hooks/useMobileLayout';
+import { useAuth } from '@/hooks/useAuth';
 
 const EventsTab = () => {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const { events, isLoading, refetch } = useEvents();
+  const { events, isLoading, error, refetch } = useEvents();
   const { isMobile } = useMobileLayout();
+  const { profile, isAuthenticated } = useAuth();
+
+  // Debug logs
+  useEffect(() => {
+    console.log('EventsTab - Debug Info:', {
+      isAuthenticated,
+      profile: profile ? { id: profile.id, role: profile.role, email: profile.email } : null,
+      eventsCount: events?.length || 0,
+      isLoading,
+      error: error?.message || error
+    });
+  }, [isAuthenticated, profile, events, isLoading, error]);
 
   const handleEventCreated = () => {
     setShowCreateDialog(false);
     refetch();
   };
 
+  // Verificação de autenticação
+  if (!isAuthenticated) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-6 text-center">
+            <AlertTriangle className="w-12 h-12 mx-auto mb-4 text-yellow-500" />
+            <h3 className="text-lg font-semibold mb-2">Acesso Negado</h3>
+            <p className="text-gray-600">Você precisa estar logado para acessar esta área.</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Verificação de permissão admin
+  if (profile?.role !== 'admin') {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-6 text-center">
+            <AlertTriangle className="w-12 h-12 mx-auto mb-4 text-red-500" />
+            <h3 className="text-lg font-semibold mb-2">Acesso Restrito</h3>
+            <p className="text-gray-600">Apenas administradores podem acessar a gestão de eventos.</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Tratamento de erro
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-6 text-center">
+            <AlertTriangle className="w-12 h-12 mx-auto mb-4 text-red-500" />
+            <h3 className="text-lg font-semibold mb-2">Erro ao Carregar Eventos</h3>
+            <p className="text-gray-600 mb-4">
+              {error?.message || 'Ocorreu um erro ao carregar os eventos.'}
+            </p>
+            <Button onClick={refetch} variant="outline">
+              Tentar Novamente
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   const stats = {
-    total: events.length,
-    planejamento: events.filter(e => e.status === 'em_planejamento').length,
-    confirmados: events.filter(e => e.status === 'confirmado').length,
-    andamento: events.filter(e => e.status === 'em_andamento').length,
-    concluidos: events.filter(e => e.status === 'concluido').length,
-    cancelados: events.filter(e => e.status === 'cancelado').length,
+    total: events?.length || 0,
+    planejamento: events?.filter(e => e.status === 'em_planejamento').length || 0,
+    confirmados: events?.filter(e => e.status === 'confirmado').length || 0,
+    andamento: events?.filter(e => e.status === 'em_andamento').length || 0,
+    concluidos: events?.filter(e => e.status === 'concluido').length || 0,
+    cancelados: events?.filter(e => e.status === 'cancelado').length || 0,
   };
 
   return (
@@ -50,16 +113,11 @@ const EventsTab = () => {
               {isMobile ? 'Novo Evento' : 'Criar Evento'}
             </Button>
           </DialogTrigger>
-          <DialogContent className={`${isMobile ? 'w-[95vw] max-w-[95vw] h-[90vh] max-h-[90vh]' : 'sm:max-w-[600px]'}`}>
-            <DialogHeader>
-              <DialogTitle>{isMobile ? 'Novo Evento' : 'Criar Novo Evento'}</DialogTitle>
-            </DialogHeader>
-            <CreateEventModal 
-              open={showCreateDialog} 
-              onOpenChange={setShowCreateDialog} 
-              onSuccess={handleEventCreated} 
-            />
-          </DialogContent>
+          <CreateEventModal 
+            open={showCreateDialog} 
+            onOpenChange={setShowCreateDialog} 
+            onSuccess={handleEventCreated} 
+          />
         </Dialog>
       </div>
 
@@ -149,7 +207,7 @@ const EventsTab = () => {
         </Card>
       </div>
 
-      <EventsTable events={events} isLoading={isLoading} onRefresh={refetch} />
+      <EventsTable events={events || []} isLoading={isLoading} onRefresh={refetch} />
     </div>
   );
 };
