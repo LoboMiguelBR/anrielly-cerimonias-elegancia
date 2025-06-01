@@ -8,7 +8,9 @@ import QuestionariosTab from '../tabs/QuestionariosTab';
 import ProfessionalsTab from '../tabs/ProfessionalsTab';
 import ClientesTab from '../tabs/ClientesTab';
 import EventsTab from '../tabs/EventsTab';
+import DashboardManager from '../dashboards/DashboardManager';
 import { useQuoteRequests } from '@/hooks/useQuoteRequests';
+import { useAuth } from '@/hooks/useAuth';
 
 interface TabContentRendererProps {
   activeTab: string;
@@ -22,61 +24,19 @@ const TabContentRenderer: React.FC<TabContentRendererProps> = ({
   
   // Hook para obter dados dos quotes
   const { data: quoteRequests } = useQuoteRequests();
-  
-  const DashboardSummary = () => (
-    <div className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total de Leads</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{quoteRequests?.length || 0}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Leads Aguardando</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {quoteRequests?.filter(q => q.status === 'aguardando').length || 0}
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Leads Convertidos</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {quoteRequests?.filter(q => q.status === 'convertido').length || 0}
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Taxa de Conversão</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {quoteRequests?.length > 0 
-                ? Math.round((quoteRequests.filter(q => q.status === 'convertido').length / quoteRequests.length) * 100)
-                : 0}%
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  );
+  const { profile } = useAuth();
   
   const renderTabContent = () => {
     switch (activeTab) {
       
       case 'dashboard':
-        return <DashboardSummary />;
+        return <DashboardManager />;
 
       case 'leads':
+        // Apenas admin pode ver leads
+        if (profile?.role !== 'admin') {
+          return <div className="text-center py-8 text-gray-500">Acesso restrito</div>;
+        }
         return <LeadsTab />;
 
       case 'propostas':
@@ -92,17 +52,24 @@ const TabContentRenderer: React.FC<TabContentRendererProps> = ({
         return <QuestionariosTab />;
 
       case 'professionals':
+        // Apenas admin pode gerenciar profissionais
+        if (profile?.role !== 'admin') {
+          return <div className="text-center py-8 text-gray-500">Acesso restrito</div>;
+        }
         return <ProfessionalsTab />;
         
       case 'clientes':
+        // Apenas admin pode gerenciar clientes
+        if (profile?.role !== 'admin') {
+          return <div className="text-center py-8 text-gray-500">Acesso restrito</div>;
+        }
         return <ClientesTab />;
         
       case 'eventos':
         return <EventsTab />;
       
-      
       default:
-        return <DashboardSummary />;
+        return <DashboardManager />;
     }
   };
 
