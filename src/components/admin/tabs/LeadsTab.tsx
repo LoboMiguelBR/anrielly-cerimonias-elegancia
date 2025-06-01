@@ -1,22 +1,30 @@
 
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Plus, Users, Clock, CheckCircle, XCircle } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import LeadsTable from '../leads/LeadsTable';
+import QuoteRequestsTable from '../QuoteRequestsTable';
 import AddLeadForm from '../leads/AddLeadForm';
 import { useQuoteRequests } from '@/hooks/useQuoteRequests';
 import { useMobileLayout } from '@/hooks/useMobileLayout';
 
 const LeadsTab = () => {
   const [showAddDialog, setShowAddDialog] = useState(false);
-  const { data: leads, isLoading, mutate } = useQuoteRequests();
+  const { data: leads, isLoading, error, mutate } = useQuoteRequests();
   const { isMobile } = useMobileLayout();
 
   const handleLeadAdded = () => {
     setShowAddDialog(false);
     mutate();
+  };
+
+  const stats = {
+    total: leads?.length || 0,
+    aguardando: leads?.filter(l => l.status === 'aguardando').length || 0,
+    respondido: leads?.filter(l => l.status === 'respondido').length || 0,
+    convertido: leads?.filter(l => l.status === 'convertido').length || 0,
+    rejeitado: leads?.filter(l => l.status === 'rejeitado').length || 0,
   };
 
   return (
@@ -28,70 +36,105 @@ const LeadsTab = () => {
           </h2>
           <p className={`text-gray-600 ${isMobile ? 'text-sm' : ''}`}>
             {isMobile 
-              ? 'Gerencie seus leads capturados'
-              : 'Gerencie leads capturados automaticamente ou adicione manualmente'
+              ? 'Gerencie seus leads'
+              : 'Gerencie solicitações de orçamento e leads'
             }
           </p>
         </div>
         
         <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
           <DialogTrigger asChild>
-            <Button className={`bg-rose-500 hover:bg-rose-600 text-white ${isMobile ? 'w-full h-12 text-base' : ''}`}>
+            <Button className={`bg-purple-500 hover:bg-purple-600 text-white ${isMobile ? 'w-full h-12 text-base' : ''}`}>
               <Plus className="w-4 h-4 mr-2" />
-              {isMobile ? 'Novo Lead' : 'Adicionar Lead Manual'}
+              {isMobile ? 'Novo Lead' : 'Adicionar Lead'}
             </Button>
           </DialogTrigger>
-          <DialogContent className={`${isMobile ? 'w-[95vw] max-w-[95vw] h-[90vh] max-h-[90vh]' : 'sm:max-w-[600px]'}`}>
+          <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
-              <DialogTitle>{isMobile ? 'Novo Lead' : 'Cadastrar Novo Lead'}</DialogTitle>
+              <DialogTitle>Adicionar Novo Lead</DialogTitle>
             </DialogHeader>
             <AddLeadForm onSuccess={handleLeadAdded} />
           </DialogContent>
         </Dialog>
       </div>
 
-      <div className={`grid gap-4 mb-6 ${isMobile ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-3'}`}>
+      <div className={`grid gap-4 mb-6 ${isMobile ? 'grid-cols-2' : 'grid-cols-2 md:grid-cols-5'}`}>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className={`${isMobile ? 'text-sm' : 'text-sm'} font-medium text-gray-600`}>
-              Total de Leads
+            <CardTitle className={`${isMobile ? 'text-xs' : 'text-sm'} font-medium text-gray-600 flex items-center gap-1`}>
+              <Users className="w-4 h-4" />
+              Total
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold text-gray-900`}>
-              {leads?.length || 0}
+            <div className={`${isMobile ? 'text-lg' : 'text-2xl'} font-bold text-gray-900`}>
+              {stats.total}
             </div>
           </CardContent>
         </Card>
         
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className={`${isMobile ? 'text-sm' : 'text-sm'} font-medium text-gray-600`}>
+            <CardTitle className={`${isMobile ? 'text-xs' : 'text-sm'} font-medium text-gray-600 flex items-center gap-1`}>
+              <Clock className="w-4 h-4" />
               Aguardando
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold text-orange-600`}>
-              {leads?.filter(lead => lead.status === 'aguardando').length || 0}
+            <div className={`${isMobile ? 'text-lg' : 'text-2xl'} font-bold text-orange-600`}>
+              {stats.aguardando}
             </div>
           </CardContent>
         </Card>
         
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className={`${isMobile ? 'text-sm' : 'text-sm'} font-medium text-gray-600`}>
-              Convertidos
+            <CardTitle className={`${isMobile ? 'text-xs' : 'text-sm'} font-medium text-gray-600 flex items-center gap-1`}>
+              <CheckCircle className="w-4 h-4" />
+              Respondido
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold text-green-600`}>
-              {leads?.filter(lead => lead.status === 'convertido').length || 0}
+            <div className={`${isMobile ? 'text-lg' : 'text-2xl'} font-bold text-blue-600`}>
+              {stats.respondido}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className={`${isMobile ? 'text-xs' : 'text-sm'} font-medium text-gray-600 flex items-center gap-1`}>
+              <CheckCircle className="w-4 h-4" />
+              Convertido
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className={`${isMobile ? 'text-lg' : 'text-2xl'} font-bold text-green-600`}>
+              {stats.convertido}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className={`${isMobile ? 'text-xs' : 'text-sm'} font-medium text-gray-600 flex items-center gap-1`}>
+              <XCircle className="w-4 h-4" />
+              Rejeitado
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className={`${isMobile ? 'text-lg' : 'text-2xl'} font-bold text-red-600`}>
+              {stats.rejeitado}
             </div>
           </CardContent>
         </Card>
       </div>
 
-      <LeadsTable leads={leads || []} isLoading={isLoading} onRefresh={mutate} />
+      <QuoteRequestsTable 
+        quoteRequests={leads || []} 
+        isLoading={isLoading} 
+        onRefresh={() => mutate()} 
+      />
     </div>
   );
 };

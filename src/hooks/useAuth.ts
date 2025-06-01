@@ -24,17 +24,14 @@ export const useAuth = () => {
     try {
       console.log('Fetching profile for user:', userId);
       
+      // Usar .maybeSingle() para evitar erro quando perfil não existe
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
-        .single();
+        .maybeSingle();
 
       if (error) {
-        if (error.code === 'PGRST116') {
-          console.log('Profile not found, will be created by trigger');
-          return null;
-        }
         console.error('Erro ao buscar perfil:', error);
         return null;
       }

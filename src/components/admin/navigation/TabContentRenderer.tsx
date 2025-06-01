@@ -63,10 +63,7 @@ const TabContentRenderer: React.FC<TabContentRendererProps> = ({
         return <DashboardManager />;
 
       case 'leads':
-        // Admin tem acesso total, outros roles podem ter restrições
-        if (profile?.role !== 'admin' && profile?.role !== 'cerimonialista') {
-          return <div className="text-center py-8 text-gray-500">Acesso restrito</div>;
-        }
+        // Remover verificação de role - deixar RLS controlar o acesso
         return <LeadsTab />;
 
       case 'quotes':
@@ -92,14 +89,11 @@ const TabContentRenderer: React.FC<TabContentRendererProps> = ({
         return <QuestionariosTab />;
 
       case 'clientes':
-        // Admin tem acesso total, outros podem ter restrições específicas
-        if (profile?.role !== 'admin' && profile?.role !== 'cerimonialista') {
-          return <div className="text-center py-8 text-gray-500">Acesso restrito</div>;
-        }
+        // Remover verificação de role - deixar RLS controlar o acesso
         return <ClientesTab />;
 
       case 'professionals':
-        // Admin tem acesso total
+        // Manter verificação apenas para admin (funcionalidade sensível)
         if (profile?.role !== 'admin') {
           return <div className="text-center py-8 text-gray-500">Acesso restrito a administradores</div>;
         }
