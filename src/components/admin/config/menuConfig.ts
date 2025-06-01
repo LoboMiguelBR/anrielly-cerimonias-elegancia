@@ -92,3 +92,10 @@ export const menuConfig: MenuConfig = {
 };
 
 export const menuSections = Object.values(menuConfig);
+
+// Função para obter todos os itens de menu de todas as seções
+export const getAllMenuItems = (): MenuItem[] => {
+  return menuSections.reduce((allItems: MenuItem[], section) => {
+    return [...allItems, ...section.items];
+  }, []);
+};

@@ -8,18 +8,20 @@ import QuestionariosTab from '../tabs/QuestionariosTab';
 import ProfessionalsTab from '../tabs/ProfessionalsTab';
 import ClientesTab from '../tabs/ClientesTab';
 import EventsTab from '../tabs/EventsTab';
+import { useQuoteRequests } from '@/hooks/useQuoteRequests';
 
 interface TabContentRendererProps {
   activeTab: string;
-  quoteRequests: any[];
   quoteIdFromUrl?: string | null;
 }
 
 const TabContentRenderer: React.FC<TabContentRendererProps> = ({ 
   activeTab, 
-  quoteRequests, 
   quoteIdFromUrl 
 }) => {
+  
+  // Hook para obter dados dos quotes
+  const { quoteRequests } = useQuoteRequests();
   
   const DashboardSummary = () => (
     <div className="space-y-6">

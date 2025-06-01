@@ -34,7 +34,7 @@ export const useProfessionals = () => {
   const { data, error, mutate } = useSWR('professionals', fetcher);
   const [loading, setLoading] = useState(false);
 
-  const addProfessional = async (professionalData: Partial<Professional>): Promise<Professional> => {
+  const addProfessional = async (professionalData: Omit<Professional, 'id' | 'created_at' | 'updated_at'>): Promise<Professional> => {
     try {
       setLoading(true);
       const { data: newProfessional, error } = await supabase
