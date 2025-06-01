@@ -7,7 +7,7 @@ export interface EventParticipant {
   event_id: string;
   user_email: string;
   name?: string;
-  participant_type: 'cliente' | 'cerimonialista';
+  participant_type: string; // Mudado para string para aceitar qualquer valor do banco
   client_id?: string;
   professional_id?: string;
   profile_id?: string;
@@ -51,7 +51,20 @@ const fetcher = async (): Promise<Event[]> => {
   return (data || []).map(event => ({
     ...event,
     status: mapEventStatus(event.status),
-    participants: event.participants || []
+    participants: (event.participants || []).map((p: any) => ({
+      id: p.id,
+      event_id: p.event_id,
+      user_email: p.user_email,
+      name: p.name,
+      participant_type: p.participant_type || 'cliente',
+      client_id: p.client_id,
+      professional_id: p.professional_id,
+      profile_id: p.profile_id,
+      role: p.role,
+      invited: p.invited || false,
+      accepted: p.accepted || false,
+      created_at: p.created_at
+    }))
   }));
 };
 

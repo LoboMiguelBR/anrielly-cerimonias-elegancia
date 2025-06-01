@@ -35,7 +35,8 @@ const AuthPage = () => {
         if (error) throw error;
       }
       
-      navigate('/admin');
+      // Redirect baseado no role será feito pelo useAuth
+      navigate('/dashboard');
     } catch (err: any) {
       setError(err.message);
     } finally {

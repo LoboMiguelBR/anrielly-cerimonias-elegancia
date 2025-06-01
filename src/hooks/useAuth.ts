@@ -23,6 +23,7 @@ export const useAuth = () => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('Auth event:', event, session?.user?.email);
         setSession(session);
         setUser(session?.user ?? null);
         
@@ -39,6 +40,7 @@ export const useAuth = () => {
             updated_at: new Date().toISOString()
           };
           
+          console.log('Profile criado:', mockProfile);
           setProfile(mockProfile);
         } else {
           setProfile(null);
@@ -49,8 +51,23 @@ export const useAuth = () => {
 
     // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('Session inicial:', session?.user?.email);
       setSession(session);
       setUser(session?.user ?? null);
+      
+      if (session?.user) {
+        const mockProfile: UserProfile = {
+          id: session.user.id,
+          email: session.user.email || '',
+          name: session.user.user_metadata?.name || session.user.email?.split('@')[0],
+          role: session.user.user_metadata?.role || 'cliente',
+          avatar_url: session.user.user_metadata?.avatar_url,
+          created_at: session.user.created_at,
+          updated_at: new Date().toISOString()
+        };
+        setProfile(mockProfile);
+      }
+      
       setLoading(false);
     });
 
