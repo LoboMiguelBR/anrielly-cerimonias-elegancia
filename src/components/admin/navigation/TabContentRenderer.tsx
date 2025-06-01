@@ -21,7 +21,7 @@ const TabContentRenderer: React.FC<TabContentRendererProps> = ({
 }) => {
   
   // Hook para obter dados dos quotes
-  const { quoteRequests } = useQuoteRequests();
+  const { data: quoteRequests } = useQuoteRequests();
   
   const DashboardSummary = () => (
     <div className="space-y-6">
@@ -31,7 +31,7 @@ const TabContentRenderer: React.FC<TabContentRendererProps> = ({
             <CardTitle className="text-sm font-medium">Total de Leads</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{quoteRequests.length}</div>
+            <div className="text-2xl font-bold">{quoteRequests?.length || 0}</div>
           </CardContent>
         </Card>
         <Card>
@@ -40,7 +40,7 @@ const TabContentRenderer: React.FC<TabContentRendererProps> = ({
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {quoteRequests.filter(q => q.status === 'aguardando').length}
+              {quoteRequests?.filter(q => q.status === 'aguardando').length || 0}
             </div>
           </CardContent>
         </Card>
@@ -50,7 +50,7 @@ const TabContentRenderer: React.FC<TabContentRendererProps> = ({
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {quoteRequests.filter(q => q.status === 'convertido').length}
+              {quoteRequests?.filter(q => q.status === 'convertido').length || 0}
             </div>
           </CardContent>
         </Card>
@@ -60,7 +60,7 @@ const TabContentRenderer: React.FC<TabContentRendererProps> = ({
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {quoteRequests.length > 0 
+              {quoteRequests?.length > 0 
                 ? Math.round((quoteRequests.filter(q => q.status === 'convertido').length / quoteRequests.length) * 100)
                 : 0}%
             </div>
@@ -81,7 +81,7 @@ const TabContentRenderer: React.FC<TabContentRendererProps> = ({
 
       case 'propostas':
         return <ProposalsMain 
-          quoteRequests={quoteRequests} 
+          quoteRequests={quoteRequests || []} 
           quoteIdFromUrl={quoteIdFromUrl} 
         />;
 
