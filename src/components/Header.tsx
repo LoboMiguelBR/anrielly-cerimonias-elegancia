@@ -46,27 +46,6 @@ const Header = () => {
               Contato
             </a>
           </nav>
-          
-          <div className="hidden md:flex items-center justify-end md:flex-1 lg:w-0 space-x-4">
-            <Link
-              to="/area-cliente"
-              className="text-base font-medium text-gray-500 hover:text-gray-900"
-            >
-              Área do Cliente
-            </Link>
-            <Link
-              to="/area-profissional"
-              className="text-base font-medium text-gray-500 hover:text-gray-900"
-            >
-              Área do Profissional
-            </Link>
-            <Link
-              to="/admin/login"
-              className="ml-8 whitespace-nowrap inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-purple-600 hover:bg-purple-700"
-            >
-              Área Admin
-            </Link>
-          </div>
         </div>
       </div>
 
@@ -88,26 +67,6 @@ const Header = () => {
           <a href="#contact" className="text-gray-500 hover:text-gray-900 block px-3 py-2 text-base font-medium">
             Contato
           </a>
-          <div className="border-t border-gray-200 pt-4">
-            <Link
-              to="/area-cliente"
-              className="text-gray-500 hover:text-gray-900 block px-3 py-2 text-base font-medium"
-            >
-              Área do Cliente
-            </Link>
-            <Link
-              to="/area-profissional"
-              className="text-gray-500 hover:text-gray-900 block px-3 py-2 text-base font-medium"
-            >
-              Área do Profissional
-            </Link>
-            <Link
-              to="/admin/login"
-              className="bg-purple-600 text-white block px-3 py-2 text-base font-medium rounded-md mx-3 mt-3"
-            >
-              Área Admin
-            </Link>
-          </div>
         </div>
       </div>
     </header>

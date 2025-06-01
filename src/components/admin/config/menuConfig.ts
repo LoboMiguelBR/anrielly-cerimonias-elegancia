@@ -1,4 +1,3 @@
-
 import { 
   LayoutDashboard, 
   ListChecks, 
@@ -13,7 +12,6 @@ import {
   MessageSquare,
   Heart,
   Mail,
-  FileTemplate,
   Briefcase
 } from 'lucide-react';
 
@@ -148,13 +146,13 @@ export const menuConfig: MenuConfig = {
       {
         id: 'proposal-templates',
         label: 'Templates de Proposta',
-        icon: FileTemplate,
+        icon: FileText,
         component: 'ProposalTemplatesTab'
       },
       {
         id: 'contract-templates',
         label: 'Templates de Contrato',
-        icon: FileTemplate,
+        icon: FileText,
         component: 'ContractTemplatesTab'
       },
       {
