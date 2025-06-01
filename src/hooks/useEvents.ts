@@ -25,6 +25,7 @@ export interface Event {
   status: 'em_planejamento' | 'confirmado' | 'em_andamento' | 'concluido' | 'cancelado';
   notes?: string;
   client_id?: string;
+  cerimonialista_id?: string;
   description?: string;
   created_at: string;
   updated_at: string;

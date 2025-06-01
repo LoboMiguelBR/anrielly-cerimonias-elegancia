@@ -33,7 +33,15 @@ export const useAuth = () => {
         return null;
       }
 
-      return data;
+      // Type assertion para garantir compatibilidade com UserProfile
+      if (data) {
+        return {
+          ...data,
+          role: data.role as UserProfile['role']
+        } as UserProfile;
+      }
+
+      return null;
     } catch (error) {
       console.error('Erro ao buscar perfil:', error);
       return null;
@@ -108,7 +116,12 @@ export const useAuth = () => {
       .single();
 
     if (!error && data) {
-      setProfile(data);
+      // Type assertion para garantir compatibilidade
+      const updatedProfile = {
+        ...data,
+        role: data.role as UserProfile['role']
+      } as UserProfile;
+      setProfile(updatedProfile);
     }
 
     return { data, error };
