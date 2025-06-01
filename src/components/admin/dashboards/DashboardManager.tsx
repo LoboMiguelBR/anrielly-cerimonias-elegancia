@@ -5,10 +5,12 @@ import NoivaDashboard from './NoivaDashboard';
 import ClienteDashboard from '../../dashboards/ClienteDashboard';
 import CerimoniaListaDashboard from './CerimoniaListaDashboard';
 import CerimonialistaDashboard from '../../dashboards/CerimonialistaDashboard';
-import DashboardSummary from '../DashboardSummary';
+import DashboardTab from '../tabs/DashboardTab';
 
 const DashboardManager = () => {
   const { profile, loading } = useAuth();
+
+  console.log('DashboardManager - Profile:', profile);
 
   if (loading) {
     return (
@@ -22,10 +24,12 @@ const DashboardManager = () => {
   }
 
   if (!profile) {
-    return <DashboardSummary />;
+    return <DashboardTab onNavigate={() => {}} />;
   }
 
   switch (profile.role) {
+    case 'admin':
+      return <DashboardTab onNavigate={() => {}} />;
     case 'noivo':
       return <NoivoDashboard />;
     case 'noiva':
@@ -34,10 +38,8 @@ const DashboardManager = () => {
       return <ClienteDashboard />;
     case 'cerimonialista':
       return <CerimonialistaDashboard />;
-    case 'admin':
-      return <DashboardSummary />;
     default:
-      return <DashboardSummary />;
+      return <DashboardTab onNavigate={() => {}} />;
   }
 };
 

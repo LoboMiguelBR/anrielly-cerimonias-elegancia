@@ -4,38 +4,43 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 export interface Participant {
-  id: string;
+  id?: string;
   event_id: string;
   user_email: string;
-  name?: string;
+  name: string;
   participant_type: 'cliente' | 'cerimonialista';
-  client_id?: string;
-  professional_id?: string;
   role: string;
   invited: boolean;
   accepted: boolean;
-  created_at: string;
+  client_id?: string;
+  professional_id?: string;
 }
 
 export const useParticipants = () => {
   const [loading, setLoading] = useState(false);
 
-  const addParticipant = async (participantData: Omit<Participant, 'id' | 'created_at'>) => {
+  const addParticipant = async (participant: Participant): Promise<boolean> => {
+    setLoading(true);
     try {
-      setLoading(true);
-      const { error } = await supabase
+      console.log('Adding participant:', participant);
+      
+      const { data, error } = await supabase
         .from('event_participants')
-        .insert([{
-          ...participantData,
-          role: participantData.role as any
-        }]);
+        .insert([participant])
+        .select()
+        .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error adding participant:', error);
+        toast.error('Erro ao adicionar participante: ' + error.message);
+        return false;
+      }
 
+      console.log('Participant added successfully:', data);
       toast.success('Participante adicionado com sucesso!');
       return true;
     } catch (err) {
-      console.error('Erro ao adicionar participante:', err);
+      console.error('Error adding participant:', err);
       toast.error('Erro ao adicionar participante');
       return false;
     } finally {
@@ -43,20 +48,27 @@ export const useParticipants = () => {
     }
   };
 
-  const removeParticipant = async (participantId: string) => {
+  const removeParticipant = async (participantId: string): Promise<boolean> => {
+    setLoading(true);
     try {
-      setLoading(true);
+      console.log('Removing participant:', participantId);
+      
       const { error } = await supabase
         .from('event_participants')
         .delete()
         .eq('id', participantId);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error removing participant:', error);
+        toast.error('Erro ao remover participante: ' + error.message);
+        return false;
+      }
 
+      console.log('Participant removed successfully');
       toast.success('Participante removido com sucesso!');
       return true;
     } catch (err) {
-      console.error('Erro ao remover participante:', err);
+      console.error('Error removing participant:', err);
       toast.error('Erro ao remover participante');
       return false;
     } finally {

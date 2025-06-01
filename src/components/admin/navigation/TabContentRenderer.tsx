@@ -31,12 +31,31 @@ const TabContentRenderer: React.FC<TabContentRendererProps> = ({
   quoteIdFromUrl 
 }) => {
   
-  // Hook para obter dados dos quotes
   const { data: quoteRequests } = useQuoteRequests();
-  const { profile } = useAuth();
+  const { profile, isAuthenticated } = useAuth();
+  
+  console.log('TabContentRenderer - Profile check:', {
+    activeTab,
+    isAuthenticated,
+    profile: profile ? { role: profile.role, email: profile.email } : null
+  });
+
+  // Verificação geral de autenticação
+  if (!isAuthenticated) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-6 text-center">
+            <h3 className="text-lg font-semibold mb-2 text-red-600">Acesso Negado</h3>
+            <p className="text-gray-600">Você precisa estar logado para acessar esta área.</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
   
   const renderTabContent = () => {
-    console.log('TabContentRenderer - activeTab:', activeTab, 'profile:', profile?.role);
+    console.log('TabContentRenderer - Rendering tab:', activeTab);
     
     switch (activeTab) {
       
@@ -44,8 +63,8 @@ const TabContentRenderer: React.FC<TabContentRendererProps> = ({
         return <DashboardManager />;
 
       case 'leads':
-        // Apenas admin pode ver leads
-        if (profile?.role !== 'admin') {
+        // Admin tem acesso total, outros roles podem ter restrições
+        if (profile?.role !== 'admin' && profile?.role !== 'cerimonialista') {
           return <div className="text-center py-8 text-gray-500">Acesso restrito</div>;
         }
         return <LeadsTab />;
@@ -67,41 +86,22 @@ const TabContentRenderer: React.FC<TabContentRendererProps> = ({
 
       case 'eventos':
         console.log('Rendering EventsTab...');
-        try {
-          return <EventsTab />;
-        } catch (error) {
-          console.error('Error rendering EventsTab:', error);
-          return (
-            <div className="flex items-center justify-center min-h-[400px]">
-              <Card className="w-full max-w-md">
-                <CardContent className="p-6 text-center">
-                  <h3 className="text-lg font-semibold mb-2 text-red-600">Erro na Página de Eventos</h3>
-                  <p className="text-gray-600 mb-4">
-                    Ocorreu um erro ao carregar a página de eventos.
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    Verifique o console para mais detalhes.
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-          );
-        }
+        return <EventsTab />;
 
       case 'questionarios':
         return <QuestionariosTab />;
 
       case 'clientes':
-        // Apenas admin pode gerenciar clientes
-        if (profile?.role !== 'admin') {
+        // Admin tem acesso total, outros podem ter restrições específicas
+        if (profile?.role !== 'admin' && profile?.role !== 'cerimonialista') {
           return <div className="text-center py-8 text-gray-500">Acesso restrito</div>;
         }
         return <ClientesTab />;
 
       case 'professionals':
-        // Apenas admin pode gerenciar profissionais
+        // Admin tem acesso total
         if (profile?.role !== 'admin') {
-          return <div className="text-center py-8 text-gray-500">Acesso restrito</div>;
+          return <div className="text-center py-8 text-gray-500">Acesso restrito a administradores</div>;
         }
         return <ProfessionalsTab />;
 

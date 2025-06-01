@@ -22,18 +22,25 @@ export const useAuth = () => {
 
   const fetchProfile = async (userId: string) => {
     try {
+      console.log('Fetching profile for user:', userId);
+      
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .single();
 
-      if (error && error.code !== 'PGRST116') {
+      if (error) {
+        if (error.code === 'PGRST116') {
+          console.log('Profile not found, will be created by trigger');
+          return null;
+        }
         console.error('Erro ao buscar perfil:', error);
         return null;
       }
 
-      // Type assertion para garantir compatibilidade com UserProfile
+      console.log('Profile fetched successfully:', data);
+      
       if (data) {
         return {
           ...data,
@@ -58,6 +65,15 @@ export const useAuth = () => {
         if (session?.user) {
           const profileData = await fetchProfile(session.user.id);
           setProfile(profileData);
+          
+          // Se não encontrar o perfil, aguardar um pouco e tentar novamente
+          if (!profileData) {
+            console.log('Profile not found, retrying in 2 seconds...');
+            setTimeout(async () => {
+              const retryProfile = await fetchProfile(session.user.id);
+              setProfile(retryProfile);
+            }, 2000);
+          }
         } else {
           setProfile(null);
         }
@@ -73,6 +89,15 @@ export const useAuth = () => {
       if (session?.user) {
         const profileData = await fetchProfile(session.user.id);
         setProfile(profileData);
+        
+        // Se não encontrar o perfil, aguardar um pouco e tentar novamente
+        if (!profileData) {
+          console.log('Profile not found, retrying in 2 seconds...');
+          setTimeout(async () => {
+            const retryProfile = await fetchProfile(session.user.id);
+            setProfile(retryProfile);
+          }, 2000);
+        }
       }
       
       setLoading(false);
@@ -116,7 +141,6 @@ export const useAuth = () => {
       .single();
 
     if (!error && data) {
-      // Type assertion para garantir compatibilidade
       const updatedProfile = {
         ...data,
         role: data.role as UserProfile['role']
