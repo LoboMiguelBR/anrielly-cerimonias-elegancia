@@ -1,7 +1,8 @@
+
 import {
   BarChart3,
   Calendar,
-  Canvas,
+  Palette,
   FileText,
   Settings,
   ShoppingBag,
@@ -76,7 +77,7 @@ export const primaryMenuItems: MenuItem[] = [
   {
     id: "website",
     label: "Website",
-    icon: Canvas,
+    icon: Palette,
     group: "main"
   }
 ];
@@ -93,4 +94,17 @@ export const secondaryMenuItems: MenuItem[] = [
 
 export const getAllMenuItems = (): MenuItem[] => {
   return [...primaryMenuItems, ...secondaryMenuItems];
+};
+
+export const getMenuSections = () => {
+  return [
+    {
+      title: "Principal",
+      items: primaryMenuItems
+    },
+    {
+      title: "Configurações",
+      items: secondaryMenuItems
+    }
+  ];
 };

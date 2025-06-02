@@ -1,11 +1,9 @@
+
 import React from 'react';
 import DashboardTab from '../tabs/DashboardTab';
 import ProposalsMain from '../proposals/ProposalsMain';
 import ContractsMain from '../contracts/ContractsMain';
-import QuoteRequestsMain from '../quote-requests/QuoteRequestsMain';
 import QuestionnairesMain from '../questionnaires/QuestionnairesMain';
-import TemplatesMain from '../templates/TemplatesMain';
-import ProfessionalsMain from '../professionals/ProfessionalsMain';
 import GestaoComercialTab from '../tabs/GestaoComercialTab';
 import EventsTab from '../tabs/EventsTab';
 import CalendarioEventosTab from '../tabs/CalendarioEventosTab';
@@ -15,22 +13,21 @@ interface TabContentRendererProps {
 }
 
 const TabContentRenderer = ({ activeTab }: TabContentRendererProps) => {
+  const handleNavigate = (tab: string) => {
+    // Navigation logic can be implemented here if needed
+    console.log('Navigate to:', tab);
+  };
+
   const renderTabContent = () => {
     switch (activeTab) {
       case "dashboard":
-        return <DashboardTab />;
+        return <DashboardTab onNavigate={handleNavigate} />;
       case "proposals":
         return <ProposalsMain quoteRequests={[]} />;
       case "contracts":
         return <ContractsMain />;
-      case "quote-requests":
-        return <QuoteRequestsMain />;
-      case "questionnaires":
+      case "questionarios":
         return <QuestionnairesMain />;
-      case "templates":
-        return <TemplatesMain />;
-      case "professionals":
-        return <ProfessionalsMain />;
       case "gestao-comercial":
         return <GestaoComercialTab />;
       case "events":
@@ -38,7 +35,7 @@ const TabContentRenderer = ({ activeTab }: TabContentRendererProps) => {
       case "calendario-eventos":
         return <CalendarioEventosTab />;
       default:
-        return <DashboardTab />;
+        return <DashboardTab onNavigate={handleNavigate} />;
     }
   };
 
