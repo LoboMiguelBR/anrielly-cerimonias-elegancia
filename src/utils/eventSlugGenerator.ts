@@ -79,6 +79,7 @@ export const TIPOS_EVENTO = [
   'Chá de Panela',
   'Renovação de Votos',
   'Bodas',
+  'Eventos corporativos',
   'Outro'
 ] as const;
 

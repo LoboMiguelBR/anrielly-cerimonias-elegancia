@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { ChevronDown, ChevronUp, Edit, Trash2, Plus, GripVertical } from 'lucide-react'
 import { useQuestionarioStructure } from '@/hooks/useQuestionarioStructure'
 
@@ -99,126 +100,155 @@ const QuestionarioStructureEditor = ({ questionarioId, structure }: Questionario
   if (!structure) return null
 
   return (
-    <div className="h-full flex flex-col">
-      <ScrollArea className="flex-1 p-4">
-        <div className="space-y-4">
-          {structure.secoes.map((secao: any) => {
-            const perguntasSecao = structure.perguntas
-              .filter((p: any) => p.secao_id === secao.id)
-              .sort((a: any, b: any) => a.ordem - b.ordem)
-            
-            const isExpanded = expandedSections.has(secao.id)
-            
-            return (
-              <Card key={secao.id}>
-                <CardHeader 
-                  className="cursor-pointer" 
-                  onClick={() => toggleSection(secao.id)}
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle className="text-lg">{secao.titulo}</CardTitle>
-                      {secao.descricao && (
-                        <p className="text-sm text-gray-600 mt-1">{secao.descricao}</p>
-                      )}
+    <TooltipProvider>
+      <div className="h-full flex flex-col">
+        <ScrollArea className="flex-1 p-4">
+          <div className="space-y-4">
+            {structure.secoes.map((secao: any) => {
+              const perguntasSecao = structure.perguntas
+                .filter((p: any) => p.secao_id === secao.id)
+                .sort((a: any, b: any) => a.ordem - b.ordem)
+              
+              const isExpanded = expandedSections.has(secao.id)
+              
+              return (
+                <Card key={secao.id}>
+                  <CardHeader 
+                    className="cursor-pointer" 
+                    onClick={() => toggleSection(secao.id)}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <CardTitle className="text-lg">{secao.titulo}</CardTitle>
+                        {secao.descricao && (
+                          <p className="text-sm text-gray-600 mt-1">{secao.descricao}</p>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline">
+                          {perguntasSecao.length} {perguntasSecao.length === 1 ? 'pergunta' : 'perguntas'}
+                        </Badge>
+                        {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline">
-                        {perguntasSecao.length} {perguntasSecao.length === 1 ? 'pergunta' : 'perguntas'}
-                      </Badge>
-                      {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                    </div>
-                  </div>
-                </CardHeader>
-                
-                {isExpanded && (
-                  <CardContent>
-                    <div className="space-y-3">
-                      {perguntasSecao.map((pergunta: any, index: number) => (
-                        <div key={pergunta.id} className="border rounded-lg p-3 bg-gray-50">
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-2">
-                                <GripVertical className="h-4 w-4 text-gray-400" />
-                                <span className="text-sm font-medium">#{pergunta.ordem}</span>
-                                <Badge variant={pergunta.ativo ? 'default' : 'secondary'} className="text-xs">
-                                  {pergunta.ativo ? 'Ativa' : 'Inativa'}
-                                </Badge>
-                                {pergunta.obrigatoria && (
-                                  <Badge variant="destructive" className="text-xs">Obrigatória</Badge>
-                                )}
+                  </CardHeader>
+                  
+                  {isExpanded && (
+                    <CardContent>
+                      <div className="space-y-3">
+                        {perguntasSecao.map((pergunta: any, index: number) => (
+                          <div key={pergunta.id} className="border rounded-lg p-4 bg-gray-50">
+                            <div className="flex items-start justify-between gap-4">
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <GripVertical className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                                  <span className="text-sm font-medium">#{pergunta.ordem}</span>
+                                  <Badge variant={pergunta.ativo ? 'default' : 'secondary'} className="text-xs">
+                                    {pergunta.ativo ? 'Ativa' : 'Inativa'}
+                                  </Badge>
+                                  {pergunta.obrigatoria && (
+                                    <Badge variant="destructive" className="text-xs">Obrigatória</Badge>
+                                  )}
+                                </div>
+                                <p className="text-sm font-medium text-gray-900 mb-1">{pergunta.texto}</p>
+                                <p className="text-xs text-gray-500">
+                                  Tipo: {pergunta.tipo_resposta}
+                                </p>
                               </div>
-                              <p className="text-sm">{pergunta.texto}</p>
-                              <p className="text-xs text-gray-500 mt-1">
-                                Tipo: {pergunta.tipo_resposta}
-                              </p>
-                            </div>
-                            <div className="flex items-center gap-1 ml-4">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => movePergunta(pergunta.id, 'up')}
-                                disabled={index === 0}
-                              >
-                                <ChevronUp className="h-3 w-3" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => movePergunta(pergunta.id, 'down')}
-                                disabled={index === perguntasSecao.length - 1}
-                              >
-                                <ChevronDown className="h-3 w-3" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleEditPergunta(pergunta)}
-                              >
-                                <Edit className="h-3 w-3" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleDeletePergunta(pergunta.id)}
-                                className="text-red-600 hover:text-red-700"
-                              >
-                                <Trash2 className="h-3 w-3" />
-                              </Button>
+                              
+                              <div className="flex items-center gap-1 flex-shrink-0">
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => movePergunta(pergunta.id, 'up')}
+                                      disabled={index === 0}
+                                      className="h-8 w-8 p-0"
+                                    >
+                                      <ChevronUp className="h-3 w-3" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>Mover para cima</TooltipContent>
+                                </Tooltip>
+                                
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => movePergunta(pergunta.id, 'down')}
+                                      disabled={index === perguntasSecao.length - 1}
+                                      className="h-8 w-8 p-0"
+                                    >
+                                      <ChevronDown className="h-3 w-3" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>Mover para baixo</TooltipContent>
+                                </Tooltip>
+                                
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => handleEditPergunta(pergunta)}
+                                      className="h-8 w-8 p-0"
+                                    >
+                                      <Edit className="h-3 w-3" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>Editar pergunta</TooltipContent>
+                                </Tooltip>
+                                
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => handleDeletePergunta(pergunta.id)}
+                                      className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                    >
+                                      <Trash2 className="h-3 w-3" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>Excluir pergunta</TooltipContent>
+                                </Tooltip>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
-                      
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setShowAddPergunta(secao.id)}
-                        className="w-full"
-                      >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Adicionar Pergunta
-                      </Button>
-                    </div>
-                  </CardContent>
-                )}
-              </Card>
-            )
-          })}
-        </div>
-      </ScrollArea>
+                        ))}
+                        
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setShowAddPergunta(secao.id)}
+                          className="w-full"
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          Adicionar Pergunta
+                        </Button>
+                      </div>
+                    </CardContent>
+                  )}
+                </Card>
+              )
+            })}
+          </div>
+        </ScrollArea>
 
-      {/* Modal de Edição/Adição de Pergunta */}
-      <PerguntaEditModal
-        pergunta={editingPergunta}
-        isOpen={!!(editingPergunta || showAddPergunta)}
-        onClose={() => {
-          setEditingPergunta(null)
-          setShowAddPergunta(null)
-        }}
-        onSave={handleSavePergunta}
-      />
-    </div>
+        {/* Modal de Edição/Adição de Pergunta */}
+        <PerguntaEditModal
+          pergunta={editingPergunta}
+          isOpen={!!(editingPergunta || showAddPergunta)}
+          onClose={() => {
+            setEditingPergunta(null)
+            setShowAddPergunta(null)
+          }}
+          onSave={handleSavePergunta}
+        />
+      </div>
+    </TooltipProvider>
   )
 }
 
