@@ -3,19 +3,21 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, Settings, Eye, Trash2 } from "lucide-react";
+import { Plus, Settings, Eye, Trash2, Zap } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useQuestionarioTemplates } from "@/hooks/useQuestionarioTemplates";
 import QuestionarioTemplateForm from "./QuestionarioTemplateForm";
 import QuestionarioTemplateEditor from "./QuestionarioTemplateEditor";
 import QuestionarioTemplatePreview from "./QuestionarioTemplatePreview";
 import QuestionarioTemplateDeleteDialog from "./QuestionarioTemplateDeleteDialog";
+import TemplateStructureCreator from "./TemplateStructureCreator";
 
 const QuestionarioTemplatesManager = () => {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isPreviewDialogOpen, setIsPreviewDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isStructureCreatorOpen, setIsStructureCreatorOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
 
   const { templates, isLoading, refetch, deleteTemplate } = useQuestionarioTemplates();
@@ -75,20 +77,37 @@ const QuestionarioTemplatesManager = () => {
           <p className="text-gray-600">Gerencie os modelos de questionários para diferentes tipos de eventos</p>
         </div>
         
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="flex items-center gap-2">
-              <Plus className="h-4 w-4" />
-              Novo Template
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>Criar Novo Template</DialogTitle>
-            </DialogHeader>
-            <QuestionarioTemplateForm onSuccess={handleCreateSuccess} />
-          </DialogContent>
-        </Dialog>
+        <div className="flex items-center gap-2">
+          <Dialog open={isStructureCreatorOpen} onOpenChange={setIsStructureCreatorOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="flex items-center gap-2">
+                <Zap className="h-4 w-4" />
+                Criar Estruturas
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>Criar Estruturas de Templates</DialogTitle>
+              </DialogHeader>
+              <TemplateStructureCreator />
+            </DialogContent>
+          </Dialog>
+          
+          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="flex items-center gap-2">
+                <Plus className="h-4 w-4" />
+                Novo Template
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>Criar Novo Template</DialogTitle>
+              </DialogHeader>
+              <QuestionarioTemplateForm onSuccess={handleCreateSuccess} />
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       {/* Grid de Templates */}

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { generateUniqueEventSlug, TIPOS_EVENTO } from '@/utils/eventSlugGenerator';
@@ -69,7 +70,7 @@ const QuestionarioCreateFormEnhanced = ({ onSuccess }: QuestionarioCreateFormEnh
       const defaultTemplate = templates.find(
         t => t.tipo_evento === formData.tipo_evento && t.is_default
       );
-      if (defaultTemplate) {
+      if (defaultTemplate && !formData.template_id) {
         setFormData(prev => ({ ...prev, template_id: defaultTemplate.id }));
       }
     }
@@ -194,9 +195,13 @@ const QuestionarioCreateFormEnhanced = ({ onSuccess }: QuestionarioCreateFormEnh
     }
   };
 
-  // Filtrar templates pelo tipo de evento selecionado
-  const availableTemplates = templates.filter(
-    t => !formData.tipo_evento || t.tipo_evento === formData.tipo_evento
+  // Separar templates recomendados dos outros
+  const recommendedTemplate = templates.find(
+    t => formData.tipo_evento && t.tipo_evento === formData.tipo_evento && t.is_default
+  );
+  
+  const otherTemplates = templates.filter(
+    t => !formData.tipo_evento || t.tipo_evento !== formData.tipo_evento || !t.is_default
   );
 
   return (
@@ -216,7 +221,7 @@ const QuestionarioCreateFormEnhanced = ({ onSuccess }: QuestionarioCreateFormEnh
         <Label htmlFor="tipo_evento">Tipo do Evento *</Label>
         <Select 
           value={formData.tipo_evento} 
-          onValueChange={(value) => setFormData({ ...formData, tipo_evento: value })}
+          onValueChange={(value) => setFormData({ ...formData, tipo_evento: value, template_id: '' })}
           required
         >
           <SelectTrigger>
@@ -243,16 +248,38 @@ const QuestionarioCreateFormEnhanced = ({ onSuccess }: QuestionarioCreateFormEnh
             <SelectValue placeholder="Selecione um template" />
           </SelectTrigger>
           <SelectContent>
-            {availableTemplates.map((template) => (
+            {/* Template Recomendado */}
+            {recommendedTemplate && (
+              <SelectItem key={recommendedTemplate.id} value={recommendedTemplate.id}>
+                <div className="flex items-center gap-2">
+                  <span>{recommendedTemplate.nome}</span>
+                  <Badge variant="default" className="text-xs">Recomendado</Badge>
+                </div>
+              </SelectItem>
+            )}
+            
+            {/* Separador se houver template recomendado */}
+            {recommendedTemplate && otherTemplates.length > 0 && (
+              <div className="px-2 py-1">
+                <div className="border-t border-gray-200"></div>
+                <span className="text-xs text-gray-500 mt-1 block">Outros templates</span>
+              </div>
+            )}
+
+            {/* Outros Templates */}
+            {otherTemplates.map((template) => (
               <SelectItem key={template.id} value={template.id}>
-                {template.nome} {template.is_default && '(Padrão)'}
+                <div className="flex flex-col">
+                  <span>{template.nome}</span>
+                  <span className="text-xs text-gray-500">Para: {template.tipo_evento}</span>
+                </div>
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
-        {formData.tipo_evento && availableTemplates.length === 0 && (
-          <p className="text-sm text-orange-600 mt-1">
-            Nenhum template disponível para este tipo de evento
+        {formData.tipo_evento && (
+          <p className="text-xs text-blue-600 mt-1">
+            💡 Sugerimos o template específico para {formData.tipo_evento}, mas você pode escolher qualquer um
           </p>
         )}
       </div>
