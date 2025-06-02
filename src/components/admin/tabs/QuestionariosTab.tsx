@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -44,7 +45,7 @@ const QuestionariosTab = () => {
   };
 
   const handleExport = async (questionario: Questionario) => {
-    await exportQuestionario(questionario);
+    await exportQuestionario(questionario.id, questionario.nome_responsavel);
   };
 
   const handleDelete = async (questionario: Questionario) => {
