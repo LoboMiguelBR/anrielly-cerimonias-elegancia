@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AdminHeader from "@/components/admin/AdminHeader";
@@ -9,6 +8,7 @@ import TabContentRenderer from "@/components/admin/navigation/TabContentRenderer
 import { getAllMenuItems } from "@/components/admin/config/menuConfig";
 import { useMobileLayout } from "@/hooks/useMobileLayout";
 import SafeErrorBoundary from "@/components/admin/dashboard/SafeErrorBoundary";
+import SidebarErrorBoundary from "@/components/admin/dashboard/SidebarErrorBoundary";
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -18,6 +18,9 @@ const AdminDashboard = () => {
   // Inicialização segura do componente
   useEffect(() => {
     try {
+      console.log('AdminDashboard: Inicializando dashboard...');
+      console.log('AdminDashboard: isMobile:', isMobile);
+      
       // Verificação de segurança para garantir que activeTab sempre tenha um valor válido
       if (!activeTab || typeof activeTab !== 'string') {
         console.warn('AdminDashboard: Invalid activeTab, resetting to dashboard');
@@ -26,12 +29,13 @@ const AdminDashboard = () => {
       
       // Marcar como inicializado após verificações
       setIsInitialized(true);
+      console.log('AdminDashboard: Dashboard inicializado com sucesso');
     } catch (error) {
       console.error('AdminDashboard: Erro na inicialização:', error);
       setActiveTab("dashboard");
       setIsInitialized(true);
     }
-  }, [activeTab]);
+  }, [activeTab, isMobile]);
 
   const allMenuItems = getAllMenuItems();
 
@@ -79,11 +83,11 @@ const AdminDashboard = () => {
         </SafeErrorBoundary>
         
         <div className="flex">
-          {/* Desktop Sidebar */}
+          {/* Desktop Sidebar com Error Boundary específico */}
           {!isMobile && (
-            <SafeErrorBoundary componentName="DesktopSidebar">
+            <SidebarErrorBoundary>
               <DesktopSidebar activeTab={activeTab} onTabChange={handleTabChange} />
-            </SafeErrorBoundary>
+            </SidebarErrorBoundary>
           )}
 
           {/* Mobile Navigation (legacy - hidden in favor of bottom nav) */}
