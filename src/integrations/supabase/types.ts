@@ -826,10 +826,12 @@ export type Database = {
           historia_processada: boolean | null
           id: string
           link_publico: string
+          nome_evento: string | null
           nome_responsavel: string
           respostas_json: Json | null
           senha_hash: string
           status: string | null
+          tipo_evento: string | null
           total_perguntas_resp: number | null
           user_id: string | null
         }
@@ -841,10 +843,12 @@ export type Database = {
           historia_processada?: boolean | null
           id?: string
           link_publico: string
+          nome_evento?: string | null
           nome_responsavel: string
           respostas_json?: Json | null
           senha_hash: string
           status?: string | null
+          tipo_evento?: string | null
           total_perguntas_resp?: number | null
           user_id?: string | null
         }
@@ -856,10 +860,12 @@ export type Database = {
           historia_processada?: boolean | null
           id?: string
           link_publico?: string
+          nome_evento?: string | null
           nome_responsavel?: string
           respostas_json?: Json | null
           senha_hash?: string
           status?: string | null
+          tipo_evento?: string | null
           total_perguntas_resp?: number | null
           user_id?: string | null
         }

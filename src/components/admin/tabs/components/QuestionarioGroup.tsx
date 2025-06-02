@@ -2,7 +2,7 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Users, Copy, ExternalLink, Sparkles } from "lucide-react";
+import { Users, Copy, ExternalLink, Calendar, Tag } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import QuestionarioItem from "./QuestionarioItem";
@@ -13,6 +13,8 @@ export interface QuestionarioGroup {
   questionarios: Questionario[];
   totalRespostas: number;
   progresso: number;
+  nome_evento?: string;
+  tipo_evento?: string;
 }
 
 interface QuestionarioGroupProps {
@@ -44,6 +46,21 @@ const QuestionarioGroup = ({
     return `${window.location.origin}/questionario/${linkPublico}`;
   };
 
+  const getTipoEventoBadgeColor = (tipo?: string) => {
+    switch (tipo?.toLowerCase()) {
+      case 'casamento':
+        return 'bg-pink-100 text-pink-800 border-pink-200';
+      case 'aniversário':
+        return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'formatura':
+        return 'bg-green-100 text-green-800 border-green-200';
+      case 'batizado':
+        return 'bg-purple-100 text-purple-800 border-purple-200';
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
+
   return (
     <Card className="border-l-4 border-l-rose-200">
       <Collapsible open={expanded} onOpenChange={onToggle}>
@@ -52,13 +69,33 @@ const QuestionarioGroup = ({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <Users className="w-5 h-5 text-rose-500" />
-                <div>
-                  <h3 className="text-lg font-semibold">
-                    Questionário: {grupo.link_publico}
-                  </h3>
-                  <p className="text-sm text-gray-600">
-                    {grupo.questionarios.length} pessoa(s) cadastrada(s) • Progresso geral: {grupo.progresso}%
-                  </p>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <h3 className="text-lg font-semibold">
+                      {grupo.nome_evento || grupo.link_publico}
+                    </h3>
+                    {grupo.tipo_evento && (
+                      <Badge 
+                        variant="outline" 
+                        className={getTipoEventoBadgeColor(grupo.tipo_evento)}
+                      >
+                        <Tag className="w-3 h-3 mr-1" />
+                        {grupo.tipo_evento}
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-4 text-sm text-gray-600">
+                    <span className="flex items-center gap-1">
+                      <Users className="w-4 h-4" />
+                      {grupo.questionarios.length} pessoa(s)
+                    </span>
+                    <span>
+                      Progresso geral: {grupo.progresso}%
+                    </span>
+                    <span className="text-xs bg-gray-100 px-2 py-1 rounded">
+                      {grupo.link_publico}
+                    </span>
+                  </div>
                 </div>
               </div>
               <div className="flex items-center gap-2">
