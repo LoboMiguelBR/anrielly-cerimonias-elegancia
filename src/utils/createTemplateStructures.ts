@@ -178,62 +178,327 @@ const templateStructures: Record<string, TemplateStructure> = {
         ]
       }
     ]
+  },
+
+  'Aniversário': {
+    sections: [
+      {
+        titulo: "Informações do Aniversariante",
+        descricao: "Dados sobre quem está fazendo aniversário",
+        ordem: 1,
+        questions: [
+          { texto: "Qual é o nome completo do aniversariante?", tipo_resposta: "texto_curto", placeholder: "Nome completo", obrigatoria: true, ordem: 1 },
+          { texto: "Que idade está completando?", tipo_resposta: "numero", placeholder: "Idade", obrigatoria: true, ordem: 2 },
+          { texto: "Quais são os hobbies e interesses?", tipo_resposta: "texto_longo", placeholder: "O que gosta de fazer", obrigatoria: false, ordem: 3 },
+          { texto: "Há alguma conquista especial a ser celebrada?", tipo_resposta: "texto_longo", placeholder: "Marcos importantes do último ano", obrigatoria: false, ordem: 4 }
+        ]
+      },
+      {
+        titulo: "Celebração",
+        descricao: "Como será a festa",
+        ordem: 2,
+        questions: [
+          { texto: "Qual é o tema da festa?", tipo_resposta: "texto_curto", placeholder: "Tema escolhido", obrigatoria: false, ordem: 1 },
+          { texto: "Qual é o estilo de celebração desejado?", tipo_resposta: "texto_longo", placeholder: "Íntima, festa grande, surpresa", obrigatoria: false, ordem: 2 },
+          { texto: "Há alguma atividade especial planejada?", tipo_resposta: "texto_longo", placeholder: "Jogos, apresentações, surpresas", obrigatoria: false, ordem: 3 },
+          { texto: "Qual é a importância desta idade/data?", tipo_resposta: "texto_longo", placeholder: "Por que esta data é especial", obrigatoria: false, ordem: 4 }
+        ]
+      }
+    ]
+  },
+
+  'Formatura': {
+    sections: [
+      {
+        titulo: "Informações Acadêmicas",
+        descricao: "Dados sobre o curso e formação",
+        ordem: 1,
+        questions: [
+          { texto: "Qual é o curso de formação?", tipo_resposta: "texto_curto", placeholder: "Nome do curso", obrigatoria: true, ordem: 1 },
+          { texto: "Qual é o nome da instituição?", tipo_resposta: "texto_curto", placeholder: "Nome da escola/universidade", obrigatoria: true, ordem: 2 },
+          { texto: "Qual foi a duração do curso?", tipo_resposta: "texto_curto", placeholder: "Tempo de estudo", obrigatoria: false, ordem: 3 },
+          { texto: "Houve algum momento marcante durante o curso?", tipo_resposta: "texto_longo", placeholder: "Experiências especiais", obrigatoria: false, ordem: 4 }
+        ]
+      },
+      {
+        titulo: "Conquistas e Futuro",
+        descricao: "Realizações e planos futuros",
+        ordem: 2,
+        questions: [
+          { texto: "Quais foram as principais conquistas?", tipo_resposta: "texto_longo", placeholder: "Prêmios, reconhecimentos, aprendizados", obrigatoria: false, ordem: 1 },
+          { texto: "Quais são os planos para o futuro?", tipo_resposta: "texto_longo", placeholder: "Carreira, pós-graduação, projetos", obrigatoria: false, ordem: 2 },
+          { texto: "Quem foram as pessoas importantes nesta jornada?", tipo_resposta: "texto_longo", placeholder: "Professores, colegas, família", obrigatoria: false, ordem: 3 },
+          { texto: "Como esta formação transformou sua vida?", tipo_resposta: "texto_longo", placeholder: "Impactos pessoais e profissionais", obrigatoria: false, ordem: 4 }
+        ]
+      }
+    ]
+  },
+
+  'Bodas': {
+    sections: [
+      {
+        titulo: "Celebração do Tempo Juntos",
+        descricao: "Marcos e conquistas ao longo dos anos",
+        ordem: 1,
+        questions: [
+          { texto: "Quantos anos de casamento vocês estão celebrando?", tipo_resposta: "numero", placeholder: "Número de anos", obrigatoria: true, ordem: 1 },
+          { texto: "Qual é o tipo de bodas (material)?", tipo_resposta: "texto_curto", placeholder: "Ex: Prata, Ouro, Diamante", obrigatoria: true, ordem: 2 },
+          { texto: "O que vocês mais valorizam nestes anos juntos?", tipo_resposta: "texto_longo", placeholder: "Momentos, conquistas, aprendizados", obrigatoria: true, ordem: 3 },
+          { texto: "Qual foi o maior desafio superado como casal?", tipo_resposta: "texto_longo", placeholder: "Como superaram juntos", obrigatoria: false, ordem: 4 }
+        ]
+      },
+      {
+        titulo: "Marcos do Relacionamento",
+        descricao: "Momentos especiais ao longo dos anos",
+        ordem: 2,
+        questions: [
+          { texto: "Qual foi o momento mais marcante destes anos?", tipo_resposta: "texto_longo", placeholder: "Momento especial que ficou na memória", obrigatoria: false, ordem: 1 },
+          { texto: "Como vocês mudaram como casal ao longo do tempo?", tipo_resposta: "texto_longo", placeholder: "Evolução do relacionamento", obrigatoria: false, ordem: 2 },
+          { texto: "Quais tradições vocês criaram como família?", tipo_resposta: "texto_longo", placeholder: "Rituais, costumes únicos do casal", obrigatoria: false, ordem: 3 },
+          { texto: "O que vocês mais esperam dos próximos anos?", tipo_resposta: "texto_longo", placeholder: "Planos e sonhos futuros", obrigatoria: false, ordem: 4 }
+        ]
+      },
+      {
+        titulo: "Família Atual",
+        descricao: "A família que construíram juntos",
+        ordem: 3,
+        questions: [
+          { texto: "Como está a família de vocês hoje?", tipo_resposta: "texto_longo", placeholder: "Filhos, netos, composição familiar", obrigatoria: false, ordem: 1 },
+          { texto: "Qual é o legado que vocês querem deixar?", tipo_resposta: "texto_longo", placeholder: "Valores, ensinamentos", obrigatoria: false, ordem: 2 },
+          { texto: "Como gostariam de celebrar esta data especial?", tipo_resposta: "texto_longo", placeholder: "Estilo de celebração desejado", obrigatoria: false, ordem: 3 },
+          { texto: "Há alguma pessoa especial que gostariam de homenagear?", tipo_resposta: "texto_longo", placeholder: "Familiares, amigos importantes", obrigatoria: false, ordem: 4 }
+        ]
+      }
+    ]
+  },
+
+  'Chá de Bebê': {
+    sections: [
+      {
+        titulo: "Expectativas dos Pais",
+        descricao: "Sentimentos e preparação para a chegada do bebê",
+        ordem: 1,
+        questions: [
+          { texto: "Qual é o nome escolhido para o bebê?", tipo_resposta: "texto_curto", placeholder: "Nome do bebê", obrigatoria: true, ordem: 1 },
+          { texto: "É menino ou menina (ou surpresa)?", tipo_resposta: "texto_curto", placeholder: "Sexo do bebê", obrigatoria: true, ordem: 2 },
+          { texto: "Como vocês se sentem com a chegada do bebê?", tipo_resposta: "texto_longo", placeholder: "Emoções, expectativas, medos", obrigatoria: true, ordem: 3 },
+          { texto: "O que mais os emociona sobre ser pais?", tipo_resposta: "texto_longo", placeholder: "Aspectos da paternidade/maternidade", obrigatoria: false, ordem: 4 }
+        ]
+      },
+      {
+        titulo: "Preparativos e Desejos",
+        descricao: "Preparação para receber o bebê",
+        ordem: 2,
+        questions: [
+          { texto: "Como está sendo a preparação do enxoval?", tipo_resposta: "texto_longo", placeholder: "Itens escolhidos, decoração do quarto", obrigatoria: false, ordem: 1 },
+          { texto: "Há algum item especial que desejam para o bebê?", tipo_resposta: "texto_longo", placeholder: "Presentes especiais, necessidades", obrigatoria: false, ordem: 2 },
+          { texto: "Vocês têm alguma tradição familiar para bebês?", tipo_resposta: "texto_longo", placeholder: "Costumes, rituais familiares", obrigatoria: false, ordem: 3 },
+          { texto: "Como imaginam os primeiros dias com o bebê?", tipo_resposta: "texto_longo", placeholder: "Expectativas, planos", obrigatoria: false, ordem: 4 }
+        ]
+      },
+      {
+        titulo: "Família e Apoio",
+        descricao: "Rede de apoio e família",
+        ordem: 3,
+        questions: [
+          { texto: "Como a família reagiu à notícia da gravidez?", tipo_resposta: "texto_longo", placeholder: "Reações de familiares e amigos", obrigatoria: false, ordem: 1 },
+          { texto: "Quem são as pessoas mais importantes neste momento?", tipo_resposta: "texto_longo", placeholder: "Rede de apoio, pessoas especiais", obrigatoria: false, ordem: 2 },
+          { texto: "Há avós ou padrinhos já escolhidos?", tipo_resposta: "texto_longo", placeholder: "Família estendida, padrinhos", obrigatoria: false, ordem: 3 },
+          { texto: "Como gostariam que este chá fosse lembrado?", tipo_resposta: "texto_longo", placeholder: "Expectativas para a celebração", obrigatoria: false, ordem: 4 }
+        ]
+      }
+    ]
+  },
+
+  'Chá de Panela': {
+    sections: [
+      {
+        titulo: "Nova Vida a Dois",
+        descricao: "Preparação para a vida conjugal",
+        ordem: 1,
+        questions: [
+          { texto: "Quando será o casamento de vocês?", tipo_resposta: "data", obrigatoria: true, ordem: 1 },
+          { texto: "Como vocês imaginam a vida de casados?", tipo_resposta: "texto_longo", placeholder: "Expectativas, sonhos para o lar", obrigatoria: true, ordem: 2 },
+          { texto: "Vocês já moram juntos ou será o primeiro lar?", tipo_resposta: "texto_curto", placeholder: "Situação atual da moradia", obrigatoria: false, ordem: 3 },
+          { texto: "O que mais os emociona sobre montar o lar?", tipo_resposta: "texto_longo", placeholder: "Aspectos especiais de ter sua casa", obrigatoria: false, ordem: 4 }
+        ]
+      },
+      {
+        titulo: "Preferências Domésticas",
+        descricao: "Estilo e necessidades para o lar",
+        ordem: 2,
+        questions: [
+          { texto: "Qual é o estilo de decoração que vocês preferem?", tipo_resposta: "texto_longo", placeholder: "Moderno, clássico, rústico, etc.", obrigatoria: false, ordem: 1 },
+          { texto: "Quais são os itens mais necessários para a casa?", tipo_resposta: "texto_longo", placeholder: "Prioridades para o lar", obrigatoria: true, ordem: 2 },
+          { texto: "Vocês gostam de cozinhar? Que tipo de culinária?", tipo_resposta: "texto_longo", placeholder: "Hábitos culinários, preferências", obrigatoria: false, ordem: 3 },
+          { texto: "Há alguma cor ou tema preferido para a casa?", tipo_resposta: "texto_curto", placeholder: "Paleta de cores, temática", obrigatoria: false, ordem: 4 }
+        ]
+      },
+      {
+        titulo: "Lista de Presentes",
+        descricao: "Itens desejados para o novo lar",
+        ordem: 3,
+        questions: [
+          { texto: "Quais eletrodomésticos são mais importantes?", tipo_resposta: "texto_longo", placeholder: "Geladeira, fogão, micro-ondas, etc.", obrigatoria: false, ordem: 1 },
+          { texto: "Que itens de cozinha vocês mais precisam?", tipo_resposta: "texto_longo", placeholder: "Panelas, utensílios, louças", obrigatoria: false, ordem: 2 },
+          { texto: "Há algum item especial ou sonho para a casa?", tipo_resposta: "texto_longo", placeholder: "Algo especial que desejam muito", obrigatoria: false, ordem: 3 },
+          { texto: "Preferem itens práticos ou decorativos?", tipo_resposta: "texto_longo", placeholder: "Tipo de presente que mais valorizam", obrigatoria: false, ordem: 4 }
+        ]
+      }
+    ]
+  },
+
+  'Crisma': {
+    sections: [
+      {
+        titulo: "Preparação Espiritual",
+        descricao: "Caminho de fé e preparação para o sacramento",
+        ordem: 1,
+        questions: [
+          { texto: "Qual é o nome completo do crismando?", tipo_resposta: "texto_curto", placeholder: "Nome completo", obrigatoria: true, ordem: 1 },
+          { texto: "Qual idade tem o crismando?", tipo_resposta: "numero", placeholder: "Idade", obrigatoria: true, ordem: 2 },
+          { texto: "Como foi o processo de preparação para a Crisma?", tipo_resposta: "texto_longo", placeholder: "Catequese, estudos, reflexões", obrigatoria: false, ordem: 3 },
+          { texto: "O que a fé significa na vida do crismando?", tipo_resposta: "texto_longo", placeholder: "Importância da espiritualidade", obrigatoria: false, ordem: 4 }
+        ]
+      },
+      {
+        titulo: "Escolha de Padrinhos",
+        descricao: "Padrinhos escolhidos para acompanhar na fé",
+        ordem: 2,
+        questions: [
+          { texto: "Quem são os padrinhos de Crisma escolhidos?", tipo_resposta: "texto_longo", placeholder: "Nomes e relação com o crismando", obrigatoria: true, ordem: 1 },
+          { texto: "Por que foram escolhidos estes padrinhos?", tipo_resposta: "texto_longo", placeholder: "Motivos da escolha, qualidades", obrigatoria: false, ordem: 2 },
+          { texto: "Como os padrinhos influenciam a vida espiritual?", tipo_resposta: "texto_longo", placeholder: "Papel na formação da fé", obrigatoria: false, ordem: 3 },
+          { texto: "Qual nome de Crisma foi escolhido e por quê?", tipo_resposta: "texto_longo", placeholder: "Santo escolhido e motivação", obrigatoria: false, ordem: 4 }
+        ]
+      },
+      {
+        titulo: "Significado da Confirmação",
+        descricao: "O que representa este sacramento",
+        ordem: 3,
+        questions: [
+          { texto: "O que a Crisma representa para o crismando?", tipo_resposta: "texto_longo", placeholder: "Significado pessoal do sacramento", obrigatoria: false, ordem: 1 },
+          { texto: "Como a família vê este momento?", tipo_resposta: "texto_longo", placeholder: "Importância para a família", obrigatoria: false, ordem: 2 },
+          { texto: "Quais são os compromissos assumidos?", tipo_resposta: "texto_longo", placeholder: "Responsabilidades como cristão", obrigatoria: false, ordem: 3 },
+          { texto: "Como esperam celebrar este dia especial?", tipo_resposta: "texto_longo", placeholder: "Forma de celebração desejada", obrigatoria: false, ordem: 4 }
+        ]
+      }
+    ]
+  },
+
+  'Noivado': {
+    sections: [
+      {
+        titulo: "História do Relacionamento",
+        descricao: "Como chegaram até este momento",
+        ordem: 1,
+        questions: [
+          { texto: "Há quanto tempo vocês estão juntos?", tipo_resposta: "texto_curto", placeholder: "Tempo de relacionamento", obrigatoria: true, ordem: 1 },
+          { texto: "Como foi o pedido de noivado?", tipo_resposta: "texto_longo", placeholder: "Detalhes do momento especial", obrigatoria: true, ordem: 2 },
+          { texto: "O que os fez ter certeza de que eram um para o outro?", tipo_resposta: "texto_longo", placeholder: "Momento da decisão", obrigatoria: false, ordem: 3 },
+          { texto: "Qual é a coisa que mais admiram um no outro?", tipo_resposta: "texto_longo", placeholder: "Qualidades especiais", obrigatoria: false, ordem: 4 }
+        ]
+      },
+      {
+        titulo: "Planos para o Futuro",
+        descricao: "Sonhos e expectativas como casal",
+        ordem: 2,
+        questions: [
+          { texto: "Quando pretendem se casar?", tipo_resposta: "texto_curto", placeholder: "Data ou período planejado", obrigatoria: false, ordem: 1 },
+          { texto: "Como imaginam que será o casamento de vocês?", tipo_resposta: "texto_longo", placeholder: "Estilo, tamanho, características", obrigatoria: false, ordem: 2 },
+          { texto: "Quais são os sonhos de vocês como casal?", tipo_resposta: "texto_longo", placeholder: "Planos, objetivos juntos", obrigatoria: false, ordem: 3 },
+          { texto: "Onde gostariam de construir sua vida juntos?", tipo_resposta: "texto_longo", placeholder: "Local, estilo de vida", obrigatoria: false, ordem: 4 }
+        ]
+      },
+      {
+        titulo: "Família e Amigos",
+        descricao: "Pessoas importantes nesta jornada",
+        ordem: 3,
+        questions: [
+          { texto: "Como as famílias reagiram ao noivado?", tipo_resposta: "texto_longo", placeholder: "Reação de pais e familiares", obrigatoria: false, ordem: 1 },
+          { texto: "Quem são as pessoas mais importantes para vocês?", tipo_resposta: "texto_longo", placeholder: "Amigos e familiares especiais", obrigatoria: false, ordem: 2 },
+          { texto: "Como gostariam de celebrar este noivado?", tipo_resposta: "texto_longo", placeholder: "Tipo de festa ou celebração", obrigatoria: false, ordem: 3 },
+          { texto: "Há alguma tradição familiar que querem incluir?", tipo_resposta: "texto_longo", placeholder: "Costumes das famílias", obrigatoria: false, ordem: 4 }
+        ]
+      }
+    ]
+  },
+
+  'Primeira Comunhão': {
+    sections: [
+      {
+        titulo: "Preparação Espiritual",
+        descricao: "Caminho de fé até a Primeira Comunhão",
+        ordem: 1,
+        questions: [
+          { texto: "Qual é o nome completo da criança?", tipo_resposta: "texto_curto", placeholder: "Nome completo", obrigatoria: true, ordem: 1 },
+          { texto: "Qual idade tem a criança?", tipo_resposta: "numero", placeholder: "Idade", obrigatoria: true, ordem: 2 },
+          { texto: "Como foi a preparação na catequese?", tipo_resposta: "texto_longo", placeholder: "Experiência na preparação", obrigatoria: false, ordem: 3 },
+          { texto: "O que a criança mais aprendeu sobre Jesus?", tipo_resposta: "texto_longo", placeholder: "Aprendizados importantes", obrigatoria: false, ordem: 4 }
+        ]
+      },
+      {
+        titulo: "Significado Espiritual",
+        descricao: "O que representa receber Jesus",
+        ordem: 2,
+        questions: [
+          { texto: "O que significa receber Jesus na Eucaristia?", tipo_resposta: "texto_longo", placeholder: "Entendimento da criança", obrigatoria: false, ordem: 1 },
+          { texto: "Como a família vive a fé no dia a dia?", tipo_resposta: "texto_longo", placeholder: "Práticas familiares de fé", obrigatoria: false, ordem: 2 },
+          { texto: "Qual é a oração favorita da criança?", tipo_resposta: "texto_longo", placeholder: "Orações que mais gosta", obrigatoria: false, ordem: 3 },
+          { texto: "Como este momento é especial para a família?", tipo_resposta: "texto_longo", placeholder: "Importância familiar do sacramento", obrigatoria: false, ordem: 4 }
+        ]
+      },
+      {
+        titulo: "Celebração Familiar",
+        descricao: "Como a família celebra este momento",
+        ordem: 3,
+        questions: [
+          { texto: "Quem são os padrinhos de Primeira Comunhão?", tipo_resposta: "texto_longo", placeholder: "Padrinhos escolhidos", obrigatoria: false, ordem: 1 },
+          { texto: "Há alguma tradição familiar para este dia?", tipo_resposta: "texto_longo", placeholder: "Costumes familiares", obrigatoria: false, ordem: 2 },
+          { texto: "Como gostariam de celebrar após a cerimônia?", tipo_resposta: "texto_longo", placeholder: "Tipo de celebração", obrigatoria: false, ordem: 3 },
+          { texto: "O que esperam que a criança lembre deste dia?", tipo_resposta: "texto_longo", placeholder: "Memórias importantes", obrigatoria: false, ordem: 4 }
+        ]
+      }
+    ]
+  },
+
+  'Renovação de Votos': {
+    sections: [
+      {
+        titulo: "Motivos para Renovar",
+        descricao: "Por que escolheram renovar os votos",
+        ordem: 1,
+        questions: [
+          { texto: "Quantos anos de casamento vocês têm?", tipo_resposta: "numero", placeholder: "Anos de casamento", obrigatoria: true, ordem: 1 },
+          { texto: "O que os motivou a renovar os votos?", tipo_resposta: "texto_longo", placeholder: "Razões para esta decisão", obrigatoria: true, ordem: 2 },
+          { texto: "Como o amor de vocês evoluiu ao longo dos anos?", tipo_resposta: "texto_longo", placeholder: "Mudanças no relacionamento", obrigatoria: false, ordem: 3 },
+          { texto: "O que querem prometer um ao outro agora?", tipo_resposta: "texto_longo", placeholder: "Novos votos, compromissos", obrigatoria: false, ordem: 4 }
+        ]
+      },
+      {
+        titulo: "História do Casamento",
+        descricao: "Jornada percorrida juntos",
+        ordem: 2,
+        questions: [
+          { texto: "Como foi o primeiro casamento de vocês?", tipo_resposta: "texto_longo", placeholder: "Lembranças do casamento original", obrigatoria: false, ordem: 1 },
+          { texto: "Qual foi o momento mais desafiador que superaram?", tipo_resposta: "texto_longo", placeholder: "Dificuldades vencidas juntos", obrigatoria: false, ordem: 2 },
+          { texto: "Quais foram as maiores alegrias compartilhadas?", tipo_resposta: "texto_longo", placeholder: "Momentos especiais, conquistas", obrigatoria: false, ordem: 3 },
+          { texto: "Como vocês cresceram como casal?", tipo_resposta: "texto_longo", placeholder: "Aprendizados, crescimento", obrigatoria: false, ordem: 4 }
+        ]
+      },
+      {
+        titulo: "Família e Futuro",
+        descricao: "A família de hoje e planos futuros",
+        ordem: 3,
+        questions: [
+          { texto: "Como está a família de vocês hoje?", tipo_resposta: "texto_longo", placeholder: "Filhos, netos, composição atual", obrigatoria: false, ordem: 1 },
+          { texto: "O que mais valorizam na vida que construíram?", tipo_resposta: "texto_longo", placeholder: "Conquistas, valores", obrigatoria: false, ordem: 2 },
+          { texto: "Quais são os sonhos para os próximos anos?", tipo_resposta: "texto_longo", placeholder: "Planos futuros", obrigatoria: false, ordem: 3 },
+          { texto: "Como gostariam de celebrar esta renovação?", tipo_resposta: "texto_longo", placeholder: "Estilo de cerimônia desejado", obrigatoria: false, ordem: 4 }
+        ]
+      }
+    ]
   }
-};
-
-// Adicionar estruturas para outros tipos de evento
-templateStructures['Aniversário'] = {
-  sections: [
-    {
-      titulo: "Informações do Aniversariante",
-      descricao: "Dados sobre quem está fazendo aniversário",
-      ordem: 1,
-      questions: [
-        { texto: "Qual é o nome completo do aniversariante?", tipo_resposta: "texto_curto", placeholder: "Nome completo", obrigatoria: true, ordem: 1 },
-        { texto: "Que idade está completando?", tipo_resposta: "numero", placeholder: "Idade", obrigatoria: true, ordem: 2 },
-        { texto: "Quais são os hobbies e interesses?", tipo_resposta: "texto_longo", placeholder: "O que gosta de fazer", obrigatoria: false, ordem: 3 },
-        { texto: "Há alguma conquista especial a ser celebrada?", tipo_resposta: "texto_longo", placeholder: "Marcos importantes do último ano", obrigatoria: false, ordem: 4 }
-      ]
-    },
-    {
-      titulo: "Celebração",
-      descricao: "Como será a festa",
-      ordem: 2,
-      questions: [
-        { texto: "Qual é o tema da festa?", tipo_resposta: "texto_curto", placeholder: "Tema escolhido", obrigatoria: false, ordem: 1 },
-        { texto: "Qual é o estilo de celebração desejado?", tipo_resposta: "texto_longo", placeholder: "Íntima, festa grande, surpresa", obrigatoria: false, ordem: 2 },
-        { texto: "Há alguma atividade especial planejada?", tipo_resposta: "texto_longo", placeholder: "Jogos, apresentações, surpresas", obrigatoria: false, ordem: 3 },
-        { texto: "Qual é a importância desta idade/data?", tipo_resposta: "texto_longo", placeholder: "Por que esta data é especial", obrigatoria: false, ordem: 4 }
-      ]
-    }
-  ]
-};
-
-templateStructures['Formatura'] = {
-  sections: [
-    {
-      titulo: "Informações Acadêmicas",
-      descricao: "Dados sobre o curso e formação",
-      ordem: 1,
-      questions: [
-        { texto: "Qual é o curso de formação?", tipo_resposta: "texto_curto", placeholder: "Nome do curso", obrigatoria: true, ordem: 1 },
-        { texto: "Qual é o nome da instituição?", tipo_resposta: "texto_curto", placeholder: "Nome da escola/universidade", obrigatoria: true, ordem: 2 },
-        { texto: "Qual foi a duração do curso?", tipo_resposta: "texto_curto", placeholder: "Tempo de estudo", obrigatoria: false, ordem: 3 },
-        { texto: "Houve algum momento marcante durante o curso?", tipo_resposta: "texto_longo", placeholder: "Experiências especiais", obrigatoria: false, ordem: 4 }
-      ]
-    },
-    {
-      titulo: "Conquistas e Futuro",
-      descricao: "Realizações e planos futuros",
-      ordem: 2,
-      questions: [
-        { texto: "Quais foram as principais conquistas?", tipo_resposta: "texto_longo", placeholder: "Prêmios, reconhecimentos, aprendizados", obrigatoria: false, ordem: 1 },
-        { texto: "Quais são os planos para o futuro?", tipo_resposta: "texto_longo", placeholder: "Carreira, pós-graduação, projetos", obrigatoria: false, ordem: 2 },
-        { texto: "Quem foram as pessoas importantes nesta jornada?", tipo_resposta: "texto_longo", placeholder: "Professores, colegas, família", obrigatoria: false, ordem: 3 },
-        { texto: "Como esta formação transformou sua vida?", tipo_resposta: "texto_longo", placeholder: "Impactos pessoais e profissionais", obrigatoria: false, ordem: 4 }
-      ]
-    }
-  ]
 };
 
 export async function createTemplateStructures() {
