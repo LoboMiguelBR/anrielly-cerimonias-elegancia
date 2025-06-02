@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
 import { Menu } from "lucide-react";
-import { menuSections, MenuItem } from "./config/menuConfig";
+import * as Icons from "lucide-react";
+import { getMenuSections, MenuItem } from "./config/menuConfig";
 
 interface MobileAdminNavProps {
   activeTab?: string;
@@ -13,6 +14,7 @@ interface MobileAdminNavProps {
 
 const MobileAdminNav = ({ activeTab = "dashboard", onTabChange }: MobileAdminNavProps) => {
   const [isOpen, setIsOpen] = useState(false);
+  const menuSections = getMenuSections();
 
   const handleTabSelect = (tabId: string) => {
     onTabChange?.(tabId);
@@ -41,7 +43,7 @@ const MobileAdminNav = ({ activeTab = "dashboard", onTabChange }: MobileAdminNav
                   
                   <div className="space-y-1">
                     {section.items.map((item: MenuItem) => {
-                      const Icon = item.icon;
+                      const IconComponent = Icons[item.icon] as React.ComponentType<{ className?: string }>;
                       return (
                         <button
                           key={item.id}
@@ -52,7 +54,7 @@ const MobileAdminNav = ({ activeTab = "dashboard", onTabChange }: MobileAdminNav
                               : 'text-gray-700 hover:bg-gray-50'
                           }`}
                         >
-                          <Icon className="h-4 w-4 mr-3" />
+                          <IconComponent className="h-4 w-4 mr-3" />
                           {item.label}
                         </button>
                       );

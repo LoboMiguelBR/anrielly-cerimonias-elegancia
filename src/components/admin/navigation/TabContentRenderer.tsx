@@ -1,3 +1,4 @@
+
 import React from 'react';
 import DashboardTab from '../tabs/DashboardTab';
 import GestaoComercialTab from '../tabs/GestaoComercialTab';
@@ -19,7 +20,7 @@ const TabContentRenderer = ({ activeTab }: { activeTab: string }) => {
   const renderTabContent = () => {
     switch (activeTab) {
       case 'dashboard':
-        return <DashboardTab />;
+        return <DashboardTab onNavigate={() => {}} />;
       case 'gestao-comercial':
         return <GestaoComercialTab />;
       case 'leads':
@@ -27,7 +28,7 @@ const TabContentRenderer = ({ activeTab }: { activeTab: string }) => {
       case 'quotes':
         return <QuotesTab />;
       case 'proposals':
-        return <ProposalsTab />;
+        return <ProposalsTab quoteRequests={[]} />;
       case 'contracts':
         return <ContractsTab />;
       case 'events':
@@ -49,7 +50,7 @@ const TabContentRenderer = ({ activeTab }: { activeTab: string }) => {
       case 'users':
         return <UsersTab />;
       default:
-        return <DashboardTab />;
+        return <DashboardTab onNavigate={() => {}} />;
     }
   };
 

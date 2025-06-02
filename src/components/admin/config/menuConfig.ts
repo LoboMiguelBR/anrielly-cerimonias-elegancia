@@ -1,8 +1,10 @@
 
+import * as Icons from 'lucide-react';
+
 export interface MenuItem {
   id: string;
   label: string;
-  icon?: string;
+  icon: keyof typeof Icons;
   section: string;
 }
 
@@ -36,4 +38,26 @@ export const menuSections = {
   comercial: 'Gestão Comercial',
   eventos: 'Eventos & Clientes',
   configuracoes: 'Configurações'
+};
+
+export interface MenuSection {
+  title: string;
+  items: MenuItem[];
+}
+
+export const getMenuSections = (): MenuSection[] => {
+  const sections: MenuSection[] = [];
+  
+  Object.entries(menuSections).forEach(([key, title]) => {
+    const items = menuItems.filter(item => item.section === key);
+    if (items.length > 0) {
+      sections.push({ title, items });
+    }
+  });
+  
+  return sections;
+};
+
+export const getAllMenuItems = (): MenuItem[] => {
+  return menuItems;
 };
