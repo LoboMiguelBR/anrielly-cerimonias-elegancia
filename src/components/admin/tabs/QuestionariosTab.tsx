@@ -185,11 +185,8 @@ const QuestionariosTab = () => {
       ) : (
         <QuestionariosTableEnhanced
           questionarios={questionarios}
-          onViewAnswers={handleViewAnswers}
-          onEdit={handleEdit}
-          onExport={handleExport}
-          onDelete={handleDelete}
-          isExporting={isExporting}
+          isLoading={isLoading}
+          onRefresh={refetch}
         />
       )}
 
@@ -213,8 +210,8 @@ const QuestionariosTab = () => {
       />
 
       <QuestionarioHistoryModal
-        open={showHistoryModal}
-        onOpenChange={setShowHistoryModal}
+        isOpen={showHistoryModal}
+        onClose={() => setShowHistoryModal(false)}
         questionario={selectedQuestionario}
       />
     </div>
