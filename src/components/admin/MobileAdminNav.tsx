@@ -41,7 +41,7 @@ const MobileAdminNav = ({ activeTab = "dashboard", onTabChange }: MobileAdminNav
                   
                   <div className="space-y-1">
                     {section.items.map((item: MenuItem) => {
-                      const IconComponent = item.icon;
+                      const Icon = item.icon;
                       return (
                         <button
                           key={item.id}
@@ -52,7 +52,7 @@ const MobileAdminNav = ({ activeTab = "dashboard", onTabChange }: MobileAdminNav
                               : 'text-gray-700 hover:bg-gray-50'
                           }`}
                         >
-                          <IconComponent className="h-4 w-4 mr-3" />
+                          <Icon className="h-4 w-4 mr-3" />
                           {item.label}
                         </button>
                       );

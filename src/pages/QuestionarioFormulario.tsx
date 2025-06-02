@@ -4,7 +4,7 @@ import { useParams, useLocation } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
 import useQuestionarioForm from '@/hooks/useQuestionarioForm';
 import { useQuestionarioAuth } from '@/hooks/useQuestionarioAuth';
-import { useParticipants } from '@/hooks/useParticipants';
+import { useEvents } from '@/hooks/useEvents';
 import QuestionarioContainer from '@/components/questionario/QuestionarioContainer';
 import { useToast } from "@/components/ui/use-toast";
 
@@ -12,7 +12,7 @@ const QuestionarioFormulario = () => {
   const { linkPublico } = useParams<{ linkPublico: string }>();
   const location = useLocation();
   const { toast } = useToast();
-  const { addParticipant } = useParticipants();
+  const { addParticipant } = useEvents();
   
   // Extract event_id and role from URL params
   const searchParams = new URLSearchParams(location.search);
@@ -60,15 +60,7 @@ const QuestionarioFormulario = () => {
         const email = finalRespostas.email_principal || questionario.email;
 
         if (nomeCompleto && email) {
-          await addParticipant({
-            event_id: eventId,
-            user_email: email,
-            name: nomeCompleto,
-            participant_type: participantRole === 'cliente' ? 'cliente' : 'cerimonialista',
-            role: participantRole,
-            invited: true,
-            accepted: false
-          });
+          await addParticipant(eventId, email, nomeCompleto, participantRole);
           
           toast({
             title: "Questionário vinculado ao evento",

@@ -1,116 +1,117 @@
 
-import useSWR from 'swr';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useState } from 'react';
 import { toast } from 'sonner';
 
 export interface Professional {
   id: string;
   name: string;
-  email: string;
-  phone: string;
   category: string;
-  city: string;
   document?: string;
+  phone: string;
+  email: string;
   instagram?: string;
   website?: string;
+  city: string;
   tags?: string[];
   notes?: string;
   created_at: string;
   updated_at: string;
 }
 
-const fetcher = async (): Promise<Professional[]> => {
-  const { data, error } = await supabase
-    .from('professionals')
-    .select('*')
-    .order('created_at', { ascending: false });
-    
-  if (error) throw error;
-  return data || [];
-};
-
 export const useProfessionals = () => {
-  const { data, error, mutate } = useSWR('professionals', fetcher);
-  const [loading, setLoading] = useState(false);
+  const [professionals, setProfessionals] = useState<Professional[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const addProfessional = async (professionalData: Omit<Professional, 'id' | 'created_at' | 'updated_at'>): Promise<Professional> => {
+  const fetchProfessionals = async () => {
     try {
-      setLoading(true);
-      const { data: newProfessional, error } = await supabase
+      setIsLoading(true);
+      const { data, error } = await supabase
+        .from('professionals')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setProfessionals(data || []);
+    } catch (error: any) {
+      console.error('Erro ao buscar profissionais:', error);
+      toast.error('Erro ao carregar profissionais: ' + error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const addProfessional = async (professionalData: Omit<Professional, 'id' | 'created_at' | 'updated_at'>) => {
+    try {
+      const { data, error } = await supabase
         .from('professionals')
         .insert([professionalData])
         .select()
         .single();
 
       if (error) throw error;
-
-      toast.success('Profissional adicionado com sucesso!');
-      mutate();
-      return newProfessional;
-    } catch (err) {
-      console.error('Erro ao adicionar profissional:', err);
-      toast.error('Erro ao adicionar profissional');
-      throw err;
-    } finally {
-      setLoading(false);
+      
+      setProfessionals(prev => [data, ...prev]);
+      toast.success('Profissional cadastrado com sucesso!');
+      return data;
+    } catch (error: any) {
+      console.error('Erro ao cadastrar profissional:', error);
+      toast.error('Erro ao cadastrar profissional: ' + error.message);
+      throw error;
     }
   };
 
-  const updateProfessional = async (id: string, data: Partial<Professional>) => {
+  const updateProfessional = async (id: string, updates: Partial<Professional>) => {
     try {
-      setLoading(true);
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('professionals')
-        .update(data)
-        .eq('id', id);
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
 
       if (error) throw error;
-
+      
+      setProfessionals(prev => 
+        prev.map(prof => prof.id === id ? data : prof)
+      );
       toast.success('Profissional atualizado com sucesso!');
-      mutate();
-      return true;
-    } catch (err) {
-      console.error('Erro ao atualizar profissional:', err);
-      toast.error('Erro ao atualizar profissional');
-      return false;
-    } finally {
-      setLoading(false);
+      return data;
+    } catch (error: any) {
+      console.error('Erro ao atualizar profissional:', error);
+      toast.error('Erro ao atualizar profissional: ' + error.message);
+      throw error;
     }
   };
 
   const deleteProfessional = async (id: string) => {
     try {
-      setLoading(true);
       const { error } = await supabase
         .from('professionals')
         .delete()
         .eq('id', id);
 
       if (error) throw error;
-
-      toast.success('Profissional deletado com sucesso!');
-      mutate();
-      return true;
-    } catch (err) {
-      console.error('Erro ao deletar profissional:', err);
-      toast.error('Erro ao deletar profissional');
-      return false;
-    } finally {
-      setLoading(false);
+      
+      setProfessionals(prev => prev.filter(prof => prof.id !== id));
+      toast.success('Profissional removido com sucesso!');
+    } catch (error: any) {
+      console.error('Erro ao remover profissional:', error);
+      toast.error('Erro ao remover profissional: ' + error.message);
+      throw error;
     }
   };
-  
+
+  useEffect(() => {
+    fetchProfessionals();
+  }, []);
+
   return {
-    data: data || [],
-    professionals: data || [],
-    isLoading: !error && !data,
-    error,
-    mutate,
-    refetch: mutate,
+    professionals,
+    isLoading,
     addProfessional,
     updateProfessional,
     deleteProfessional,
-    loading
+    refetch: fetchProfessionals
   };
 };

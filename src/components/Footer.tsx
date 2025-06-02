@@ -47,28 +47,13 @@ const Footer = () => {
               </a>
             </address>
             
-            <div className="mt-4 pt-3 border-t border-gray-700">
-              <p className="text-xs text-gray-500 mb-2">Áreas de Acesso:</p>
-              <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 justify-center md:justify-end">
-                <Link 
-                  to="/area-cliente" 
-                  className="text-xs text-gray-400 hover:text-gray-300 transition-colors"
-                >
-                  Área do Cliente
-                </Link>
-                <Link 
-                  to="/area-profissional" 
-                  className="text-xs text-gray-400 hover:text-gray-300 transition-colors"
-                >
-                  Área do Profissional
-                </Link>
-                <Link 
-                  to="/admin" 
-                  className="text-xs text-gray-400 hover:text-gray-300 transition-colors"
-                >
-                  Área Administrativa
-                </Link>
-              </div>
+            <div className="mt-2">
+              <Link 
+                to="/admin" 
+                className="text-xs text-gray-600 hover:text-gold transition-colors"
+              >
+                Área Administrativa
+              </Link>
             </div>
           </div>
         </div>

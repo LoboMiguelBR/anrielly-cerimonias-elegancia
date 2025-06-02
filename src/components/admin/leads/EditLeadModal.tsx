@@ -29,53 +29,26 @@ const EditLeadModal = ({ open, onOpenChange, onSuccess, lead }: EditLeadModalPro
 
   const { updateLead, loading } = useLeadActions();
 
-  // Debug para verificar se o lead está sendo passado
   useEffect(() => {
-    console.log('EditLeadModal - lead recebido:', lead);
-    console.log('EditLeadModal - modal aberto:', open);
-  }, [lead, open]);
-
-  useEffect(() => {
-    if (lead && open) {
-      console.log('Carregando dados do lead:', lead);
+    if (lead) {
       setFormData({
-        name: lead.name || '',
-        email: lead.email || '',
-        phone: lead.phone || '',
-        event_type: lead.event_type || '',
+        name: lead.name,
+        email: lead.email,
+        phone: lead.phone,
+        event_type: lead.event_type,
         event_date: lead.event_date || '',
-        event_location: lead.event_location || '',
+        event_location: lead.event_location,
         message: lead.message || '',
         status: lead.status || 'aguardando'
       });
     }
-  }, [lead, open]);
-
-  // Reset form when modal closes
-  useEffect(() => {
-    if (!open) {
-      setFormData({
-        name: '',
-        email: '',
-        phone: '',
-        event_type: '',
-        event_date: '',
-        event_location: '',
-        message: '',
-        status: 'aguardando'
-      });
-    }
-  }, [open]);
+  }, [lead]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!lead) {
-      console.error('Nenhum lead selecionado para edição');
-      return;
-    }
+    if (!lead) return;
 
-    console.log('Atualizando lead:', lead.id, formData);
     const success = await updateLead(lead.id, formData);
 
     if (success) {

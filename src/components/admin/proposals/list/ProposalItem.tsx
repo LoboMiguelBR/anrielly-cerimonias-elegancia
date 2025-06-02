@@ -6,8 +6,8 @@ import { Badge } from '@/components/ui/badge';
 import { Calendar, MapPin, User, Eye, Edit, Trash2, Plus } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { useEventActions } from '@/hooks/useEventActions';
-import { toast } from 'sonner';
+import { useEvents } from '@/hooks/useEvents';
+import { useToast } from '@/components/ui/use-toast';
 
 interface ProposalItemProps {
   proposal: any;
@@ -22,7 +22,8 @@ const ProposalItem: React.FC<ProposalItemProps> = ({
   onEdit,
   onDelete
 }) => {
-  const { createEvent } = useEventActions();
+  const { createEventFromProposal } = useEvents();
+  const { toast } = useToast();
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -56,16 +57,11 @@ const ProposalItem: React.FC<ProposalItemProps> = ({
 
   const handleCreateEvent = async () => {
     try {
-      const eventData = {
-        type: proposal.event_type,
-        date: proposal.event_date,
-        location: proposal.event_location,
-        status: 'em_planejamento' as const,
-        description: `Evento criado a partir da proposta para ${proposal.client_name}`,
-      };
-
-      await createEvent(eventData);
-      toast.success('Evento criado automaticamente a partir da proposta aceita');
+      await createEventFromProposal(proposal.id, proposal);
+      toast({
+        title: "Evento criado",
+        description: "Evento criado automaticamente a partir da proposta aceita",
+      });
     } catch (error) {
       console.error('Error creating event:', error);
     }

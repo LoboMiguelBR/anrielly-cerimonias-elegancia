@@ -2,112 +2,81 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Database } from '@/integrations/supabase/types';
 
-type EventInsert = Database['public']['Tables']['events']['Insert'];
-type EventUpdate = Database['public']['Tables']['events']['Update'];
+interface Event {
+  id: string;
+  quote_id?: string;
+  proposal_id?: string;
+  contract_id?: string;
+  type: string;
+  date?: string;
+  location?: string;
+  status: 'em_planejamento' | 'contratado' | 'concluido' | 'cancelado';
+  tenant_id?: string;
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface EventParticipant {
+  id: string;
+  event_id: string;
+  user_email: string;
+  name?: string;
+  role: 'noivo' | 'noiva' | 'cerimonialista' | 'cliente' | 'admin';
+  invited: boolean;
+  accepted: boolean;
+  magic_link_token?: string;
+  created_at: string;
+  updated_at: string;
+}
 
 export const useEventActions = () => {
   const [loading, setLoading] = useState(false);
 
-  const createEvent = async (eventData: {
-    type: string;
-    date?: string;
-    location?: string;
-    description?: string;
-    status?: 'em_planejamento' | 'contratado' | 'concluido' | 'cancelado';
-    client_id?: string;
-    cerimonialista_id?: string;
-  }) => {
-    setLoading(true);
+  const updateEvent = async (id: string, data: Partial<Event>) => {
     try {
-      console.log('Creating event:', eventData);
-      
-      const insertData: EventInsert = {
-        type: eventData.type,
-        date: eventData.date || null,
-        location: eventData.location || null,
-        description: eventData.description || null,
-        status: eventData.status || 'em_planejamento',
-        client_id: eventData.client_id || null,
-        cerimonialista_id: eventData.cerimonialista_id || null,
-      };
-
-      const { data, error } = await supabase
+      setLoading(true);
+      const { error } = await supabase
         .from('events')
-        .insert(insertData)
-        .select()
-        .single();
+        .update(data)
+        .eq('id', id);
 
-      if (error) {
-        console.error('Error creating event:', error);
-        toast.error('Erro ao criar evento: ' + error.message);
-        return null;
-      }
+      if (error) throw error;
 
-      console.log('Event created successfully:', data);
-      toast.success('Evento criado com sucesso!');
-      return data;
-    } catch (err) {
-      console.error('Error creating event:', err);
-      toast.error('Erro ao criar evento');
-      return null;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const updateEvent = async (eventId: string, updates: Partial<EventUpdate>) => {
-    setLoading(true);
-    try {
-      console.log('Updating event:', eventId, updates);
-      
-      const { data, error } = await supabase
-        .from('events')
-        .update(updates)
-        .eq('id', eventId)
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Error updating event:', error);
-        toast.error('Erro ao atualizar evento: ' + error.message);
-        return null;
-      }
-
-      console.log('Event updated successfully:', data);
       toast.success('Evento atualizado com sucesso!');
-      return data;
+      return true;
     } catch (err) {
-      console.error('Error updating event:', err);
+      console.error('Erro ao atualizar evento:', err);
       toast.error('Erro ao atualizar evento');
-      return null;
+      return false;
     } finally {
       setLoading(false);
     }
   };
 
-  const deleteEvent = async (eventId: string): Promise<boolean> => {
-    setLoading(true);
+  const deleteEvent = async (id: string) => {
     try {
-      console.log('Deleting event:', eventId);
+      setLoading(true);
       
+      // Delete participants first
+      await supabase
+        .from('event_participants')
+        .delete()
+        .eq('event_id', id);
+
+      // Then delete the event
       const { error } = await supabase
         .from('events')
         .delete()
-        .eq('id', eventId);
+        .eq('id', id);
 
-      if (error) {
-        console.error('Error deleting event:', error);
-        toast.error('Erro ao deletar evento: ' + error.message);
-        return false;
-      }
+      if (error) throw error;
 
-      console.log('Event deleted successfully');
       toast.success('Evento deletado com sucesso!');
       return true;
     } catch (err) {
-      console.error('Error deleting event:', err);
+      console.error('Erro ao deletar evento:', err);
       toast.error('Erro ao deletar evento');
       return false;
     } finally {
@@ -115,10 +84,67 @@ export const useEventActions = () => {
     }
   };
 
+  const updateStatus = async (id: string, status: Event['status']) => {
+    return updateEvent(id, { status });
+  };
+
+  const addParticipant = async (eventId: string, email: string, name: string, role: EventParticipant['role']) => {
+    try {
+      setLoading(true);
+      const participantData = {
+        event_id: eventId,
+        user_email: email,
+        name: name,
+        role: role,
+        invited: true,
+        accepted: false,
+        magic_link_token: crypto.randomUUID()
+      };
+
+      const { error } = await supabase
+        .from('event_participants')
+        .insert([participantData]);
+
+      if (error) throw error;
+
+      toast.success('Participante adicionado com sucesso!');
+      return true;
+    } catch (err) {
+      console.error('Erro ao adicionar participante:', err);
+      toast.error('Erro ao adicionar participante');
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const removeParticipant = async (participantId: string) => {
+    try {
+      setLoading(true);
+      const { error } = await supabase
+        .from('event_participants')
+        .delete()
+        .eq('id', participantId);
+
+      if (error) throw error;
+
+      toast.success('Participante removido com sucesso!');
+      return true;
+    } catch (err) {
+      console.error('Erro ao remover participante:', err);
+      toast.error('Erro ao remover participante');
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
-    createEvent,
     updateEvent,
     deleteEvent,
+    updateStatus,
+    addParticipant,
+    removeParticipant,
     loading
   };
 };

@@ -7,7 +7,21 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useEventActions } from '@/hooks/useEventActions';
-import { Event } from '@/hooks/useEvents';
+
+interface Event {
+  id: string;
+  quote_id?: string;
+  proposal_id?: string;
+  contract_id?: string;
+  type: string;
+  date?: string;
+  location?: string;
+  status: 'em_planejamento' | 'contratado' | 'concluido' | 'cancelado';
+  tenant_id?: string;
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+}
 
 interface EditEventModalProps {
   open: boolean;
@@ -21,7 +35,7 @@ const EditEventModal = ({ open, onOpenChange, onSuccess, event }: EditEventModal
     type: '',
     date: '',
     location: '',
-    status: 'em_planejamento' as Event['status'],
+    status: 'em_planejamento' as 'em_planejamento' | 'contratado' | 'concluido' | 'cancelado',
     notes: ''
   });
 
@@ -102,7 +116,7 @@ const EditEventModal = ({ open, onOpenChange, onSuccess, event }: EditEventModal
             <Label htmlFor="status">Status</Label>
             <Select 
               value={formData.status} 
-              onValueChange={(value: Event['status']) => 
+              onValueChange={(value: 'em_planejamento' | 'contratado' | 'concluido' | 'cancelado') => 
                 setFormData({ ...formData, status: value })
               }
             >
@@ -111,8 +125,7 @@ const EditEventModal = ({ open, onOpenChange, onSuccess, event }: EditEventModal
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="em_planejamento">Em Planejamento</SelectItem>
-                <SelectItem value="confirmado">Confirmado</SelectItem>
-                <SelectItem value="em_andamento">Em Andamento</SelectItem>
+                <SelectItem value="contratado">Contratado</SelectItem>
                 <SelectItem value="concluido">Concluído</SelectItem>
                 <SelectItem value="cancelado">Cancelado</SelectItem>
               </SelectContent>
