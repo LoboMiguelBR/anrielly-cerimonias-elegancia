@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useAppSettings } from '@/hooks/useAppSettings';
 
-const SEOSettings = () => {
+const SEOSettingsEnhanced = () => {
   const { getSetting, updateSetting } = useAppSettings();
   const [formData, setFormData] = useState({
     site_title: '',
@@ -139,4 +140,4 @@ const SEOSettings = () => {
   );
 };
 
-export default SEOSettings;
+export default SEOSettingsEnhanced;

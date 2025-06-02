@@ -4,55 +4,57 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { AppSetting } from '@/hooks/useAppSettings';
+import { useAppSettings } from '@/hooks/useAppSettings';
 
-interface EmailSettingsProps {
-  settings: AppSetting[];
-  onUpdate: (category: string, key: string, value: any) => Promise<any>;
-}
-
-const EmailSettings = ({ settings, onUpdate }: EmailSettingsProps) => {
+const EmailSettings = () => {
+  const { getSetting, updateSetting } = useAppSettings();
   const [formData, setFormData] = useState({
     smtp_host: '',
-    smtp_port: 587,
-    smtp_user: '',
-    smtp_pass: '',
-    smtp_secure: true,
+    smtp_port: '587',
+    smtp_username: '',
+    smtp_password: '',
+    smtp_encryption: 'tls',
+    from_email: '',
     from_name: '',
-    from_email: ''
+    reply_to: '',
+    email_notifications: true,
+    email_signature: ''
   });
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    const loadSettings = () => {
-      const newData = { ...formData };
-      
-      settings.forEach(setting => {
-        if (setting.key in newData) {
-          (newData as any)[setting.key] = setting.value;
-        }
-      });
+    // Carregar configurações existentes
+    setFormData({
+      smtp_host: getSetting('email', 'smtp_host') || '',
+      smtp_port: getSetting('email', 'smtp_port') || '587',
+      smtp_username: getSetting('email', 'smtp_username') || '',
+      smtp_password: getSetting('email', 'smtp_password') || '',
+      smtp_encryption: getSetting('email', 'smtp_encryption') || 'tls',
+      from_email: getSetting('email', 'from_email') || '',
+      from_name: getSetting('email', 'from_name') || '',
+      reply_to: getSetting('email', 'reply_to') || '',
+      email_notifications: getSetting('email', 'email_notifications') !== false,
+      email_signature: getSetting('email', 'email_signature') || ''
+    });
+  }, [getSetting]);
 
-      setFormData(newData);
-    };
-
-    loadSettings();
-  }, [settings]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSave = async () => {
     setIsLoading(true);
-
     try {
       await Promise.all([
-        onUpdate('email', 'smtp_host', formData.smtp_host),
-        onUpdate('email', 'smtp_port', formData.smtp_port),
-        onUpdate('email', 'smtp_user', formData.smtp_user),
-        onUpdate('email', 'smtp_pass', formData.smtp_pass),
-        onUpdate('email', 'smtp_secure', formData.smtp_secure),
-        onUpdate('email', 'from_name', formData.from_name),
-        onUpdate('email', 'from_email', formData.from_email)
+        updateSetting('email', 'smtp_host', formData.smtp_host),
+        updateSetting('email', 'smtp_port', formData.smtp_port),
+        updateSetting('email', 'smtp_username', formData.smtp_username),
+        updateSetting('email', 'smtp_password', formData.smtp_password),
+        updateSetting('email', 'smtp_encryption', formData.smtp_encryption),
+        updateSetting('email', 'from_email', formData.from_email),
+        updateSetting('email', 'from_name', formData.from_name),
+        updateSetting('email', 'reply_to', formData.reply_to),
+        updateSetting('email', 'email_notifications', formData.email_notifications),
+        updateSetting('email', 'email_signature', formData.email_signature)
       ]);
     } catch (error) {
       console.error('Error saving email settings:', error);
@@ -61,126 +63,143 @@ const EmailSettings = ({ settings, onUpdate }: EmailSettingsProps) => {
     }
   };
 
-  const handleInputChange = (field: string, value: any) => {
+  const handleChange = (field: string, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const testEmailConnection = async () => {
-    // Implementar teste de conexão SMTP
-    console.log('Testing email connection...', formData);
-  };
-
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Configurações de Email</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Configurações do Remetente */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">Informações do Remetente</h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="from_name">Nome do Remetente</Label>
-                <Input
-                  id="from_name"
-                  value={formData.from_name}
-                  onChange={(e) => handleInputChange('from_name', e.target.value)}
-                  placeholder="Anrielly Gomes"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="from_email">Email do Remetente</Label>
-                <Input
-                  id="from_email"
-                  type="email"
-                  value={formData.from_email}
-                  onChange={(e) => handleInputChange('from_email', e.target.value)}
-                  placeholder="noreply@anriellygomes.com"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Configurações SMTP */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">Configurações SMTP</h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="smtp_host">Servidor SMTP</Label>
-                <Input
-                  id="smtp_host"
-                  value={formData.smtp_host}
-                  onChange={(e) => handleInputChange('smtp_host', e.target.value)}
-                  placeholder="smtp.gmail.com"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="smtp_port">Porta SMTP</Label>
-                <Input
-                  id="smtp_port"
-                  type="number"
-                  value={formData.smtp_port}
-                  onChange={(e) => handleInputChange('smtp_port', parseInt(e.target.value))}
-                  placeholder="587"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="smtp_user">Usuário SMTP</Label>
-                <Input
-                  id="smtp_user"
-                  value={formData.smtp_user}
-                  onChange={(e) => handleInputChange('smtp_user', e.target.value)}
-                  placeholder="usuario@gmail.com"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="smtp_pass">Senha SMTP</Label>
-                <Input
-                  id="smtp_pass"
-                  type="password"
-                  value={formData.smtp_pass}
-                  onChange={(e) => handleInputChange('smtp_pass', e.target.value)}
-                  placeholder="••••••••"
-                />
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="smtp_secure"
-                checked={formData.smtp_secure}
-                onCheckedChange={(checked) => handleInputChange('smtp_secure', checked)}
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Configurações SMTP</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="smtp-host">Servidor SMTP</Label>
+              <Input
+                id="smtp-host"
+                placeholder="smtp.gmail.com"
+                value={formData.smtp_host}
+                onChange={(e) => handleChange('smtp_host', e.target.value)}
               />
-              <Label htmlFor="smtp_secure">Usar conexão segura (TLS/SSL)</Label>
+            </div>
+            <div>
+              <Label htmlFor="smtp-port">Porta</Label>
+              <Input
+                id="smtp-port"
+                placeholder="587"
+                value={formData.smtp_port}
+                onChange={(e) => handleChange('smtp_port', e.target.value)}
+              />
             </div>
           </div>
 
-          <div className="flex justify-between">
-            <Button 
-              type="button" 
-              variant="outline"
-              onClick={testEmailConnection}
-            >
-              Testar Conexão
-            </Button>
-            
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? 'Salvando...' : 'Salvar Configurações'}
-            </Button>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="smtp-username">Usuário</Label>
+              <Input
+                id="smtp-username"
+                placeholder="seu@email.com"
+                value={formData.smtp_username}
+                onChange={(e) => handleChange('smtp_username', e.target.value)}
+              />
+            </div>
+            <div>
+              <Label htmlFor="smtp-password">Senha</Label>
+              <Input
+                id="smtp-password"
+                type="password"
+                placeholder="••••••••"
+                value={formData.smtp_password}
+                onChange={(e) => handleChange('smtp_password', e.target.value)}
+              />
+            </div>
           </div>
-        </form>
-      </CardContent>
-    </Card>
+
+          <div>
+            <Label htmlFor="smtp-encryption">Criptografia</Label>
+            <Select 
+              value={formData.smtp_encryption}
+              onValueChange={(value) => handleChange('smtp_encryption', value)}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="tls">TLS</SelectItem>
+                <SelectItem value="ssl">SSL</SelectItem>
+                <SelectItem value="none">Nenhuma</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Configurações de Envio</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="from-email">Email de Envio</Label>
+              <Input
+                id="from-email"
+                placeholder="contato@anriellygomes.com"
+                value={formData.from_email}
+                onChange={(e) => handleChange('from_email', e.target.value)}
+              />
+            </div>
+            <div>
+              <Label htmlFor="from-name">Nome do Remetente</Label>
+              <Input
+                id="from-name"
+                placeholder="Anrielly Gomes"
+                value={formData.from_name}
+                onChange={(e) => handleChange('from_name', e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div>
+            <Label htmlFor="reply-to">Email de Resposta</Label>
+            <Input
+              id="reply-to"
+              placeholder="contato@anriellygomes.com"
+              value={formData.reply_to}
+              onChange={(e) => handleChange('reply_to', e.target.value)}
+            />
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="email-notifications"
+              checked={formData.email_notifications}
+              onCheckedChange={(checked) => handleChange('email_notifications', checked)}
+            />
+            <Label htmlFor="email-notifications">Ativar notificações por email</Label>
+          </div>
+
+          <div>
+            <Label htmlFor="email-signature">Assinatura de Email</Label>
+            <Textarea
+              id="email-signature"
+              placeholder="Atenciosamente,&#10;Anrielly Gomes&#10;Cerimonialista"
+              rows={4}
+              value={formData.email_signature}
+              onChange={(e) => handleChange('email_signature', e.target.value)}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="flex justify-end">
+        <Button onClick={handleSave} disabled={isLoading}>
+          {isLoading ? 'Salvando...' : 'Salvar Configurações'}
+        </Button>
+      </div>
+    </div>
   );
 };
 

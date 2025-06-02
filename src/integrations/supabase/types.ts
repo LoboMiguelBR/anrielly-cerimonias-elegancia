@@ -1523,6 +1523,7 @@ export type Database = {
           content: string | null
           created_at: string | null
           id: string
+          is_published: boolean | null
           meta_description: string | null
           meta_keywords: string | null
           order_index: number | null
@@ -1536,6 +1537,7 @@ export type Database = {
           content?: string | null
           created_at?: string | null
           id?: string
+          is_published?: boolean | null
           meta_description?: string | null
           meta_keywords?: string | null
           order_index?: number | null
@@ -1549,6 +1551,7 @@ export type Database = {
           content?: string | null
           created_at?: string | null
           id?: string
+          is_published?: boolean | null
           meta_description?: string | null
           meta_keywords?: string | null
           order_index?: number | null
@@ -1603,6 +1606,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      website_theme_settings: {
+        Row: {
+          accent_color: string
+          body_font: string
+          created_at: string
+          id: string
+          primary_color: string
+          secondary_color: string
+          title_font: string
+          updated_at: string
+        }
+        Insert: {
+          accent_color?: string
+          body_font?: string
+          created_at?: string
+          id?: string
+          primary_color?: string
+          secondary_color?: string
+          title_font?: string
+          updated_at?: string
+        }
+        Update: {
+          accent_color?: string
+          body_font?: string
+          created_at?: string
+          id?: string
+          primary_color?: string
+          secondary_color?: string
+          title_font?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
     }
     Views: {

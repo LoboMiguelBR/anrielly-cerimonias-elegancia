@@ -2,54 +2,58 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { AppSetting } from '@/hooks/useAppSettings';
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useAppSettings } from '@/hooks/useAppSettings';
 
-interface NotificationSettingsProps {
-  settings: AppSetting[];
-  onUpdate: (category: string, key: string, value: any) => Promise<any>;
-}
-
-const NotificationSettings = ({ settings, onUpdate }: NotificationSettingsProps) => {
+const NotificationSettings = () => {
+  const { getSetting, updateSetting } = useAppSettings();
   const [formData, setFormData] = useState({
-    new_lead_alert: true,
-    contract_signed_alert: true,
-    event_reminder: true,
-    proposal_viewed_alert: true,
-    payment_received_alert: true,
-    questionnaire_completed: true,
-    daily_summary: false,
-    weekly_report: false
+    email_new_lead: true,
+    email_new_quote: true,
+    email_contract_signed: true,
+    email_event_reminder: true,
+    email_payment_received: true,
+    sms_enabled: false,
+    push_enabled: true,
+    notification_frequency: 'immediate',
+    quiet_hours_start: '22:00',
+    quiet_hours_end: '08:00'
   });
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    const loadSettings = () => {
-      const newData = { ...formData };
-      
-      settings.forEach(setting => {
-        if (setting.key in newData) {
-          (newData as any)[setting.key] = setting.value;
-        }
-      });
+    // Carregar configurações existentes
+    setFormData({
+      email_new_lead: getSetting('notifications', 'email_new_lead') !== false,
+      email_new_quote: getSetting('notifications', 'email_new_quote') !== false,
+      email_contract_signed: getSetting('notifications', 'email_contract_signed') !== false,
+      email_event_reminder: getSetting('notifications', 'email_event_reminder') !== false,
+      email_payment_received: getSetting('notifications', 'email_payment_received') !== false,
+      sms_enabled: getSetting('notifications', 'sms_enabled') === true,
+      push_enabled: getSetting('notifications', 'push_enabled') !== false,
+      notification_frequency: getSetting('notifications', 'notification_frequency') || 'immediate',
+      quiet_hours_start: getSetting('notifications', 'quiet_hours_start') || '22:00',
+      quiet_hours_end: getSetting('notifications', 'quiet_hours_end') || '08:00'
+    });
+  }, [getSetting]);
 
-      setFormData(newData);
-    };
-
-    loadSettings();
-  }, [settings]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSave = async () => {
     setIsLoading(true);
-
     try {
-      const promises = Object.entries(formData).map(([key, value]) =>
-        onUpdate('notifications', key, value)
-      );
-      
-      await Promise.all(promises);
+      await Promise.all([
+        updateSetting('notifications', 'email_new_lead', formData.email_new_lead),
+        updateSetting('notifications', 'email_new_quote', formData.email_new_quote),
+        updateSetting('notifications', 'email_contract_signed', formData.email_contract_signed),
+        updateSetting('notifications', 'email_event_reminder', formData.email_event_reminder),
+        updateSetting('notifications', 'email_payment_received', formData.email_payment_received),
+        updateSetting('notifications', 'sms_enabled', formData.sms_enabled),
+        updateSetting('notifications', 'push_enabled', formData.push_enabled),
+        updateSetting('notifications', 'notification_frequency', formData.notification_frequency),
+        updateSetting('notifications', 'quiet_hours_start', formData.quiet_hours_start),
+        updateSetting('notifications', 'quiet_hours_end', formData.quiet_hours_end)
+      ]);
     } catch (error) {
       console.error('Error saving notification settings:', error);
     } finally {
@@ -57,77 +61,146 @@ const NotificationSettings = ({ settings, onUpdate }: NotificationSettingsProps)
     }
   };
 
-  const handleSwitchChange = (field: string, value: boolean) => {
+  const handleChange = (field: string, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const notificationGroups = [
-    {
-      title: "Alertas de Negócios",
-      items: [
-        { key: 'new_lead_alert', label: 'Novo lead recebido', description: 'Receba notificação quando um novo lead for cadastrado' },
-        { key: 'contract_signed_alert', label: 'Contrato assinado', description: 'Receba notificação quando um contrato for assinado' },
-        { key: 'proposal_viewed_alert', label: 'Proposta visualizada', description: 'Receba notificação quando uma proposta for visualizada pelo cliente' },
-        { key: 'payment_received_alert', label: 'Pagamento recebido', description: 'Receba notificação sobre confirmação de pagamentos' }
-      ]
-    },
-    {
-      title: "Lembretes e Eventos",
-      items: [
-        { key: 'event_reminder', label: 'Lembrete de eventos', description: 'Receba lembretes sobre eventos próximos' },
-        { key: 'questionnaire_completed', label: 'Questionário preenchido', description: 'Receba notificação quando um questionário for concluído' }
-      ]
-    },
-    {
-      title: "Relatórios Periódicos",
-      items: [
-        { key: 'daily_summary', label: 'Resumo diário', description: 'Receba um resumo das atividades do dia' },
-        { key: 'weekly_report', label: 'Relatório semanal', description: 'Receba um relatório completo das atividades da semana' }
-      ]
-    }
-  ];
-
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Configurações de Notificações</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {notificationGroups.map((group, groupIndex) => (
-            <div key={groupIndex} className="space-y-4">
-              <h3 className="text-lg font-medium">{group.title}</h3>
-              
-              <div className="space-y-4">
-                {group.items.map((item) => (
-                  <div key={item.key} className="flex items-start justify-between space-x-4">
-                    <div className="flex-1">
-                      <Label htmlFor={item.key} className="text-sm font-medium">
-                        {item.label}
-                      </Label>
-                      <p className="text-sm text-gray-500 mt-1">
-                        {item.description}
-                      </p>
-                    </div>
-                    <Switch
-                      id={item.key}
-                      checked={(formData as any)[item.key]}
-                      onCheckedChange={(checked) => handleSwitchChange(item.key, checked)}
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-
-          <div className="flex justify-end">
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? 'Salvando...' : 'Salvar Configurações'}
-            </Button>
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Notificações por Email</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="email-new-lead"
+              checked={formData.email_new_lead}
+              onCheckedChange={(checked) => handleChange('email_new_lead', checked)}
+            />
+            <Label htmlFor="email-new-lead">Novo lead recebido</Label>
           </div>
-        </form>
-      </CardContent>
-    </Card>
+
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="email-new-quote"
+              checked={formData.email_new_quote}
+              onCheckedChange={(checked) => handleChange('email_new_quote', checked)}
+            />
+            <Label htmlFor="email-new-quote">Nova solicitação de orçamento</Label>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="email-contract-signed"
+              checked={formData.email_contract_signed}
+              onCheckedChange={(checked) => handleChange('email_contract_signed', checked)}
+            />
+            <Label htmlFor="email-contract-signed">Contrato assinado</Label>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="email-event-reminder"
+              checked={formData.email_event_reminder}
+              onCheckedChange={(checked) => handleChange('email_event_reminder', checked)}
+            />
+            <Label htmlFor="email-event-reminder">Lembretes de evento</Label>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="email-payment-received"
+              checked={formData.email_payment_received}
+              onCheckedChange={(checked) => handleChange('email_payment_received', checked)}
+            />
+            <Label htmlFor="email-payment-received">Pagamento recebido</Label>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Outras Notificações</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="sms-enabled"
+              checked={formData.sms_enabled}
+              onCheckedChange={(checked) => handleChange('sms_enabled', checked)}
+            />
+            <Label htmlFor="sms-enabled">Notificações por SMS</Label>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="push-enabled"
+              checked={formData.push_enabled}
+              onCheckedChange={(checked) => handleChange('push_enabled', checked)}
+            />
+            <Label htmlFor="push-enabled">Notificações push</Label>
+          </div>
+
+          <div>
+            <Label htmlFor="notification-frequency">Frequência das notificações</Label>
+            <Select 
+              value={formData.notification_frequency}
+              onValueChange={(value) => handleChange('notification_frequency', value)}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="immediate">Imediata</SelectItem>
+                <SelectItem value="hourly">A cada hora</SelectItem>
+                <SelectItem value="daily">Diária</SelectItem>
+                <SelectItem value="weekly">Semanal</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Horário Silencioso</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="quiet-start">Início</Label>
+              <input
+                id="quiet-start"
+                type="time"
+                value={formData.quiet_hours_start}
+                onChange={(e) => handleChange('quiet_hours_start', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+              />
+            </div>
+            <div>
+              <Label htmlFor="quiet-end">Fim</Label>
+              <input
+                id="quiet-end"
+                type="time"
+                value={formData.quiet_hours_end}
+                onChange={(e) => handleChange('quiet_hours_end', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+              />
+            </div>
+          </div>
+          <p className="text-sm text-gray-600">
+            Durante este período, as notificações serão silenciadas (exceto emergências).
+          </p>
+        </CardContent>
+      </Card>
+
+      <div className="flex justify-end">
+        <Button onClick={handleSave} disabled={isLoading}>
+          {isLoading ? 'Salvando...' : 'Salvar Configurações'}
+        </Button>
+      </div>
+    </div>
   );
 };
 
