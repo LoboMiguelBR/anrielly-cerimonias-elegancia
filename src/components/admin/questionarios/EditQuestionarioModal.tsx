@@ -6,20 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useQuestionarioActions } from '@/hooks/useQuestionarioActions';
-
-interface Questionario {
-  id: string;
-  nome_responsavel: string;
-  email: string;
-  link_publico: string;
-  status: string;
-  total_perguntas_resp: number;
-  data_criacao: string;
-  data_atualizacao: string;
-  historia_processada: boolean;
-  historia_gerada?: string;
-  respostas_json: any;
-}
+import { Questionario } from '@/components/admin/tabs/types/questionario';
 
 interface EditQuestionarioModalProps {
   open: boolean;

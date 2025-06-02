@@ -6,19 +6,7 @@ import { Users, Copy, ExternalLink, Sparkles } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import QuestionarioItem from "./QuestionarioItem";
-
-export interface Questionario {
-  id: string;
-  link_publico: string;
-  nome_responsavel: string;
-  email: string;
-  status: string;
-  data_criacao: string;
-  data_atualizacao: string;
-  respostas_json: Record<string, string> | null;
-  total_perguntas_resp: number;
-  historia_gerada?: string;
-}
+import { Questionario } from '@/components/admin/tabs/types/questionario';
 
 export interface QuestionarioGroup {
   link_publico: string;
