@@ -52,6 +52,15 @@ export const useDashboardData = () => {
   const [alertas, setAlertas] = useState<AlertaOperacional[]>([]);
   const [atividades, setAtividades] = useState<AtividadeRecente[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
+
+  // Função para validar e sanitizar números
+  const safeNumber = (value: any): number => {
+    if (typeof value === 'number' && !isNaN(value)) {
+      return value;
+    }
+    return 0;
+  };
 
   const fetchMetrics = async () => {
     try {
@@ -61,74 +70,106 @@ export const useDashboardData = () => {
       const ultimoDiaMesPassado = new Date(hoje.getFullYear(), hoje.getMonth(), 0);
 
       // Leads novos este mês
-      const { count: leadsNovosMes } = await supabase
+      const { count: leadsNovosMes, error: leadsError } = await supabase
         .from('quote_requests')
         .select('*', { count: 'exact', head: true })
         .gte('created_at', primeiroDiaMes.toISOString());
 
+      if (leadsError) {
+        console.warn('Erro ao buscar leads novos:', leadsError);
+      }
+
       // Orçamentos pendentes
-      const { count: orcamentosPendentes } = await supabase
+      const { count: orcamentosPendentes, error: orcError } = await supabase
         .from('proposals')
         .select('*', { count: 'exact', head: true })
         .eq('status', 'draft');
 
+      if (orcError) {
+        console.warn('Erro ao buscar orçamentos pendentes:', orcError);
+      }
+
       // Contratos em andamento
-      const { count: contratosAndamento } = await supabase
+      const { count: contratosAndamento, error: contAndError } = await supabase
         .from('contracts')
         .select('*', { count: 'exact', head: true })
         .in('status', ['draft', 'sent']);
 
+      if (contAndError) {
+        console.warn('Erro ao buscar contratos em andamento:', contAndError);
+      }
+
       // Contratos assinados
-      const { count: contratosAssinados } = await supabase
+      const { count: contratosAssinados, error: contAssError } = await supabase
         .from('contracts')
         .select('*', { count: 'exact', head: true })
         .eq('status', 'signed');
 
+      if (contAssError) {
+        console.warn('Erro ao buscar contratos assinados:', contAssError);
+      }
+
       // Valor total propostas
-      const { data: propostas } = await supabase
+      const { data: propostas, error: propError } = await supabase
         .from('proposals')
         .select('total_price')
         .eq('status', 'draft');
 
-      const valorTotalPropostas = propostas?.reduce((sum, p) => sum + (p.total_price || 0), 0) || 0;
+      if (propError) {
+        console.warn('Erro ao buscar valor das propostas:', propError);
+      }
+
+      const valorTotalPropostas = propostas?.reduce((sum, p) => sum + safeNumber(p.total_price), 0) || 0;
 
       // Ticket médio contratos
-      const { data: contratos } = await supabase
+      const { data: contratos, error: contTicketError } = await supabase
         .from('contracts')
         .select('total_price')
         .eq('status', 'signed');
 
+      if (contTicketError) {
+        console.warn('Erro ao buscar valor dos contratos:', contTicketError);
+      }
+
       const ticketMedioContratos = contratos?.length 
-        ? contratos.reduce((sum, c) => sum + (c.total_price || 0), 0) / contratos.length 
+        ? contratos.reduce((sum, c) => sum + safeNumber(c.total_price), 0) / contratos.length 
         : 0;
 
       // Taxa de conversão (leads -> contratos)
-      const taxaConversao = leadsNovosMes > 0 ? (contratosAssinados / leadsNovosMes) * 100 : 0;
+      const leadsSafe = safeNumber(leadsNovosMes);
+      const contratosSafe = safeNumber(contratosAssinados);
+      const taxaConversao = leadsSafe > 0 ? (contratosSafe / leadsSafe) * 100 : 0;
 
       // Leads mês passado para crescimento
-      const { count: leadsMesPassado } = await supabase
+      const { count: leadsMesPassado, error: leadsPrevError } = await supabase
         .from('quote_requests')
         .select('*', { count: 'exact', head: true })
         .gte('created_at', primeiroDiaMesPassado.toISOString())
         .lte('created_at', ultimoDiaMesPassado.toISOString());
 
-      const crescimentoMensal = leadsMesPassado > 0 
-        ? ((leadsNovosMes - leadsMesPassado) / leadsMesPassado) * 100 
+      if (leadsPrevError) {
+        console.warn('Erro ao buscar leads mês passado:', leadsPrevError);
+      }
+
+      const leadsPrevSafe = safeNumber(leadsMesPassado);
+      const crescimentoMensal = leadsPrevSafe > 0 
+        ? ((leadsSafe - leadsPrevSafe) / leadsPrevSafe) * 100 
         : 0;
 
       setMetrics({
-        leadsNovosMes: leadsNovosMes || 0,
-        orcamentosPendentes: orcamentosPendentes || 0,
-        contratosAndamento: contratosAndamento || 0,
-        contratosAssinados: contratosAssinados || 0,
-        valorTotalPropostas,
-        ticketMedioContratos,
-        taxaConversao,
-        crescimentoMensal,
+        leadsNovosMes: leadsSafe,
+        orcamentosPendentes: safeNumber(orcamentosPendentes),
+        contratosAndamento: safeNumber(contratosAndamento),
+        contratosAssinados: contratosSafe,
+        valorTotalPropostas: safeNumber(valorTotalPropostas),
+        ticketMedioContratos: safeNumber(ticketMedioContratos),
+        taxaConversao: safeNumber(taxaConversao),
+        crescimentoMensal: safeNumber(crescimentoMensal),
       });
 
     } catch (error) {
-      console.error('Erro ao buscar métricas:', error);
+      console.error('Erro crítico ao buscar métricas:', error);
+      setHasError(true);
     }
   };
 
@@ -139,48 +180,60 @@ export const useDashboardData = () => {
       seteDiasAtras.setDate(seteDiasAtras.getDate() - 7);
 
       // Orçamentos antigos sem retorno
-      const { data: orcamentosAntigos } = await supabase
+      const { data: orcamentosAntigos, error: orcAntigosError } = await supabase
         .from('proposals')
         .select('id, client_name, client_email, updated_at')
         .eq('status', 'draft')
         .lt('updated_at', seteDiasAtras.toISOString());
 
+      if (orcAntigosError) {
+        console.warn('Erro ao buscar orçamentos antigos:', orcAntigosError);
+      }
+
       orcamentosAntigos?.forEach(orc => {
-        alertasArray.push({
-          id: `orc-${orc.id}`,
-          tipo: 'orcamento_vencido',
-          titulo: 'Orçamento sem retorno há +7 dias',
-          descricao: `Cliente ${orc.client_name} não respondeu ao orçamento`,
-          clienteNome: orc.client_name,
-          acoes: [
-            { label: 'Reenviar', type: 'reenviar' },
-            { label: 'Editar', type: 'editar', url: `/proposals/${orc.id}` }
-          ]
-        });
+        if (orc && orc.id && orc.client_name) {
+          alertasArray.push({
+            id: `orc-${orc.id}`,
+            tipo: 'orcamento_vencido',
+            titulo: 'Orçamento sem retorno há +7 dias',
+            descricao: `Cliente ${orc.client_name} não respondeu ao orçamento`,
+            clienteNome: orc.client_name,
+            acoes: [
+              { label: 'Reenviar', type: 'reenviar' },
+              { label: 'Editar', type: 'editar', url: `/proposals/${orc.id}` }
+            ]
+          });
+        }
       });
 
       // Contratos próximos do vencimento
       const cincoDiasFrente = new Date();
       cincoDiasFrente.setDate(cincoDiasFrente.getDate() + 5);
 
-      const { data: contratosVencendo } = await supabase
+      const { data: contratosVencendo, error: contVencError } = await supabase
         .from('contracts')
         .select('id, client_name, event_date')
         .in('status', ['draft', 'sent'])
         .lt('event_date', cincoDiasFrente.toISOString());
 
+      if (contVencError) {
+        console.warn('Erro ao buscar contratos vencendo:', contVencError);
+      }
+
       contratosVencendo?.forEach(cont => {
-        alertasArray.push({
-          id: `cont-${cont.id}`,
-          tipo: 'contrato_vencendo',
-          titulo: 'Contrato próximo do evento',
-          descricao: `Evento de ${cont.client_name} em ${cont.event_date}`,
-          clienteNome: cont.client_name,
-          dataLimite: cont.event_date,
-          acoes: [
-            { label: 'Ver contrato', type: 'editar', url: `/contracts/${cont.id}` }
-          ]
-        });
+        if (cont && cont.id && cont.client_name) {
+          alertasArray.push({
+            id: `cont-${cont.id}`,
+            tipo: 'contrato_vencendo',
+            titulo: 'Contrato próximo do evento',
+            descricao: `Evento de ${cont.client_name} em ${cont.event_date}`,
+            clienteNome: cont.client_name,
+            dataLimite: cont.event_date,
+            acoes: [
+              { label: 'Ver contrato', type: 'editar', url: `/contracts/${cont.id}` }
+            ]
+          });
+        }
       });
 
       setAlertas(alertasArray);
@@ -195,65 +248,87 @@ export const useDashboardData = () => {
       const atividades: AtividadeRecente[] = [];
 
       // Últimos leads
-      const { data: leads } = await supabase
+      const { data: leads, error: leadsError } = await supabase
         .from('quote_requests')
         .select('id, name, email, created_at, status')
         .order('created_at', { ascending: false })
         .limit(5);
 
+      if (leadsError) {
+        console.warn('Erro ao buscar leads recentes:', leadsError);
+      }
+
       leads?.forEach(lead => {
-        atividades.push({
-          id: `lead-${lead.id}`,
-          tipo: 'lead',
-          clienteNome: lead.name,
-          clienteEmail: lead.email,
-          data: lead.created_at,
-          status: lead.status
-        });
+        if (lead && lead.id && lead.name && lead.email) {
+          atividades.push({
+            id: `lead-${lead.id}`,
+            tipo: 'lead',
+            clienteNome: lead.name,
+            clienteEmail: lead.email,
+            data: lead.created_at,
+            status: lead.status || 'aguardando'
+          });
+        }
       });
 
       // Últimas propostas
-      const { data: propostas } = await supabase
+      const { data: propostas, error: propError } = await supabase
         .from('proposals')
         .select('id, client_name, client_email, created_at, status, total_price')
         .order('created_at', { ascending: false })
         .limit(5);
 
+      if (propError) {
+        console.warn('Erro ao buscar propostas recentes:', propError);
+      }
+
       propostas?.forEach(prop => {
-        atividades.push({
-          id: `prop-${prop.id}`,
-          tipo: 'proposal',
-          clienteNome: prop.client_name,
-          clienteEmail: prop.client_email,
-          data: prop.created_at,
-          status: prop.status,
-          valor: prop.total_price
-        });
+        if (prop && prop.id && prop.client_name && prop.client_email) {
+          atividades.push({
+            id: `prop-${prop.id}`,
+            tipo: 'proposal',
+            clienteNome: prop.client_name,
+            clienteEmail: prop.client_email,
+            data: prop.created_at,
+            status: prop.status || 'draft',
+            valor: safeNumber(prop.total_price)
+          });
+        }
       });
 
       // Últimos contratos
-      const { data: contratos } = await supabase
+      const { data: contratos, error: contError } = await supabase
         .from('contracts')
         .select('id, client_name, client_email, created_at, status, total_price')
         .order('created_at', { ascending: false })
         .limit(5);
 
+      if (contError) {
+        console.warn('Erro ao buscar contratos recentes:', contError);
+      }
+
       contratos?.forEach(cont => {
-        atividades.push({
-          id: `cont-${cont.id}`,
-          tipo: 'contract',
-          clienteNome: cont.client_name,
-          clienteEmail: cont.client_email,
-          data: cont.created_at,
-          status: cont.status,
-          valor: cont.total_price
-        });
+        if (cont && cont.id && cont.client_name && cont.client_email) {
+          atividades.push({
+            id: `cont-${cont.id}`,
+            tipo: 'contract',
+            clienteNome: cont.client_name,
+            clienteEmail: cont.client_email,
+            data: cont.created_at,
+            status: cont.status || 'draft',
+            valor: safeNumber(cont.total_price)
+          });
+        }
       });
 
-      // Ordenar por data mais recente
-      atividades.sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
+      // Ordenar por data mais recente e filtrar itens válidos
+      const atividadesValidas = atividades.filter(ativ => 
+        ativ && ativ.id && ativ.clienteNome && ativ.data
+      );
+      
+      atividadesValidas.sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
 
-      setAtividades(atividades.slice(0, 10));
+      setAtividades(atividadesValidas.slice(0, 10));
 
     } catch (error) {
       console.error('Erro ao buscar atividades:', error);
@@ -263,17 +338,29 @@ export const useDashboardData = () => {
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
-      await Promise.all([fetchMetrics(), fetchAlertas(), fetchAtividades()]);
-      setIsLoading(false);
+      setHasError(false);
+      
+      try {
+        await Promise.all([fetchMetrics(), fetchAlertas(), fetchAtividades()]);
+      } catch (error) {
+        console.error('Erro crítico ao carregar dados do dashboard:', error);
+        setHasError(true);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     loadData();
   }, []);
 
-  const refetchData = () => {
-    fetchMetrics();
-    fetchAlertas();
-    fetchAtividades();
+  const refetchData = async () => {
+    setHasError(false);
+    try {
+      await Promise.all([fetchMetrics(), fetchAlertas(), fetchAtividades()]);
+    } catch (error) {
+      console.error('Erro ao atualizar dados:', error);
+      setHasError(true);
+    }
   };
 
   return {
@@ -281,6 +368,7 @@ export const useDashboardData = () => {
     alertas,
     atividades,
     isLoading,
+    hasError,
     refetchData
   };
 };
