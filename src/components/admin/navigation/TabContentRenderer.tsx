@@ -3,7 +3,7 @@ import React from 'react';
 import DashboardTab from '../tabs/DashboardTab';
 import ProposalsMain from '../proposals/ProposalsMain';
 import ContractsMain from '../contracts/ContractsMain';
-import QuestionnairesMain from '../questionnaires/QuestionnairesMain';
+import QuestionariosTab from '../tabs/QuestionariosTab';
 import GestaoComercialTab from '../tabs/GestaoComercialTab';
 import EventsTab from '../tabs/EventsTab';
 import CalendarioEventosTab from '../tabs/CalendarioEventosTab';
@@ -27,7 +27,7 @@ const TabContentRenderer = ({ activeTab }: TabContentRendererProps) => {
       case "contracts":
         return <ContractsMain />;
       case "questionarios":
-        return <QuestionnairesMain />;
+        return <QuestionariosTab />;
       case "gestao-comercial":
         return <GestaoComercialTab />;
       case "events":
