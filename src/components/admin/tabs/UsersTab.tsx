@@ -25,7 +25,7 @@ const UsersTab = () => {
   });
 
   const { profiles, invitations, loading, createInvitation, deleteInvitation } = useUserProfiles();
-  const { data: professionals } = useProfessionals();
+  const { professionals } = useProfessionals();
   const { isMobile } = useMobileLayout();
 
   const getRoleBadge = (role: string) => {

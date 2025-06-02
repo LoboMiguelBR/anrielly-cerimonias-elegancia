@@ -10,7 +10,7 @@ interface QuestionarioStats {
   concluidos: number
 }
 
-interface Questionario {
+interface QuestionarioData {
   id: string;
   link_publico: string;
   nome_responsavel: string;
@@ -25,7 +25,7 @@ interface Questionario {
   senha_hash: string;
 }
 
-const fetcher = async (): Promise<{ questionarios: Questionario[], stats: QuestionarioStats }> => {
+const fetcher = async (): Promise<{ questionarios: QuestionarioData[], stats: QuestionarioStats }> => {
   const { data, error } = await supabase
     .from('questionarios_noivos')
     .select('*')

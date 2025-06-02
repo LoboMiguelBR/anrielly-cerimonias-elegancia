@@ -71,3 +71,8 @@ export const menuSections: MenuSection[] = [
     ]
   }
 ];
+
+// Função para obter todos os itens de menu
+export const getAllMenuItems = (): MenuItem[] => {
+  return menuSections.flatMap(section => section.items);
+};

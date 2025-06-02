@@ -13,7 +13,7 @@ interface QuoteRequest {
   updated_at: string;
 }
 
-interface TransformedQuoteRequest {
+interface TransformedLead {
   id: string;
   name: string;
   date: string;
@@ -21,10 +21,12 @@ interface TransformedQuoteRequest {
   phone: string;
   status: string;
   email: string;
-  eventLocation: string;
+  event_type: string;
+  event_location: string;
+  created_at: string;
 }
 
-export const transformQuoteRequests = (quoteRequests: QuoteRequest[]): TransformedQuoteRequest[] => {
+export const transformQuoteRequests = (quoteRequests: QuoteRequest[]): TransformedLead[] => {
   return quoteRequests.map(request => ({
     id: request.id,
     name: request.name,
@@ -33,6 +35,8 @@ export const transformQuoteRequests = (quoteRequests: QuoteRequest[]): Transform
     phone: request.phone,
     status: request.status,
     email: request.email,
-    eventLocation: request.event_location
+    event_type: request.event_type,
+    event_location: request.event_location,
+    created_at: request.created_at
   }));
 };
