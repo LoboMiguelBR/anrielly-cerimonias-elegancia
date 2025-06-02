@@ -1,63 +1,96 @@
+import {
+  BarChart3,
+  Calendar,
+  Canvas,
+  FileText,
+  Settings,
+  ShoppingBag,
+  TrendingUp,
+  Users,
+} from "lucide-react";
 
-import * as Icons from 'lucide-react';
-
-export interface MenuItem {
+export type MenuItem = {
   id: string;
   label: string;
-  icon: keyof typeof Icons;
-  section: string;
-}
+  icon: any;
+  href?: string;
+  group: string;
+};
 
-export const menuItems: MenuItem[] = [
-  // Dashboard
-  { id: 'dashboard', label: 'Dashboard', icon: 'BarChart3', section: 'dashboard' },
-
-  // Gestão Comercial
-  { id: 'gestao-comercial', label: 'Gestão Comercial', icon: 'TrendingUp', section: 'comercial' },
-  { id: 'leads', label: 'Leads', icon: 'Users', section: 'comercial' },
-  { id: 'quotes', label: 'Orçamentos', icon: 'FileText', section: 'comercial' },
-  { id: 'proposals', label: 'Propostas', icon: 'Send', section: 'comercial' },
-  { id: 'contracts', label: 'Contratos', icon: 'FileSignature', section: 'comercial' },
-
-  // Eventos e Clientes
-  { id: 'events', label: 'Eventos', icon: 'Calendar', section: 'eventos' },
-  { id: 'questionarios', label: 'Questionários', icon: 'ClipboardList', section: 'eventos' },
-  { id: 'historias-casais', label: 'Histórias dos Casais', icon: 'Heart', section: 'eventos' },
-
-  // Templates (Nova seção centralizada)
-  { id: 'templates', label: 'Templates', icon: 'Layout', section: 'configuracoes' },
-  { id: 'professionals', label: 'Profissionais', icon: 'UserCheck', section: 'configuracoes' },
-  { id: 'testimonials', label: 'Depoimentos', icon: 'MessageSquare', section: 'configuracoes' },
-  { id: 'gallery', label: 'Galeria', icon: 'Image', section: 'configuracoes' },
-  { id: 'landing-pages', label: 'Landing Pages', icon: 'Globe', section: 'configuracoes' },
-  { id: 'users', label: 'Usuários', icon: 'Settings', section: 'configuracoes' }
+export const primaryMenuItems: MenuItem[] = [
+  {
+    id: "dashboard",
+    label: "Dashboard",
+    icon: BarChart3,
+    href: "/admin",
+    group: "main"
+  },
+  {
+    id: "gestao-comercial",
+    label: "Gestão Comercial",
+    icon: TrendingUp,
+    group: "main"
+  },
+  {
+    id: "calendario-eventos",
+    label: "Calendário & Timeline", 
+    icon: Calendar,
+    group: "main"
+  },
+  {
+    id: "events",
+    label: "Gestão de Eventos",
+    icon: Calendar,
+    group: "main"
+  },
+  {
+    id: "proposals",
+    label: "Propostas",
+    icon: FileText,
+    group: "main"
+  },
+  {
+    id: "contracts",
+    label: "Contratos",
+    icon: FileText,
+    group: "main"
+  },
+  {
+    id: "questionarios",
+    label: "Questionários",
+    icon: FileText,
+    group: "main"
+  },
+  {
+    id: "clientes",
+    label: "Clientes",
+    icon: Users,
+    group: "main"
+  },
+  {
+    id: "fornecedores",
+    label: "Fornecedores",
+    icon: ShoppingBag,
+    group: "main"
+  },
+  {
+    id: "website",
+    label: "Website",
+    icon: Canvas,
+    group: "main"
+  }
 ];
 
-export const menuSections = {
-  dashboard: 'Dashboard',
-  comercial: 'Gestão Comercial',
-  eventos: 'Eventos & Clientes',
-  configuracoes: 'Configurações'
-};
-
-export interface MenuSection {
-  title: string;
-  items: MenuItem[];
-}
-
-export const getMenuSections = (): MenuSection[] => {
-  const sections: MenuSection[] = [];
-  
-  Object.entries(menuSections).forEach(([key, title]) => {
-    const items = menuItems.filter(item => item.section === key);
-    if (items.length > 0) {
-      sections.push({ title, items });
-    }
-  });
-  
-  return sections;
-};
+export const secondaryMenuItems: MenuItem[] = [
+  {
+    id: "settings",
+    label: "Configurações",
+    icon: Settings,
+    href: "/admin/settings",
+    group: "settings"
+  }
+];
 
 export const getAllMenuItems = (): MenuItem[] => {
-  return menuItems;
+  return [...primaryMenuItems, ...secondaryMenuItems];
 };

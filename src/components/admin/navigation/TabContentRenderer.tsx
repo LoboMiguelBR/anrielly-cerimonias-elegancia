@@ -1,61 +1,49 @@
-
 import React from 'react';
 import DashboardTab from '../tabs/DashboardTab';
+import ProposalsMain from '../proposals/ProposalsMain';
+import ContractsMain from '../contracts/ContractsMain';
+import QuoteRequestsMain from '../quote-requests/QuoteRequestsMain';
+import QuestionnairesMain from '../questionnaires/QuestionnairesMain';
+import TemplatesMain from '../templates/TemplatesMain';
+import ProfessionalsMain from '../professionals/ProfessionalsMain';
 import GestaoComercialTab from '../tabs/GestaoComercialTab';
-import LeadsTab from '../tabs/LeadsTab';
-import QuotesTab from '../tabs/QuotesTab';
-import ProposalsTab from '../tabs/ProposalsTab';
-import ContractsTab from '../tabs/ContractsTab';
 import EventsTab from '../tabs/EventsTab';
-import QuestionariosTab from '../tabs/QuestionariosTab';
-import HistoriasCasaisTab from '../tabs/HistoriasCasaisTab';
-import TemplatesTab from '../tabs/TemplatesTab';
-import ProfessionalsTab from '../tabs/ProfessionalsTab';
-import TestimonialsTab from '../tabs/TestimonialsTab';
-import AdminGalleryTab from '../tabs/AdminGalleryTab';
-import LandingPagesTab from '../tabs/LandingPagesTab';
-import UsersTab from '../tabs/UsersTab';
+import CalendarioEventosTab from '../tabs/CalendarioEventosTab';
 
-const TabContentRenderer = ({ activeTab }: { activeTab: string }) => {
+interface TabContentRendererProps {
+  activeTab: string;
+}
+
+const TabContentRenderer = ({ activeTab }: TabContentRendererProps) => {
   const renderTabContent = () => {
     switch (activeTab) {
-      case 'dashboard':
-        return <DashboardTab onNavigate={() => {}} />;
-      case 'gestao-comercial':
+      case "dashboard":
+        return <DashboardTab />;
+      case "proposals":
+        return <ProposalsMain quoteRequests={[]} />;
+      case "contracts":
+        return <ContractsMain />;
+      case "quote-requests":
+        return <QuoteRequestsMain />;
+      case "questionnaires":
+        return <QuestionnairesMain />;
+      case "templates":
+        return <TemplatesMain />;
+      case "professionals":
+        return <ProfessionalsMain />;
+      case "gestao-comercial":
         return <GestaoComercialTab />;
-      case 'leads':
-        return <LeadsTab />;
-      case 'quotes':
-        return <QuotesTab />;
-      case 'proposals':
-        return <ProposalsTab quoteRequests={[]} />;
-      case 'contracts':
-        return <ContractsTab />;
-      case 'events':
+      case "events":
         return <EventsTab />;
-      case 'questionarios':
-        return <QuestionariosTab />;
-      case 'historias-casais':
-        return <HistoriasCasaisTab />;
-      case 'templates':
-        return <TemplatesTab />;
-      case 'professionals':
-        return <ProfessionalsTab />;
-      case 'testimonials':
-        return <TestimonialsTab />;
-      case 'gallery':
-        return <AdminGalleryTab />;
-      case 'landing-pages':
-        return <LandingPagesTab />;
-      case 'users':
-        return <UsersTab />;
+      case "calendario-eventos":
+        return <CalendarioEventosTab />;
       default:
-        return <DashboardTab onNavigate={() => {}} />;
+        return <DashboardTab />;
     }
   };
 
   return (
-    <div className="flex-1 p-4 md:p-6 overflow-auto">
+    <div className="w-full">
       {renderTabContent()}
     </div>
   );
