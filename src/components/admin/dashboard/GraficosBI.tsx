@@ -205,8 +205,8 @@ const GraficosBI: React.FC = () => {
     }).format(value);
   };
 
-  // Componente de gráfico seguro
-  const SafeChart = ({ children, data }: { children: React.ReactNode; data: any[] }) => {
+  // Componente de gráfico seguro com tipagem corrigida
+  const SafeChart = ({ children, data }: { children: React.ReactElement; data: any[] }): React.ReactElement => {
     if (!Array.isArray(data) || data.length === 0) {
       return (
         <div className="h-64 flex items-center justify-center text-gray-500">
