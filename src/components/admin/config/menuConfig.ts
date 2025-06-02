@@ -9,6 +9,14 @@ import {
   TrendingUp,
   Users,
   AlertTriangle,
+  ClipboardList,
+  UserPlus,
+  Star,
+  Image,
+  Globe,
+  Phone,
+  DollarSign,
+  Building2,
 } from "lucide-react";
 
 export type MenuItem = {
@@ -40,76 +48,139 @@ export const primaryMenuItems: MenuItem[] = [
     icon: validateIcon(BarChart3, "dashboard"),
     href: "/admin",
     group: "main"
+  }
+];
+
+export const crmVendasItems: MenuItem[] = [
+  {
+    id: "leads",
+    label: "Leads",
+    icon: validateIcon(Phone, "leads"),
+    group: "crm"
   },
   {
     id: "gestao-comercial",
     label: "Gestão Comercial",
     icon: validateIcon(TrendingUp, "gestao-comercial"),
-    group: "main"
+    group: "crm"
   },
   {
-    id: "calendario-eventos",
-    label: "Calendário & Timeline", 
-    icon: validateIcon(Calendar, "calendario-eventos"),
-    group: "main"
-  },
-  {
-    id: "events",
-    label: "Gestão de Eventos",
-    icon: validateIcon(Calendar, "events"),
-    group: "main"
+    id: "quotes",
+    label: "Orçamentos",
+    icon: validateIcon(DollarSign, "quotes"),
+    group: "crm"
   },
   {
     id: "proposals",
     label: "Propostas",
     icon: validateIcon(FileText, "proposals"),
-    group: "main"
+    group: "crm"
   },
   {
     id: "contracts",
     label: "Contratos",
     icon: validateIcon(FileText, "contracts"),
-    group: "main"
-  },
-  {
-    id: "questionarios",
-    label: "Questionários",
-    icon: validateIcon(FileText, "questionarios"),
-    group: "main"
+    group: "crm"
   },
   {
     id: "clientes",
     label: "Clientes",
     icon: validateIcon(Users, "clientes"),
-    group: "main"
+    group: "crm"
+  }
+];
+
+export const operacionalItems: MenuItem[] = [
+  {
+    id: "events",
+    label: "Gestão de Eventos",
+    icon: validateIcon(Calendar, "events"),
+    group: "operacional"
+  },
+  {
+    id: "calendario-eventos",
+    label: "Calendário & Timeline", 
+    icon: validateIcon(Calendar, "calendario-eventos"),
+    group: "operacional"
+  },
+  {
+    id: "questionarios",
+    label: "Questionários",
+    icon: validateIcon(ClipboardList, "questionarios"),
+    group: "operacional"
   },
   {
     id: "fornecedores",
     label: "Fornecedores",
     icon: validateIcon(ShoppingBag, "fornecedores"),
-    group: "main"
+    group: "operacional"
   },
+  {
+    id: "professionals",
+    label: "Profissionais",
+    icon: validateIcon(Building2, "professionals"),
+    group: "operacional"
+  }
+];
+
+export const conteudoItems: MenuItem[] = [
   {
     id: "website",
     label: "Website",
     icon: validateIcon(Palette, "website"),
-    group: "main"
+    group: "conteudo"
+  },
+  {
+    id: "gallery",
+    label: "Galeria",
+    icon: validateIcon(Image, "gallery"),
+    group: "conteudo"
+  },
+  {
+    id: "testimonials",
+    label: "Depoimentos",
+    icon: validateIcon(Star, "testimonials"),
+    group: "conteudo"
+  },
+  {
+    id: "landing-pages",
+    label: "Landing Pages",
+    icon: validateIcon(Globe, "landing-pages"),
+    group: "conteudo"
   }
 ];
 
-export const secondaryMenuItems: MenuItem[] = [
+export const sistemaItems: MenuItem[] = [
+  {
+    id: "templates",
+    label: "Templates",
+    icon: validateIcon(FileText, "templates"),
+    group: "sistema"
+  },
+  {
+    id: "users",
+    label: "Usuários & Permissões",
+    icon: validateIcon(UserPlus, "users"),
+    group: "sistema"
+  },
   {
     id: "settings",
     label: "Configurações",
     icon: validateIcon(Settings, "settings"),
     href: "/admin/settings",
-    group: "settings"
+    group: "sistema"
   }
 ];
 
 export const getAllMenuItems = (): MenuItem[] => {
   try {
-    const allItems = [...primaryMenuItems, ...secondaryMenuItems];
+    const allItems = [
+      ...primaryMenuItems,
+      ...crmVendasItems,
+      ...operacionalItems,
+      ...conteudoItems,
+      ...sistemaItems
+    ];
     console.log('menuConfig: Total de itens carregados:', allItems.length);
     return allItems;
   } catch (error) {
@@ -126,8 +197,20 @@ export const getMenuSections = () => {
         items: primaryMenuItems
       },
       {
-        title: "Configurações",
-        items: secondaryMenuItems
+        title: "CRM & Vendas",
+        items: crmVendasItems
+      },
+      {
+        title: "Operacional",
+        items: operacionalItems
+      },
+      {
+        title: "Conteúdo",
+        items: conteudoItems
+      },
+      {
+        title: "Sistema",
+        items: sistemaItems
       }
     ];
   } catch (error) {

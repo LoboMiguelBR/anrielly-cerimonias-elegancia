@@ -1,152 +1,65 @@
 
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { 
-  Home, 
-  FileText, 
-  Users, 
-  MessageSquare, 
-  Calendar,
-  Menu,
-  Settings,
-  Image,
-  TrendingUp,
-  UserPlus,
-  BookOpen,
-  HelpCircle
-} from 'lucide-react';
-import { useMobileLayout } from '@/hooks/useMobileLayout';
+import React from 'react';
+import { BarChart3, TrendingUp, Calendar, ClipboardList, Users } from 'lucide-react';
 
 interface BottomNavigationProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
 }
 
-const BottomNavigation: React.FC<BottomNavigationProps> = ({ activeTab, onTabChange }) => {
-  const { isMobile } = useMobileLayout();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-  if (!isMobile) return null;
-
-  // Verificação de segurança para props
-  if (!activeTab || !onTabChange) {
-    console.warn('BottomNavigation: Missing required props', { activeTab, onTabChange });
-    return null;
-  }
-
-  const primaryTabs = [
-    { id: 'dashboard', label: 'Início', icon: Home },
-    { id: 'quotes', label: 'Orçamentos', icon: FileText },
-    { id: 'gestao-comercial', label: 'Gestão', icon: TrendingUp },
-    { id: 'menu', label: 'Menu', icon: Menu, special: true }
-  ].filter(tab => tab.id && tab.label && tab.icon); // Filtrar tabs inválidas
-
-  const allTabs = [
-    { id: 'dashboard', label: 'Dashboard', icon: Home },
-    { id: 'quotes', label: 'Solicitações de Orçamento', icon: FileText },
-    { id: 'proposals', label: 'Gerenciar Propostas', icon: FileText },
-    { id: 'contracts', label: 'Contratos', icon: Calendar },
-    { id: 'gestao-comercial', label: 'Gestão Comercial', icon: TrendingUp },
-    { id: 'gallery', label: 'Galeria', icon: Image },
-    { id: 'testimonials', label: 'Depoimentos', icon: MessageSquare },
-    { id: 'leads', label: 'Leads', icon: UserPlus },
-    { id: 'professionals', label: 'Profissionais', icon: Users },
-    { id: 'questionarios', label: 'Questionários', icon: HelpCircle },
-    { id: 'historias-casais', label: 'Histórias dos Casais', icon: BookOpen },
-    { id: 'proposal-templates', label: 'Templates de Proposta', icon: Settings },
-    { id: 'contract-templates', label: 'Templates de Contrato', icon: Settings },
-    { id: 'contract-email-templates', label: 'Templates de Email', icon: Settings }
-  ].filter(tab => tab.id && tab.label && tab.icon); // Filtrar tabs inválidas
-
-  const handleTabSelect = (tabId: string) => {
-    if (!tabId || typeof tabId !== 'string') {
-      console.warn('BottomNavigation: Invalid tabId', tabId);
-      return;
+const BottomNavigation = ({ activeTab, onTabChange }: BottomNavigationProps) => {
+  const mobileItems = [
+    {
+      id: "dashboard",
+      label: "Dashboard",
+      icon: BarChart3
+    },
+    {
+      id: "gestao-comercial",
+      label: "Vendas",
+      icon: TrendingUp
+    },
+    {
+      id: "calendario-eventos",
+      label: "Agenda",
+      icon: Calendar
+    },
+    {
+      id: "questionarios",
+      label: "Forms",
+      icon: ClipboardList
+    },
+    {
+      id: "leads",
+      label: "Leads",
+      icon: Users
     }
-    
-    try {
-      onTabChange(tabId);
-      setIsMenuOpen(false);
-    } catch (error) {
-      console.error('BottomNavigation: Error in handleTabSelect', error);
-    }
-  };
-
-  const isTabActive = (tabId: string) => {
-    if (!tabId || !activeTab) return false;
-    return activeTab === tabId;
-  };
+  ];
 
   return (
-    <>
-      {/* Bottom Navigation Bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
-        <div className="grid grid-cols-4 h-16">
-          {primaryTabs.map((tab) => {
-            // Verificação de segurança para cada tab
-            if (!tab || !tab.id || !tab.icon) {
-              console.warn('BottomNavigation: Invalid tab', tab);
-              return null;
-            }
-
-            if (tab.special) {
-              return (
-                <Sheet key={tab.id} open={isMenuOpen} onOpenChange={setIsMenuOpen}>
-                  <SheetTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      className="h-full rounded-none flex flex-col items-center justify-center gap-1 text-xs"
-                    >
-                      <tab.icon className="h-5 w-5" />
-                      <span>{tab.label || 'Menu'}</span>
-                    </Button>
-                  </SheetTrigger>
-                  <SheetContent side="bottom" className="h-[80vh] overflow-y-auto">
-                    <SheetHeader>
-                      <SheetTitle>Menu Completo</SheetTitle>
-                    </SheetHeader>
-                    <div className="grid grid-cols-1 gap-2 mt-6">
-                      {allTabs.map((menuTab) => {
-                        if (!menuTab || !menuTab.id || !menuTab.icon) {
-                          return null;
-                        }
-                        
-                        return (
-                          <Button
-                            key={menuTab.id}
-                            variant={isTabActive(menuTab.id) ? "default" : "ghost"}
-                            className="justify-start h-12 text-left"
-                            onClick={() => handleTabSelect(menuTab.id)}
-                          >
-                            <menuTab.icon className="h-5 w-5 mr-3" />
-                            {menuTab.label || 'Sem título'}
-                          </Button>
-                        );
-                      })}
-                    </div>
-                  </SheetContent>
-                </Sheet>
-              );
-            }
-
-            return (
-              <Button
-                key={tab.id}
-                variant="ghost"
-                className={`h-full rounded-none flex flex-col items-center justify-center gap-1 text-xs ${
-                  isTabActive(tab.id) ? 'text-purple-600 bg-purple-50' : 'text-gray-600'
-                }`}
-                onClick={() => handleTabSelect(tab.id)}
-              >
-                <tab.icon className="h-5 w-5" />
-                <span>{tab.label || 'Sem título'}</span>
-              </Button>
-            );
-          })}
-        </div>
+    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 md:hidden">
+      <div className="grid grid-cols-5 h-16">
+        {mobileItems.map((item) => {
+          const IconComponent = item.icon;
+          const isActive = activeTab === item.id;
+          
+          return (
+            <button
+              key={item.id}
+              onClick={() => onTabChange(item.id)}
+              className={`flex flex-col items-center justify-center h-full transition-colors ${
+                isActive
+                  ? 'text-blue-600 bg-blue-50'
+                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              <IconComponent className="h-5 w-5 mb-1" />
+              <span className="text-xs font-medium">{item.label}</span>
+            </button>
+          );
+        })}
       </div>
-    </>
+    </div>
   );
 };
 

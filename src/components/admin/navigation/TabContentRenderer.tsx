@@ -7,6 +7,14 @@ import QuestionariosTab from '../tabs/QuestionariosTab';
 import GestaoComercialTab from '../tabs/GestaoComercialTab';
 import EventsTab from '../tabs/EventsTab';
 import CalendarioEventosTab from '../tabs/CalendarioEventosTab';
+import TemplatesTab from '../tabs/TemplatesTab';
+import QuotesTab from '../tabs/QuotesTab';
+import LeadsTab from '../tabs/LeadsTab';
+import ProfessionalsTab from '../tabs/ProfessionalsTab';
+import TestimonialsTab from '../tabs/TestimonialsTab';
+import AdminGalleryTab from '../tabs/AdminGalleryTab';
+import UsersTab from '../tabs/UsersTab';
+import LandingPagesTab from '../tabs/LandingPagesTab';
 import ErrorBoundary from '../../ErrorBoundary';
 
 interface TabContentRendererProps {
@@ -40,20 +48,74 @@ const TabContentRenderer = ({ activeTab }: TabContentRendererProps) => {
   const renderTabContent = () => {
     try {
       switch (activeTab) {
+        // Principal
         case "dashboard":
           return <DashboardTab onNavigate={handleNavigate} />;
+
+        // CRM & Vendas
+        case "leads":
+          return <LeadsTab />;
+        case "gestao-comercial":
+          return <GestaoComercialTab />;
+        case "quotes":
+          return <QuotesTab />;
         case "proposals":
           return <ProposalsMain quoteRequests={[]} />;
         case "contracts":
           return <ContractsMain />;
-        case "questionarios":
-          return <QuestionariosTab />;
-        case "gestao-comercial":
-          return <GestaoComercialTab />;
+        case "clientes":
+          return (
+            <div className="p-6">
+              <h2 className="text-2xl font-bold mb-4">Clientes</h2>
+              <p className="text-gray-600">Funcionalidade em desenvolvimento...</p>
+            </div>
+          );
+
+        // Operacional
         case "events":
           return <EventsTab />;
         case "calendario-eventos":
           return <CalendarioEventosTab />;
+        case "questionarios":
+          return <QuestionariosTab />;
+        case "fornecedores":
+          return (
+            <div className="p-6">
+              <h2 className="text-2xl font-bold mb-4">Fornecedores</h2>
+              <p className="text-gray-600">Funcionalidade em desenvolvimento...</p>
+            </div>
+          );
+        case "professionals":
+          return <ProfessionalsTab />;
+
+        // Conteúdo
+        case "website":
+          return (
+            <div className="p-6">
+              <h2 className="text-2xl font-bold mb-4">Website</h2>
+              <p className="text-gray-600">Funcionalidade em desenvolvimento...</p>
+            </div>
+          );
+        case "gallery":
+          return <AdminGalleryTab />;
+        case "testimonials":
+          return <TestimonialsTab />;
+        case "landing-pages":
+          return <LandingPagesTab />;
+
+        // Sistema
+        case "templates":
+          return <TemplatesTab />;
+        case "users":
+          return <UsersTab />;
+        case "settings":
+          return (
+            <div className="p-6">
+              <h2 className="text-2xl font-bold mb-4">Configurações</h2>
+              <p className="text-gray-600">Funcionalidade em desenvolvimento...</p>
+            </div>
+          );
+
         default:
           console.warn(`TabContentRenderer: Unknown tab: ${activeTab}, falling back to dashboard`);
           return <DashboardTab onNavigate={handleNavigate} />;
