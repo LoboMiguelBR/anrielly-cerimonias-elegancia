@@ -2,20 +2,7 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-
-interface Questionario {
-  id: string;
-  nome_responsavel: string;
-  email: string;
-  link_publico: string;
-  status: string;
-  total_perguntas_resp: number;
-  data_criacao: string;
-  data_atualizacao: string;
-  historia_processada: boolean;
-  historia_gerada?: string;
-  respostas_json: any;
-}
+import { Questionario } from '@/components/admin/tabs/types/questionario';
 
 export const useQuestionarioActions = () => {
   const [loading, setLoading] = useState(false);

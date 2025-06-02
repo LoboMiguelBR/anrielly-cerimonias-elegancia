@@ -1,7 +1,7 @@
 
 import useSWR from 'swr'
 import { supabase } from "@/integrations/supabase/client"
-import type { Json } from "@/integrations/supabase/types"
+import { Questionario } from '@/components/admin/tabs/types/questionario';
 
 interface QuestionarioStats {
   total: number
@@ -10,23 +10,7 @@ interface QuestionarioStats {
   concluidos: number
 }
 
-// Interface unificada que corresponde exatamente ao banco de dados
-interface QuestionarioData {
-  id: string;
-  link_publico: string;
-  nome_responsavel: string;
-  email: string;
-  status: string;
-  data_criacao: string;
-  data_atualizacao: string;
-  respostas_json: Json | null;
-  total_perguntas_resp: number;
-  historia_gerada?: string | null;
-  historia_processada?: boolean | null;
-  senha_hash: string;
-}
-
-const fetcher = async (): Promise<{ questionarios: QuestionarioData[], stats: QuestionarioStats }> => {
+const fetcher = async (): Promise<{ questionarios: Questionario[], stats: QuestionarioStats }> => {
   const { data, error } = await supabase
     .from('questionarios_noivos')
     .select('*')

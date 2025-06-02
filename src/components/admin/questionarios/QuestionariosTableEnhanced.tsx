@@ -11,22 +11,7 @@ import EditQuestionarioModal from './EditQuestionarioModal';
 import QuestionarioStatusSelect from './QuestionarioStatusSelect';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-
-// Interface unificada que corresponde aos dados do banco
-interface Questionario {
-  id: string;
-  nome_responsavel: string;
-  email: string;
-  link_publico: string;
-  status: string;
-  total_perguntas_resp: number;
-  data_criacao: string;
-  data_atualizacao: string;
-  historia_processada?: boolean | null;
-  historia_gerada?: string | null;
-  respostas_json: any;
-  senha_hash: string;
-}
+import { Questionario } from '@/components/admin/tabs/types/questionario';
 
 interface QuestionariosTableEnhancedProps {
   questionarios: Questionario[];
