@@ -817,6 +817,130 @@ export type Database = {
           },
         ]
       }
+      questionario_perguntas: {
+        Row: {
+          ativo: boolean | null
+          created_at: string | null
+          id: string
+          obrigatoria: boolean | null
+          opcoes_resposta: Json | null
+          ordem: number
+          placeholder: string | null
+          questionario_id: string
+          secao_id: string | null
+          template_pergunta_id: string | null
+          texto: string
+          tipo_resposta: string | null
+          updated_at: string | null
+          validacoes: Json | null
+        }
+        Insert: {
+          ativo?: boolean | null
+          created_at?: string | null
+          id?: string
+          obrigatoria?: boolean | null
+          opcoes_resposta?: Json | null
+          ordem: number
+          placeholder?: string | null
+          questionario_id: string
+          secao_id?: string | null
+          template_pergunta_id?: string | null
+          texto: string
+          tipo_resposta?: string | null
+          updated_at?: string | null
+          validacoes?: Json | null
+        }
+        Update: {
+          ativo?: boolean | null
+          created_at?: string | null
+          id?: string
+          obrigatoria?: boolean | null
+          opcoes_resposta?: Json | null
+          ordem?: number
+          placeholder?: string | null
+          questionario_id?: string
+          secao_id?: string | null
+          template_pergunta_id?: string | null
+          texto?: string
+          tipo_resposta?: string | null
+          updated_at?: string | null
+          validacoes?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "questionario_perguntas_questionario_id_fkey"
+            columns: ["questionario_id"]
+            isOneToOne: false
+            referencedRelation: "questionarios_noivos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "questionario_perguntas_secao_id_fkey"
+            columns: ["secao_id"]
+            isOneToOne: false
+            referencedRelation: "questionario_secoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "questionario_perguntas_template_pergunta_id_fkey"
+            columns: ["template_pergunta_id"]
+            isOneToOne: false
+            referencedRelation: "questionario_template_perguntas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      questionario_secoes: {
+        Row: {
+          ativo: boolean | null
+          created_at: string | null
+          descricao: string | null
+          id: string
+          ordem: number
+          questionario_id: string
+          template_secao_id: string | null
+          titulo: string
+          updated_at: string | null
+        }
+        Insert: {
+          ativo?: boolean | null
+          created_at?: string | null
+          descricao?: string | null
+          id?: string
+          ordem: number
+          questionario_id: string
+          template_secao_id?: string | null
+          titulo: string
+          updated_at?: string | null
+        }
+        Update: {
+          ativo?: boolean | null
+          created_at?: string | null
+          descricao?: string | null
+          id?: string
+          ordem?: number
+          questionario_id?: string
+          template_secao_id?: string | null
+          titulo?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "questionario_secoes_questionario_id_fkey"
+            columns: ["questionario_id"]
+            isOneToOne: false
+            referencedRelation: "questionarios_noivos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "questionario_secoes_template_secao_id_fkey"
+            columns: ["template_secao_id"]
+            isOneToOne: false
+            referencedRelation: "questionario_template_secoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       questionario_template_perguntas: {
         Row: {
           ativo: boolean | null

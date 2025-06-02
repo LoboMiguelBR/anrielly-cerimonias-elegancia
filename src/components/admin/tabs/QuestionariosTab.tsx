@@ -10,7 +10,7 @@ import QuestionarioCreateFormEnhanced from "./components/QuestionarioCreateFormE
 import QuestionariosTableEnhanced from "../questionarios/QuestionariosTableEnhanced";
 import QuestionariosGroupedView from "./components/QuestionariosGroupedView";
 import QuestionarioAnswersModal from "./components/QuestionarioAnswersModal";
-import EditQuestionarioModal from "../questionarios/EditQuestionarioModal";
+import QuestionarioAdvancedEditor from "./components/QuestionarioAdvancedEditor";
 import QuestionarioHistoryModal from "./components/QuestionarioHistoryModal";
 import QuestionariosHeader from "./components/QuestionariosHeader";
 import QuestionariosStats from "./components/QuestionariosStats";
@@ -22,7 +22,7 @@ const QuestionariosTab = () => {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [selectedQuestionario, setSelectedQuestionario] = useState<Questionario | null>(null);
   const [showAnswersModal, setShowAnswersModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
+  const [showAdvancedEditor, setShowAdvancedEditor] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [viewMode, setViewMode] = useState<'grouped' | 'table'>('grouped');
 
@@ -37,7 +37,7 @@ const QuestionariosTab = () => {
 
   const handleEdit = (questionario: Questionario) => {
     setSelectedQuestionario(questionario);
-    setShowEditModal(true);
+    setShowAdvancedEditor(true);
   };
 
   const handleViewHistory = (questionario: Questionario) => {
@@ -64,6 +64,7 @@ const QuestionariosTab = () => {
   };
 
   const handleEditSuccess = () => {
+    setShowAdvancedEditor(false);
     refetch();
   };
 
@@ -125,12 +126,17 @@ const QuestionariosTab = () => {
         </Dialog>
       )}
 
-      <EditQuestionarioModal
-        open={showEditModal}
-        onOpenChange={setShowEditModal}
-        onSuccess={handleEditSuccess}
-        questionario={selectedQuestionario}
-      />
+      {showAdvancedEditor && (
+        <Dialog open={showAdvancedEditor} onOpenChange={setShowAdvancedEditor}>
+          <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden">
+            <QuestionarioAdvancedEditor
+              questionario={selectedQuestionario}
+              onClose={() => setShowAdvancedEditor(false)}
+              onSuccess={handleEditSuccess}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
 
       <QuestionarioHistoryModal
         isOpen={showHistoryModal}

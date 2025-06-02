@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { generateUniqueEventSlug, TIPOS_EVENTO } from '@/utils/eventSlugGenerator';
+import { useQuestionarioTemplates } from '@/hooks/useQuestionarioTemplates';
 
 interface QuestionarioCreateFormEnhancedProps {
   onSuccess: () => void;
@@ -19,9 +20,11 @@ const QuestionarioCreateFormEnhanced = ({ onSuccess }: QuestionarioCreateFormEnh
     nome_responsavel: '',
     email: '',
     link_publico: '',
+    template_id: '',
   });
   const [loading, setLoading] = useState(false);
   const [generatingSlug, setGeneratingSlug] = useState(false);
+  const { templates } = useQuestionarioTemplates();
 
   const generateRandomPassword = () => {
     return Math.random().toString(36).slice(-8);
@@ -60,6 +63,82 @@ const QuestionarioCreateFormEnhanced = ({ onSuccess }: QuestionarioCreateFormEnh
     return () => clearTimeout(timer);
   }, [formData.nome_evento, formData.tipo_evento]);
 
+  // Auto-selecionar template padrão quando tipo de evento mudar
+  useEffect(() => {
+    if (formData.tipo_evento) {
+      const defaultTemplate = templates.find(
+        t => t.tipo_evento === formData.tipo_evento && t.is_default
+      );
+      if (defaultTemplate) {
+        setFormData(prev => ({ ...prev, template_id: defaultTemplate.id }));
+      }
+    }
+  }, [formData.tipo_evento, templates]);
+
+  const copyTemplateStructure = async (questionarioId: string, templateId: string) => {
+    try {
+      // Buscar seções do template
+      const { data: templateSections, error: sectionsError } = await supabase
+        .from('questionario_template_secoes')
+        .select('*')
+        .eq('template_id', templateId)
+        .order('ordem');
+
+      if (sectionsError) throw sectionsError;
+
+      // Criar seções no questionário
+      for (const templateSection of templateSections) {
+        const { data: newSection, error: sectionError } = await supabase
+          .from('questionario_secoes')
+          .insert({
+            questionario_id: questionarioId,
+            template_secao_id: templateSection.id,
+            titulo: templateSection.titulo,
+            descricao: templateSection.descricao,
+            ordem: templateSection.ordem,
+            ativo: templateSection.ativo
+          })
+          .select()
+          .single();
+
+        if (sectionError) throw sectionError;
+
+        // Buscar perguntas da seção do template
+        const { data: templateQuestions, error: questionsError } = await supabase
+          .from('questionario_template_perguntas')
+          .select('*')
+          .eq('secao_id', templateSection.id)
+          .order('ordem');
+
+        if (questionsError) throw questionsError;
+
+        // Criar perguntas no questionário
+        for (const templateQuestion of templateQuestions) {
+          const { error: questionError } = await supabase
+            .from('questionario_perguntas')
+            .insert({
+              questionario_id: questionarioId,
+              secao_id: newSection.id,
+              template_pergunta_id: templateQuestion.id,
+              texto: templateQuestion.texto,
+              tipo_resposta: templateQuestion.tipo_resposta,
+              placeholder: templateQuestion.placeholder,
+              opcoes_resposta: templateQuestion.opcoes_resposta,
+              validacoes: templateQuestion.validacoes,
+              obrigatoria: templateQuestion.obrigatoria,
+              ordem: templateQuestion.ordem,
+              ativo: templateQuestion.ativo
+            });
+
+          if (questionError) throw questionError;
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao copiar estrutura do template:', error);
+      throw error;
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -70,9 +149,14 @@ const QuestionarioCreateFormEnhanced = ({ onSuccess }: QuestionarioCreateFormEnh
         return;
       }
 
+      if (!formData.template_id) {
+        toast.error('Selecione um template para o questionário');
+        return;
+      }
+
       const senha = generateRandomPassword();
       
-      const { error } = await supabase
+      const { data: questionario, error } = await supabase
         .from('questionarios_noivos')
         .insert([{
           nome_evento: formData.nome_evento,
@@ -81,10 +165,16 @@ const QuestionarioCreateFormEnhanced = ({ onSuccess }: QuestionarioCreateFormEnh
           email: formData.email,
           senha_hash: senha,
           link_publico: formData.link_publico,
+          template_id: formData.template_id,
           status: 'rascunho'
-        }]);
+        }])
+        .select()
+        .single();
 
       if (error) throw error;
+
+      // Copiar estrutura do template para o questionário
+      await copyTemplateStructure(questionario.id, formData.template_id);
 
       toast.success('Questionário criado com sucesso!');
       setFormData({ 
@@ -92,7 +182,8 @@ const QuestionarioCreateFormEnhanced = ({ onSuccess }: QuestionarioCreateFormEnh
         tipo_evento: '', 
         nome_responsavel: '', 
         email: '', 
-        link_publico: '' 
+        link_publico: '',
+        template_id: ''
       });
       onSuccess();
     } catch (error: any) {
@@ -102,6 +193,11 @@ const QuestionarioCreateFormEnhanced = ({ onSuccess }: QuestionarioCreateFormEnh
       setLoading(false);
     }
   };
+
+  // Filtrar templates pelo tipo de evento selecionado
+  const availableTemplates = templates.filter(
+    t => !formData.tipo_evento || t.tipo_evento === formData.tipo_evento
+  );
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -117,10 +213,11 @@ const QuestionarioCreateFormEnhanced = ({ onSuccess }: QuestionarioCreateFormEnh
       </div>
 
       <div>
-        <Label htmlFor="tipo_evento">Tipo do Evento</Label>
+        <Label htmlFor="tipo_evento">Tipo do Evento *</Label>
         <Select 
           value={formData.tipo_evento} 
           onValueChange={(value) => setFormData({ ...formData, tipo_evento: value })}
+          required
         >
           <SelectTrigger>
             <SelectValue placeholder="Selecione o tipo de evento" />
@@ -133,6 +230,31 @@ const QuestionarioCreateFormEnhanced = ({ onSuccess }: QuestionarioCreateFormEnh
             ))}
           </SelectContent>
         </Select>
+      </div>
+
+      <div>
+        <Label htmlFor="template_id">Template do Questionário *</Label>
+        <Select 
+          value={formData.template_id} 
+          onValueChange={(value) => setFormData({ ...formData, template_id: value })}
+          required
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Selecione um template" />
+          </SelectTrigger>
+          <SelectContent>
+            {availableTemplates.map((template) => (
+              <SelectItem key={template.id} value={template.id}>
+                {template.nome} {template.is_default && '(Padrão)'}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {formData.tipo_evento && availableTemplates.length === 0 && (
+          <p className="text-sm text-orange-600 mt-1">
+            Nenhum template disponível para este tipo de evento
+          </p>
+        )}
       </div>
 
       <div>
