@@ -7,6 +7,7 @@ import QuestionariosTab from '../tabs/QuestionariosTab';
 import GestaoComercialTab from '../tabs/GestaoComercialTab';
 import EventsTab from '../tabs/EventsTab';
 import CalendarioEventosTab from '../tabs/CalendarioEventosTab';
+import ErrorBoundary from '../../ErrorBoundary';
 
 interface TabContentRendererProps {
   activeTab: string;
@@ -14,35 +15,42 @@ interface TabContentRendererProps {
 
 const TabContentRenderer = ({ activeTab }: TabContentRendererProps) => {
   const handleNavigate = (tab: string) => {
-    // Navigation logic can be implemented here if needed
     console.log('Navigate to:', tab);
   };
 
   const renderTabContent = () => {
-    switch (activeTab) {
-      case "dashboard":
-        return <DashboardTab onNavigate={handleNavigate} />;
-      case "proposals":
-        return <ProposalsMain quoteRequests={[]} />;
-      case "contracts":
-        return <ContractsMain />;
-      case "questionarios":
-        return <QuestionariosTab />;
-      case "gestao-comercial":
-        return <GestaoComercialTab />;
-      case "events":
-        return <EventsTab />;
-      case "calendario-eventos":
-        return <CalendarioEventosTab />;
-      default:
-        return <DashboardTab onNavigate={handleNavigate} />;
+    try {
+      switch (activeTab) {
+        case "dashboard":
+          return <DashboardTab onNavigate={handleNavigate} />;
+        case "proposals":
+          return <ProposalsMain quoteRequests={[]} />;
+        case "contracts":
+          return <ContractsMain />;
+        case "questionarios":
+          return <QuestionariosTab />;
+        case "gestao-comercial":
+          return <GestaoComercialTab />;
+        case "events":
+          return <EventsTab />;
+        case "calendario-eventos":
+          return <CalendarioEventosTab />;
+        default:
+          console.warn(`Unknown tab: ${activeTab}, falling back to dashboard`);
+          return <DashboardTab onNavigate={handleNavigate} />;
+      }
+    } catch (error) {
+      console.error('Error rendering tab content:', error);
+      return <DashboardTab onNavigate={handleNavigate} />;
     }
   };
 
   return (
-    <div className="w-full">
-      {renderTabContent()}
-    </div>
+    <ErrorBoundary>
+      <div className="w-full">
+        {renderTabContent()}
+      </div>
+    </ErrorBoundary>
   );
 };
 

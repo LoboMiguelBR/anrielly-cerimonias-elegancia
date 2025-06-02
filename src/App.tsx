@@ -11,27 +11,30 @@ import NotFound from './pages/NotFound';
 import DynamicLandingPage from './components/DynamicLandingPage';
 import AdminProtectedRoute from './components/AdminProtectedRoute';
 import WebChat from './components/WebChat';
+import ErrorBoundary from './components/ErrorBoundary';
 import { Toaster } from 'sonner';
 import { GalleryProvider } from './components/gallery/GalleryContext';
 
 function App() {
   return (
-    <GalleryProvider>
-      <Routes>
-        <Route path="/" element={<Index />} />
-        <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
-        <Route path="/admin/dashboard" element={<AdminProtectedRoute element={<AdminDashboard />} />} />
-        <Route path="/admin/login" element={<AdminLogin />} />
-        <Route path="/questionario/:linkPublico" element={<QuestionarioLogin />} />
-        <Route path="/questionario/:linkPublico/formulario" element={<QuestionarioFormulario />} />
-        <Route path="/contrato/:slug" element={<ContractSigning />} />
-        {/* Rota dinâmica para landing pages - deve vir por último */}
-        <Route path="/:slug" element={<DynamicLandingPage />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-      <WebChat />
-      <Toaster position="top-right" richColors />
-    </GalleryProvider>
+    <ErrorBoundary>
+      <GalleryProvider>
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+          <Route path="/admin/dashboard" element={<AdminProtectedRoute element={<AdminDashboard />} />} />
+          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/questionario/:linkPublico" element={<QuestionarioLogin />} />
+          <Route path="/questionario/:linkPublico/formulario" element={<QuestionarioFormulario />} />
+          <Route path="/contrato/:slug" element={<ContractSigning />} />
+          {/* Rota dinâmica para landing pages - deve vir por último */}
+          <Route path="/:slug" element={<DynamicLandingPage />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+        <WebChat />
+        <Toaster position="top-right" richColors />
+      </GalleryProvider>
+    </ErrorBoundary>
   );
 }
 
