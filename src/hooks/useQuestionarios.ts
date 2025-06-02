@@ -10,6 +10,7 @@ interface QuestionarioStats {
   concluidos: number
 }
 
+// Interface unificada que corresponde exatamente ao banco de dados
 interface QuestionarioData {
   id: string;
   link_publico: string;

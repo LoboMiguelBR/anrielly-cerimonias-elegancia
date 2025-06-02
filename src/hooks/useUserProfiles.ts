@@ -47,17 +47,17 @@ export const useUserProfiles = () => {
 
       if (error) throw error;
       
-      // Transform data to match UserProfile interface
+      // Transform data to match UserProfile interface, handling missing fields gracefully
       const transformedProfiles = (data || []).map(profile => ({
         id: profile.id,
         email: profile.email,
         name: profile.name,
         role: profile.role as UserRole,
-        professional_id: profile.professional_id,
-        status: profile.status || 'ativo',
-        invited_by: profile.invited_by,
-        invited_at: profile.invited_at,
-        last_login: profile.last_login,
+        professional_id: (profile as any).professional_id || undefined,
+        status: (profile as any).status || 'ativo',
+        invited_by: (profile as any).invited_by || undefined,
+        invited_at: (profile as any).invited_at || undefined,
+        last_login: (profile as any).last_login || undefined,
         created_at: profile.created_at,
         updated_at: profile.updated_at
       }));
@@ -73,16 +73,9 @@ export const useUserProfiles = () => {
 
   const fetchInvitations = async () => {
     try {
-      // Como a tabela user_invitations ainda não existe nos tipos, vamos fazer uma consulta SQL simples
-      const { data, error } = await supabase
-        .rpc('get_user_invitations');
-
-      if (error) {
-        console.log('Tabela user_invitations ainda não disponível:', error);
-        return;
-      }
-      
-      setInvitations(data || []);
+      // Temporariamente simulando convites até a tabela user_invitations ser criada
+      console.log('Tabela user_invitations ainda não disponível');
+      setInvitations([]);
     } catch (error: any) {
       console.log('Convites ainda não disponíveis:', error);
     }

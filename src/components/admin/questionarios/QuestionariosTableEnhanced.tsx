@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +12,7 @@ import QuestionarioStatusSelect from './QuestionarioStatusSelect';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
+// Interface unificada que corresponde aos dados do banco
 interface Questionario {
   id: string;
   nome_responsavel: string;
@@ -22,9 +22,10 @@ interface Questionario {
   total_perguntas_resp: number;
   data_criacao: string;
   data_atualizacao: string;
-  historia_processada: boolean;
-  historia_gerada?: string;
+  historia_processada?: boolean | null;
+  historia_gerada?: string | null;
   respostas_json: any;
+  senha_hash: string;
 }
 
 interface QuestionariosTableEnhancedProps {
