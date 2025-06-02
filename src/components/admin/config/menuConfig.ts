@@ -17,6 +17,10 @@ import {
   Phone,
   DollarSign,
   Building2,
+  UserCheck,
+  Tags,
+  MessageSquare,
+  Cog,
 } from "lucide-react";
 
 export type MenuItem = {
@@ -59,6 +63,12 @@ export const crmVendasItems: MenuItem[] = [
     group: "crm"
   },
   {
+    id: "clientes",
+    label: "Clientes",
+    icon: validateIcon(Users, "clientes"),
+    group: "crm"
+  },
+  {
     id: "gestao-comercial",
     label: "Gestão Comercial",
     icon: validateIcon(TrendingUp, "gestao-comercial"),
@@ -80,12 +90,6 @@ export const crmVendasItems: MenuItem[] = [
     id: "contracts",
     label: "Contratos",
     icon: validateIcon(FileText, "contracts"),
-    group: "crm"
-  },
-  {
-    id: "clientes",
-    label: "Clientes",
-    icon: validateIcon(Users, "clientes"),
     group: "crm"
   }
 ];
@@ -110,14 +114,8 @@ export const operacionalItems: MenuItem[] = [
     group: "operacional"
   },
   {
-    id: "fornecedores",
-    label: "Fornecedores",
-    icon: validateIcon(ShoppingBag, "fornecedores"),
-    group: "operacional"
-  },
-  {
     id: "professionals",
-    label: "Profissionais",
+    label: "Fornecedores & Profissionais",
     icon: validateIcon(Building2, "professionals"),
     group: "operacional"
   }
@@ -126,7 +124,7 @@ export const operacionalItems: MenuItem[] = [
 export const conteudoItems: MenuItem[] = [
   {
     id: "website",
-    label: "Website",
+    label: "CMS Website",
     icon: validateIcon(Palette, "website"),
     group: "conteudo"
   },

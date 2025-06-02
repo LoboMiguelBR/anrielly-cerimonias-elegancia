@@ -9,9 +9,156 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      app_settings: {
+        Row: {
+          category: string
+          created_at: string | null
+          description: string | null
+          id: string
+          key: string
+          updated_at: string | null
+          value: Json | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          key: string
+          updated_at?: string | null
+          value?: Json | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          key?: string
+          updated_at?: string | null
+          value?: Json | null
+        }
+        Relationships: []
+      }
+      client_interactions: {
+        Row: {
+          client_id: string | null
+          completed_at: string | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          interaction_type: string
+          scheduled_date: string | null
+          status: string | null
+          subject: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          client_id?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          interaction_type: string
+          scheduled_date?: string | null
+          status?: string | null
+          subject?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          client_id?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          interaction_type?: string
+          scheduled_date?: string | null
+          status?: string | null
+          subject?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_interactions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_tag_relations: {
+        Row: {
+          client_id: string | null
+          created_at: string | null
+          id: string
+          tag_id: string | null
+        }
+        Insert: {
+          client_id?: string | null
+          created_at?: string | null
+          id?: string
+          tag_id?: string | null
+        }
+        Update: {
+          client_id?: string | null
+          created_at?: string | null
+          id?: string
+          tag_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_tag_relations_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_tag_relations_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "client_tags"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_tags: {
+        Row: {
+          color: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       clientes: {
         Row: {
+          address: Json | null
+          anniversary_date: string | null
+          birth_date: string | null
+          budget_range: string | null
+          client_type: string | null
           created_at: string | null
+          document_number: string | null
+          document_type: string | null
           email: string
           event_date: string | null
           event_location: string | null
@@ -20,13 +167,24 @@ export type Database = {
           message: string | null
           name: string
           origin: string | null
+          partner_name: string | null
           phone: string
+          preferences: Json | null
           quote_id: string | null
+          referral_source: string | null
+          social_media: Json | null
           status: string | null
           updated_at: string | null
         }
         Insert: {
+          address?: Json | null
+          anniversary_date?: string | null
+          birth_date?: string | null
+          budget_range?: string | null
+          client_type?: string | null
           created_at?: string | null
+          document_number?: string | null
+          document_type?: string | null
           email: string
           event_date?: string | null
           event_location?: string | null
@@ -35,13 +193,24 @@ export type Database = {
           message?: string | null
           name: string
           origin?: string | null
+          partner_name?: string | null
           phone: string
+          preferences?: Json | null
           quote_id?: string | null
+          referral_source?: string | null
+          social_media?: Json | null
           status?: string | null
           updated_at?: string | null
         }
         Update: {
+          address?: Json | null
+          anniversary_date?: string | null
+          birth_date?: string | null
+          budget_range?: string | null
+          client_type?: string | null
           created_at?: string | null
+          document_number?: string | null
+          document_type?: string | null
           email?: string
           event_date?: string | null
           event_location?: string | null
@@ -50,8 +219,12 @@ export type Database = {
           message?: string | null
           name?: string
           origin?: string | null
+          partner_name?: string | null
           phone?: string
+          preferences?: Json | null
           quote_id?: string | null
+          referral_source?: string | null
+          social_media?: Json | null
           status?: string | null
           updated_at?: string | null
         }
@@ -555,13 +728,20 @@ export type Database = {
           category: string
           city: string
           created_at: string
+          delivery_time: number | null
           document: string | null
           email: string
           id: string
           instagram: string | null
+          minimum_order: number | null
           name: string
           notes: string | null
+          payment_terms: string | null
           phone: string
+          portfolio_images: string[] | null
+          price_range: string | null
+          rating: number | null
+          supplier_type: string | null
           tags: string[] | null
           updated_at: string
           website: string | null
@@ -570,13 +750,20 @@ export type Database = {
           category: string
           city: string
           created_at?: string
+          delivery_time?: number | null
           document?: string | null
           email: string
           id?: string
           instagram?: string | null
+          minimum_order?: number | null
           name: string
           notes?: string | null
+          payment_terms?: string | null
           phone: string
+          portfolio_images?: string[] | null
+          price_range?: string | null
+          rating?: number | null
+          supplier_type?: string | null
           tags?: string[] | null
           updated_at?: string
           website?: string | null
@@ -585,13 +772,20 @@ export type Database = {
           category?: string
           city?: string
           created_at?: string
+          delivery_time?: number | null
           document?: string | null
           email?: string
           id?: string
           instagram?: string | null
+          minimum_order?: number | null
           name?: string
           notes?: string | null
+          payment_terms?: string | null
           phone?: string
+          portfolio_images?: string[] | null
+          price_range?: string | null
+          rating?: number | null
+          supplier_type?: string | null
           tags?: string[] | null
           updated_at?: string
           website?: string | null
@@ -1191,6 +1385,70 @@ export type Database = {
         }
         Relationships: []
       }
+      supplier_reviews: {
+        Row: {
+          client_id: string | null
+          comment: string | null
+          created_at: string | null
+          event_id: string | null
+          id: string
+          punctuality: number | null
+          rating: number | null
+          service_quality: number | null
+          supplier_id: string | null
+          updated_at: string | null
+          value_for_money: number | null
+        }
+        Insert: {
+          client_id?: string | null
+          comment?: string | null
+          created_at?: string | null
+          event_id?: string | null
+          id?: string
+          punctuality?: number | null
+          rating?: number | null
+          service_quality?: number | null
+          supplier_id?: string | null
+          updated_at?: string | null
+          value_for_money?: number | null
+        }
+        Update: {
+          client_id?: string | null
+          comment?: string | null
+          created_at?: string | null
+          event_id?: string | null
+          id?: string
+          punctuality?: number | null
+          rating?: number | null
+          service_quality?: number | null
+          supplier_id?: string | null
+          updated_at?: string | null
+          value_for_money?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supplier_reviews_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "supplier_reviews_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "supplier_reviews_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "professionals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       template_sections: {
         Row: {
           created_at: string
@@ -1259,6 +1517,92 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      website_pages: {
+        Row: {
+          content: string | null
+          created_at: string | null
+          id: string
+          meta_description: string | null
+          meta_keywords: string | null
+          order_index: number | null
+          page_type: string | null
+          slug: string
+          status: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string | null
+          id?: string
+          meta_description?: string | null
+          meta_keywords?: string | null
+          order_index?: number | null
+          page_type?: string | null
+          slug: string
+          status?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          content?: string | null
+          created_at?: string | null
+          id?: string
+          meta_description?: string | null
+          meta_keywords?: string | null
+          order_index?: number | null
+          page_type?: string | null
+          slug?: string
+          status?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      website_sections: {
+        Row: {
+          content: Json | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          order_index: number | null
+          page_id: string | null
+          section_type: string
+          title: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          content?: Json | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          order_index?: number | null
+          page_id?: string | null
+          section_type: string
+          title?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          content?: Json | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          order_index?: number | null
+          page_id?: string | null
+          section_type?: string
+          title?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "website_sections_page_id_fkey"
+            columns: ["page_id"]
+            isOneToOne: false
+            referencedRelation: "website_pages"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

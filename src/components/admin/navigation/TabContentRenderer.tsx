@@ -15,6 +15,9 @@ import TestimonialsTab from '../tabs/TestimonialsTab';
 import AdminGalleryTab from '../tabs/AdminGalleryTab';
 import UsersTab from '../tabs/UsersTab';
 import LandingPagesTab from '../tabs/LandingPagesTab';
+import ClientesTab from '../tabs/ClientesTab';
+import SettingsTab from '../tabs/SettingsTab';
+import WebsiteTab from '../tabs/WebsiteTab';
 import ErrorBoundary from '../../ErrorBoundary';
 
 interface TabContentRendererProps {
@@ -55,6 +58,8 @@ const TabContentRenderer = ({ activeTab }: TabContentRendererProps) => {
         // CRM & Vendas
         case "leads":
           return <LeadsTab />;
+        case "clientes":
+          return <ClientesTab />;
         case "gestao-comercial":
           return <GestaoComercialTab />;
         case "quotes":
@@ -63,13 +68,6 @@ const TabContentRenderer = ({ activeTab }: TabContentRendererProps) => {
           return <ProposalsMain quoteRequests={[]} />;
         case "contracts":
           return <ContractsMain />;
-        case "clientes":
-          return (
-            <div className="p-6">
-              <h2 className="text-2xl font-bold mb-4">Clientes</h2>
-              <p className="text-gray-600">Funcionalidade em desenvolvimento...</p>
-            </div>
-          );
 
         // Operacional
         case "events":
@@ -78,24 +76,12 @@ const TabContentRenderer = ({ activeTab }: TabContentRendererProps) => {
           return <CalendarioEventosTab />;
         case "questionarios":
           return <QuestionariosTab />;
-        case "fornecedores":
-          return (
-            <div className="p-6">
-              <h2 className="text-2xl font-bold mb-4">Fornecedores</h2>
-              <p className="text-gray-600">Funcionalidade em desenvolvimento...</p>
-            </div>
-          );
         case "professionals":
           return <ProfessionalsTab />;
 
         // Conteúdo
         case "website":
-          return (
-            <div className="p-6">
-              <h2 className="text-2xl font-bold mb-4">Website</h2>
-              <p className="text-gray-600">Funcionalidade em desenvolvimento...</p>
-            </div>
-          );
+          return <WebsiteTab />;
         case "gallery":
           return <AdminGalleryTab />;
         case "testimonials":
@@ -109,12 +95,7 @@ const TabContentRenderer = ({ activeTab }: TabContentRendererProps) => {
         case "users":
           return <UsersTab />;
         case "settings":
-          return (
-            <div className="p-6">
-              <h2 className="text-2xl font-bold mb-4">Configurações</h2>
-              <p className="text-gray-600">Funcionalidade em desenvolvimento...</p>
-            </div>
-          );
+          return <SettingsTab />;
 
         default:
           console.warn(`TabContentRenderer: Unknown tab: ${activeTab}, falling back to dashboard`);
