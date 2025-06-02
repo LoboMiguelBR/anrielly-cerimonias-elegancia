@@ -16,6 +16,7 @@ import ContractTemplatesTab from '../tabs/ContractTemplatesTab';
 import ContractEmailTemplatesTab from '../tabs/ContractEmailTemplatesTab';
 import GestaoComercialTab from '../tabs/GestaoComercialTab';
 import LandingPagesTab from '../tabs/LandingPagesTab';
+import UsersTab from '../tabs/UsersTab';
 
 interface TabContentRendererProps {
   activeTab: string;
@@ -56,6 +57,8 @@ const TabContentRenderer: React.FC<TabContentRendererProps> = ({ activeTab }) =>
         return <GestaoComercialTab />;
       case 'landing-pages':
         return <LandingPagesTab />;
+      case 'users':
+        return <UsersTab />;
       default:
         return <DashboardTab onNavigate={(tab: string) => {}} />;
     }

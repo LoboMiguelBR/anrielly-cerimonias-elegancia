@@ -9,6 +9,62 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      clientes: {
+        Row: {
+          created_at: string | null
+          email: string
+          event_date: string | null
+          event_location: string | null
+          event_type: string
+          id: string
+          message: string | null
+          name: string
+          origin: string | null
+          phone: string
+          quote_id: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          event_date?: string | null
+          event_location?: string | null
+          event_type: string
+          id?: string
+          message?: string | null
+          name: string
+          origin?: string | null
+          phone: string
+          quote_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          event_date?: string | null
+          event_location?: string | null
+          event_type?: string
+          id?: string
+          message?: string | null
+          name?: string
+          origin?: string | null
+          phone?: string
+          quote_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clientes_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quote_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contract_email_templates: {
         Row: {
           created_at: string
@@ -226,41 +282,57 @@ export type Database = {
       event_participants: {
         Row: {
           accepted: boolean | null
+          client_id: string | null
           created_at: string | null
           event_id: string
           id: string
           invited: boolean | null
           magic_link_token: string | null
           name: string | null
+          participant_type: string | null
+          professional_id: string | null
           role: Database["public"]["Enums"]["participant_role"]
           updated_at: string | null
           user_email: string
         }
         Insert: {
           accepted?: boolean | null
+          client_id?: string | null
           created_at?: string | null
           event_id: string
           id?: string
           invited?: boolean | null
           magic_link_token?: string | null
           name?: string | null
+          participant_type?: string | null
+          professional_id?: string | null
           role: Database["public"]["Enums"]["participant_role"]
           updated_at?: string | null
           user_email: string
         }
         Update: {
           accepted?: boolean | null
+          client_id?: string | null
           created_at?: string | null
           event_id?: string
           id?: string
           invited?: boolean | null
           magic_link_token?: string | null
           name?: string | null
+          participant_type?: string | null
+          professional_id?: string | null
           role?: Database["public"]["Enums"]["participant_role"]
           updated_at?: string | null
           user_email?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "event_participants_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "event_participants_event_id_fkey"
             columns: ["event_id"]
@@ -268,13 +340,23 @@ export type Database = {
             referencedRelation: "events"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "event_participants_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals"
+            referencedColumns: ["id"]
+          },
         ]
       }
       events: {
         Row: {
+          cerimonialista_id: string | null
+          client_id: string | null
           contract_id: string | null
           created_at: string | null
           date: string | null
+          description: string | null
           id: string
           location: string | null
           notes: string | null
@@ -286,9 +368,12 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          cerimonialista_id?: string | null
+          client_id?: string | null
           contract_id?: string | null
           created_at?: string | null
           date?: string | null
+          description?: string | null
           id?: string
           location?: string | null
           notes?: string | null
@@ -300,9 +385,12 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          cerimonialista_id?: string | null
+          client_id?: string | null
           contract_id?: string | null
           created_at?: string | null
           date?: string | null
+          description?: string | null
           id?: string
           location?: string | null
           notes?: string | null
@@ -314,6 +402,20 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "events_cerimonialista_id_fkey"
+            columns: ["cerimonialista_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "events_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "events_contract_id_fkey"
             columns: ["contract_id"]
@@ -493,6 +595,39 @@ export type Database = {
           tags?: string[] | null
           updated_at?: string
           website?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          email: string
+          id: string
+          name: string | null
+          phone: string | null
+          role: string
+          updated_at: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email: string
+          id: string
+          name?: string | null
+          phone?: string | null
+          role: string
+          updated_at?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email?: string
+          id?: string
+          name?: string | null
+          phone?: string | null
+          role?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -696,6 +831,7 @@ export type Database = {
           senha_hash: string
           status: string | null
           total_perguntas_resp: number | null
+          user_id: string | null
         }
         Insert: {
           data_atualizacao?: string | null
@@ -710,6 +846,7 @@ export type Database = {
           senha_hash: string
           status?: string | null
           total_perguntas_resp?: number | null
+          user_id?: string | null
         }
         Update: {
           data_atualizacao?: string | null
@@ -724,6 +861,7 @@ export type Database = {
           senha_hash?: string
           status?: string | null
           total_perguntas_resp?: number | null
+          user_id?: string | null
         }
         Relationships: []
       }

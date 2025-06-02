@@ -8,11 +8,15 @@ import LeadsTable from '../leads/LeadsTable';
 import AddLeadForm from '../leads/AddLeadForm';
 import { useQuoteRequests } from '@/hooks/useQuoteRequests';
 import { useMobileLayout } from '@/hooks/useMobileLayout';
+import { transformQuoteRequests } from '../utils/dataTransforms';
 
 const LeadsTab = () => {
   const [showAddDialog, setShowAddDialog] = useState(false);
-  const { data: leads, isLoading, mutate } = useQuoteRequests();
+  const { data: rawLeads, isLoading, mutate } = useQuoteRequests();
   const { isMobile } = useMobileLayout();
+
+  // Transform the data to match LeadsTable expectations
+  const leads = rawLeads ? transformQuoteRequests(rawLeads) : [];
 
   const handleLeadAdded = () => {
     setShowAddDialog(false);
@@ -91,7 +95,11 @@ const LeadsTab = () => {
         </Card>
       </div>
 
-      <LeadsTable leads={leads || []} isLoading={isLoading} onRefresh={mutate} />
+      <LeadsTable 
+        leads={leads || []} 
+        isLoading={isLoading} 
+        onRefresh={mutate} 
+      />
     </div>
   );
 };
