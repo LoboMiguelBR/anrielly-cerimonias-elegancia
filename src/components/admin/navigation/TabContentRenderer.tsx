@@ -14,7 +14,26 @@ interface TabContentRendererProps {
 }
 
 const TabContentRenderer = ({ activeTab }: TabContentRendererProps) => {
+  // Verificação de segurança para props
+  if (!activeTab || typeof activeTab !== 'string') {
+    console.warn('TabContentRenderer: Invalid activeTab', activeTab);
+    return (
+      <ErrorBoundary>
+        <div className="w-full p-4">
+          <div className="text-center text-gray-500">
+            <p>Erro: Tab não especificada</p>
+            <p className="text-sm">Por favor, selecione uma aba válida</p>
+          </div>
+        </div>
+      </ErrorBoundary>
+    );
+  }
+
   const handleNavigate = (tab: string) => {
+    if (!tab || typeof tab !== 'string') {
+      console.warn('TabContentRenderer: Invalid navigation tab', tab);
+      return;
+    }
     console.log('Navigate to:', tab);
   };
 
@@ -36,12 +55,25 @@ const TabContentRenderer = ({ activeTab }: TabContentRendererProps) => {
         case "calendario-eventos":
           return <CalendarioEventosTab />;
         default:
-          console.warn(`Unknown tab: ${activeTab}, falling back to dashboard`);
+          console.warn(`TabContentRenderer: Unknown tab: ${activeTab}, falling back to dashboard`);
           return <DashboardTab onNavigate={handleNavigate} />;
       }
     } catch (error) {
-      console.error('Error rendering tab content:', error);
-      return <DashboardTab onNavigate={handleNavigate} />;
+      console.error('TabContentRenderer: Error rendering tab content:', error);
+      return (
+        <div className="w-full p-4">
+          <div className="text-center text-red-500">
+            <p>Erro ao carregar conteúdo da aba</p>
+            <p className="text-sm">Tab: {activeTab}</p>
+            <button 
+              onClick={() => window.location.reload()} 
+              className="mt-2 px-4 py-2 bg-red-100 text-red-700 rounded hover:bg-red-200"
+            >
+              Recarregar página
+            </button>
+          </div>
+        </div>
+      );
     }
   };
 

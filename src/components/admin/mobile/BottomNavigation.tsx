@@ -29,12 +29,18 @@ const BottomNavigation: React.FC<BottomNavigationProps> = ({ activeTab, onTabCha
 
   if (!isMobile) return null;
 
+  // Verificação de segurança para props
+  if (!activeTab || !onTabChange) {
+    console.warn('BottomNavigation: Missing required props', { activeTab, onTabChange });
+    return null;
+  }
+
   const primaryTabs = [
     { id: 'dashboard', label: 'Início', icon: Home },
     { id: 'quotes', label: 'Orçamentos', icon: FileText },
     { id: 'gestao-comercial', label: 'Gestão', icon: TrendingUp },
     { id: 'menu', label: 'Menu', icon: Menu, special: true }
-  ];
+  ].filter(tab => tab.id && tab.label && tab.icon); // Filtrar tabs inválidas
 
   const allTabs = [
     { id: 'dashboard', label: 'Dashboard', icon: Home },
@@ -51,14 +57,26 @@ const BottomNavigation: React.FC<BottomNavigationProps> = ({ activeTab, onTabCha
     { id: 'proposal-templates', label: 'Templates de Proposta', icon: Settings },
     { id: 'contract-templates', label: 'Templates de Contrato', icon: Settings },
     { id: 'contract-email-templates', label: 'Templates de Email', icon: Settings }
-  ];
+  ].filter(tab => tab.id && tab.label && tab.icon); // Filtrar tabs inválidas
 
   const handleTabSelect = (tabId: string) => {
-    onTabChange(tabId);
-    setIsMenuOpen(false);
+    if (!tabId || typeof tabId !== 'string') {
+      console.warn('BottomNavigation: Invalid tabId', tabId);
+      return;
+    }
+    
+    try {
+      onTabChange(tabId);
+      setIsMenuOpen(false);
+    } catch (error) {
+      console.error('BottomNavigation: Error in handleTabSelect', error);
+    }
   };
 
-  const isTabActive = (tabId: string) => activeTab === tabId;
+  const isTabActive = (tabId: string) => {
+    if (!tabId || !activeTab) return false;
+    return activeTab === tabId;
+  };
 
   return (
     <>
@@ -66,6 +84,12 @@ const BottomNavigation: React.FC<BottomNavigationProps> = ({ activeTab, onTabCha
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
         <div className="grid grid-cols-4 h-16">
           {primaryTabs.map((tab) => {
+            // Verificação de segurança para cada tab
+            if (!tab || !tab.id || !tab.icon) {
+              console.warn('BottomNavigation: Invalid tab', tab);
+              return null;
+            }
+
             if (tab.special) {
               return (
                 <Sheet key={tab.id} open={isMenuOpen} onOpenChange={setIsMenuOpen}>
@@ -75,7 +99,7 @@ const BottomNavigation: React.FC<BottomNavigationProps> = ({ activeTab, onTabCha
                       className="h-full rounded-none flex flex-col items-center justify-center gap-1 text-xs"
                     >
                       <tab.icon className="h-5 w-5" />
-                      <span>{tab.label}</span>
+                      <span>{tab.label || 'Menu'}</span>
                     </Button>
                   </SheetTrigger>
                   <SheetContent side="bottom" className="h-[80vh] overflow-y-auto">
@@ -83,17 +107,23 @@ const BottomNavigation: React.FC<BottomNavigationProps> = ({ activeTab, onTabCha
                       <SheetTitle>Menu Completo</SheetTitle>
                     </SheetHeader>
                     <div className="grid grid-cols-1 gap-2 mt-6">
-                      {allTabs.map((menuTab) => (
-                        <Button
-                          key={menuTab.id}
-                          variant={isTabActive(menuTab.id) ? "default" : "ghost"}
-                          className="justify-start h-12 text-left"
-                          onClick={() => handleTabSelect(menuTab.id)}
-                        >
-                          <menuTab.icon className="h-5 w-5 mr-3" />
-                          {menuTab.label}
-                        </Button>
-                      ))}
+                      {allTabs.map((menuTab) => {
+                        if (!menuTab || !menuTab.id || !menuTab.icon) {
+                          return null;
+                        }
+                        
+                        return (
+                          <Button
+                            key={menuTab.id}
+                            variant={isTabActive(menuTab.id) ? "default" : "ghost"}
+                            className="justify-start h-12 text-left"
+                            onClick={() => handleTabSelect(menuTab.id)}
+                          >
+                            <menuTab.icon className="h-5 w-5 mr-3" />
+                            {menuTab.label || 'Sem título'}
+                          </Button>
+                        );
+                      })}
                     </div>
                   </SheetContent>
                 </Sheet>
@@ -110,7 +140,7 @@ const BottomNavigation: React.FC<BottomNavigationProps> = ({ activeTab, onTabCha
                 onClick={() => handleTabSelect(tab.id)}
               >
                 <tab.icon className="h-5 w-5" />
-                <span>{tab.label}</span>
+                <span>{tab.label || 'Sem título'}</span>
               </Button>
             );
           })}

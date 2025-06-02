@@ -8,6 +8,12 @@ export const useMobileLayout = () => {
 
   useEffect(() => {
     const checkDevice = () => {
+      // Verificação de segurança para window
+      if (typeof window === 'undefined') {
+        console.warn('useMobileLayout: window is undefined')
+        return
+      }
+
       const width = window.innerWidth
       const height = window.innerHeight
       
@@ -37,10 +43,10 @@ export const useMobileLayout = () => {
   }, [])
 
   return { 
-    isMobile, 
-    isTablet, 
-    isDesktop: !isMobile && !isTablet,
-    isLandscape,
-    isPortrait: !isLandscape
+    isMobile: isMobile || false, 
+    isTablet: isTablet || false, 
+    isDesktop: (!isMobile && !isTablet) || false,
+    isLandscape: isLandscape || false,
+    isPortrait: (!isLandscape) || false
   }
 }
