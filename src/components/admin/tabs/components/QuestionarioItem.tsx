@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Eye, Edit, FileText, Trash2, Sparkles } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import type { Questionario } from "./QuestionarioGroup";
+import { Questionario } from '@/components/admin/tabs/types/questionario';
 
 interface QuestionarioItemProps {
   questionario: Questionario;

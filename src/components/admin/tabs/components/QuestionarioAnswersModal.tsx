@@ -1,7 +1,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import type { Questionario } from "./QuestionarioGroup";
+import { Questionario } from '@/components/admin/tabs/types/questionario';
 
 interface QuestionarioAnswersModalProps {
   questionario: Questionario | null;
@@ -31,7 +31,7 @@ const QuestionarioAnswersModal = ({ questionario, onClose }: QuestionarioAnswers
                   Pergunta {parseInt(perguntaIndex) + 1}
                 </p>
                 <p className="bg-gray-50 p-3 rounded text-sm">
-                  {resposta || 'Não respondida'}
+                  {String(resposta || 'Não respondida')}
                 </p>
               </div>
             ))}
