@@ -9,14 +9,16 @@ import { useQuestionarioTemplates } from "@/hooks/useQuestionarioTemplates";
 import QuestionarioTemplateForm from "./QuestionarioTemplateForm";
 import QuestionarioTemplateEditor from "./QuestionarioTemplateEditor";
 import QuestionarioTemplatePreview from "./QuestionarioTemplatePreview";
+import QuestionarioTemplateDeleteDialog from "./QuestionarioTemplateDeleteDialog";
 
 const QuestionarioTemplatesManager = () => {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isPreviewDialogOpen, setIsPreviewDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
 
-  const { templates, isLoading, refetch } = useQuestionarioTemplates();
+  const { templates, isLoading, refetch, deleteTemplate } = useQuestionarioTemplates();
 
   const handleCreateSuccess = () => {
     setIsCreateDialogOpen(false);
@@ -38,10 +40,18 @@ const QuestionarioTemplatesManager = () => {
     setIsPreviewDialogOpen(true);
   };
 
-  const handleDelete = async (templateId: string) => {
-    if (window.confirm('Tem certeza que deseja excluir este template?')) {
-      // Implementar lógica de exclusão
-      console.log('Deletar template:', templateId);
+  const handleDeleteClick = (template: any) => {
+    setSelectedTemplate(template);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (selectedTemplate) {
+      const success = await deleteTemplate(selectedTemplate.id);
+      if (success) {
+        setIsDeleteDialogOpen(false);
+        setSelectedTemplate(null);
+      }
     }
   };
 
@@ -133,16 +143,20 @@ const QuestionarioTemplatesManager = () => {
                   Editar
                 </Button>
                 
-                {!template.is_default && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleDelete(template.id)}
-                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                )}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleDeleteClick(template)}
+                  className={`${
+                    template.is_default 
+                      ? 'text-gray-400 cursor-not-allowed' 
+                      : 'text-red-600 hover:text-red-700 hover:bg-red-50'
+                  }`}
+                  disabled={template.is_default}
+                  title={template.is_default ? 'Templates padrão não podem ser excluídos' : 'Excluir template'}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
               </div>
             </CardContent>
           </Card>
@@ -174,6 +188,14 @@ const QuestionarioTemplatesManager = () => {
           />
         </DialogContent>
       </Dialog>
+
+      <QuestionarioTemplateDeleteDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        templateName={selectedTemplate?.nome || ''}
+        isDefault={selectedTemplate?.is_default || false}
+        onConfirm={handleDeleteConfirm}
+      />
     </div>
   );
 };
