@@ -22,7 +22,6 @@ const GalleryImage: React.FC<GalleryImageProps> = ({ image, onClick }) => {
         className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-300"
         loading="lazy"
         onError={(e) => {
-          console.error(`[GalleryImage] Falha ao carregar imagem: ${imageUrl}, URL original: ${image.url}`);
           (e.target as HTMLImageElement).src = '/placeholder.svg';
         }}
       />

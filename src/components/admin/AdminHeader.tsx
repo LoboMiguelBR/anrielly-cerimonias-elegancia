@@ -1,3 +1,4 @@
+
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Home, LogOut } from 'lucide-react';
@@ -10,6 +11,9 @@ const AdminHeader = () => {
 
   const handleLogout = async () => {
     try {
+      // Remover todos os canais realtime antes do logout
+      supabase.removeAllChannels();
+      
       await supabase.auth.signOut();
 
       // Limpa qualquer dado persistente local

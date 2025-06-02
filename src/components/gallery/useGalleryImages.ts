@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -23,7 +24,7 @@ export const useGalleryImages = () => {
 
       const validatedImages = (data || []).map((img) => ({
         ...img,
-        image_url: img.image_url ? normalizeImageUrl(img.image_url) : '/placeholder.svg'
+        image_url: normalizeImageUrl(img.image_url)
       }));
 
       setImages(validatedImages);
@@ -38,13 +39,48 @@ export const useGalleryImages = () => {
   useEffect(() => {
     fetchGalleryImages();
 
-    const channel = supabase
-      .channel('public:gallery')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'gallery' }, fetchGalleryImages)
-      .subscribe();
+    // Verificar se há sessão ativa antes de criar canal realtime
+    const setupRealtimeChannel = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!session) {
+          console.warn('Sem sessão ativa, pulando realtime para gallery');
+          return;
+        }
 
+        const channel = supabase
+          .channel('public:gallery')
+          .on('postgres_changes', { 
+            event: '*', 
+            schema: 'public', 
+            table: 'gallery' 
+          }, () => {
+            console.log('Gallery realtime event received');
+            fetchGalleryImages();
+          })
+          .subscribe((status) => {
+            if (status === 'SUBSCRIBED') {
+              console.log('Gallery realtime channel subscribed');
+            } else if (status === 'CHANNEL_ERROR') {
+              console.warn('Gallery realtime channel error');
+            }
+          });
+
+        return () => {
+          supabase.removeChannel(channel);
+        };
+      } catch (error) {
+        console.warn('Erro ao configurar realtime para gallery:', error);
+      }
+    };
+
+    const cleanup = setupRealtimeChannel();
+    
     return () => {
-      supabase.removeChannel(channel);
+      if (cleanup) {
+        cleanup.then(cleanupFn => cleanupFn && cleanupFn());
+      }
     };
   }, []);
 

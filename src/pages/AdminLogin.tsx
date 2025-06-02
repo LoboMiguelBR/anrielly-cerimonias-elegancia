@@ -17,6 +17,9 @@ const AdminLogin = () => {
     setLoading(true);
 
     try {
+      // Limpar canais existentes antes do login
+      supabase.removeAllChannels();
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
@@ -35,6 +38,7 @@ const AdminLogin = () => {
         navigate('/admin/dashboard');
       }
     } catch (error: any) {
+      console.error('Erro de login:', error);
       toast({
         title: "Erro de autenticação",
         description: error.message || "Email ou senha incorretos",

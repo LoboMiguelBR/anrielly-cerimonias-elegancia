@@ -12,13 +12,26 @@ const AdminProtectedRoute = ({ element }: AdminProtectedRouteProps) => {
   
   useEffect(() => {
     const checkAuth = async () => {
-      const { data } = await supabase.auth.getSession();
-      setIsAuthenticated(!!data.session);
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Erro ao verificar sessão:', error);
+          setIsAuthenticated(false);
+          return;
+        }
+        
+        setIsAuthenticated(!!data.session);
+      } catch (error) {
+        console.error('Erro na verificação de autenticação:', error);
+        setIsAuthenticated(false);
+      }
     };
     
     checkAuth();
     
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Auth state changed:', event, !!session);
       setIsAuthenticated(!!session);
     });
     
@@ -33,7 +46,7 @@ const AdminProtectedRoute = ({ element }: AdminProtectedRouteProps) => {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold mx-auto mb-4"></div>
-          <p>Carregando...</p>
+          <p>Verificando autenticação...</p>
         </div>
       </div>
     );
