@@ -2,33 +2,14 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { Database } from '@/integrations/supabase/types';
 
-export interface Client {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  status: string;
-  client_type: 'pessoa_fisica' | 'pessoa_juridica';
-  document_type?: 'cpf' | 'cnpj';
-  document_number?: string;
-  address?: any;
-  birth_date?: string;
-  anniversary_date?: string;
-  partner_name?: string;
-  social_media?: any;
-  preferences?: any;
-  budget_range?: string;
-  referral_source?: string;
-  event_type?: string;
-  event_date?: string;
-  event_location?: string;
-  message?: string;
-  quote_id?: string;
-  origin?: string;
-  created_at: string;
-  updated_at: string;
-}
+// Use the types from Supabase Database
+type ClientRow = Database['public']['Tables']['clientes']['Row'];
+type ClientInsert = Database['public']['Tables']['clientes']['Insert'];
+type ClientUpdate = Database['public']['Tables']['clientes']['Update'];
+
+export interface Client extends ClientRow {}
 
 export interface ClientTag {
   id: string;
@@ -76,7 +57,7 @@ export const useClients = () => {
     }
   };
 
-  const addClient = async (clientData: Partial<Client>) => {
+  const addClient = async (clientData: ClientInsert) => {
     try {
       const { data, error } = await supabase
         .from('clientes')
@@ -96,7 +77,7 @@ export const useClients = () => {
     }
   };
 
-  const updateClient = async (id: string, updates: Partial<Client>) => {
+  const updateClient = async (id: string, updates: ClientUpdate) => {
     try {
       const { data, error } = await supabase
         .from('clientes')
