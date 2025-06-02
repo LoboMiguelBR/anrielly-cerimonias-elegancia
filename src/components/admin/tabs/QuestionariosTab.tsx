@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,7 +25,7 @@ const QuestionariosTab = () => {
   const [viewMode, setViewMode] = useState<'grouped' | 'table'>('grouped');
 
   const { questionarios, stats, isLoading, refetch } = useQuestionarios();
-  const { deleteQuestionario } = useQuestionarioActions();
+  const { deleteQuestionario, loading } = useQuestionarioActions();
   const { exportQuestionario, isExporting } = useQuestionarioExport();
 
   const handleViewAnswers = (questionario: Questionario) => {
