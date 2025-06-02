@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -27,8 +28,11 @@ const QuestionariosTableEnhanced = ({ questionarios, isLoading, onRefresh }: Que
 
   const { deleteQuestionario, resendAccessEmail, loading: actionLoading } = useQuestionarioActions();
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
+  const getStatusBadge = (status: string | null) => {
+    // Garantir que status não seja null/undefined
+    const safeStatus = status || 'rascunho';
+    
+    switch (safeStatus) {
       case 'rascunho':
         return <Badge variant="outline" className="text-gray-600 border-gray-200">Rascunho</Badge>;
       case 'enviado':
@@ -40,14 +44,14 @@ const QuestionariosTableEnhanced = ({ questionarios, isLoading, onRefresh }: Que
       case 'cancelado':
         return <Badge variant="outline" className="text-red-600 border-red-200">Cancelado</Badge>;
       default:
-        return <Badge variant="outline" className="text-gray-600 border-gray-200">{status}</Badge>;
+        return <Badge variant="outline" className="text-gray-600 border-gray-200">{safeStatus}</Badge>;
     }
   };
 
   const filteredQuestionarios = questionarios.filter(q => 
     searchTerm === '' || 
-    q.nome_responsavel.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    q.email.toLowerCase().includes(searchTerm.toLowerCase())
+    q.nome_responsavel?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    q.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleDelete = async () => {
@@ -71,6 +75,18 @@ const QuestionariosTableEnhanced = ({ questionarios, isLoading, onRefresh }: Que
 
   const handleStatusChange = () => {
     onRefresh();
+  };
+
+  // Função para formatar data com segurança
+  const formatSafeDate = (dateString: string | null) => {
+    if (!dateString) return 'Data não disponível';
+    
+    try {
+      return format(new Date(dateString), 'dd/MM/yyyy HH:mm', { locale: ptBR });
+    } catch (error) {
+      console.warn('Erro ao formatar data:', dateString, error);
+      return 'Data inválida';
+    }
   };
 
   if (isLoading) {
@@ -114,17 +130,17 @@ const QuestionariosTableEnhanced = ({ questionarios, isLoading, onRefresh }: Que
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
-                      <h3 className="font-semibold text-gray-900">{questionario.nome_responsavel}</h3>
+                      <h3 className="font-semibold text-gray-900">{questionario.nome_responsavel || 'Nome não informado'}</h3>
                       <QuestionarioStatusSelect
                         questionarioId={questionario.id}
-                        currentStatus={questionario.status}
+                        currentStatus={questionario.status || 'rascunho'}
                         onStatusChange={handleStatusChange}
                       />
                     </div>
                     
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm text-gray-600 mb-2">
                       <div>
-                        <strong>Email:</strong> {questionario.email}
+                        <strong>Email:</strong> {questionario.email || 'Email não informado'}
                       </div>
                       <div>
                         <strong>Respostas:</strong> {questionario.total_perguntas_resp || 0}
@@ -135,7 +151,7 @@ const QuestionariosTableEnhanced = ({ questionarios, isLoading, onRefresh }: Que
                     </div>
                     
                     <div className="text-xs text-gray-500">
-                      Criado em {format(new Date(questionario.data_criacao), 'dd/MM/yyyy HH:mm', { locale: ptBR })}
+                      Criado em {formatSafeDate(questionario.data_criacao)}
                     </div>
                   </div>
                   
@@ -201,7 +217,7 @@ const QuestionariosTableEnhanced = ({ questionarios, isLoading, onRefresh }: Que
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium text-gray-700">Nome</label>
-                  <p className="text-gray-900">{selectedQuestionario.nome_responsavel}</p>
+                  <p className="text-gray-900">{selectedQuestionario.nome_responsavel || 'Nome não informado'}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-700">Status</label>
@@ -209,7 +225,7 @@ const QuestionariosTableEnhanced = ({ questionarios, isLoading, onRefresh }: Que
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-700">Email</label>
-                  <p className="text-gray-900">{selectedQuestionario.email}</p>
+                  <p className="text-gray-900">{selectedQuestionario.email || 'Email não informado'}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-700">Respostas</label>
@@ -217,7 +233,7 @@ const QuestionariosTableEnhanced = ({ questionarios, isLoading, onRefresh }: Que
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-700">Link Público</label>
-                  <p className="text-gray-900 break-all">{selectedQuestionario.link_publico}</p>
+                  <p className="text-gray-900 break-all">{selectedQuestionario.link_publico || 'Link não disponível'}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-700">História Processada</label>
@@ -225,15 +241,11 @@ const QuestionariosTableEnhanced = ({ questionarios, isLoading, onRefresh }: Que
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-700">Criado em</label>
-                  <p className="text-gray-900">
-                    {format(new Date(selectedQuestionario.data_criacao), 'dd/MM/yyyy HH:mm', { locale: ptBR })}
-                  </p>
+                  <p className="text-gray-900">{formatSafeDate(selectedQuestionario.data_criacao)}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-700">Atualizado em</label>
-                  <p className="text-gray-900">
-                    {format(new Date(selectedQuestionario.data_atualizacao), 'dd/MM/yyyy HH:mm', { locale: ptBR })}
-                  </p>
+                  <p className="text-gray-900">{formatSafeDate(selectedQuestionario.data_atualizacao)}</p>
                 </div>
               </div>
               
@@ -264,7 +276,7 @@ const QuestionariosTableEnhanced = ({ questionarios, isLoading, onRefresh }: Que
           <AlertDialogHeader>
             <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja deletar o questionário de "{deletingQuestionario?.nome_responsavel}"? Esta ação não pode ser desfeita.
+              Tem certeza que deseja deletar o questionário de "{deletingQuestionario?.nome_responsavel || 'usuário'}"? Esta ação não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

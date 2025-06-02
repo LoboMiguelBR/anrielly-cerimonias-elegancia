@@ -25,10 +25,10 @@ export interface Questionario {
   nome_responsavel: string;
   email: string;
   link_publico: string;
-  status: string;
-  total_perguntas_resp: number;
-  data_criacao: string;
-  data_atualizacao: string;
+  status: string | null; // Permitir null
+  total_perguntas_resp: number | null; // Permitir null
+  data_criacao: string | null; // Permitir null
+  data_atualizacao: string | null; // Permitir null
   historia_processada?: boolean | null;
   historia_gerada?: string | null;
   respostas_json: any;

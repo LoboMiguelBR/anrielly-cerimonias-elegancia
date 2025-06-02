@@ -40,9 +40,10 @@ const useQuestionarioForm = ({ questionario, updateQuestionario, logout }: UseQu
     return (respostasPreenchidas / perguntas.length) * 100;
   }, [respostasPreenchidas, perguntas.length]);
 
-  // Check if can edit (not finalized)
+  // Check if can edit (not finalized) - usar fallback para status
   const podeEditar = useMemo(() => {
-    return questionario?.status !== 'preenchido';
+    const status = questionario?.status || 'rascunho';
+    return status !== 'preenchido';
   }, [questionario?.status]);
 
   // Check if can finalize (at least 80% completed)
