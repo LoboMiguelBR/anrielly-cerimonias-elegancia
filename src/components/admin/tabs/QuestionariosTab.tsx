@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Users, List, LayoutGrid } from "lucide-react";
 import { useQuestionarios } from "@/hooks/useQuestionarios";
@@ -14,7 +13,6 @@ import QuestionariosGroupedView from "./components/QuestionariosGroupedView";
 import QuestionarioAnswersModal from "./components/QuestionarioAnswersModal";
 import EditQuestionarioModal from "../questionarios/EditQuestionarioModal";
 import QuestionarioHistoryModal from "./components/QuestionarioHistoryModal";
-import QuestionarioTemplatesManager from "./components/QuestionarioTemplatesManager";
 import { Questionario } from '@/components/admin/tabs/types/questionario';
 
 const QuestionariosTab = () => {
@@ -23,7 +21,7 @@ const QuestionariosTab = () => {
   const [showAnswersModal, setShowAnswersModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
-  const [viewMode, setViewMode] = useState<'grouped' | 'table'>('grouped');
+  const [viewMode, setViewMode = useState<'grouped' | 'table'>('grouped');
 
   const { questionarios, stats, isLoading, refetch } = useQuestionarios();
   const { deleteQuestionario, loading } = useQuestionarioActions();
@@ -126,83 +124,71 @@ const QuestionariosTab = () => {
         </div>
       </div>
 
-      {/* Tabs para Questionários e Templates */}
-      <Tabs defaultValue="questionarios" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="questionarios">Questionários</TabsTrigger>
-          <TabsTrigger value="templates">Templates</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="questionarios" className="space-y-6">
-          {stats && (
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total</CardTitle>
-                  <Users className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{stats.total}</div>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Preenchidos</CardTitle>
-                  <Badge variant="default">{stats.preenchidos}</Badge>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-green-600">{stats.preenchidos}</div>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Rascunhos</CardTitle>
-                  <Badge variant="secondary">{stats.rascunhos}</Badge>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-yellow-600">{stats.rascunhos}</div>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Concluídos</CardTitle>
-                  <Badge variant="outline">{stats.concluidos}</Badge>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-blue-600">{stats.concluidos}</div>
-                </CardContent>
-              </Card>
-            </div>
-          )}
+      {/* Estatísticas */}
+      {stats && (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.total}</div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Preenchidos</CardTitle>
+              <Badge variant="default">{stats.preenchidos}</Badge>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-green-600">{stats.preenchidos}</div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Rascunhos</CardTitle>
+              <Badge variant="secondary">{stats.rascunhos}</Badge>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-yellow-600">{stats.rascunhos}</div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Concluídos</CardTitle>
+              <Badge variant="outline">{stats.concluidos}</Badge>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-blue-600">{stats.concluidos}</div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
-          {/* Conteúdo Principal */}
-          {viewMode === 'grouped' ? (
-            <QuestionariosGroupedView
-              questionarios={questionarios}
-              onViewAnswers={handleViewAnswers}
-              onViewHistory={handleViewHistory}
-              onEdit={handleEdit}
-              onExport={handleExport}
-              onDelete={handleDelete}
-              isExporting={isExporting}
-            />
-          ) : (
-            <QuestionariosTableEnhanced
-              questionarios={questionarios}
-              isLoading={isLoading}
-              onRefresh={refetch}
-            />
-          )}
-        </TabsContent>
-        
-        <TabsContent value="templates">
-          <QuestionarioTemplatesManager />
-        </TabsContent>
-      </Tabs>
+      {/* Conteúdo Principal */}
+      {viewMode === 'grouped' ? (
+        <QuestionariosGroupedView
+          questionarios={questionarios}
+          onViewAnswers={handleViewAnswers}
+          onViewHistory={handleViewHistory}
+          onEdit={handleEdit}
+          onExport={handleExport}
+          onDelete={handleDelete}
+          isExporting={isExporting}
+        />
+      ) : (
+        <QuestionariosTableEnhanced
+          questionarios={questionarios}
+          isLoading={isLoading}
+          onRefresh={refetch}
+        />
+      )}
 
+      {/* Modais */}
       {showAnswersModal && (
         <Dialog open={showAnswersModal} onOpenChange={setShowAnswersModal}>
           <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden">

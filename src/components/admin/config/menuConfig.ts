@@ -1,78 +1,39 @@
 
-import { 
-  BarChart3, 
-  FileText, 
-  Calendar, 
-  Users, 
-  MessageSquare, 
-  Heart, 
-  Star, 
-  Image, 
-  Settings,
-  FileImage,
-  Mail,
-  TrendingUp,
-  Globe,
-  UserCog
-} from "lucide-react";
-
 export interface MenuItem {
   id: string;
   label: string;
-  icon: any;
+  icon?: string;
+  section: string;
 }
 
-export interface MenuSection {
-  title: string;
-  items: MenuItem[];
-}
+export const menuItems: MenuItem[] = [
+  // Dashboard
+  { id: 'dashboard', label: 'Dashboard', icon: 'BarChart3', section: 'dashboard' },
 
-export const menuSections: MenuSection[] = [
-  {
-    title: "Dashboard",
-    items: [
-      { id: "dashboard", label: "Visão Geral", icon: BarChart3 },
-      { id: "gestao-comercial", label: "Gestão Comercial", icon: TrendingUp },
-    ]
-  },
-  {
-    title: "Gestão de Clientes",
-    items: [
-      { id: "quotes", label: "Orçamentos", icon: MessageSquare },
-      { id: "proposals", label: "Propostas", icon: FileText },
-      { id: "contracts", label: "Contratos", icon: FileImage },
-      { id: "leads", label: "Leads", icon: Users },
-      { id: "events", label: "Eventos", icon: Calendar },
-    ]
-  },
-  {
-    title: "Conteúdo & Marketing",
-    items: [
-      { id: "questionarios", label: "Questionários", icon: Heart },
-      { id: "historias-casais", label: "Histórias dos Casais", icon: Heart },
-      { id: "testimonials", label: "Depoimentos", icon: Star },
-      { id: "gallery", label: "Galeria", icon: Image },
-      { id: "landing-pages", label: "Landing Pages", icon: Globe },
-    ]
-  },
-  {
-    title: "Profissionais",
-    items: [
-      { id: "professionals", label: "Profissionais", icon: Users },
-    ]
-  },
-  {
-    title: "Configurações",
-    items: [
-      { id: "users", label: "Gerenciar Usuários", icon: UserCog },
-      { id: "proposal-templates", label: "Templates de Proposta", icon: FileText },
-      { id: "contract-templates", label: "Templates de Contrato", icon: FileImage },
-      { id: "contract-email-templates", label: "Templates de Email", icon: Mail },
-    ]
-  }
+  // Gestão Comercial
+  { id: 'gestao-comercial', label: 'Gestão Comercial', icon: 'TrendingUp', section: 'comercial' },
+  { id: 'leads', label: 'Leads', icon: 'Users', section: 'comercial' },
+  { id: 'quotes', label: 'Orçamentos', icon: 'FileText', section: 'comercial' },
+  { id: 'proposals', label: 'Propostas', icon: 'Send', section: 'comercial' },
+  { id: 'contracts', label: 'Contratos', icon: 'FileSignature', section: 'comercial' },
+
+  // Eventos e Clientes
+  { id: 'events', label: 'Eventos', icon: 'Calendar', section: 'eventos' },
+  { id: 'questionarios', label: 'Questionários', icon: 'ClipboardList', section: 'eventos' },
+  { id: 'historias-casais', label: 'Histórias dos Casais', icon: 'Heart', section: 'eventos' },
+
+  // Templates (Nova seção centralizada)
+  { id: 'templates', label: 'Templates', icon: 'Layout', section: 'configuracoes' },
+  { id: 'professionals', label: 'Profissionais', icon: 'UserCheck', section: 'configuracoes' },
+  { id: 'testimonials', label: 'Depoimentos', icon: 'MessageSquare', section: 'configuracoes' },
+  { id: 'gallery', label: 'Galeria', icon: 'Image', section: 'configuracoes' },
+  { id: 'landing-pages', label: 'Landing Pages', icon: 'Globe', section: 'configuracoes' },
+  { id: 'users', label: 'Usuários', icon: 'Settings', section: 'configuracoes' }
 ];
 
-// Função para obter todos os itens de menu
-export const getAllMenuItems = (): MenuItem[] => {
-  return menuSections.flatMap(section => section.items);
+export const menuSections = {
+  dashboard: 'Dashboard',
+  comercial: 'Gestão Comercial',
+  eventos: 'Eventos & Clientes',
+  configuracoes: 'Configurações'
 };
