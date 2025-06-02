@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -46,7 +45,7 @@ const QuestionariosTab = () => {
   };
 
   const handleExport = async (questionario: Questionario) => {
-    await exportQuestionario(questionario.id, questionario.nome_responsavel, 'pdf');
+    await exportQuestionario(questionario.id, 'pdf');
   };
 
   const handleDelete = async (questionario: Questionario) => {
@@ -135,7 +134,6 @@ const QuestionariosTab = () => {
         </TabsList>
         
         <TabsContent value="questionarios" className="space-y-6">
-          {/* Estatísticas */}
           {stats && (
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <Card>
@@ -205,7 +203,6 @@ const QuestionariosTab = () => {
         </TabsContent>
       </Tabs>
 
-      {/* Modais */}
       {showAnswersModal && (
         <Dialog open={showAnswersModal} onOpenChange={setShowAnswersModal}>
           <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden">
