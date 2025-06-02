@@ -1,11 +1,11 @@
 
 import { ReactNode } from 'react';
 
-interface QuestionariosHeaderProps {
+interface QuestionariosHeaderContentProps {
   children: ReactNode;
 }
 
-const QuestionariosHeader = ({ children }: QuestionariosHeaderProps) => {
+const QuestionariosHeaderContent = ({ children }: QuestionariosHeaderContentProps) => {
   return (
     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
       <div>
@@ -17,4 +17,4 @@ const QuestionariosHeader = ({ children }: QuestionariosHeaderProps) => {
   );
 };
 
-export default QuestionariosHeader;
+export default QuestionariosHeaderContent;
