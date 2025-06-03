@@ -19,8 +19,8 @@ const DynamicServices = ({
   const sectionRef = useRef<HTMLElement>(null);
   const { services: dbServices, isLoading } = useServices();
   
-  // Use os serviços do banco de dados por padrão, ou os items passados como props (para landing pages customizadas)
-  const servicesToShow = items || dbServices;
+  // Priorizar items do CMS, senão usar serviços do banco
+  const servicesToShow = items && items.length > 0 ? items : dbServices;
   
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -54,7 +54,8 @@ const DynamicServices = ({
     return iconMap[iconName] || <Heart className="w-10 h-10 text-gold" />;
   };
 
-  if (isLoading && !items) {
+  // Se estiver usando dados do banco e ainda carregando
+  if (!items && isLoading) {
     return (
       <section id="servicos" className="bg-white" ref={sectionRef}>
         <div className="container mx-auto px-4">
@@ -72,34 +73,36 @@ const DynamicServices = ({
       <div className="container mx-auto px-4">
         <h2 className="section-title animate-on-scroll">{title}</h2>
         
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {servicesToShow.map((service, index) => {
-            // Generate a proper key with explicit string type
-            const serviceKey: string = (service as any).id ? String((service as any).id) : `service-${index}`;
-            
-            return (
-              <div 
-                key={serviceKey}
-                className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow animate-on-scroll border border-gold/10 hover:border-gold/30"
-                style={{ animationDelay: `${index * 150}ms` }}
-              >
-                <div className="mb-4 flex justify-center">
-                  {getIcon(service.icon)}
+        {servicesToShow && servicesToShow.length > 0 ? (
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {servicesToShow.map((service, index) => {
+              const serviceKey = (service as any).id ? String((service as any).id) : `service-${index}`;
+              
+              return (
+                <div 
+                  key={serviceKey}
+                  className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow animate-on-scroll border border-gold/10 hover:border-gold/30"
+                  style={{ animationDelay: `${index * 150}ms` }}
+                >
+                  <div className="mb-4 flex justify-center">
+                    {getIcon(service.icon)}
+                  </div>
+                  <h3 className="text-xl font-playfair font-semibold text-center mb-3">
+                    {service.title}
+                  </h3>
+                  <p className="text-center text-gray-600">
+                    {service.description}
+                  </p>
                 </div>
-                <h3 className="text-xl font-playfair font-semibold text-center mb-3">
-                  {service.title}
-                </h3>
-                <p className="text-center text-gray-600">
-                  {service.description}
-                </p>
-              </div>
-            );
-          })}
-        </div>
-
-        {servicesToShow.length === 0 && (
+              );
+            })}
+          </div>
+        ) : (
           <div className="text-center py-8 text-gray-500">
             <p>Nenhum serviço disponível no momento.</p>
+            <p className="text-sm mt-2">
+              {items ? 'Configure os serviços no CMS.' : 'Configure os serviços na aba Serviços.'}
+            </p>
           </div>
         )}
       </div>
