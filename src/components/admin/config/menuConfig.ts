@@ -1,218 +1,111 @@
 
-import {
-  BarChart3,
-  Calendar,
-  Palette,
-  FileText,
+import { 
+  Home, 
+  FileText, 
+  Users, 
+  Calendar, 
+  MessageSquare, 
+  BarChart3, 
   Settings,
-  ShoppingBag,
-  TrendingUp,
-  Users,
-  AlertTriangle,
-  ClipboardList,
-  UserPlus,
-  Star,
-  Image,
   Globe,
-  Phone,
-  DollarSign,
-  Building2,
-  UserCheck,
-  Tags,
-  MessageSquare,
-  Cog,
-} from "lucide-react";
+  UserPlus,
+  TrendingUp,
+  ClipboardList,
+  CreditCard,
+  Camera,
+  Award
+} from 'lucide-react';
 
-export type MenuItem = {
+export interface MenuItem {
   id: string;
   label: string;
   icon: any;
-  href?: string;
-  group: string;
-};
+  component?: string;
+}
 
-// Função para validar se o ícone existe
-const validateIcon = (icon: any, itemId: string) => {
-  try {
-    if (!icon || typeof icon !== 'function') {
-      console.warn(`menuConfig: Ícone inválido para item ${itemId}, usando fallback`);
-      return AlertTriangle;
-    }
-    return icon;
-  } catch (error) {
-    console.error(`menuConfig: Erro ao validar ícone para ${itemId}:`, error);
-    return AlertTriangle;
-  }
-};
-
-export const primaryMenuItems: MenuItem[] = [
+export const menuItems: MenuItem[] = [
   {
-    id: "dashboard",
-    label: "Dashboard",
-    icon: validateIcon(BarChart3, "dashboard"),
-    href: "/admin",
-    group: "main"
-  }
-];
-
-export const crmVendasItems: MenuItem[] = [
-  {
-    id: "leads",
-    label: "Leads",
-    icon: validateIcon(Phone, "leads"),
-    group: "crm"
+    id: 'dashboard',
+    label: 'Dashboard',
+    icon: Home,
+    component: 'DashboardTab'
   },
   {
-    id: "clientes",
-    label: "Clientes",
-    icon: validateIcon(Users, "clientes"),
-    group: "crm"
+    id: 'proposals',
+    label: 'Propostas',
+    icon: FileText,
+    component: 'ProposalsTab'
   },
   {
-    id: "gestao-comercial",
-    label: "Gestão Comercial",
-    icon: validateIcon(TrendingUp, "gestao-comercial"),
-    group: "crm"
+    id: 'contracts',
+    label: 'Contratos',
+    icon: ClipboardList,
+    component: 'ContractsTab'
   },
   {
-    id: "quotes",
-    label: "Orçamentos",
-    icon: validateIcon(DollarSign, "quotes"),
-    group: "crm"
+    id: 'clients',
+    label: 'Clientes',
+    icon: Users,
+    component: 'ClientsTab'
   },
   {
-    id: "proposals",
-    label: "Propostas",
-    icon: validateIcon(FileText, "proposals"),
-    group: "crm"
+    id: 'leads',
+    label: 'Leads',
+    icon: UserPlus,
+    component: 'LeadsTab'
   },
   {
-    id: "contracts",
-    label: "Contratos",
-    icon: validateIcon(FileText, "contracts"),
-    group: "crm"
-  }
-];
-
-export const operacionalItems: MenuItem[] = [
-  {
-    id: "events",
-    label: "Gestão de Eventos",
-    icon: validateIcon(Calendar, "events"),
-    group: "operacional"
+    id: 'events',
+    label: 'Eventos',
+    icon: Calendar,
+    component: 'EventsTab'
   },
   {
-    id: "calendario-eventos",
-    label: "Calendário & Timeline", 
-    icon: validateIcon(Calendar, "calendario-eventos"),
-    group: "operacional"
+    id: 'professionals',
+    label: 'Fornecedores',
+    icon: Award,
+    component: 'ProfessionalsTab'
   },
   {
-    id: "questionarios",
-    label: "Questionários",
-    icon: validateIcon(ClipboardList, "questionarios"),
-    group: "operacional"
+    id: 'gallery',
+    label: 'Galeria',
+    icon: Camera,
+    component: 'GalleryTab'
   },
   {
-    id: "professionals",
-    label: "Fornecedores & Profissionais",
-    icon: validateIcon(Building2, "professionals"),
-    group: "operacional"
+    id: 'testimonials',
+    label: 'Depoimentos',
+    icon: MessageSquare,
+    component: 'TestimonialsTab'
+  },
+  {
+    id: 'gestao-comercial',
+    label: 'Gestão Comercial',
+    icon: TrendingUp,
+    component: 'GestaoComercialTab'
+  },
+  {
+    id: 'website',
+    label: 'CMS Website',
+    icon: Globe,
+    component: 'WebsiteTab'
+  },
+  {
+    id: 'financeiro',
+    label: 'Financeiro',
+    icon: CreditCard,
+    component: 'FinanceiroTab'
+  },
+  {
+    id: 'analytics',
+    label: 'Analytics',
+    icon: BarChart3,
+    component: 'AnalyticsTab'
+  },
+  {
+    id: 'settings',
+    label: 'Configurações',
+    icon: Settings,
+    component: 'SettingsTab'
   }
 ];
-
-export const conteudoItems: MenuItem[] = [
-  {
-    id: "website",
-    label: "CMS Website",
-    icon: validateIcon(Palette, "website"),
-    group: "conteudo"
-  },
-  {
-    id: "gallery",
-    label: "Galeria",
-    icon: validateIcon(Image, "gallery"),
-    group: "conteudo"
-  },
-  {
-    id: "testimonials",
-    label: "Depoimentos",
-    icon: validateIcon(Star, "testimonials"),
-    group: "conteudo"
-  },
-  {
-    id: "landing-pages",
-    label: "Landing Pages",
-    icon: validateIcon(Globe, "landing-pages"),
-    group: "conteudo"
-  }
-];
-
-export const sistemaItems: MenuItem[] = [
-  {
-    id: "templates",
-    label: "Templates",
-    icon: validateIcon(FileText, "templates"),
-    group: "sistema"
-  },
-  {
-    id: "users",
-    label: "Usuários & Permissões",
-    icon: validateIcon(UserPlus, "users"),
-    group: "sistema"
-  },
-  {
-    id: "settings",
-    label: "Configurações",
-    icon: validateIcon(Settings, "settings"),
-    href: "/admin/settings",
-    group: "sistema"
-  }
-];
-
-export const getAllMenuItems = (): MenuItem[] => {
-  try {
-    const allItems = [
-      ...primaryMenuItems,
-      ...crmVendasItems,
-      ...operacionalItems,
-      ...conteudoItems,
-      ...sistemaItems
-    ];
-    console.log('menuConfig: Total de itens carregados:', allItems.length);
-    return allItems;
-  } catch (error) {
-    console.error('menuConfig: Erro ao obter todos os itens do menu:', error);
-    return [];
-  }
-};
-
-export const getMenuSections = () => {
-  try {
-    return [
-      {
-        title: "Principal",
-        items: primaryMenuItems
-      },
-      {
-        title: "CRM & Vendas",
-        items: crmVendasItems
-      },
-      {
-        title: "Operacional",
-        items: operacionalItems
-      },
-      {
-        title: "Conteúdo",
-        items: conteudoItems
-      },
-      {
-        title: "Sistema",
-        items: sistemaItems
-      }
-    ];
-  } catch (error) {
-    console.error('menuConfig: Erro ao obter seções do menu:', error);
-    return [];
-  }
-};

@@ -1,6 +1,6 @@
 
 import { useParams } from 'react-router-dom';
-import { useLandingPageData } from '@/hooks/useLandingPageData';
+import { useCMSLandingPage } from '@/hooks/useCMSLandingPage';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import DynamicHero from '@/components/dynamic/DynamicHero';
@@ -22,7 +22,7 @@ import Index from '@/pages/Index';
 
 const DynamicLandingPage = () => {
   const { slug } = useParams<{ slug: string }>();
-  const { template, loading, error } = useLandingPageData(slug);
+  const { landingPage, loading, error } = useCMSLandingPage(slug);
 
   if (loading) {
     return (
@@ -32,12 +32,12 @@ const DynamicLandingPage = () => {
     );
   }
 
-  // Se não encontrar template ou erro, renderiza página padrão
-  if (error || !template) {
+  // Se não encontrar landing page ou erro, renderiza página padrão
+  if (error || !landingPage) {
     return <Index />;
   }
 
-  const { sections } = template;
+  const { sections } = landingPage;
 
   return (
     <div className="bg-white min-h-screen">
