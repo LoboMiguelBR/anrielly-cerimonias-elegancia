@@ -1,131 +1,86 @@
 
-import React from 'react';
-import DashboardTab from '../tabs/DashboardTab';
-import ProposalsMain from '../proposals/ProposalsMain';
-import ContractsMain from '../contracts/ContractsMain';
-import QuestionariosTab from '../tabs/QuestionariosTab';
-import GestaoComercialTab from '../tabs/GestaoComercialTab';
-import EventsTab from '../tabs/EventsTab';
-import CalendarioEventosTab from '../tabs/CalendarioEventosTab';
-import TemplatesTab from '../tabs/TemplatesTab';
-import QuotesTab from '../tabs/QuotesTab';
-import LeadsTab from '../tabs/LeadsTab';
-import ProfessionalsTab from '../tabs/ProfessionalsTab';
-import TestimonialsTab from '../tabs/TestimonialsTab';
-import AdminGalleryTab from '../tabs/AdminGalleryTab';
-import UsersTab from '../tabs/UsersTab';
-import LandingPagesTab from '../tabs/LandingPagesTab';
-import ClientesTab from '../tabs/ClientesTab';
-import SettingsTab from '../tabs/SettingsTab';
-import WebsiteTab from '../tabs/WebsiteTab';
-import ErrorBoundary from '../../ErrorBoundary';
+import { lazy, Suspense } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+
+// Lazy load components
+const DashboardTab = lazy(() => import('../tabs/DashboardTab'));
+const ProposalsTab = lazy(() => import('../tabs/ProposalsTab'));
+const ContractsTab = lazy(() => import('../tabs/ContractsTab'));
+const ClientesTab = lazy(() => import('../tabs/ClientesTab'));
+const LeadsTab = lazy(() => import('../tabs/LeadsTab'));
+const EventsTab = lazy(() => import('../tabs/EventsTab'));
+const ProfessionalsTab = lazy(() => import('../tabs/ProfessionalsTab'));
+const ServicesTab = lazy(() => import('../tabs/ServicesTab'));
+const GalleryTab = lazy(() => import('../tabs/AdminGalleryTab'));
+const TestimonialsTab = lazy(() => import('../tabs/TestimonialsTab'));
+const GestaoComercialTab = lazy(() => import('../tabs/GestaoComercialTab'));
+const WebsiteTab = lazy(() => import('../tabs/WebsiteTab'));
+const AnalyticsTab = lazy(() => import('../tabs/DashboardTab'));
+const SettingsTab = lazy(() => import('../tabs/SettingsTab'));
+
+// Fallback components
+const FinanceiroTab = () => (
+  <Card>
+    <CardContent className="p-6">
+      <h3 className="text-lg font-semibold mb-2">Módulo Financeiro</h3>
+      <p className="text-gray-600">Módulo em desenvolvimento...</p>
+    </CardContent>
+  </Card>
+);
+
+const LoadingSpinner = () => (
+  <div className="flex items-center justify-center min-h-[400px]">
+    <div className="text-center">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-4"></div>
+      <p className="text-gray-600">Carregando...</p>
+    </div>
+  </div>
+);
 
 interface TabContentRendererProps {
   activeTab: string;
 }
 
 const TabContentRenderer = ({ activeTab }: TabContentRendererProps) => {
-  // Verificação de segurança para props
-  if (!activeTab || typeof activeTab !== 'string') {
-    console.warn('TabContentRenderer: Invalid activeTab', activeTab);
-    return (
-      <ErrorBoundary>
-        <div className="w-full p-4">
-          <div className="text-center text-gray-500">
-            <p>Erro: Tab não especificada</p>
-            <p className="text-sm">Por favor, selecione uma aba válida</p>
-          </div>
-        </div>
-      </ErrorBoundary>
-    );
-  }
-
-  const handleNavigate = (tab: string) => {
-    if (!tab || typeof tab !== 'string') {
-      console.warn('TabContentRenderer: Invalid navigation tab', tab);
-      return;
-    }
-    console.log('Navigate to:', tab);
-  };
-
   const renderTabContent = () => {
-    try {
-      switch (activeTab) {
-        // Principal
-        case "dashboard":
-          return <DashboardTab onNavigate={handleNavigate} />;
+    const ComponentMap: Record<string, React.ComponentType> = {
+      dashboard: DashboardTab,
+      proposals: ProposalsTab,
+      contracts: ContractsTab,
+      clients: ClientesTab,
+      leads: LeadsTab,
+      events: EventsTab,
+      professionals: ProfessionalsTab,
+      services: ServicesTab,
+      gallery: GalleryTab,
+      testimonials: TestimonialsTab,
+      'gestao-comercial': GestaoComercialTab,
+      website: WebsiteTab,
+      financeiro: FinanceiroTab,
+      analytics: AnalyticsTab,
+      settings: SettingsTab,
+    };
 
-        // CRM & Vendas
-        case "leads":
-          return <LeadsTab />;
-        case "clientes":
-          return <ClientesTab />;
-        case "gestao-comercial":
-          return <GestaoComercialTab />;
-        case "quotes":
-          return <QuotesTab />;
-        case "proposals":
-          return <ProposalsMain quoteRequests={[]} />;
-        case "contracts":
-          return <ContractsMain />;
-
-        // Operacional
-        case "events":
-          return <EventsTab />;
-        case "calendario-eventos":
-          return <CalendarioEventosTab />;
-        case "questionarios":
-          return <QuestionariosTab />;
-        case "professionals":
-          return <ProfessionalsTab />;
-
-        // Conteúdo
-        case "website":
-          return <WebsiteTab />;
-        case "gallery":
-          return <AdminGalleryTab />;
-        case "testimonials":
-          return <TestimonialsTab />;
-        case "landing-pages":
-          return <LandingPagesTab />;
-
-        // Sistema
-        case "templates":
-          return <TemplatesTab />;
-        case "users":
-          return <UsersTab />;
-        case "settings":
-          return <SettingsTab />;
-
-        default:
-          console.warn(`TabContentRenderer: Unknown tab: ${activeTab}, falling back to dashboard`);
-          return <DashboardTab onNavigate={handleNavigate} />;
-      }
-    } catch (error) {
-      console.error('TabContentRenderer: Error rendering tab content:', error);
+    const Component = ComponentMap[activeTab];
+    
+    if (!Component) {
       return (
-        <div className="w-full p-4">
-          <div className="text-center text-red-500">
-            <p>Erro ao carregar conteúdo da aba</p>
-            <p className="text-sm">Tab: {activeTab}</p>
-            <button 
-              onClick={() => window.location.reload()} 
-              className="mt-2 px-4 py-2 bg-red-100 text-red-700 rounded hover:bg-red-200"
-            >
-              Recarregar página
-            </button>
-          </div>
-        </div>
+        <Card>
+          <CardContent className="p-6">
+            <h3 className="text-lg font-semibold mb-2">Módulo não encontrado</h3>
+            <p className="text-gray-600">O módulo solicitado não foi encontrado.</p>
+          </CardContent>
+        </Card>
       );
     }
+
+    return <Component />;
   };
 
   return (
-    <ErrorBoundary>
-      <div className="w-full">
-        {renderTabContent()}
-      </div>
-    </ErrorBoundary>
+    <Suspense fallback={<LoadingSpinner />}>
+      {renderTabContent()}
+    </Suspense>
   );
 };
 

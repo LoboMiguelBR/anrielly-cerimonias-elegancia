@@ -1,9 +1,11 @@
 
 import { useEffect, useRef } from 'react';
+import { useServices } from '@/hooks/useServices';
 import { Calendar, Heart, Award, Image } from 'lucide-react';
 
 const Services = () => {
   const sectionRef = useRef<HTMLElement>(null);
+  const { services, isLoading } = useServices();
   
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -27,28 +29,28 @@ const Services = () => {
     };
   }, []);
 
-  const services = [
-    {
-      icon: <Heart className="w-10 h-10 text-gold" />,
-      title: "Casamentos personalizados",
-      description: "Cerimônias únicas que refletem a história e personalidade do casal."
-    },
-    {
-      icon: <Calendar className="w-10 h-10 text-gold" />,
-      title: "Festas de 15 anos",
-      description: "Momentos especiais conduzidos com elegância e emoção para debutantes."
-    },
-    {
-      icon: <Award className="w-10 h-10 text-gold" />,
-      title: "Eventos sociais e corporativos",
-      description: "Condução profissional para eventos empresariais e comemorações."
-    },
-    {
-      icon: <Image className="w-10 h-10 text-gold" />,
-      title: "Formaturas e apresentações",
-      description: "Cerimônias acadêmicas conduzidas com formalidade e brilhantismo."
-    }
-  ];
+  const getIcon = (iconName: string) => {
+    const iconMap: Record<string, React.ReactNode> = {
+      Heart: <Heart className="w-10 h-10 text-gold" />,
+      Calendar: <Calendar className="w-10 h-10 text-gold" />,
+      Award: <Award className="w-10 h-10 text-gold" />,
+      Image: <Image className="w-10 h-10 text-gold" />
+    };
+    return iconMap[iconName] || <Heart className="w-10 h-10 text-gold" />;
+  };
+
+  if (isLoading) {
+    return (
+      <section id="servicos" className="bg-white" ref={sectionRef}>
+        <div className="container mx-auto px-4">
+          <h2 className="section-title animate-on-scroll">Serviços</h2>
+          <div className="flex justify-center items-center h-32">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gold"></div>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section id="servicos" className="bg-white" ref={sectionRef}>
@@ -58,12 +60,12 @@ const Services = () => {
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           {services.map((service, index) => (
             <div 
-              key={index} 
+              key={service.id} 
               className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow animate-on-scroll border border-gold/10 hover:border-gold/30"
               style={{ animationDelay: `${index * 150}ms` }}
             >
               <div className="mb-4 flex justify-center">
-                {service.icon}
+                {getIcon(service.icon)}
               </div>
               <h3 className="text-xl font-playfair font-semibold text-center mb-3">
                 {service.title}
@@ -74,6 +76,12 @@ const Services = () => {
             </div>
           ))}
         </div>
+
+        {services.length === 0 && (
+          <div className="text-center py-8 text-gray-500">
+            <p>Nenhum serviço disponível no momento.</p>
+          </div>
+        )}
       </div>
     </section>
   );

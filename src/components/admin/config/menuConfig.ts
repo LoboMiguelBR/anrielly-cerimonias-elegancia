@@ -67,6 +67,12 @@ export const menuItems: MenuItem[] = [
     component: 'ProfessionalsTab'
   },
   {
+    id: 'services',
+    label: 'Serviços',
+    icon: Settings,
+    component: 'ServicesTab'
+  },
+  {
     id: 'gallery',
     label: 'Galeria',
     icon: Camera,
@@ -150,6 +156,7 @@ export const getMenuSections = (): MenuSection[] => {
     {
       title: 'Conteúdo',
       items: [
+        menuItems.find(item => item.id === 'services')!,
         menuItems.find(item => item.id === 'website')!,
         menuItems.find(item => item.id === 'gallery')!,
         menuItems.find(item => item.id === 'testimonials')!
