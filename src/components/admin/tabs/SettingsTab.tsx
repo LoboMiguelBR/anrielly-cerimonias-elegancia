@@ -58,24 +58,15 @@ const SettingsTab = () => {
         </TabsContent>
 
         <TabsContent value="email">
-          <EmailSettings 
-            settings={getSettingsByCategory('email')}
-            onUpdate={updateSetting}
-          />
+          <EmailSettings />
         </TabsContent>
 
         <TabsContent value="notifications">
-          <NotificationSettings 
-            settings={getSettingsByCategory('notifications')}
-            onUpdate={updateSetting}
-          />
+          <NotificationSettings />
         </TabsContent>
 
         <TabsContent value="system">
-          <SystemSettings 
-            settings={getSettingsByCategory('system')}
-            onUpdate={updateSetting}
-          />
+          <SystemSettings />
         </TabsContent>
       </Tabs>
     </div>
