@@ -75,7 +75,7 @@ const DynamicServices = ({
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           {servicesToShow.map((service, index) => (
             <div 
-              key={service.id || index} 
+              key={'id' in service ? service.id : `service-${index}`} 
               className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow animate-on-scroll border border-gold/10 hover:border-gold/30"
               style={{ animationDelay: `${index * 150}ms` }}
             >
