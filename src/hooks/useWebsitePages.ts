@@ -31,7 +31,15 @@ export const useWebsitePages = () => {
         .order('order_index', { ascending: true });
 
       if (error) throw error;
-      setPages(data || []);
+      
+      // Type assertion para garantir compatibilidade
+      const typedData = (data || []).map(page => ({
+        ...page,
+        status: page.status as 'published' | 'draft' | 'archived',
+        page_type: page.page_type as 'home' | 'about' | 'services' | 'contact' | 'custom'
+      }));
+      
+      setPages(typedData);
     } catch (err: any) {
       console.error('Error fetching pages:', err);
       toast.error('Erro ao carregar páginas');
@@ -50,9 +58,15 @@ export const useWebsitePages = () => {
 
       if (error) throw error;
       
-      setPages(prev => [...prev, data]);
+      const typedData = {
+        ...data,
+        status: data.status as 'published' | 'draft' | 'archived',
+        page_type: data.page_type as 'home' | 'about' | 'services' | 'contact' | 'custom'
+      };
+      
+      setPages(prev => [...prev, typedData]);
       toast.success('Página criada com sucesso!');
-      return data;
+      return typedData;
     } catch (err: any) {
       console.error('Error creating page:', err);
       toast.error('Erro ao criar página');
@@ -71,11 +85,17 @@ export const useWebsitePages = () => {
 
       if (error) throw error;
 
+      const typedData = {
+        ...data,
+        status: data.status as 'published' | 'draft' | 'archived',
+        page_type: data.page_type as 'home' | 'about' | 'services' | 'contact' | 'custom'
+      };
+
       setPages(prev => prev.map(page => 
-        page.id === id ? { ...page, ...data } : page
+        page.id === id ? { ...page, ...typedData } : page
       ));
       toast.success('Página atualizada com sucesso!');
-      return data;
+      return typedData;
     } catch (err: any) {
       console.error('Error updating page:', err);
       toast.error('Erro ao atualizar página');

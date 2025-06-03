@@ -11,15 +11,26 @@ import { Plus, Layout, Eye, Edit, Trash2 } from 'lucide-react';
 import { useWebsiteSections, WebsiteSection } from '@/hooks/useWebsiteSections';
 import { useWebsitePages } from '@/hooks/useWebsitePages';
 
+type SectionType = 'hero' | 'about' | 'services' | 'gallery' | 'testimonials' | 'contact' | 'custom';
+
+interface FormData {
+  title: string;
+  page_id: string;
+  section_type: SectionType;
+  content: any;
+  is_active: boolean;
+  order_index: number;
+}
+
 const SectionsManagerEnhanced = () => {
   const { sections, isLoading, createSection, updateSection, deleteSection, toggleSectionActive } = useWebsiteSections();
   const { pages } = useWebsitePages();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingSection, setEditingSection] = useState<WebsiteSection | null>(null);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     title: '',
     page_id: '',
-    section_type: 'custom' as const,
+    section_type: 'custom',
     content: {},
     is_active: true,
     order_index: 0
@@ -133,7 +144,7 @@ const SectionsManagerEnhanced = () => {
                   <Label htmlFor="section_type">Tipo de Seção</Label>
                   <Select 
                     value={formData.section_type} 
-                    onValueChange={(value: any) => 
+                    onValueChange={(value: SectionType) => 
                       setFormData(prev => ({ ...prev, section_type: value }))
                     }
                   >
@@ -279,7 +290,7 @@ const SectionsManagerEnhanced = () => {
                 <Label htmlFor="edit-section_type">Tipo de Seção</Label>
                 <Select 
                   value={formData.section_type} 
-                  onValueChange={(value: any) => 
+                  onValueChange={(value: SectionType) => 
                     setFormData(prev => ({ ...prev, section_type: value }))
                   }
                 >

@@ -34,7 +34,14 @@ export const useWebsiteSections = (pageId?: string) => {
       const { data, error } = await query;
 
       if (error) throw error;
-      setSections(data || []);
+      
+      // Type assertion para garantir compatibilidade
+      const typedData = (data || []).map(section => ({
+        ...section,
+        section_type: section.section_type as 'hero' | 'about' | 'services' | 'gallery' | 'testimonials' | 'contact' | 'custom'
+      }));
+      
+      setSections(typedData);
     } catch (err: any) {
       console.error('Error fetching sections:', err);
       toast.error('Erro ao carregar seções');
@@ -53,9 +60,14 @@ export const useWebsiteSections = (pageId?: string) => {
 
       if (error) throw error;
       
-      setSections(prev => [...prev, data]);
+      const typedData = {
+        ...data,
+        section_type: data.section_type as 'hero' | 'about' | 'services' | 'gallery' | 'testimonials' | 'contact' | 'custom'
+      };
+      
+      setSections(prev => [...prev, typedData]);
       toast.success('Seção criada com sucesso!');
-      return data;
+      return typedData;
     } catch (err: any) {
       console.error('Error creating section:', err);
       toast.error('Erro ao criar seção');
@@ -74,11 +86,16 @@ export const useWebsiteSections = (pageId?: string) => {
 
       if (error) throw error;
 
+      const typedData = {
+        ...data,
+        section_type: data.section_type as 'hero' | 'about' | 'services' | 'gallery' | 'testimonials' | 'contact' | 'custom'
+      };
+
       setSections(prev => prev.map(section => 
-        section.id === id ? { ...section, ...data } : section
+        section.id === id ? { ...section, ...typedData } : section
       ));
       toast.success('Seção atualizada com sucesso!');
-      return data;
+      return typedData;
     } catch (err: any) {
       console.error('Error updating section:', err);
       toast.error('Erro ao atualizar seção');

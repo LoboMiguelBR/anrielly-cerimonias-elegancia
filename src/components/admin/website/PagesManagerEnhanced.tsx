@@ -9,18 +9,32 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Plus, FileText, Eye, Edit, Trash2 } from 'lucide-react';
 import { useWebsitePages, WebsitePage } from '@/hooks/useWebsitePages';
 
+type PageStatus = 'published' | 'draft' | 'archived';
+type PageType = 'home' | 'about' | 'services' | 'contact' | 'custom';
+
+interface FormData {
+  title: string;
+  slug: string;
+  content: string;
+  meta_description: string;
+  meta_keywords: string;
+  status: PageStatus;
+  page_type: PageType;
+  order_index: number;
+}
+
 const PagesManagerEnhanced = () => {
   const { pages, isLoading, createPage, updatePage, deletePage } = useWebsitePages();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingPage, setEditingPage] = useState<WebsitePage | null>(null);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     title: '',
     slug: '',
     content: '',
     meta_description: '',
     meta_keywords: '',
-    status: 'draft' as const,
-    page_type: 'custom' as const,
+    status: 'draft',
+    page_type: 'custom',
     order_index: 0
   });
 
@@ -144,7 +158,7 @@ const PagesManagerEnhanced = () => {
                   <Label htmlFor="status">Status</Label>
                   <Select 
                     value={formData.status} 
-                    onValueChange={(value: 'published' | 'draft' | 'archived') => 
+                    onValueChange={(value: PageStatus) => 
                       setFormData(prev => ({ ...prev, status: value }))
                     }
                   >
@@ -162,7 +176,7 @@ const PagesManagerEnhanced = () => {
                   <Label htmlFor="page_type">Tipo</Label>
                   <Select 
                     value={formData.page_type} 
-                    onValueChange={(value: any) => 
+                    onValueChange={(value: PageType) => 
                       setFormData(prev => ({ ...prev, page_type: value }))
                     }
                   >
@@ -276,7 +290,7 @@ const PagesManagerEnhanced = () => {
                 <Label htmlFor="edit-status">Status</Label>
                 <Select 
                   value={formData.status} 
-                  onValueChange={(value: 'published' | 'draft' | 'archived') => 
+                  onValueChange={(value: PageStatus) => 
                     setFormData(prev => ({ ...prev, status: value }))
                   }
                 >
@@ -294,7 +308,7 @@ const PagesManagerEnhanced = () => {
                 <Label htmlFor="edit-page_type">Tipo</Label>
                 <Select 
                   value={formData.page_type} 
-                  onValueChange={(value: any) => 
+                  onValueChange={(value: PageType) => 
                     setFormData(prev => ({ ...prev, page_type: value }))
                   }
                 >
