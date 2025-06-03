@@ -73,23 +73,28 @@ const DynamicServices = ({
         <h2 className="section-title animate-on-scroll">{title}</h2>
         
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {servicesToShow.map((service, index) => (
-            <div 
-              key={('id' in service ? service.id : index)} 
-              className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow animate-on-scroll border border-gold/10 hover:border-gold/30"
-              style={{ animationDelay: `${index * 150}ms` }}
-            >
-              <div className="mb-4 flex justify-center">
-                {getIcon(service.icon)}
+          {servicesToShow.map((service, index) => {
+            // Generate a proper key that TypeScript can understand
+            const serviceKey = 'id' in service && service.id ? service.id : `service-${index}`;
+            
+            return (
+              <div 
+                key={serviceKey}
+                className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow animate-on-scroll border border-gold/10 hover:border-gold/30"
+                style={{ animationDelay: `${index * 150}ms` }}
+              >
+                <div className="mb-4 flex justify-center">
+                  {getIcon(service.icon)}
+                </div>
+                <h3 className="text-xl font-playfair font-semibold text-center mb-3">
+                  {service.title}
+                </h3>
+                <p className="text-center text-gray-600">
+                  {service.description}
+                </p>
               </div>
-              <h3 className="text-xl font-playfair font-semibold text-center mb-3">
-                {service.title}
-              </h3>
-              <p className="text-center text-gray-600">
-                {service.description}
-              </p>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {servicesToShow.length === 0 && (
