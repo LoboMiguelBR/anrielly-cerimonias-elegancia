@@ -2,17 +2,21 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar, TrendingUp, TrendingDown, DollarSign, Plus, Filter } from 'lucide-react';
-import { useGestaoComercial } from '@/hooks/useGestaoComercial';
+import { Calendar, TrendingUp, TrendingDown, DollarSign, Plus, Download, Edit, Trash2 } from 'lucide-react';
+import { useFinancialTransactions } from '@/hooks/useFinancialTransactions';
 import { useMobileLayout } from '@/hooks/useMobileLayout';
+import TransactionDialog from './TransactionDialog';
+import { exportToPDF, generateFinancialReport } from '@/utils/pdfExporter';
+import { toast } from 'sonner';
 
 const FluxoCaixa = () => {
-  const { financialMetrics, isLoading } = useGestaoComercial();
+  const { transactions, isLoading, deleteTransaction, getFinancialSummary } = useFinancialTransactions();
   const { isMobile } = useMobileLayout();
   const [periodo, setPeriodo] = useState('30');
   const [filtroTipo, setFiltroTipo] = useState('todos');
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingTransaction, setEditingTransaction] = useState(null);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -21,22 +25,44 @@ const FluxoCaixa = () => {
     }).format(value);
   };
 
-  // Dados mockados para demonstração
-  const entradas = [
-    { data: '2024-01-15', descricao: 'Contrato - Casamento Silva', valor: 15000, tipo: 'contrato' },
-    { data: '2024-01-20', descricao: 'Sinal - Formatura João', valor: 3000, tipo: 'sinal' },
-    { data: '2024-01-25', descricao: 'Pagamento Final - Aniversário Maria', valor: 8000, tipo: 'final' }
-  ];
+  const filteredTransactions = transactions.filter(transaction => {
+    const transactionDate = new Date(transaction.transaction_date);
+    const now = new Date();
+    const daysAgo = new Date(now.getTime() - parseInt(periodo) * 24 * 60 * 60 * 1000);
+    
+    const isInDateRange = transactionDate >= daysAgo;
+    const isTypeMatch = filtroTipo === 'todos' || 
+      (filtroTipo === 'entradas' && transaction.type === 'entrada') ||
+      (filtroTipo === 'saidas' && transaction.type === 'saida');
+    
+    return isInDateRange && isTypeMatch;
+  });
 
-  const saidas = [
-    { data: '2024-01-10', descricao: 'Fornecedor - Decoração', valor: -2500, tipo: 'fornecedor' },
-    { data: '2024-01-18', descricao: 'Aluguel Escritório', valor: -1200, tipo: 'operacional' },
-    { data: '2024-01-22', descricao: 'Marketing Digital', valor: -800, tipo: 'marketing' }
-  ];
+  const summary = getFinancialSummary();
 
-  const totalEntradas = entradas.reduce((sum, item) => sum + item.valor, 0);
-  const totalSaidas = Math.abs(saidas.reduce((sum, item) => sum + item.valor, 0));
-  const saldoLiquido = totalEntradas - totalSaidas;
+  const handleEdit = (transaction) => {
+    setEditingTransaction(transaction);
+    setDialogOpen(true);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (window.confirm('Tem certeza que deseja excluir esta transação?')) {
+      await deleteTransaction(id);
+    }
+  };
+
+  const handleExportPDF = async () => {
+    try {
+      const startDate = new Date(Date.now() - parseInt(periodo) * 24 * 60 * 60 * 1000).toLocaleDateString('pt-BR');
+      const endDate = new Date().toLocaleDateString('pt-BR');
+      
+      const pdf = generateFinancialReport(filteredTransactions, startDate, endDate);
+      pdf.save(`relatorio-financeiro-${periodo}dias.pdf`);
+      toast.success('Relatório exportado com sucesso!');
+    } catch (error) {
+      toast.error('Erro ao exportar relatório');
+    }
+  };
 
   if (isLoading) {
     return (
@@ -82,9 +108,13 @@ const FluxoCaixa = () => {
                   <SelectItem value="saidas">Saídas</SelectItem>
                 </SelectContent>
               </Select>
-              <Button size="sm" className="w-full md:w-auto">
+              <Button size="sm" onClick={handleExportPDF} className="w-full md:w-auto">
+                <Download className="h-4 w-4 mr-2" />
+                Exportar PDF
+              </Button>
+              <Button size="sm" onClick={() => setDialogOpen(true)} className="w-full md:w-auto">
                 <Plus className="h-4 w-4 mr-2" />
-                Novo Lançamento
+                Nova Transação
               </Button>
             </div>
           </div>
@@ -92,14 +122,14 @@ const FluxoCaixa = () => {
       </Card>
 
       {/* Resumo */}
-      <div className={`grid ${isMobile ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-3'} gap-4`}>
+      <div className={`grid ${isMobile ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-3'} gap-4`} id="financial-summary">
         <Card className="border-green-200">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Total de Entradas</p>
                 <p className="text-2xl font-bold text-green-600">
-                  {formatCurrency(totalEntradas)}
+                  {formatCurrency(summary.totalEntradas)}
                 </p>
               </div>
               <TrendingUp className="h-8 w-8 text-green-600" />
@@ -113,7 +143,7 @@ const FluxoCaixa = () => {
               <div>
                 <p className="text-sm text-gray-600">Total de Saídas</p>
                 <p className="text-2xl font-bold text-red-600">
-                  {formatCurrency(totalSaidas)}
+                  {formatCurrency(summary.totalSaidas)}
                 </p>
               </div>
               <TrendingDown className="h-8 w-8 text-red-600" />
@@ -121,69 +151,90 @@ const FluxoCaixa = () => {
           </CardContent>
         </Card>
 
-        <Card className={`border-${saldoLiquido >= 0 ? 'blue' : 'orange'}-200`}>
+        <Card className={`border-${summary.saldoLiquido >= 0 ? 'blue' : 'orange'}-200`}>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Saldo Líquido</p>
-                <p className={`text-2xl font-bold ${saldoLiquido >= 0 ? 'text-blue-600' : 'text-orange-600'}`}>
-                  {formatCurrency(saldoLiquido)}
+                <p className={`text-2xl font-bold ${summary.saldoLiquido >= 0 ? 'text-blue-600' : 'text-orange-600'}`}>
+                  {formatCurrency(summary.saldoLiquido)}
                 </p>
               </div>
-              <DollarSign className={`h-8 w-8 ${saldoLiquido >= 0 ? 'text-blue-600' : 'text-orange-600'}`} />
+              <DollarSign className={`h-8 w-8 ${summary.saldoLiquido >= 0 ? 'text-blue-600' : 'text-orange-600'}`} />
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Movimentações */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Entradas */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-green-600 flex items-center gap-2">
-              <TrendingUp className="h-5 w-5" />
-              Entradas
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {entradas.map((entrada, index) => (
-              <div key={index} className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
-                <div className="flex-1">
-                  <p className="font-medium text-sm">{entrada.descricao}</p>
-                  <p className="text-xs text-gray-500">{entrada.data}</p>
+      {/* Lista de Transações */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Transações Recentes</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {filteredTransactions.length === 0 ? (
+              <p className="text-center text-gray-500 py-8">Nenhuma transação encontrada</p>
+            ) : (
+              filteredTransactions.map((transaction) => (
+                <div 
+                  key={transaction.id} 
+                  className={`flex justify-between items-center p-4 rounded-lg border ${
+                    transaction.type === 'entrada' ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'
+                  }`}
+                >
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium text-sm">{transaction.description}</p>
+                      <span className={`text-xs px-2 py-1 rounded ${
+                        transaction.type === 'entrada' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                      }`}>
+                        {transaction.category}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-500">
+                      {new Date(transaction.transaction_date).toLocaleDateString('pt-BR')}
+                      {transaction.payment_method && ` • ${transaction.payment_method}`}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <p className={`font-bold ${
+                      transaction.type === 'entrada' ? 'text-green-600' : 'text-red-600'
+                    }`}>
+                      {transaction.type === 'entrada' ? '+' : '-'}{formatCurrency(Number(transaction.amount))}
+                    </p>
+                    <div className="flex gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleEdit(transaction)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDelete(transaction.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
                 </div>
-                <p className="font-bold text-green-600">
-                  {formatCurrency(entrada.valor)}
-                </p>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
+              ))
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
-        {/* Saídas */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-red-600 flex items-center gap-2">
-              <TrendingDown className="h-5 w-5" />
-              Saídas
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {saidas.map((saida, index) => (
-              <div key={index} className="flex justify-between items-center p-3 bg-red-50 rounded-lg">
-                <div className="flex-1">
-                  <p className="font-medium text-sm">{saida.descricao}</p>
-                  <p className="text-xs text-gray-500">{saida.data}</p>
-                </div>
-                <p className="font-bold text-red-600">
-                  {formatCurrency(Math.abs(saida.valor))}
-                </p>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      </div>
+      <TransactionDialog
+        open={dialogOpen}
+        onOpenChange={(open) => {
+          setDialogOpen(open);
+          if (!open) setEditingTransaction(null);
+        }}
+        transaction={editingTransaction}
+      />
     </div>
   );
 };

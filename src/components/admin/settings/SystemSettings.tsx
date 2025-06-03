@@ -1,191 +1,117 @@
 
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 import { useAppSettings } from '@/hooks/useAppSettings';
+import { toast } from 'sonner';
 
 const SystemSettings = () => {
-  const { getSetting, updateSetting } = useAppSettings();
+  const { getSettingsByCategory, updateSetting } = useAppSettings();
+  const systemSettings = getSettingsByCategory('system');
+  
   const [formData, setFormData] = useState({
-    timezone: '',
-    language: '',
-    date_format: '',
-    currency: '',
-    backup_enabled: true,
-    maintenance_mode: false,
-    debug_mode: false,
-    session_timeout: ''
+    timezone: 'America/Sao_Paulo',
+    currency: 'BRL',
+    date_format: 'dd/MM/yyyy'
   });
-  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    setFormData({
-      timezone: getSetting('system', 'timezone') || 'America/Sao_Paulo',
-      language: getSetting('system', 'language') || 'pt-BR',
-      date_format: getSetting('system', 'date_format') || 'DD/MM/YYYY',
-      currency: getSetting('system', 'currency') || 'BRL',
-      backup_enabled: getSetting('system', 'backup_enabled') ?? true,
-      maintenance_mode: getSetting('system', 'maintenance_mode') ?? false,
-      debug_mode: getSetting('system', 'debug_mode') ?? false,
-      session_timeout: getSetting('system', 'session_timeout') || '30'
-    });
-  }, [getSetting]);
+    const settingsMap = systemSettings.reduce((acc, setting) => {
+      acc[setting.key] = setting.value ? JSON.parse(setting.value) : '';
+      return acc;
+    }, {});
 
-  const handleSave = async () => {
-    setIsLoading(true);
+    setFormData({
+      timezone: settingsMap.timezone || 'America/Sao_Paulo',
+      currency: settingsMap.currency || 'BRL',
+      date_format: settingsMap.date_format || 'dd/MM/yyyy'
+    });
+  }, [systemSettings]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
     try {
-      await updateSetting('system', 'timezone', formData.timezone);
-      await updateSetting('system', 'language', formData.language);
-      await updateSetting('system', 'date_format', formData.date_format);
-      await updateSetting('system', 'currency', formData.currency);
-      await updateSetting('system', 'backup_enabled', formData.backup_enabled);
-      await updateSetting('system', 'maintenance_mode', formData.maintenance_mode);
-      await updateSetting('system', 'debug_mode', formData.debug_mode);
-      await updateSetting('system', 'session_timeout', formData.session_timeout);
+      await Promise.all([
+        updateSetting('system', 'timezone', JSON.stringify(formData.timezone)),
+        updateSetting('system', 'currency', JSON.stringify(formData.currency)),
+        updateSetting('system', 'date_format', JSON.stringify(formData.date_format))
+      ]);
+      
+      toast.success('Configurações do sistema atualizadas com sucesso!');
     } catch (error) {
-      console.error('Error saving system settings:', error);
-    } finally {
-      setIsLoading(false);
+      toast.error('Erro ao atualizar configurações do sistema');
+      console.error('Error updating system settings:', error);
     }
   };
 
-  const handleChange = (field: string, value: string | boolean) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
-
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Configurações Regionais</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="timezone">Fuso Horário</Label>
-              <Select 
-                value={formData.timezone}
-                onValueChange={(value) => handleChange('timezone', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="America/Sao_Paulo">America/São Paulo</SelectItem>
-                  <SelectItem value="America/New_York">America/New York</SelectItem>
-                  <SelectItem value="Europe/London">Europe/London</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="language">Idioma</Label>
-              <Select 
-                value={formData.language}
-                onValueChange={(value) => handleChange('language', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="pt-BR">Português (Brasil)</SelectItem>
-                  <SelectItem value="en-US">English (US)</SelectItem>
-                  <SelectItem value="es-ES">Español</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>Configurações do Sistema</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <Label htmlFor="timezone">Fuso Horário</Label>
+            <Select
+              value={formData.timezone}
+              onValueChange={(value) => setFormData(prev => ({ ...prev, timezone: value }))}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione o fuso horário" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="America/Sao_Paulo">São Paulo (GMT-3)</SelectItem>
+                <SelectItem value="America/Rio_Branco">Acre (GMT-5)</SelectItem>
+                <SelectItem value="America/Manaus">Amazonas (GMT-4)</SelectItem>
+                <SelectItem value="America/Recife">Recife (GMT-3)</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-          
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="date-format">Formato de Data</Label>
-              <Select 
-                value={formData.date_format}
-                onValueChange={(value) => handleChange('date_format', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="DD/MM/YYYY">DD/MM/YYYY</SelectItem>
-                  <SelectItem value="MM/DD/YYYY">MM/DD/YYYY</SelectItem>
-                  <SelectItem value="YYYY-MM-DD">YYYY-MM-DD</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="currency">Moeda</Label>
-              <Select 
-                value={formData.currency}
-                onValueChange={(value) => handleChange('currency', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="BRL">Real (R$)</SelectItem>
-                  <SelectItem value="USD">Dólar ($)</SelectItem>
-                  <SelectItem value="EUR">Euro (€)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Configurações de Sistema</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="session-timeout">Timeout de Sessão (minutos)</Label>
-            <Input 
-              id="session-timeout" 
-              placeholder="30"
-              value={formData.session_timeout}
-              onChange={(e) => handleChange('session_timeout', e.target.value)}
-            />
+          <div>
+            <Label htmlFor="currency">Moeda</Label>
+            <Select
+              value={formData.currency}
+              onValueChange={(value) => setFormData(prev => ({ ...prev, currency: value }))}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione a moeda" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="BRL">Real Brasileiro (BRL)</SelectItem>
+                <SelectItem value="USD">Dólar Americano (USD)</SelectItem>
+                <SelectItem value="EUR">Euro (EUR)</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-          
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="backup-enabled"
-              checked={formData.backup_enabled}
-              onCheckedChange={(checked) => handleChange('backup_enabled', checked)}
-            />
-            <Label htmlFor="backup-enabled">Backup automático habilitado</Label>
-          </div>
-          
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="maintenance-mode"
-              checked={formData.maintenance_mode}
-              onCheckedChange={(checked) => handleChange('maintenance_mode', checked)}
-            />
-            <Label htmlFor="maintenance-mode">Modo de manutenção</Label>
-          </div>
-          
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="debug-mode"
-              checked={formData.debug_mode}
-              onCheckedChange={(checked) => handleChange('debug_mode', checked)}
-            />
-            <Label htmlFor="debug-mode">Modo debug</Label>
-          </div>
-        </CardContent>
-      </Card>
 
-      <div className="flex justify-end">
-        <Button onClick={handleSave} disabled={isLoading}>
-          {isLoading ? 'Salvando...' : 'Salvar Configurações do Sistema'}
-        </Button>
-      </div>
-    </div>
+          <div>
+            <Label htmlFor="date_format">Formato de Data</Label>
+            <Select
+              value={formData.date_format}
+              onValueChange={(value) => setFormData(prev => ({ ...prev, date_format: value }))}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione o formato de data" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="dd/MM/yyyy">DD/MM/AAAA</SelectItem>
+                <SelectItem value="MM/dd/yyyy">MM/DD/AAAA</SelectItem>
+                <SelectItem value="yyyy-MM-dd">AAAA-MM-DD</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <Button type="submit" className="w-full">
+            Salvar Configurações
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
   );
 };
 
