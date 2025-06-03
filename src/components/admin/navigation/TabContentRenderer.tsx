@@ -37,7 +37,7 @@ const TabContentRenderer = ({ activeTab }: TabContentRendererProps) => {
       dashboard: DashboardTab,
       proposals: ProposalsTab,
       contracts: ContractsTab,
-      clients: ClientesTab,
+      clients: ClientesTab, // Corrigido: agora aponta para ClientesTab
       leads: LeadsTab,
       events: EventsTab,
       professionals: ProfessionalsTab,

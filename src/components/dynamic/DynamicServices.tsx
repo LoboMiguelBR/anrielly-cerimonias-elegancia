@@ -74,8 +74,8 @@ const DynamicServices = ({
         
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           {servicesToShow.map((service, index) => {
-            // Generate a proper key that TypeScript can understand
-            const serviceKey = 'id' in service && service.id ? service.id : `service-${index}`;
+            // Generate a proper key with explicit string type
+            const serviceKey: string = (service as any).id ? String((service as any).id) : `service-${index}`;
             
             return (
               <div 
