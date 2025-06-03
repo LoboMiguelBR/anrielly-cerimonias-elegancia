@@ -109,3 +109,59 @@ export const menuItems: MenuItem[] = [
     component: 'SettingsTab'
   }
 ];
+
+// Função para obter todos os itens do menu
+export const getAllMenuItems = (): MenuItem[] => {
+  return menuItems;
+};
+
+// Interface para seção do menu
+export interface MenuSection {
+  title: string;
+  items: MenuItem[];
+}
+
+// Função para organizar itens em seções
+export const getMenuSections = (): MenuSection[] => {
+  return [
+    {
+      title: 'Principal',
+      items: [
+        menuItems.find(item => item.id === 'dashboard')!
+      ]
+    },
+    {
+      title: 'CRM & Vendas',
+      items: [
+        menuItems.find(item => item.id === 'leads')!,
+        menuItems.find(item => item.id === 'clients')!,
+        menuItems.find(item => item.id === 'gestao-comercial')!,
+        menuItems.find(item => item.id === 'proposals')!,
+        menuItems.find(item => item.id === 'contracts')!
+      ]
+    },
+    {
+      title: 'Operacional',
+      items: [
+        menuItems.find(item => item.id === 'events')!,
+        menuItems.find(item => item.id === 'professionals')!
+      ]
+    },
+    {
+      title: 'Conteúdo',
+      items: [
+        menuItems.find(item => item.id === 'website')!,
+        menuItems.find(item => item.id === 'gallery')!,
+        menuItems.find(item => item.id === 'testimonials')!
+      ]
+    },
+    {
+      title: 'Sistema',
+      items: [
+        menuItems.find(item => item.id === 'financeiro')!,
+        menuItems.find(item => item.id === 'analytics')!,
+        menuItems.find(item => item.id === 'settings')!
+      ]
+    }
+  ];
+};
