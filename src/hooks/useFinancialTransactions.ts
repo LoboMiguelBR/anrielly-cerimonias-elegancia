@@ -38,7 +38,14 @@ export const useFinancialTransactions = () => {
         .order('transaction_date', { ascending: false });
 
       if (error) throw error;
-      setTransactions(data || []);
+      
+      // Type assertion com validação de runtime
+      const typedData = (data || []).map(item => ({
+        ...item,
+        type: item.type as 'entrada' | 'saida'
+      })) as FinancialTransaction[];
+      
+      setTransactions(typedData);
     } catch (err: any) {
       console.error('Error fetching transactions:', err);
       toast.error('Erro ao carregar transações');
@@ -54,7 +61,14 @@ export const useFinancialTransactions = () => {
         .order('name');
 
       if (error) throw error;
-      setCategories(data || []);
+      
+      // Type assertion com validação de runtime
+      const typedData = (data || []).map(item => ({
+        ...item,
+        type: item.type as 'entrada' | 'saida'
+      })) as FinancialCategory[];
+      
+      setCategories(typedData);
     } catch (err: any) {
       console.error('Error fetching categories:', err);
       toast.error('Erro ao carregar categorias');
@@ -71,9 +85,14 @@ export const useFinancialTransactions = () => {
 
       if (error) throw error;
       
-      setTransactions(prev => [data, ...prev]);
+      const typedData = {
+        ...data,
+        type: data.type as 'entrada' | 'saida'
+      } as FinancialTransaction;
+      
+      setTransactions(prev => [typedData, ...prev]);
       toast.success('Transação criada com sucesso!');
-      return data;
+      return typedData;
     } catch (err: any) {
       console.error('Error creating transaction:', err);
       toast.error('Erro ao criar transação');
@@ -92,9 +111,14 @@ export const useFinancialTransactions = () => {
 
       if (error) throw error;
       
-      setTransactions(prev => prev.map(t => t.id === id ? data : t));
+      const typedData = {
+        ...data,
+        type: data.type as 'entrada' | 'saida'
+      } as FinancialTransaction;
+      
+      setTransactions(prev => prev.map(t => t.id === id ? typedData : t));
       toast.success('Transação atualizada com sucesso!');
-      return data;
+      return typedData;
     } catch (err: any) {
       console.error('Error updating transaction:', err);
       toast.error('Erro ao atualizar transação');

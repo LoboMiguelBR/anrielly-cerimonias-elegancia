@@ -12,7 +12,10 @@ import {
   TrendingUp,
   ClipboardList,
   Camera,
-  Award
+  Award,
+  Heart,
+  BookOpen,
+  Layout
 } from 'lucide-react';
 
 export interface MenuItem {
@@ -45,7 +48,7 @@ export const menuItems: MenuItem[] = [
     id: 'clients',
     label: 'Clientes',
     icon: Users,
-    component: 'ClientsTab'
+    component: 'ClientesTab'
   },
   {
     id: 'leads',
@@ -88,6 +91,24 @@ export const menuItems: MenuItem[] = [
     label: 'Vendas & Financeiro',
     icon: TrendingUp,
     component: 'VendasFinanceiroTab'
+  },
+  {
+    id: 'questionarios',
+    label: 'Questionários',
+    icon: BookOpen,
+    component: 'QuestionariosTab'
+  },
+  {
+    id: 'templates',
+    label: 'Templates',
+    icon: Layout,
+    component: 'TemplatesTab'
+  },
+  {
+    id: 'historias-casais',
+    label: 'Histórias Casais',
+    icon: Heart,
+    component: 'HistoriasCasaisTab'
   },
   {
     id: 'website',
@@ -144,6 +165,14 @@ export const getMenuSections = (): MenuSection[] => {
       items: [
         menuItems.find(item => item.id === 'events')!,
         menuItems.find(item => item.id === 'professionals')!
+      ]
+    },
+    {
+      title: 'Questionários & IA',
+      items: [
+        menuItems.find(item => item.id === 'questionarios')!,
+        menuItems.find(item => item.id === 'templates')!,
+        menuItems.find(item => item.id === 'historias-casais')!
       ]
     },
     {

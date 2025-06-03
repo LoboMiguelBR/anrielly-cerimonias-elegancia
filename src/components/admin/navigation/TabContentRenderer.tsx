@@ -14,6 +14,9 @@ const ServicesTab = lazy(() => import('../tabs/ServicesTab'));
 const GalleryTab = lazy(() => import('../tabs/AdminGalleryTab'));
 const TestimonialsTab = lazy(() => import('../tabs/TestimonialsTab'));
 const VendasFinanceiroTab = lazy(() => import('../tabs/VendasFinanceiroTab'));
+const QuestionariosTab = lazy(() => import('../tabs/QuestionariosTab'));
+const TemplatesTab = lazy(() => import('../tabs/TemplatesTab'));
+const HistoriasCasaisTab = lazy(() => import('../tabs/HistoriasCasaisTab'));
 const WebsiteTab = lazy(() => import('../tabs/WebsiteTab'));
 const AnalyticsTab = lazy(() => import('../tabs/AnalyticsTab'));
 const SettingsTab = lazy(() => import('../tabs/SettingsTab'));
@@ -37,7 +40,7 @@ const TabContentRenderer = ({ activeTab }: TabContentRendererProps) => {
       dashboard: DashboardTab,
       proposals: ProposalsTab,
       contracts: ContractsTab,
-      clients: ClientesTab, // Corrigido: agora aponta para ClientesTab
+      clients: ClientesTab,
       leads: LeadsTab,
       events: EventsTab,
       professionals: ProfessionalsTab,
@@ -45,6 +48,9 @@ const TabContentRenderer = ({ activeTab }: TabContentRendererProps) => {
       gallery: GalleryTab,
       testimonials: TestimonialsTab,
       'vendas-financeiro': VendasFinanceiroTab,
+      questionarios: QuestionariosTab,
+      templates: TemplatesTab,
+      'historias-casais': HistoriasCasaisTab,
       website: WebsiteTab,
       analytics: AnalyticsTab,
       settings: SettingsTab,

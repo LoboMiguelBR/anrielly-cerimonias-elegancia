@@ -18,8 +18,12 @@ const EmailSettings = () => {
   });
 
   useEffect(() => {
-    const settingsMap = emailSettings.reduce((acc, setting) => {
-      acc[setting.key] = setting.value ? JSON.parse(setting.value) : '';
+    const settingsMap = emailSettings.reduce((acc: Record<string, any>, setting) => {
+      try {
+        acc[setting.key] = setting.value ? JSON.parse(setting.value) : '';
+      } catch {
+        acc[setting.key] = setting.value || '';
+      }
       return acc;
     }, {});
 

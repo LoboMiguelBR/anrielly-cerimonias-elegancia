@@ -19,7 +19,7 @@ const NotificationSettings = () => {
   });
 
   useEffect(() => {
-    const settingsMap = notificationSettings.reduce((acc, setting) => {
+    const settingsMap = notificationSettings.reduce((acc: Record<string, any>, setting) => {
       acc[setting.key] = setting.value === 'true' || setting.value === true;
       return acc;
     }, {});
