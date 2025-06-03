@@ -11,7 +11,6 @@ import {
   UserPlus,
   TrendingUp,
   ClipboardList,
-  CreditCard,
   Camera,
   Award
 } from 'lucide-react';
@@ -85,22 +84,16 @@ export const menuItems: MenuItem[] = [
     component: 'TestimonialsTab'
   },
   {
-    id: 'gestao-comercial',
-    label: 'Gestão Comercial',
+    id: 'vendas-financeiro',
+    label: 'Vendas & Financeiro',
     icon: TrendingUp,
-    component: 'GestaoComercialTab'
+    component: 'VendasFinanceiroTab'
   },
   {
     id: 'website',
     label: 'CMS Website',
     icon: Globe,
     component: 'WebsiteTab'
-  },
-  {
-    id: 'financeiro',
-    label: 'Financeiro',
-    icon: CreditCard,
-    component: 'FinanceiroTab'
   },
   {
     id: 'analytics',
@@ -141,7 +134,7 @@ export const getMenuSections = (): MenuSection[] => {
       items: [
         menuItems.find(item => item.id === 'leads')!,
         menuItems.find(item => item.id === 'clients')!,
-        menuItems.find(item => item.id === 'gestao-comercial')!,
+        menuItems.find(item => item.id === 'vendas-financeiro')!,
         menuItems.find(item => item.id === 'proposals')!,
         menuItems.find(item => item.id === 'contracts')!
       ]
@@ -165,7 +158,6 @@ export const getMenuSections = (): MenuSection[] => {
     {
       title: 'Sistema',
       items: [
-        menuItems.find(item => item.id === 'financeiro')!,
         menuItems.find(item => item.id === 'analytics')!,
         menuItems.find(item => item.id === 'settings')!
       ]

@@ -13,20 +13,10 @@ const ProfessionalsTab = lazy(() => import('../tabs/ProfessionalsTab'));
 const ServicesTab = lazy(() => import('../tabs/ServicesTab'));
 const GalleryTab = lazy(() => import('../tabs/AdminGalleryTab'));
 const TestimonialsTab = lazy(() => import('../tabs/TestimonialsTab'));
-const GestaoComercialTab = lazy(() => import('../tabs/GestaoComercialTab'));
+const VendasFinanceiroTab = lazy(() => import('../tabs/VendasFinanceiroTab'));
 const WebsiteTab = lazy(() => import('../tabs/WebsiteTab'));
-const AnalyticsTab = lazy(() => import('../tabs/DashboardTab'));
+const AnalyticsTab = lazy(() => import('../tabs/AnalyticsTab'));
 const SettingsTab = lazy(() => import('../tabs/SettingsTab'));
-
-// Fallback components
-const FinanceiroTab = () => (
-  <Card>
-    <CardContent className="p-6">
-      <h3 className="text-lg font-semibold mb-2">Módulo Financeiro</h3>
-      <p className="text-gray-600">Módulo em desenvolvimento...</p>
-    </CardContent>
-  </Card>
-);
 
 const LoadingSpinner = () => (
   <div className="flex items-center justify-center min-h-[400px]">
@@ -54,9 +44,8 @@ const TabContentRenderer = ({ activeTab }: TabContentRendererProps) => {
       services: ServicesTab,
       gallery: GalleryTab,
       testimonials: TestimonialsTab,
-      'gestao-comercial': GestaoComercialTab,
+      'vendas-financeiro': VendasFinanceiroTab,
       website: WebsiteTab,
-      financeiro: FinanceiroTab,
       analytics: AnalyticsTab,
       settings: SettingsTab,
     };
