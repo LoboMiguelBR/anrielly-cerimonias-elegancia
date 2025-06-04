@@ -127,7 +127,9 @@ export const useProfessionals = () => {
   return {
     professionals,
     loading,
+    isLoading: loading, // Alias for compatibility
     fetchProfessionals,
+    refetch: fetchProfessionals, // Alias for compatibility
     addProfessional,
     updateProfessional,
     deleteProfessional
