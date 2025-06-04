@@ -1,5 +1,6 @@
 
 import { Card, CardContent } from '@/components/ui/card';
+import { useQuoteRequests } from '@/hooks/useQuoteRequests';
 
 // Import components directly instead of lazy loading to avoid 404 errors
 import DashboardTab from '../tabs/DashboardTab';
@@ -25,12 +26,19 @@ interface TabContentRendererProps {
 }
 
 const TabContentRenderer = ({ activeTab }: TabContentRendererProps) => {
+  const { data: quoteRequests = [] } = useQuoteRequests();
+
+  const handleNavigate = (tab: string) => {
+    console.log('Navigate to tab:', tab);
+    // Esta função será implementada pelo componente pai se necessário
+  };
+
   const renderTabContent = () => {
     switch (activeTab) {
       case 'dashboard':
-        return <DashboardTab />;
+        return <DashboardTab onNavigate={handleNavigate} />;
       case 'proposals':
-        return <ProposalsTab />;
+        return <ProposalsTab quoteRequests={quoteRequests} quoteIdFromUrl={null} />;
       case 'contracts':
         return <ContractsTab />;
       case 'clients':
