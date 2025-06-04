@@ -57,19 +57,29 @@ const DynamicServices = ({
   // Se estiver usando dados do banco e ainda carregando
   if (!items && isLoading) {
     return (
-      <section id="servicos" className="bg-white" ref={sectionRef}>
+      <section id="servicos" className="bg-white py-20" ref={sectionRef}>
         <div className="container mx-auto px-4">
           <h2 className="section-title animate-on-scroll">{title}</h2>
           <div className="flex justify-center items-center h-32">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gold"></div>
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gold mx-auto mb-2"></div>
+              <p className="text-gray-500 text-sm">Carregando serviços...</p>
+            </div>
           </div>
         </div>
       </section>
     );
   }
 
+  console.log('DynamicServices:', {
+    title,
+    itemsFromCMS: items?.length || 0,
+    itemsFromDB: dbServices?.length || 0,
+    servicesToShow: servicesToShow?.length || 0
+  });
+
   return (
-    <section id="servicos" className="bg-white" ref={sectionRef}>
+    <section id="servicos" className="bg-white py-20" ref={sectionRef}>
       <div className="container mx-auto px-4">
         <h2 className="section-title animate-on-scroll">{title}</h2>
         
@@ -101,7 +111,7 @@ const DynamicServices = ({
           <div className="text-center py-8 text-gray-500">
             <p>Nenhum serviço disponível no momento.</p>
             <p className="text-sm mt-2">
-              {items ? 'Configure os serviços no CMS.' : 'Configure os serviços na aba Serviços.'}
+              {items ? 'Configure os serviços no CMS.' : 'Configure os serviços na aba Serviços do painel admin.'}
             </p>
           </div>
         )}

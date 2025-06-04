@@ -25,7 +25,7 @@ import DynamicAbout from '@/components/dynamic/DynamicAbout';
 import DynamicServices from '@/components/dynamic/DynamicServices';
 
 const Index = () => {
-  const { landingPage, loading } = useCMSLandingPage('home');
+  const { landingPage, loading, error } = useCMSLandingPage('home');
   
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -65,16 +65,24 @@ const Index = () => {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold"></div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold mb-4"></div>
+          <p className="text-gray-600">Carregando página...</p>
+        </div>
       </div>
     );
   }
 
-  // Se houver dados do CMS, usar componentes dinâmicos
+  // Se houver dados do CMS válidos, usar componentes dinâmicos
   const useCMSData = landingPage && Object.keys(landingPage.sections).length > 0;
 
-  console.log('Usando dados do CMS:', useCMSData);
-  console.log('Landing page data:', landingPage);
+  console.log('CMS Status:', {
+    useCMSData,
+    landingPage: landingPage?.title,
+    sectionsCount: landingPage ? Object.keys(landingPage.sections).length : 0,
+    error,
+    loading
+  });
 
   return (
     <div className="bg-white min-h-screen">
@@ -125,12 +133,10 @@ const Index = () => {
         <ServiceArea />
         <FinalCTA />
 
-        {/* Contact Section - mostrar se configurado no CMS */}
-        {useCMSData && landingPage.sections.contact?.show_form !== false ? (
+        {/* Contact Section - mostrar sempre, a menos que explicitamente desabilitado no CMS */}
+        {useCMSData && landingPage.sections.contact?.show_form === false ? null : (
           <ContactSection />
-        ) : !useCMSData ? (
-          <ContactSection />
-        ) : null}
+        )}
       </main>
       <Footer />
       <PWAInstallPrompt />

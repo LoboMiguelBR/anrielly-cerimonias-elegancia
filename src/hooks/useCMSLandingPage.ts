@@ -29,21 +29,40 @@ export const useCMSLandingPage = (slug: string = 'home') => {
         
         console.log('Buscando página CMS para slug:', slug);
         
-        // Buscar a página
-        const { data: page, error: pageError } = await supabase
+        // Primeiro tentar buscar pelo slug especificado
+        let { data: page, error: pageError } = await supabase
           .from('website_pages')
           .select('*')
           .eq('slug', slug)
           .eq('status', 'published')
           .maybeSingle();
 
-        if (pageError) {
+        // Se não encontrar e o slug for 'home', tentar buscar qualquer página publicada
+        if (!page && slug === 'home') {
+          console.log('Página home não encontrada, buscando primeira página disponível...');
+          const { data: firstPage, error: firstPageError } = await supabase
+            .from('website_pages')
+            .select('*')
+            .eq('status', 'published')
+            .order('created_at', { ascending: true })
+            .limit(1)
+            .maybeSingle();
+          
+          if (firstPageError) {
+            console.error('Erro ao buscar primeira página:', firstPageError);
+          } else if (firstPage) {
+            console.log('Primeira página encontrada:', firstPage.slug);
+            page = firstPage;
+          }
+        }
+
+        if (pageError && !page) {
           console.error('Erro ao buscar página:', pageError);
           throw pageError;
         }
 
         if (!page) {
-          console.log('Página não encontrada para slug:', slug);
+          console.log('Nenhuma página encontrada para slug:', slug);
           setLandingPage(null);
           setLoading(false);
           return;
@@ -103,14 +122,28 @@ export const useCMSLandingPage = (slug: string = 'home') => {
         setLoading(true);
         setError(null);
         
-        const { data: page, error: pageError } = await supabase
+        let { data: page, error: pageError } = await supabase
           .from('website_pages')
           .select('*')
           .eq('slug', slug)
           .eq('status', 'published')
           .maybeSingle();
 
-        if (pageError) throw pageError;
+        if (!page && slug === 'home') {
+          const { data: firstPage, error: firstPageError } = await supabase
+            .from('website_pages')
+            .select('*')
+            .eq('status', 'published')
+            .order('created_at', { ascending: true })
+            .limit(1)
+            .maybeSingle();
+          
+          if (!firstPageError && firstPage) {
+            page = firstPage;
+          }
+        }
+
+        if (pageError && !page) throw pageError;
         if (!page) {
           setLandingPage(null);
           return;
