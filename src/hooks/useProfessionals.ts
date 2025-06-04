@@ -7,37 +7,49 @@ export interface Professional {
   id: string;
   name: string;
   category: string;
-  document?: string;
-  phone: string;
   email: string;
-  instagram?: string;
-  website?: string;
+  phone: string;
   city: string;
-  tags?: string[];
+  website?: string;
+  instagram?: string;
   notes?: string;
+  price_range?: string;
+  payment_terms?: string;
+  supplier_type?: string;
+  document?: string;
+  tags?: string[];
+  rating?: number;
+  minimum_order?: number;
+  delivery_time?: number;
+  portfolio_images?: string[];
   created_at: string;
   updated_at: string;
 }
 
 export const useProfessionals = () => {
   const [professionals, setProfessionals] = useState<Professional[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
 
   const fetchProfessionals = async () => {
     try {
-      setIsLoading(true);
+      setLoading(true);
       const { data, error } = await supabase
         .from('professionals')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('name', { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erro ao buscar profissionais:', error);
+        toast.error('Erro ao carregar fornecedores');
+        return;
+      }
+
       setProfessionals(data || []);
-    } catch (error: any) {
-      console.error('Erro ao buscar profissionais:', error);
-      toast.error('Erro ao carregar profissionais: ' + error.message);
+    } catch (err) {
+      console.error('Erro ao buscar profissionais:', err);
+      toast.error('Erro ao carregar fornecedores');
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
@@ -49,15 +61,17 @@ export const useProfessionals = () => {
         .select()
         .single();
 
-      if (error) throw error;
-      
-      setProfessionals(prev => [data, ...prev]);
-      toast.success('Profissional cadastrado com sucesso!');
+      if (error) {
+        console.error('Erro ao adicionar profissional:', error);
+        toast.error('Erro ao adicionar fornecedor');
+        throw error;
+      }
+
+      setProfessionals(prev => [...prev, data]);
       return data;
-    } catch (error: any) {
-      console.error('Erro ao cadastrar profissional:', error);
-      toast.error('Erro ao cadastrar profissional: ' + error.message);
-      throw error;
+    } catch (err) {
+      console.error('Erro ao adicionar profissional:', err);
+      throw err;
     }
   };
 
@@ -70,17 +84,19 @@ export const useProfessionals = () => {
         .select()
         .single();
 
-      if (error) throw error;
-      
-      setProfessionals(prev => 
-        prev.map(prof => prof.id === id ? data : prof)
-      );
-      toast.success('Profissional atualizado com sucesso!');
+      if (error) {
+        console.error('Erro ao atualizar profissional:', error);
+        toast.error('Erro ao atualizar fornecedor');
+        throw error;
+      }
+
+      setProfessionals(prev => prev.map(p => 
+        p.id === id ? data : p
+      ));
       return data;
-    } catch (error: any) {
-      console.error('Erro ao atualizar profissional:', error);
-      toast.error('Erro ao atualizar profissional: ' + error.message);
-      throw error;
+    } catch (err) {
+      console.error('Erro ao atualizar profissional:', err);
+      throw err;
     }
   };
 
@@ -91,14 +107,16 @@ export const useProfessionals = () => {
         .delete()
         .eq('id', id);
 
-      if (error) throw error;
-      
-      setProfessionals(prev => prev.filter(prof => prof.id !== id));
-      toast.success('Profissional removido com sucesso!');
-    } catch (error: any) {
-      console.error('Erro ao remover profissional:', error);
-      toast.error('Erro ao remover profissional: ' + error.message);
-      throw error;
+      if (error) {
+        console.error('Erro ao deletar profissional:', error);
+        toast.error('Erro ao remover fornecedor');
+        throw error;
+      }
+
+      setProfessionals(prev => prev.filter(p => p.id !== id));
+    } catch (err) {
+      console.error('Erro ao deletar profissional:', err);
+      throw err;
     }
   };
 
@@ -108,10 +126,10 @@ export const useProfessionals = () => {
 
   return {
     professionals,
-    isLoading,
+    loading,
+    fetchProfessionals,
     addProfessional,
     updateProfessional,
-    deleteProfessional,
-    refetch: fetchProfessionals
+    deleteProfessional
   };
 };
