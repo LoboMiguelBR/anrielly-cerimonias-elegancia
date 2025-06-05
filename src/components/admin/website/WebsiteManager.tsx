@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import CMSStatusDashboard from './CMSStatusDashboard';
@@ -7,6 +8,7 @@ import SectionsManagerEnhanced from './SectionsManagerEnhanced';
 import SEOSettingsEnhanced from './SEOSettingsEnhanced';
 import ThemeCustomizerEnhanced from './ThemeCustomizerEnhanced';
 import ServicesManager from '../services/ServicesManager';
+import WebsiteManagerEnhanced from './WebsiteManagerEnhanced';
 
 const WebsiteManager = () => {
   return <WebsiteManagerEnhanced />;

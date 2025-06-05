@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -197,7 +196,6 @@ const CMSStatusDashboard = () => {
                         <Switch
                           checked={section.is_active}
                           onCheckedChange={(checked) => handleToggleSection(section.id, checked)}
-                          size="sm"
                         />
                       </div>
                     </div>
