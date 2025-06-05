@@ -77,35 +77,33 @@ const SectionHtmlEditor: React.FC<SectionHtmlEditorProps> = ({
     }));
   };
 
-  // Salvar alterações usando SQL raw para acessar novos campos
+  // Salvar alterações armazenando no campo content
   const handleSave = async () => {
     try {
       setIsSaving(true);
       
-      // Usar rpc para update com campos novos
+      // Buscar content atual
+      const { data: currentSection } = await supabase
+        .from('website_sections')
+        .select('content')
+        .eq('id', sectionId)
+        .single();
+
+      const currentContent = currentSection?.content as any || {};
+      
+      // Atualizar o campo content com os dados HTML
       const { error } = await supabase
-        .rpc('update_section_html', {
-          section_id_param: sectionId,
-          html_template_param: htmlTemplate,
-          variables_param: variables
-        });
+        .from('website_sections')
+        .update({
+          content: {
+            ...currentContent,
+            html_template: htmlTemplate,
+            variables: variables
+          }
+        })
+        .eq('id', sectionId);
 
-      if (error) {
-        // Fallback: tentar atualizar apenas o content com os dados
-        console.log('Fallback: atualizando content com dados HTML');
-        const { error: fallbackError } = await supabase
-          .from('website_sections')
-          .update({
-            content: {
-              ...initialVariables,
-              html_template: htmlTemplate,
-              variables: variables
-            }
-          })
-          .eq('id', sectionId);
-
-        if (fallbackError) throw fallbackError;
-      }
+      if (error) throw error;
 
       toast.success('Seção HTML atualizada com sucesso!');
       onSave?.();
@@ -117,16 +115,9 @@ const SectionHtmlEditor: React.FC<SectionHtmlEditorProps> = ({
     }
   };
 
-  // Carregar template padrão
-  const loadDefaultTemplate = async () => {
-    try {
-      // Usar rpc para buscar templates
-      const { data, error } = await supabase
-        .rpc('get_section_template', { section_type_param: sectionType });
-
-      if (error) {
-        console.log('Template padrão não encontrado, usando template básico');
-        const basicTemplate = `<section class="py-20 bg-white">
+  // Carregar template padrão básico
+  const loadDefaultTemplate = () => {
+    const basicTemplate = `<section class="py-20 bg-white">
   <div class="container mx-auto px-4">
     <div class="text-center">
       <h2 class="text-4xl font-serif text-primary mb-4">{{title}}</h2>
@@ -134,24 +125,13 @@ const SectionHtmlEditor: React.FC<SectionHtmlEditorProps> = ({
     </div>
   </div>
 </section>`;
-        setHtmlTemplate(basicTemplate);
-        setVariables({ title: 'Título da Seção', subtitle: 'Subtítulo da seção' });
-        toast.info('Template básico carregado');
-        return;
-      }
-
-      if (data && data.length > 0) {
-        const template = data[0];
-        setHtmlTemplate(template.html_template);
-        setVariables(template.default_variables || {});
-        toast.success('Template padrão carregado!');
-      } else {
-        toast.info('Nenhum template padrão encontrado para este tipo de seção');
-      }
-    } catch (error) {
-      console.error('Erro ao carregar template padrão:', error);
-      toast.error('Erro ao carregar template padrão');
-    }
+    
+    setHtmlTemplate(basicTemplate);
+    setVariables({ 
+      title: `Título da Seção ${sectionType}`, 
+      subtitle: `Subtítulo da seção ${sectionType}` 
+    });
+    toast.success('Template básico carregado!');
   };
 
   return (

@@ -118,72 +118,36 @@ export const useCMSLandingPageWithHtml = (slug: string = 'home') => {
         status: page.status
       });
 
-      // Buscar seções ativas da página - usando SQL raw para acessar novos campos
+      // Buscar seções ativas da página
       const { data: sections, error: sectionsError } = await supabase
-        .rpc('get_sections_with_html', { page_id_param: page.id });
+        .from('website_sections')
+        .select('*')
+        .eq('page_id', page.id)
+        .eq('is_active', true)
+        .order('order_index', { ascending: true });
 
       if (sectionsError) {
         console.error('❌ Erro ao buscar seções:', sectionsError);
-        // Fallback para busca normal sem html_template
-        const { data: fallbackSections, error: fallbackError } = await supabase
-          .from('website_sections')
-          .select('*')
-          .eq('page_id', page.id)
-          .eq('is_active', true)
-          .order('order_index', { ascending: true });
-
-        if (fallbackError) {
-          throw fallbackError;
-        }
-
-        // Usar seções sem HTML personalizado
-        const organizedSections = fallbackSections?.reduce((acc, section) => {
-          acc[section.section_type] = {
-            id: section.id,
-            section_type: section.section_type,
-            title: section.title,
-            content: section.content,
-            html_template: undefined,
-            variables: {},
-            is_active: section.is_active,
-            order_index: section.order_index
-          };
-          return acc;
-        }, {} as Record<string, CMSSection>) || {};
-
-        console.log('✅ Seções organizadas (fallback):', Object.keys(organizedSections));
-
-        const result: CMSLandingPageWithHtml = {
-          id: page.id,
-          title: page.title,
-          slug: page.slug,
-          status: page.status as 'published' | 'draft' | 'archived',
-          sections: organizedSections
-        };
-
-        setCachedData(slug, result);
-        setLandingPage(result);
-        setLastUpdated(new Date());
-        return result;
+        throw sectionsError;
       }
 
-      console.log('📋 Seções encontradas:', sections?.map((s: any) => ({
+      console.log('📋 Seções encontradas:', sections?.map(s => ({
         type: s.section_type,
         active: s.is_active,
-        order: s.order_index,
-        hasHtml: !!s.html_template,
-        hasVariables: !!s.variables
+        order: s.order_index
       })));
 
-      // Organizar seções por tipo com suporte a HTML
-      const organizedSections = sections?.reduce((acc: Record<string, CMSSection>, section: any) => {
+      // Organizar seções por tipo - extrair HTML personalizado do content se existir
+      const organizedSections = sections?.reduce((acc, section) => {
+        const content = section.content as any;
+        
         acc[section.section_type] = {
           id: section.id,
           section_type: section.section_type,
           title: section.title,
           content: section.content,
-          html_template: section.html_template,
-          variables: section.variables || {},
+          html_template: content?.html_template || undefined,
+          variables: content?.variables || {},
           is_active: section.is_active,
           order_index: section.order_index
         };

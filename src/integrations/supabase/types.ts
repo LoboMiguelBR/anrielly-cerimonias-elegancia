@@ -1753,7 +1753,34 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_section_template: {
+        Args: { section_type_param: string }
+        Returns: {
+          html_template: string
+          default_variables: Json
+        }[]
+      }
+      get_sections_with_html: {
+        Args: { page_id_param: string }
+        Returns: {
+          id: string
+          section_type: string
+          title: string
+          content: Json
+          html_template: string
+          variables: Json
+          is_active: boolean
+          order_index: number
+        }[]
+      }
+      update_section_html: {
+        Args: {
+          section_id_param: string
+          html_template_param: string
+          variables_param: Json
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       event_status: "em_planejamento" | "contratado" | "concluido" | "cancelado"
