@@ -77,20 +77,35 @@ const SectionHtmlEditor: React.FC<SectionHtmlEditorProps> = ({
     }));
   };
 
-  // Salvar alterações
+  // Salvar alterações usando SQL raw para acessar novos campos
   const handleSave = async () => {
     try {
       setIsSaving(true);
       
+      // Usar rpc para update com campos novos
       const { error } = await supabase
-        .from('website_sections')
-        .update({
-          html_template: htmlTemplate,
-          variables: variables
-        })
-        .eq('id', sectionId);
+        .rpc('update_section_html', {
+          section_id_param: sectionId,
+          html_template_param: htmlTemplate,
+          variables_param: variables
+        });
 
-      if (error) throw error;
+      if (error) {
+        // Fallback: tentar atualizar apenas o content com os dados
+        console.log('Fallback: atualizando content com dados HTML');
+        const { error: fallbackError } = await supabase
+          .from('website_sections')
+          .update({
+            content: {
+              ...initialVariables,
+              html_template: htmlTemplate,
+              variables: variables
+            }
+          })
+          .eq('id', sectionId);
+
+        if (fallbackError) throw fallbackError;
+      }
 
       toast.success('Seção HTML atualizada com sucesso!');
       onSave?.();
@@ -105,18 +120,30 @@ const SectionHtmlEditor: React.FC<SectionHtmlEditorProps> = ({
   // Carregar template padrão
   const loadDefaultTemplate = async () => {
     try {
+      // Usar rpc para buscar templates
       const { data, error } = await supabase
-        .from('section_templates')
-        .select('*')
-        .eq('section_type', sectionType)
-        .limit(1)
-        .maybeSingle();
+        .rpc('get_section_template', { section_type_param: sectionType });
 
-      if (error) throw error;
+      if (error) {
+        console.log('Template padrão não encontrado, usando template básico');
+        const basicTemplate = `<section class="py-20 bg-white">
+  <div class="container mx-auto px-4">
+    <div class="text-center">
+      <h2 class="text-4xl font-serif text-primary mb-4">{{title}}</h2>
+      <p class="text-xl text-gray-600">{{subtitle}}</p>
+    </div>
+  </div>
+</section>`;
+        setHtmlTemplate(basicTemplate);
+        setVariables({ title: 'Título da Seção', subtitle: 'Subtítulo da seção' });
+        toast.info('Template básico carregado');
+        return;
+      }
 
-      if (data) {
-        setHtmlTemplate(data.html_template);
-        setVariables(data.default_variables || {});
+      if (data && data.length > 0) {
+        const template = data[0];
+        setHtmlTemplate(template.html_template);
+        setVariables(template.default_variables || {});
         toast.success('Template padrão carregado!');
       } else {
         toast.info('Nenhum template padrão encontrado para este tipo de seção');

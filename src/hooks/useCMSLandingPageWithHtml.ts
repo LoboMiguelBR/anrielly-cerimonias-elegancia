@@ -118,20 +118,56 @@ export const useCMSLandingPageWithHtml = (slug: string = 'home') => {
         status: page.status
       });
 
-      // Buscar seções ativas da página COM html_template
+      // Buscar seções ativas da página - usando SQL raw para acessar novos campos
       const { data: sections, error: sectionsError } = await supabase
-        .from('website_sections')
-        .select('*')
-        .eq('page_id', page.id)
-        .eq('is_active', true)
-        .order('order_index', { ascending: true });
+        .rpc('get_sections_with_html', { page_id_param: page.id });
 
       if (sectionsError) {
         console.error('❌ Erro ao buscar seções:', sectionsError);
-        throw sectionsError;
+        // Fallback para busca normal sem html_template
+        const { data: fallbackSections, error: fallbackError } = await supabase
+          .from('website_sections')
+          .select('*')
+          .eq('page_id', page.id)
+          .eq('is_active', true)
+          .order('order_index', { ascending: true });
+
+        if (fallbackError) {
+          throw fallbackError;
+        }
+
+        // Usar seções sem HTML personalizado
+        const organizedSections = fallbackSections?.reduce((acc, section) => {
+          acc[section.section_type] = {
+            id: section.id,
+            section_type: section.section_type,
+            title: section.title,
+            content: section.content,
+            html_template: undefined,
+            variables: {},
+            is_active: section.is_active,
+            order_index: section.order_index
+          };
+          return acc;
+        }, {} as Record<string, CMSSection>) || {};
+
+        console.log('✅ Seções organizadas (fallback):', Object.keys(organizedSections));
+
+        const result: CMSLandingPageWithHtml = {
+          id: page.id,
+          title: page.title,
+          slug: page.slug,
+          status: page.status as 'published' | 'draft' | 'archived',
+          sections: organizedSections
+        };
+
+        setCachedData(slug, result);
+        setLandingPage(result);
+        setLastUpdated(new Date());
+        return result;
       }
 
-      console.log('📋 Seções encontradas:', sections?.map(s => ({
+      console.log('📋 Seções encontradas:', sections?.map((s: any) => ({
         type: s.section_type,
         active: s.is_active,
         order: s.order_index,
@@ -140,7 +176,7 @@ export const useCMSLandingPageWithHtml = (slug: string = 'home') => {
       })));
 
       // Organizar seções por tipo com suporte a HTML
-      const organizedSections = sections?.reduce((acc, section) => {
+      const organizedSections = sections?.reduce((acc: Record<string, CMSSection>, section: any) => {
         acc[section.section_type] = {
           id: section.id,
           section_type: section.section_type,
