@@ -1,3 +1,4 @@
+
 import { useEffect } from 'react';
 import { useCMSLandingPageEnhanced } from '@/hooks/useCMSLandingPageEnhanced';
 import Header from '@/components/Header';

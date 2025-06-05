@@ -9,7 +9,8 @@ export const useCMSSeeder = () => {
   const seedDefaultData = async () => {
     try {
       setIsSeeding(true);
-      
+      console.log('🌱 Iniciando seed dos dados CMS...');
+
       // 1. Criar página principal se não existir
       const { data: existingPage } = await supabase
         .from('website_pages')
@@ -19,69 +20,31 @@ export const useCMSSeeder = () => {
 
       let pageId = existingPage?.id;
 
-      if (!existingPage) {
+      if (!pageId) {
         const { data: newPage, error: pageError } = await supabase
           .from('website_pages')
           .insert({
-            title: 'Página Principal - Anrielly Gomes',
+            title: 'Página Principal',
             slug: 'home',
-            page_type: 'home',
             status: 'published',
+            page_type: 'home',
+            order_index: 0,
             meta_description: 'Cerimônias com emoção, elegância e significado - Anrielly Gomes',
-            order_index: 0
+            meta_keywords: 'casamento, cerimônia, celebrante, anrielly gomes'
           })
           .select('id')
           .single();
 
         if (pageError) throw pageError;
         pageId = newPage.id;
+        console.log('✅ Página principal criada:', pageId);
       }
 
-      // 2. Migrar serviços da tabela services para website_sections
-      const { data: services } = await supabase
-        .from('services')
-        .select('*')
-        .eq('is_active', true)
-        .order('order_index');
-
-      if (services && services.length > 0) {
-        // Verificar se já existe seção de serviços
-        const { data: existingServicesSection } = await supabase
-          .from('website_sections')
-          .select('id')
-          .eq('page_id', pageId)
-          .eq('section_type', 'services')
-          .maybeSingle();
-
-        if (!existingServicesSection) {
-          const servicesData = {
-            title: 'Nossos Serviços',
-            items: services.map(service => ({
-              title: service.title,
-              description: service.description,
-              icon: service.icon
-            }))
-          };
-
-          await supabase
-            .from('website_sections')
-            .insert({
-              page_id: pageId,
-              section_type: 'services',
-              title: 'Serviços',
-              content: servicesData,
-              is_active: true,
-              order_index: 2
-            });
-        }
-      }
-
-      // 3. Criar seções padrão se não existirem
+      // 2. Criar seções padrão
       const defaultSections = [
         {
-          section_type: 'hero',
           title: 'Banner Principal',
-          order_index: 0,
+          section_type: 'hero',
           content: {
             title: 'Anrielly Gomes',
             subtitle: 'Cerimônias com emoção, elegância e significado.',
@@ -89,59 +52,107 @@ export const useCMSSeeder = () => {
             cta_primary: 'Solicitar Orçamento',
             cta_secondary: 'Fale no WhatsApp',
             whatsapp_link: 'https://wa.me/5524992689947'
-          }
-        },
-        {
-          section_type: 'about',
-          title: 'Sobre',
+          },
           order_index: 1,
-          content: {
-            title: 'Sobre a Anrielly',
-            content: 'Olá! Sou Anrielly Gomes, uma apaixonada Mestre de Cerimônias com mais de 20 anos de trajetória profissional, marcada por sensibilidade, elegância e compromisso com momentos inesquecíveis.',
-            image: '/lovable-uploads/99442f1a-9c10-4e95-a063-bd0bda0a998c.png'
-          }
+          is_active: true
         },
         {
-          section_type: 'contact',
-          title: 'Contato',
+          title: 'Sobre Mim',
+          section_type: 'about',
+          content: {
+            title: 'Sobre Anrielly Gomes',
+            content: 'Com anos de experiência criando momentos únicos e inesquecíveis, transformo cerimônias em celebrações cheias de significado, emoção e personalidade.',
+            image: '/lovable-uploads/c2283906-77d8-4d1c-a901-5453ea6dd515.png'
+          },
+          order_index: 2,
+          is_active: true
+        },
+        {
+          title: 'Serviços',
+          section_type: 'services',
+          content: {
+            title: 'Meus Serviços',
+            items: [
+              {
+                title: 'Casamentos',
+                description: 'Cerimônias de casamento personalizadas e emocionantes',
+                icon: 'Heart'
+              },
+              {
+                title: 'Renovação de Votos',
+                description: 'Celebre um novo capítulo da sua história de amor',
+                icon: 'Calendar'
+              },
+              {
+                title: 'Cerimônias Especiais',
+                description: 'Momentos únicos com o toque especial que merecem',
+                icon: 'Award'
+              }
+            ]
+          },
           order_index: 3,
+          is_active: true
+        },
+        {
+          title: 'Contato',
+          section_type: 'contact',
           content: {
             show_form: true,
-            title: 'Entre em Contato',
-            subtitle: 'Vamos conversar sobre seu evento especial'
-          }
+            title: 'Entre em Contato'
+          },
+          order_index: 4,
+          is_active: true
         }
       ];
 
-      for (const section of defaultSections) {
-        const { data: existingSection } = await supabase
-          .from('website_sections')
-          .select('id')
-          .eq('page_id', pageId)
-          .eq('section_type', section.section_type)
-          .maybeSingle();
+      // Verificar seções existentes
+      const { data: existingSections } = await supabase
+        .from('website_sections')
+        .select('section_type')
+        .eq('page_id', pageId);
 
-        if (!existingSection) {
-          await supabase
-            .from('website_sections')
-            .insert({
-              page_id: pageId,
-              ...section,
-              is_active: true
-            });
-        }
+      const existingTypes = existingSections?.map(s => s.section_type) || [];
+
+      // Inserir apenas seções que não existem
+      const sectionsToInsert = defaultSections
+        .filter(section => !existingTypes.includes(section.section_type))
+        .map(section => ({
+          ...section,
+          page_id: pageId
+        }));
+
+      if (sectionsToInsert.length > 0) {
+        const { error: sectionsError } = await supabase
+          .from('website_sections')
+          .insert(sectionsToInsert);
+
+        if (sectionsError) throw sectionsError;
+        console.log('✅ Seções criadas:', sectionsToInsert.map(s => s.section_type));
       }
 
-      toast.success('Dados iniciais do CMS criados com sucesso!');
-      return pageId;
+      // 3. Ativar seções existentes se estiverem inativas
+      const { error: updateError } = await supabase
+        .from('website_sections')
+        .update({ is_active: true })
+        .eq('page_id', pageId)
+        .eq('is_active', false);
+
+      if (updateError) throw updateError;
+
+      console.log('🎉 Seed concluído com sucesso!');
+      toast.success('Sistema CMS inicializado com sucesso!');
+
     } catch (error) {
-      console.error('Erro ao criar dados iniciais:', error);
-      toast.error('Erro ao criar dados iniciais do CMS');
+      console.error('❌ Erro no seed:', error);
+      toast.error('Erro ao inicializar o CMS');
       throw error;
     } finally {
       setIsSeeding(false);
     }
   };
 
-  return { seedDefaultData, isSeeding };
+  return {
+    seedDefaultData,
+    isSeeding
+  };
 };
