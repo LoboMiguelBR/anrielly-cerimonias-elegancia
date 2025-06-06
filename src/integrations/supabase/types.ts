@@ -238,6 +238,51 @@ export type Database = {
           },
         ]
       }
+      cms_home_sections: {
+        Row: {
+          active: boolean
+          bg_color: string | null
+          content_html: string | null
+          created_at: string | null
+          cta_label: string | null
+          cta_link: string | null
+          id: string
+          order_index: number
+          slug: string
+          subtitle: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          active?: boolean
+          bg_color?: string | null
+          content_html?: string | null
+          created_at?: string | null
+          cta_label?: string | null
+          cta_link?: string | null
+          id?: string
+          order_index?: number
+          slug: string
+          subtitle?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          active?: boolean
+          bg_color?: string | null
+          content_html?: string | null
+          created_at?: string | null
+          cta_label?: string | null
+          cta_link?: string | null
+          id?: string
+          order_index?: number
+          slug?: string
+          subtitle?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       contract_email_templates: {
         Row: {
           created_at: string

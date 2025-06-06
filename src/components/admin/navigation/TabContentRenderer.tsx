@@ -1,87 +1,68 @@
-
-import { Card, CardContent } from '@/components/ui/card';
-import { useQuoteRequests } from '@/hooks/useQuoteRequests';
-
-// Import components directly instead of lazy loading to avoid 404 errors
+import React from 'react';
 import DashboardTab from '../tabs/DashboardTab';
+import LeadsTab from '../tabs/LeadsTab';
+import QuotesTab from '../tabs/QuotesTab';
 import ProposalsTab from '../tabs/ProposalsTab';
 import ContractsTab from '../tabs/ContractsTab';
+import EventosTab as CalendarioEventosTab from '../tabs/EventosTab';
 import ClientesTab from '../tabs/ClientesTab';
-import LeadsTab from '../tabs/LeadsTab';
-import EventsTab from '../tabs/EventsTab';
 import ProfessionalsTab from '../tabs/ProfessionalsTab';
 import ServicesTab from '../tabs/ServicesTab';
-import GalleryTab from '../tabs/AdminGalleryTab';
+import AdminGalleryTab from '../tabs/AdminGalleryTab';
 import TestimonialsTab from '../tabs/TestimonialsTab';
 import VendasFinanceiroTab from '../tabs/VendasFinanceiroTab';
+import GestaoComercialTab from '../tabs/GestaoComercialTab';
 import QuestionariosTab from '../tabs/QuestionariosTab';
-import TemplatesTab from '../tabs/TemplatesTab';
 import HistoriasCasaisTab from '../tabs/HistoriasCasaisTab';
+import ProposalTemplatesTab from '../tabs/ProposalTemplatesTab';
+import ContractTemplatesTab from '../tabs/ContractTemplatesTab';
+import ContractEmailTemplatesTab from '../tabs/ContractEmailTemplatesTab';
 import WebsiteTab from '../tabs/WebsiteTab';
+import LandingPagesTab from '../tabs/LandingPagesTab';
 import AnalyticsTab from '../tabs/AnalyticsTab';
 import SettingsTab from '../tabs/SettingsTab';
+import UsersTab from '../tabs/UsersTab';
+import TemplatesTab from '../tabs/TemplatesTab';
+import { TabContentRendererProps } from './types';
+import CMSHomeTab from '../tabs/CMSHomeTab';
 
-interface TabContentRendererProps {
-  activeTab: string;
-}
-
-const TabContentRenderer = ({ activeTab }: TabContentRendererProps) => {
-  const { data: quoteRequests = [] } = useQuoteRequests();
-
-  const handleNavigate = (tab: string) => {
-    console.log('Navigate to tab:', tab);
-    // Esta função será implementada pelo componente pai se necessário
+const TabContentRenderer: React.FC<TabContentRendererProps> = ({ activeTab }) => {
+  const tabComponents: Record<string, React.ComponentType> = {
+    dashboard: DashboardTab,
+    leads: LeadsTab,
+    quotes: QuotesTab,
+    proposals: ProposalsTab,
+    contracts: ContractsTab,
+    events: EventosTab as React.ComponentType,
+    'calendario-eventos': CalendarioEventosTab,
+    clients: ClientesTab,
+    professionals: ProfessionalsTab,
+    services: ServicesTab,
+    'cms-home': CMSHomeTab,
+    gallery: AdminGalleryTab,
+    testimonials: TestimonialsTab,
+    'vendas-financeiro': VendasFinanceiroTab,
+    'gestao-comercial': GestaoComercialTab,
+    questionarios: QuestionariosTab,
+    'historias-casais': HistoriasCasaisTab,
+    'proposal-templates': ProposalTemplatesTab,
+    'contract-templates': ContractTemplatesTab,
+    'contract-email-templates': ContractEmailTemplatesTab,
+    website: WebsiteTab,
+    'landing-pages': LandingPagesTab,
+    analytics: AnalyticsTab,
+    settings: SettingsTab,
+    users: UsersTab,
+    templates: TemplatesTab
   };
 
-  const renderTabContent = () => {
-    switch (activeTab) {
-      case 'dashboard':
-        return <DashboardTab onNavigate={handleNavigate} />;
-      case 'proposals':
-        return <ProposalsTab quoteRequests={quoteRequests} quoteIdFromUrl={null} />;
-      case 'contracts':
-        return <ContractsTab />;
-      case 'clients':
-        return <ClientesTab />;
-      case 'leads':
-        return <LeadsTab />;
-      case 'events':
-        return <EventsTab />;
-      case 'professionals':
-        return <ProfessionalsTab />;
-      case 'services':
-        return <ServicesTab />;
-      case 'gallery':
-        return <GalleryTab />;
-      case 'testimonials':
-        return <TestimonialsTab />;
-      case 'vendas-financeiro':
-        return <VendasFinanceiroTab />;
-      case 'questionarios':
-        return <QuestionariosTab />;
-      case 'templates':
-        return <TemplatesTab />;
-      case 'historias-casais':
-        return <HistoriasCasaisTab />;
-      case 'website':
-        return <WebsiteTab />;
-      case 'analytics':
-        return <AnalyticsTab />;
-      case 'settings':
-        return <SettingsTab />;
-      default:
-        return (
-          <Card>
-            <CardContent className="p-6">
-              <h3 className="text-lg font-semibold mb-2">Módulo não encontrado</h3>
-              <p className="text-gray-600">O módulo solicitado não foi encontrado.</p>
-            </CardContent>
-          </Card>
-        );
-    }
-  };
+  const TabComponent = tabComponents[activeTab] || (() => <div className="p-4">Conteúdo não encontrado</div>);
 
-  return renderTabContent();
+  return (
+    <div className="h-full">
+      <TabComponent />
+    </div>
+  );
 };
 
 export default TabContentRenderer;

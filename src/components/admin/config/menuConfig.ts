@@ -1,195 +1,46 @@
-
-import { 
-  Home, 
-  FileText, 
-  Users, 
-  Calendar, 
-  MessageSquare, 
-  BarChart3, 
-  Settings,
-  Globe,
-  UserPlus,
+import {
+  BarChart3,
+  Users,
+  FileText,
+  FileCheck,
+  FileSignature,
+  Calendar,
+  UserCheck,
+  Briefcase,
+  Image,
+  MessageSquare,
+  DollarSign,
   TrendingUp,
   ClipboardList,
-  Camera,
-  Award,
   Heart,
-  BookOpen,
-  Layout
+  Layout,
+  FileType,
+  Mail,
+  Globe,
+  Settings,
+  Home
 } from 'lucide-react';
 
-export interface MenuItem {
-  id: string;
-  label: string;
-  icon: any;
-  component?: string;
-}
-
-export const menuItems: MenuItem[] = [
-  {
-    id: 'dashboard',
-    label: 'Dashboard',
-    icon: Home,
-    component: 'DashboardTab'
-  },
-  {
-    id: 'proposals',
-    label: 'Propostas',
-    icon: FileText,
-    component: 'ProposalsTab'
-  },
-  {
-    id: 'contracts',
-    label: 'Contratos',
-    icon: ClipboardList,
-    component: 'ContractsTab'
-  },
-  {
-    id: 'clients',
-    label: 'Clientes',
-    icon: Users,
-    component: 'ClientesTab'
-  },
-  {
-    id: 'leads',
-    label: 'Leads',
-    icon: UserPlus,
-    component: 'LeadsTab'
-  },
-  {
-    id: 'events',
-    label: 'Eventos',
-    icon: Calendar,
-    component: 'EventsTab'
-  },
-  {
-    id: 'professionals',
-    label: 'Fornecedores',
-    icon: Award,
-    component: 'ProfessionalsTab'
-  },
-  {
-    id: 'services',
-    label: 'Serviços',
-    icon: Settings,
-    component: 'ServicesTab'
-  },
-  {
-    id: 'gallery',
-    label: 'Galeria',
-    icon: Camera,
-    component: 'GalleryTab'
-  },
-  {
-    id: 'testimonials',
-    label: 'Depoimentos',
-    icon: MessageSquare,
-    component: 'TestimonialsTab'
-  },
-  {
-    id: 'vendas-financeiro',
-    label: 'Vendas & Financeiro',
-    icon: TrendingUp,
-    component: 'VendasFinanceiroTab'
-  },
-  {
-    id: 'questionarios',
-    label: 'Questionários',
-    icon: BookOpen,
-    component: 'QuestionariosTab'
-  },
-  {
-    id: 'templates',
-    label: 'Templates',
-    icon: Layout,
-    component: 'TemplatesTab'
-  },
-  {
-    id: 'historias-casais',
-    label: 'Histórias Casais',
-    icon: Heart,
-    component: 'HistoriasCasaisTab'
-  },
-  {
-    id: 'website',
-    label: 'CMS Website',
-    icon: Globe,
-    component: 'WebsiteTab'
-  },
-  {
-    id: 'analytics',
-    label: 'Analytics',
-    icon: BarChart3,
-    component: 'AnalyticsTab'
-  },
-  {
-    id: 'settings',
-    label: 'Configurações',
-    icon: Settings,
-    component: 'SettingsTab'
-  }
+export const menuItems = [
+  { id: 'dashboard', label: 'Dashboard', icon: 'BarChart3' },
+  { id: 'leads', label: 'Leads', icon: 'Users' },
+  { id: 'quotes', label: 'Orçamentos', icon: 'FileText' },
+  { id: 'proposals', label: 'Propostas', icon: 'FileCheck' },
+  { id: 'contracts', label: 'Contratos', icon: 'FileSignature' },
+  { id: 'events', label: 'Eventos', icon: 'Calendar' },
+  { id: 'clients', label: 'Clientes', icon: 'UserCheck' },
+  { id: 'professionals', label: 'Profissionais', icon: 'Users' },
+  { id: 'services', label: 'Serviços', icon: 'Briefcase' },
+  { id: 'cms-home', label: 'CMS Home', icon: 'Home' },
+  { id: 'gallery', label: 'Galeria', icon: 'Image' },
+  { id: 'testimonials', label: 'Depoimentos', icon: 'MessageSquare' },
+  { id: 'vendas-financeiro', label: 'Vendas & Financeiro', icon: 'DollarSign' },
+  { id: 'gestao-comercial', label: 'Gestão Comercial', icon: 'TrendingUp' },
+  { id: 'questionarios', label: 'Questionários', icon: 'ClipboardList' },
+  { id: 'historias-casais', label: 'Histórias de Casais', icon: 'Heart' },
+  { id: 'proposal-templates', label: 'Templates Propostas', icon: 'Layout' },
+  { id: 'contract-templates', label: 'Templates Contratos', icon: 'FileType' },
+  { id: 'contract-email-templates', label: 'Templates Email Contratos', icon: 'Mail' },
+  { id: 'website', label: 'Website', icon: 'Globe' },
+  { id: 'settings', label: 'Configurações', icon: 'Settings' }
 ];
-
-// Função para obter todos os itens do menu
-export const getAllMenuItems = (): MenuItem[] => {
-  return menuItems;
-};
-
-// Interface para seção do menu
-export interface MenuSection {
-  title: string;
-  items: MenuItem[];
-}
-
-// Função para organizar itens em seções
-export const getMenuSections = (): MenuSection[] => {
-  return [
-    {
-      title: 'Principal',
-      items: [
-        menuItems.find(item => item.id === 'dashboard')!
-      ]
-    },
-    {
-      title: 'CRM & Vendas',
-      items: [
-        menuItems.find(item => item.id === 'leads')!,
-        menuItems.find(item => item.id === 'clients')!,
-        menuItems.find(item => item.id === 'vendas-financeiro')!,
-        menuItems.find(item => item.id === 'proposals')!,
-        menuItems.find(item => item.id === 'contracts')!
-      ]
-    },
-    {
-      title: 'Operacional',
-      items: [
-        menuItems.find(item => item.id === 'events')!,
-        menuItems.find(item => item.id === 'professionals')!
-      ]
-    },
-    {
-      title: 'Questionários & IA',
-      items: [
-        menuItems.find(item => item.id === 'questionarios')!,
-        menuItems.find(item => item.id === 'templates')!,
-        menuItems.find(item => item.id === 'historias-casais')!
-      ]
-    },
-    {
-      title: 'Conteúdo',
-      items: [
-        menuItems.find(item => item.id === 'services')!,
-        menuItems.find(item => item.id === 'website')!,
-        menuItems.find(item => item.id === 'gallery')!,
-        menuItems.find(item => item.id === 'testimonials')!
-      ]
-    },
-    {
-      title: 'Sistema',
-      items: [
-        menuItems.find(item => item.id === 'analytics')!,
-        menuItems.find(item => item.id === 'settings')!
-      ]
-    }
-  ];
-};

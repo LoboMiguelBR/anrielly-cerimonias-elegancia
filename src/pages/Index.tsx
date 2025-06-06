@@ -1,9 +1,9 @@
 
 import React from 'react';
-import CMSLandingPage from '@/components/CMSLandingPage';
+import SimplifiedHomePage from '@/components/SimplifiedHomePage';
 
 const Index = () => {
-  return <CMSLandingPage />;
+  return <SimplifiedHomePage />;
 };
 
 export default Index;
