@@ -25,8 +25,8 @@ import AnalyticsTab from '../tabs/AnalyticsTab';
 import SettingsTab from '../tabs/SettingsTab';
 import UsersTab from '../tabs/UsersTab';
 import TemplatesTab from '../tabs/TemplatesTab';
-import { TabContentRendererProps } from './types';
 import CMSHomeTab from '../tabs/CMSHomeTab';
+import { TabContentRendererProps } from './types';
 
 const TabContentRenderer: React.FC<TabContentRendererProps> = ({ activeTab }) => {
   const tabComponents: Record<string, React.ComponentType> = {
