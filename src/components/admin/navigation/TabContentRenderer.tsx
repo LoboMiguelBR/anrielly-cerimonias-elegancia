@@ -1,10 +1,12 @@
+
 import React from 'react';
 import DashboardTab from '../tabs/DashboardTab';
 import LeadsTab from '../tabs/LeadsTab';
 import QuotesTab from '../tabs/QuotesTab';
 import ProposalsTab from '../tabs/ProposalsTab';
 import ContractsTab from '../tabs/ContractsTab';
-import EventosTab as CalendarioEventosTab from '../tabs/EventosTab';
+import EventosTab from '../tabs/EventsTab';
+import CalendarioEventosTab from '../tabs/EventsTab';
 import ClientesTab from '../tabs/ClientesTab';
 import ProfessionalsTab from '../tabs/ProfessionalsTab';
 import ServicesTab from '../tabs/ServicesTab';
@@ -33,7 +35,7 @@ const TabContentRenderer: React.FC<TabContentRendererProps> = ({ activeTab }) =>
     quotes: QuotesTab,
     proposals: ProposalsTab,
     contracts: ContractsTab,
-    events: EventosTab as React.ComponentType,
+    events: EventosTab,
     'calendario-eventos': CalendarioEventosTab,
     clients: ClientesTab,
     professionals: ProfessionalsTab,
