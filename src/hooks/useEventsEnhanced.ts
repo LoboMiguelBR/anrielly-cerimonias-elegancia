@@ -2,7 +2,17 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Event, EventStatus, EventType, EventFilters } from '@/types/events';
+import { Event, EventStatus, EventType } from '@/types/events';
+
+export interface EventFilters {
+  status?: EventStatus[];
+  event_type?: EventType[];
+  date_range?: {
+    start: string;
+    end: string;
+  };
+  search_query?: string;
+}
 
 export interface EventStats {
   total_events: number;
@@ -37,7 +47,15 @@ export const useEventsEnhanced = () => {
       const activeFilters = currentFilters || filters;
       
       if (activeFilters.status?.length) {
-        query = query.in('status', activeFilters.status);
+        // Map enhanced status to database status
+        const dbStatuses = activeFilters.status.map(status => {
+          switch (status) {
+            case 'em_andamento': return 'em_planejamento';
+            case 'finalizado': return 'concluido';
+            default: return status;
+          }
+        });
+        query = query.in('status', dbStatuses);
       }
       
       if (activeFilters.event_type?.length) {
@@ -144,13 +162,19 @@ export const useEventsEnhanced = () => {
   const createEvent = async (eventData: Partial<Event>) => {
     try {
       setLoading(true);
+      
+      // Map enhanced status to database status
+      let dbStatus = eventData.status || 'em_planejamento';
+      if (dbStatus === 'em_andamento') dbStatus = 'em_planejamento';
+      if (dbStatus === 'finalizado') dbStatus = 'concluido';
+
       const { data, error } = await supabase
         .from('events')
         .insert([{
-          type: eventData.event_type || eventData.type,
+          type: eventData.event_type || eventData.type || '',
           date: eventData.event_date || eventData.date,
           location: eventData.venue?.name || eventData.location,
-          status: eventData.status || 'em_planejamento',
+          status: dbStatus,
           client_id: eventData.client_id,
           cerimonialista_id: eventData.organizer_id,
           notes: eventData.notes || eventData.description,
@@ -176,13 +200,19 @@ export const useEventsEnhanced = () => {
   const updateEvent = async (id: string, updates: Partial<Event>) => {
     try {
       setLoading(true);
+      
+      // Map enhanced status to database status
+      let dbStatus = updates.status;
+      if (dbStatus === 'em_andamento') dbStatus = 'em_planejamento';
+      if (dbStatus === 'finalizado') dbStatus = 'concluido';
+      
       const { error } = await supabase
         .from('events')
         .update({
           type: updates.event_type || updates.type,
           date: updates.event_date || updates.date,
           location: updates.venue?.name || updates.location,
-          status: updates.status,
+          status: dbStatus,
           client_id: updates.client_id,
           cerimonialista_id: updates.organizer_id,
           notes: updates.notes || updates.description,

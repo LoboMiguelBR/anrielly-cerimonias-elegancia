@@ -1,36 +1,60 @@
 
 import React from 'react';
-import { useAuthEnhanced } from '@/hooks/useAuthEnhanced';
-import { useAnalyticsEnhanced } from '@/hooks/useAnalyticsEnhanced';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { 
+  TrendingUp, 
   Users, 
   Calendar, 
-  DollarSign, 
   FileText, 
-  TrendingUp, 
+  DollarSign, 
+  Target,
+  Heart,
   Star,
-  Building,
-  Target
+  Clock,
+  CheckCircle
 } from "lucide-react";
+import { useAuthEnhanced } from '@/hooks/useAuthEnhanced';
+import { useAnalyticsEnhanced } from '@/hooks/useAnalyticsEnhanced';
 
-const AdminMasterDashboard = () => {
-  const { metrics, analyticsData } = useAnalyticsEnhanced();
+const IntelligentDashboard = () => {
+  const { user } = useAuthEnhanced();
+  const { metrics, loading } = useAnalyticsEnhanced();
 
-  return (
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="animate-pulse space-y-4">
+          <div className="h-8 bg-gray-200 rounded w-1/3"></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="h-32 bg-gray-200 rounded"></div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const renderAdminMasterDashboard = () => (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div>
+        <h2 className="text-3xl font-bold text-gray-900">Dashboard Executivo</h2>
+        <p className="text-gray-600">Visão completa do negócio e performance geral</p>
+      </div>
+
+      {/* KPIs Principais */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Receita Total</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              R$ {metrics?.total_revenue.toLocaleString('pt-BR') || '0'}
-            </div>
+            <div className="text-2xl font-bold">R$ {metrics.totalRevenue.toLocaleString()}</div>
             <p className="text-xs text-muted-foreground">
-              +{metrics?.revenue_growth.toFixed(1) || '0'}% desde o mês passado
+              +{metrics.revenueGrowth}% em relação ao mês anterior
             </p>
           </CardContent>
         </Card>
@@ -41,22 +65,22 @@ const AdminMasterDashboard = () => {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{metrics?.total_clients || 0}</div>
+            <div className="text-2xl font-bold">{metrics.totalClients}</div>
             <p className="text-xs text-muted-foreground">
-              +{metrics?.new_clients_this_month || 0} novos este mês
+              +{metrics.newClientsThisMonth} novos este mês
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Eventos Ativos</CardTitle>
+            <CardTitle className="text-sm font-medium">Eventos Próximos</CardTitle>
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{metrics?.upcoming_events || 0}</div>
+            <div className="text-2xl font-bold">{metrics.upcomingEvents}</div>
             <p className="text-xs text-muted-foreground">
-              {metrics?.completed_events || 0} concluídos
+              {metrics.completedEvents} concluídos
             </p>
           </CardContent>
         </Card>
@@ -67,9 +91,7 @@ const AdminMasterDashboard = () => {
             <Target className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {metrics?.proposal_conversion_rate.toFixed(1) || '0'}%
-            </div>
+            <div className="text-2xl font-bold">{metrics.proposalConversionRate.toFixed(1)}%</div>
             <p className="text-xs text-muted-foreground">
               Propostas → Contratos
             </p>
@@ -77,71 +99,67 @@ const AdminMasterDashboard = () => {
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* Métricas Avançadas */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Fornecedores</CardTitle>
+            <CardTitle>Gestão de Fornecedores</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span>Total</span>
-                <span className="font-semibold">{metrics?.total_suppliers || 0}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Verificados</span>
-                <span className="font-semibold text-green-600">{metrics?.verified_suppliers || 0}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Satisfação Média</span>
-                <span className="font-semibold">{metrics?.supplier_satisfaction || 0}/5</span>
-              </div>
+          <CardContent className="space-y-4">
+            <div className="flex justify-between items-center">
+              <span>Total de Fornecedores</span>
+              <Badge variant="secondary">{metrics.totalSuppliers || 0}</Badge>
+            </div>
+            <div className="flex justify-between items-center">
+              <span>Fornecedores Verificados</span>
+              <Badge variant="outline">{metrics.verifiedSuppliers || 0}/{metrics.totalSuppliers || 0}</Badge>
+            </div>
+            <div className="flex justify-between items-center">
+              <span>Satisfação Média</span>
+              <Badge variant="default">{metrics.supplierSatisfaction || 0}/5 ⭐</Badge>
             </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>Performance do Mês</CardTitle>
+            <CardTitle>Performance Comercial</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span>Novos Contratos</span>
-                <span className="font-semibold">{metrics?.contracts_this_month || 0}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Propostas Enviadas</span>
-                <span className="font-semibold">{metrics?.proposals_this_month || 0}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Receita Mensal</span>
-                <span className="font-semibold">R$ {metrics?.monthly_revenue.toLocaleString('pt-BR') || '0'}</span>
-              </div>
+          <CardContent className="space-y-4">
+            <div className="flex justify-between items-center">
+              <span>Contratos Este Mês</span>
+              <Badge variant="secondary">{metrics.contractsThisMonth || 0}</Badge>
+            </div>
+            <div className="flex justify-between items-center">
+              <span>Propostas Este Mês</span>
+              <Badge variant="outline">{metrics.proposalsThisMonth || 0}</Badge>
+            </div>
+            <div className="flex justify-between items-center">
+              <span>Receita Mensal</span>
+              <Badge variant="default">R$ {metrics.monthlyRevenue.toLocaleString()}</Badge>
             </div>
           </CardContent>
         </Card>
       </div>
     </div>
   );
-};
 
-const AdminDashboard = () => {
-  const { metrics } = useAnalyticsEnhanced();
-
-  return (
+  const renderAdminDashboard = () => (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div>
+        <h2 className="text-3xl font-bold text-gray-900">Dashboard Operacional</h2>
+        <p className="text-gray-600">Gestão de eventos e relacionamento com clientes</p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Eventos Próximos</CardTitle>
+            <CardTitle className="text-sm font-medium">Próximos Eventos</CardTitle>
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{metrics?.upcoming_events || 0}</div>
-            <p className="text-xs text-muted-foreground">
-              Próximos 30 dias
-            </p>
+            <div className="text-2xl font-bold">{metrics.upcomingEvents}</div>
+            <p className="text-xs text-muted-foreground">Requerem atenção</p>
           </CardContent>
         </Card>
 
@@ -151,9 +169,9 @@ const AdminDashboard = () => {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{metrics?.total_clients || 0}</div>
+            <div className="text-2xl font-bold">{metrics.totalClients}</div>
             <p className="text-xs text-muted-foreground">
-              +{metrics?.new_clients_this_month || 0} este mês
+              +{metrics.newClientsThisMonth} novos este mês
             </p>
           </CardContent>
         </Card>
@@ -164,176 +182,109 @@ const AdminDashboard = () => {
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{metrics?.proposals_this_month || 0}</div>
-            <p className="text-xs text-muted-foreground">
-              Aguardando resposta
-            </p>
+            <div className="text-2xl font-bold">{metrics.proposalsThisMonth || 0}</div>
+            <p className="text-xs text-muted-foreground">Aguardando resposta</p>
           </CardContent>
         </Card>
       </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Tarefas Prioritárias</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
-              <span>Revisar propostas pendentes</span>
-              <span className="text-orange-600 font-semibold">Alta</span>
-            </div>
-            <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-              <span>Confirmar fornecedores para eventos</span>
-              <span className="text-blue-600 font-semibold">Média</span>
-            </div>
-            <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-              <span>Atualizar cronograma de eventos</span>
-              <span className="text-green-600 font-semibold">Baixa</span>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
-};
 
-const ClienteDashboard = () => {
-  return (
+  const renderClienteDashboard = () => (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <h2 className="text-3xl font-bold text-gray-900">Meu Dashboard</h2>
+        <p className="text-gray-600">Acompanhe seus eventos e serviços</p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Meus Serviços</CardTitle>
-            <Building className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Meus Eventos</CardTitle>
+            <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">5</div>
-            <p className="text-xs text-muted-foreground">
-              Serviços ativos
-            </p>
+            <div className="text-2xl font-bold">{metrics.upcomingEvents}</div>
+            <p className="text-xs text-muted-foreground">Próximos eventos agendados</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avaliação Média</CardTitle>
+            <CardTitle className="text-sm font-medium">Avaliação</CardTitle>
             <Star className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">4.8</div>
-            <p className="text-xs text-muted-foreground">
-              Baseado em 24 avaliações
-            </p>
+            <div className="text-2xl font-bold">4.9</div>
+            <p className="text-xs text-muted-foreground">Sua nota média</p>
           </CardContent>
         </Card>
       </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Cotações Recentes</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between p-3 border rounded-lg">
-              <div>
-                <p className="font-semibold">Casamento - Maria e João</p>
-                <p className="text-sm text-gray-600">Solicitado há 2 dias</p>
-              </div>
-              <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-sm">Pendente</span>
-            </div>
-            <div className="flex items-center justify-between p-3 border rounded-lg">
-              <div>
-                <p className="font-semibold">Aniversário - Ana Silva</p>
-                <p className="text-sm text-gray-600">Solicitado há 5 dias</p>
-              </div>
-              <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-sm">Aceita</span>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
-};
 
-const UsuarioDashboard = () => {
-  return (
+  const renderUsuarioDashboard = () => (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Meu Evento</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <span>Data do Evento</span>
-              <span className="font-semibold">15 de Julho, 2024</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span>Dias Restantes</span>
-              <span className="font-semibold text-purple-600">89 dias</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span>Progresso do Planejamento</span>
-              <span className="font-semibold">75%</span>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <div>
+        <h2 className="text-3xl font-bold text-gray-900">Bem-vindo!</h2>
+        <p className="text-gray-600">Seu evento dos sonhos começa aqui</p>
+      </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Próximas Tarefas</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            <div className="flex items-center space-x-3">
-              <input type="checkbox" className="rounded" />
-              <span>Confirmar lista de convidados</span>
-            </div>
-            <div className="flex items-center space-x-3">
-              <input type="checkbox" className="rounded" checked />
-              <span className="line-through text-gray-500">Escolher decoração</span>
-            </div>
-            <div className="flex items-center space-x-3">
-              <input type="checkbox" className="rounded" />
-              <span>Definir cardápio</span>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Meu Evento</CardTitle>
+            <Heart className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-xl font-bold">Em Planejamento</div>
+            <p className="text-xs text-muted-foreground">Status atual</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Progresso</CardTitle>
+            <CheckCircle className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-xl font-bold">65%</div>
+            <p className="text-xs text-muted-foreground">Etapas concluídas</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Próxima Tarefa</CardTitle>
+            <Clock className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-sm font-bold">Escolher buffet</div>
+            <p className="text-xs text-muted-foreground">Pendente</p>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
-};
 
-const IntelligentDashboard = () => {
-  const { user } = useAuthEnhanced();
-
+  // Determinar qual dashboard exibir baseado no role do usuário
   const renderDashboard = () => {
     switch (user?.role) {
       case 'admin_master':
-        return <AdminMasterDashboard />;
+        return renderAdminMasterDashboard();
       case 'admin':
-        return <AdminDashboard />;
+        return renderAdminDashboard();
       case 'cliente':
-        return <ClienteDashboard />;
+        return renderClienteDashboard();
       case 'usuario':
-        return <UsuarioDashboard />;
+        return renderUsuarioDashboard();
       default:
-        return <AdminDashboard />;
+        return renderUsuarioDashboard();
     }
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold tracking-tight">
-          Dashboard {user?.role === 'admin_master' ? 'Master' : user?.role === 'admin' ? 'Administrativo' : 'Personalizado'}
-        </h2>
-        <p className="text-muted-foreground">
-          Bem-vindo, {user?.full_name || user?.email}!
-        </p>
-      </div>
-      
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 p-6">
       {renderDashboard()}
     </div>
   );
