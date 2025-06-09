@@ -57,41 +57,35 @@ export const useEventsEnhanced = () => {
       // Transform data to enhanced format
       const enhancedEvents: Event[] = (data || []).map(event => ({
         id: event.id,
+        tenant_id: event.tenant_id || 'anrielly_gomes',
         title: `${event.type} - ${event.clientes?.name || 'Cliente'}`,
+        description: event.notes,
         event_type: event.type as EventType,
-        event_subtype: undefined,
-        priority: 'media' as const,
-        start_date: event.date || new Date().toISOString().split('T')[0],
-        end_date: event.date || new Date().toISOString().split('T')[0],
-        ceremony_time: undefined,
-        reception_time: undefined,
-        ceremony_venue: event.location ? {
+        status: event.status as EventStatus,
+        event_date: event.date || new Date().toISOString().split('T')[0],
+        start_time: undefined,
+        end_time: undefined,
+        venue: event.location ? {
           name: event.location,
           address: event.location,
           city: '',
           state: '',
-          zip_code: '',
+          postal_code: '',
           capacity: 0,
-          amenities: [],
-          photos: []
+          venue_type: '',
+          special_features: []
         } : undefined,
-        reception_venue: undefined,
-        guest_count: 0,
-        estimated_budget: 0,
-        final_budget: undefined,
-        theme_colors: [],
-        dress_code: undefined,
         client_id: event.client_id || '',
         organizer_id: event.cerimonialista_id || '',
-        suppliers: [],
+        participants: [],
+        guest_count: 0,
+        budget: undefined,
         timeline: [],
         checklist: [],
+        suppliers: [],
         documents: [],
-        is_public: false,
-        allow_rsvp: false,
-        rsvp_deadline: undefined,
-        tags: [],
-        custom_fields: {},
+        gallery: [],
+        settings: undefined,
         // Mantendo compatibilidade com campos existentes
         quote_id: event.quote_id,
         proposal_id: event.proposal_id,
@@ -99,8 +93,6 @@ export const useEventsEnhanced = () => {
         type: event.type,
         date: event.date,
         location: event.location,
-        status: event.status as EventStatus,
-        tenant_id: event.tenant_id,
         notes: event.notes,
         created_at: event.created_at,
         updated_at: event.updated_at
@@ -131,7 +123,7 @@ export const useEventsEnhanced = () => {
             e.date && new Date(e.date) > now
           ).length,
           completed_events: eventsData.filter(e => 
-            e.status === 'concluido' || e.status === 'finalizado'
+            e.status === 'concluido'
           ).length,
           cancelled_events: eventsData.filter(e => e.status === 'cancelado').length,
           total_revenue: 0, // Calculate from contracts
@@ -156,12 +148,12 @@ export const useEventsEnhanced = () => {
         .from('events')
         .insert([{
           type: eventData.event_type || eventData.type,
-          date: eventData.start_date || eventData.date,
-          location: eventData.ceremony_venue?.name || eventData.location,
+          date: eventData.event_date || eventData.date,
+          location: eventData.venue?.name || eventData.location,
           status: eventData.status || 'em_planejamento',
           client_id: eventData.client_id,
           cerimonialista_id: eventData.organizer_id,
-          notes: eventData.notes,
+          notes: eventData.notes || eventData.description,
           tenant_id: 'anrielly_gomes'
         }])
         .select()
@@ -188,12 +180,12 @@ export const useEventsEnhanced = () => {
         .from('events')
         .update({
           type: updates.event_type || updates.type,
-          date: updates.start_date || updates.date,
-          location: updates.ceremony_venue?.name || updates.location,
+          date: updates.event_date || updates.date,
+          location: updates.venue?.name || updates.location,
           status: updates.status,
           client_id: updates.client_id,
           cerimonialista_id: updates.organizer_id,
-          notes: updates.notes,
+          notes: updates.notes || updates.description,
         })
         .eq('id', id);
 
@@ -251,7 +243,7 @@ export const useEventsEnhanced = () => {
         ...eventToDuplicate,
         title: `${eventToDuplicate.title} (Cópia)`,
         status: 'em_planejamento' as EventStatus,
-        start_date: new Date().toISOString().split('T')[0],
+        event_date: new Date().toISOString().split('T')[0],
       };
 
       delete (duplicatedEvent as any).id;

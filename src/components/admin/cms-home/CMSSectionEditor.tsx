@@ -1,44 +1,43 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { Trash2, Save, Eye, EyeOff } from "lucide-react";
-
-// Interfaces e tipos
-interface CMSSection {
-  id?: string;
-  title: string;
-  slug: string;
-  subtitle?: string;
-  content_html: string;
-  cta_label?: string;
-  cta_link?: string;
-  bg_color: string;
-  order_index: number;
-  active: boolean;
-}
+import { CMSHomeSection } from '@/hooks/useCMSHomeSections';
 
 interface CMSSectionEditorProps {
-  section?: CMSSection;
-  onSave: (section: CMSSection) => void;
+  section?: CMSHomeSection;
+  onSave: (section: Omit<CMSHomeSection, 'id' | 'created_at' | 'updated_at'>) => void;
+  onCancel: () => void;
   onDelete?: (id: string) => void;
+  isCreating?: boolean;
 }
 
-const CMSSectionEditor = ({ section, onSave, onDelete }: CMSSectionEditorProps) => {
-  const [formData, setFormData] = useState<CMSSection>(
-    section || {
-      title: '',
+const CMSSectionEditor = ({ section, onSave, onCancel, onDelete, isCreating }: CMSSectionEditorProps) => {
+  const [formData, setFormData] = useState<Omit<CMSHomeSection, 'id' | 'created_at' | 'updated_at'>>(
+    section ? {
+      slug: section.slug,
+      title: section.title,
+      subtitle: section.subtitle || '',
+      content_html: section.content_html || '',
+      bg_color: section.bg_color || '#ffffff',
+      cta_label: section.cta_label || '',
+      cta_link: section.cta_link || '',
+      order_index: section.order_index,
+      active: section.active,
+    } : {
       slug: '',
+      title: '',
       subtitle: '',
       content_html: '',
+      bg_color: '#ffffff',
       cta_label: '',
       cta_link: '',
-      bg_color: '#f0f0f0',
       order_index: 0,
       active: true,
     }
@@ -46,14 +45,17 @@ const CMSSectionEditor = ({ section, onSave, onDelete }: CMSSectionEditorProps) 
   const [previewMode, setPreviewMode] = useState(false);
 
   const handleSave = () => {
+    if (!formData.title || !formData.slug) {
+      toast.error('Título e slug são obrigatórios');
+      return;
+    }
+
     onSave(formData);
-    toast.success('Seção salva com sucesso!');
   };
 
   const handleDelete = () => {
     if (section?.id && onDelete) {
       onDelete(section.id);
-      toast.success('Seção removida com sucesso!');
     }
   };
 
@@ -61,7 +63,7 @@ const CMSSectionEditor = ({ section, onSave, onDelete }: CMSSectionEditorProps) 
     <Card className="w-full">
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="text-lg font-semibold">
-          {section ? `Editar Seção: ${section.title}` : 'Nova Seção'}
+          {isCreating ? 'Nova Seção' : `Editar Seção: ${section?.title}`}
         </CardTitle>
         <div className="flex items-center gap-2">
           <Button
@@ -72,7 +74,7 @@ const CMSSectionEditor = ({ section, onSave, onDelete }: CMSSectionEditorProps) 
             {previewMode ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             {previewMode ? 'Editar' : 'Preview'}
           </Button>
-          {section && (
+          {section && !isCreating && (
             <Button
               variant="destructive"
               size="sm"
@@ -81,6 +83,9 @@ const CMSSectionEditor = ({ section, onSave, onDelete }: CMSSectionEditorProps) 
               <Trash2 className="w-4 h-4" />
             </Button>
           )}
+          <Button variant="outline" size="sm" onClick={onCancel}>
+            Cancelar
+          </Button>
         </div>
       </CardHeader>
 
@@ -184,7 +189,7 @@ const CMSSectionEditor = ({ section, onSave, onDelete }: CMSSectionEditorProps) 
             </div>
           </div>
         ) : (
-          <div className="border rounded-lg p-4 bg-gray-50">
+          <div className="border rounded-lg p-4 bg-gray-50" style={{ backgroundColor: formData.bg_color }}>
             <h3 className="text-lg font-semibold mb-2">{formData.title}</h3>
             {formData.subtitle && (
               <p className="text-gray-600 mb-4">{formData.subtitle}</p>

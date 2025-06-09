@@ -100,8 +100,12 @@ export const useClientsEnhanced = () => {
         status: client.status as 'ativo' | 'inativo' | 'lead' | 'convertido',
         budget_range: client.budget_range,
         partner_name: client.partner_name,
-        address: client.address || {},
-        preferences: client.preferences || {},
+        address: typeof client.address === 'object' && client.address !== null 
+          ? client.address as { street?: string; city?: string; state?: string; zip_code?: string; }
+          : {},
+        preferences: typeof client.preferences === 'object' && client.preferences !== null
+          ? client.preferences as { communication_method?: 'email' | 'phone' | 'whatsapp'; best_time_to_contact?: string; notes?: string; }
+          : {},
         tags: [], // Will be populated from tags relations
         interactions_count: 0, // Will be calculated
         created_at: client.created_at,

@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -40,7 +39,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Transformar dados para o formato esperado
       const userProfile: UserProfile = {
         id: profileData.id,
-        tenant_id: profileData.tenant_id || 'default',
+        tenant_id: 'anrielly_gomes', // Default tenant
         email: profileData.email,
         role: profileData.role as UserRole,
         status: 'active',
@@ -113,36 +112,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  // Configurar listener de autenticação
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('Auth state changed:', event, !!session);
-        
-        if (session?.user) {
-          await loadUserData(session.user.id);
-        } else {
-          setUser(null);
-          setTenant(null);
-          setIsAuthenticated(false);
-          setIsLoading(false);
-        }
-      }
-    );
-
-    // Verificar sessão existente
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        loadUserData(session.user.id);
-      } else {
-        setIsLoading(false);
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  // Métodos de autenticação
   const signIn = async (email: string, password: string) => {
     setIsLoading(true);
     try {
@@ -259,6 +228,35 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const canAccess = (resource: string): boolean => {
     return hasPermission(resource, 'read');
   };
+
+  // Configurar listener de autenticação
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('Auth state changed:', event, !!session);
+        
+        if (session?.user) {
+          await loadUserData(session.user.id);
+        } else {
+          setUser(null);
+          setTenant(null);
+          setIsAuthenticated(false);
+          setIsLoading(false);
+        }
+      }
+    );
+
+    // Verificar sessão existente
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        loadUserData(session.user.id);
+      } else {
+        setIsLoading(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const value: AuthContext = {
     user,

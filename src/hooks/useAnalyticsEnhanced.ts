@@ -3,289 +3,284 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-export interface DashboardMetrics {
-  // Métricas de vendas
-  total_revenue: number;
-  monthly_revenue: number;
-  revenue_growth: number;
+export interface AnalyticsMetrics {
+  // Vendas e Revenue
+  totalRevenue: number;
+  monthlyRevenue: number;
+  revenueGrowth: number;
+  averageTicket: number;
   
-  // Métricas de clientes
-  total_clients: number;
-  new_clients_this_month: number;
-  client_retention_rate: number;
+  // Leads e Conversão
+  totalLeads: number;
+  monthlyLeads: number;
+  conversionRate: number;
+  leadsToday: number;
   
-  // Métricas de eventos
-  total_events: number;
-  upcoming_events: number;
-  completed_events: number;
+  // Eventos
+  totalEvents: number;
+  activeEvents: number;
+  completedEvents: number;
+  upcomingEvents: number;
   
-  // Métricas de propostas
-  total_proposals: number;
-  proposals_this_month: number;
-  proposal_conversion_rate: number;
+  // Clientes
+  totalClients: number;
+  activeClients: number;
+  newClientsThisMonth: number;
+  clientRetentionRate: number;
   
-  // Métricas de contratos
-  total_contracts: number;
-  contracts_this_month: number;
-  contract_value_total: number;
+  // Performance Financeira
+  profitMargin: number;
+  operationalCosts: number;
+  netProfit: number;
   
-  // Métricas de fornecedores
-  total_suppliers: number;
-  verified_suppliers: number;
-  supplier_satisfaction: number;
+  // KPIs Operacionais
+  eventCompletionRate: number;
+  averageEventDuration: number;
+  clientSatisfactionScore: number;
+  
+  // Tendências
+  growthTrend: 'up' | 'down' | 'stable';
+  topEventTypes: Array<{ type: string; count: number; revenue: number }>;
+  seasonalTrends: Array<{ month: string; events: number; revenue: number }>;
 }
 
-export interface ChartData {
-  name: string;
-  value: number;
-  date?: string;
-  category?: string;
-}
-
-export interface AnalyticsData {
-  revenue_chart: ChartData[];
-  events_by_type: ChartData[];
-  clients_by_month: ChartData[];
-  proposals_funnel: ChartData[];
-  top_services: ChartData[];
-  supplier_performance: ChartData[];
+export interface AnalyticsFilters {
+  dateRange: {
+    start: string;
+    end: string;
+  };
+  eventTypes?: string[];
+  clientSegments?: string[];
+  revenueRange?: {
+    min: number;
+    max: number;
+  };
 }
 
 export const useAnalyticsEnhanced = () => {
-  const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
-  const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
+  const [metrics, setMetrics] = useState<AnalyticsMetrics | null>(null);
   const [loading, setLoading] = useState(false);
-  const [dateRange, setDateRange] = useState({
-    start: new Date(new Date().getFullYear(), new Date().getMonth() - 5, 1).toISOString().split('T')[0],
-    end: new Date().toISOString().split('T')[0]
+  const [filters, setFilters] = useState<AnalyticsFilters>({
+    dateRange: {
+      start: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
+      end: new Date().toISOString().split('T')[0]
+    }
   });
 
-  const fetchMetrics = async () => {
+  const fetchAnalytics = async (currentFilters?: AnalyticsFilters) => {
     try {
       setLoading(true);
-      
+      const activeFilters = currentFilters || filters;
+
+      // Buscar dados de eventos
+      const { data: eventsData } = await supabase
+        .from('events')
+        .select('*')
+        .gte('created_at', activeFilters.dateRange.start)
+        .lte('created_at', activeFilters.dateRange.end);
+
+      // Buscar dados de contratos para revenue
+      const { data: contractsData } = await supabase
+        .from('contracts')
+        .select('total_price, status, created_at, event_type')
+        .gte('created_at', activeFilters.dateRange.start)
+        .lte('created_at', activeFilters.dateRange.end);
+
+      // Buscar dados de clientes
+      const { data: clientsData } = await supabase
+        .from('clientes')
+        .select('*')
+        .gte('created_at', activeFilters.dateRange.start)
+        .lte('created_at', activeFilters.dateRange.end);
+
+      // Buscar dados de leads
+      const { data: leadsData } = await supabase
+        .from('quote_requests')
+        .select('*')
+        .gte('created_at', activeFilters.dateRange.start)
+        .lte('created_at', activeFilters.dateRange.end);
+
+      // Calcular métricas
       const now = new Date();
       const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
       const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-      
-      // Fetch clients data
-      const { data: clientsData } = await supabase
-        .from('clientes')
-        .select('created_at, status');
-      
-      // Fetch events data
-      const { data: eventsData } = await supabase
-        .from('events')
-        .select('created_at, status, date');
-      
-      // Fetch proposals data
-      const { data: proposalsData } = await supabase
-        .from('proposals')
-        .select('created_at, status, total_price');
-      
-      // Fetch contracts data
-      const { data: contractsData } = await supabase
-        .from('contracts')
-        .select('created_at, status, total_price');
-      
-      // Fetch suppliers data
-      const { data: suppliersData } = await supabase
-        .from('professionals')
-        .select('created_at, rating');
 
-      // Calculate metrics
-      const totalClients = clientsData?.length || 0;
-      const newClientsThisMonth = clientsData?.filter(c => 
-        new Date(c.created_at) >= thisMonth
-      ).length || 0;
-      
-      const totalEvents = eventsData?.length || 0;
-      const upcomingEvents = eventsData?.filter(e => 
-        e.date && new Date(e.date) > now
-      ).length || 0;
-      const completedEvents = eventsData?.filter(e => 
-        e.status === 'concluido' || e.status === 'finalizado'
-      ).length || 0;
-      
-      const totalProposals = proposalsData?.length || 0;
-      const proposalsThisMonth = proposalsData?.filter(p => 
-        new Date(p.created_at) >= thisMonth
-      ).length || 0;
-      
-      const totalContracts = contractsData?.length || 0;
-      const contractsThisMonth = contractsData?.filter(c => 
-        new Date(c.created_at) >= thisMonth
-      ).length || 0;
-      const contractValueTotal = contractsData?.reduce((sum, c) => 
-        sum + (parseFloat(c.total_price) || 0), 0
-      ) || 0;
-      
-      const totalSuppliers = suppliersData?.length || 0;
-      const verifiedSuppliers = suppliersData?.filter(s => s.rating >= 4).length || 0;
+      // Revenue calculations
+      const totalRevenue = contractsData?.reduce((sum, contract) => 
+        sum + (parseFloat(contract.total_price?.toString() || '0')), 0) || 0;
       
       const monthlyRevenue = contractsData?.filter(c => 
         new Date(c.created_at) >= thisMonth
-      ).reduce((sum, c) => sum + (parseFloat(c.total_price) || 0), 0) || 0;
-      
-      const lastMonthRevenue = contractsData?.filter(c => 
-        new Date(c.created_at) >= lastMonth && new Date(c.created_at) < thisMonth
-      ).reduce((sum, c) => sum + (parseFloat(c.total_price) || 0), 0) || 0;
-      
+      ).reduce((sum, contract) => 
+        sum + (parseFloat(contract.total_price?.toString() || '0')), 0) || 0;
+
+      const lastMonthRevenue = contractsData?.filter(c => {
+        const date = new Date(c.created_at);
+        return date >= lastMonth && date < thisMonth;
+      }).reduce((sum, contract) => 
+        sum + (parseFloat(contract.total_price?.toString() || '0')), 0) || 0;
+
       const revenueGrowth = lastMonthRevenue > 0 
         ? ((monthlyRevenue - lastMonthRevenue) / lastMonthRevenue) * 100 
         : 0;
 
-      const metrics: DashboardMetrics = {
-        total_revenue: contractValueTotal,
-        monthly_revenue: monthlyRevenue,
-        revenue_growth: revenueGrowth,
-        total_clients: totalClients,
-        new_clients_this_month: newClientsThisMonth,
-        client_retention_rate: 85, // Mock value
-        total_events: totalEvents,
-        upcoming_events: upcomingEvents,
-        completed_events: completedEvents,
-        total_proposals: totalProposals,
-        proposals_this_month: proposalsThisMonth,
-        proposal_conversion_rate: totalProposals > 0 ? (totalContracts / totalProposals) * 100 : 0,
-        total_contracts: totalContracts,
-        contracts_this_month: contractsThisMonth,
-        contract_value_total: contractValueTotal,
-        total_suppliers: totalSuppliers,
-        verified_suppliers: verifiedSuppliers,
-        supplier_satisfaction: 4.2 // Mock value
+      // Events calculations
+      const totalEvents = eventsData?.length || 0;
+      const activeEvents = eventsData?.filter(e => 
+        e.status === 'em_andamento' || e.status === 'contratado'
+      ).length || 0;
+      
+      const completedEvents = eventsData?.filter(e => 
+        e.status === 'concluido'
+      ).length || 0;
+
+      const upcomingEvents = eventsData?.filter(e => 
+        e.date && new Date(e.date) > now
+      ).length || 0;
+
+      // Clients calculations
+      const totalClients = clientsData?.length || 0;
+      const activeClients = clientsData?.filter(c => c.status === 'ativo').length || 0;
+      const newClientsThisMonth = clientsData?.filter(c => 
+        new Date(c.created_at) >= thisMonth
+      ).length || 0;
+
+      // Leads calculations
+      const totalLeads = leadsData?.length || 0;
+      const monthlyLeads = leadsData?.filter(l => 
+        new Date(l.created_at) >= thisMonth
+      ).length || 0;
+      
+      const leadsToday = leadsData?.filter(l => {
+        const today = new Date().toISOString().split('T')[0];
+        return l.created_at.split('T')[0] === today;
+      }).length || 0;
+
+      const conversionRate = totalLeads > 0 
+        ? (totalClients / totalLeads) * 100 
+        : 0;
+
+      // Calculate top event types
+      const eventTypeCounts = eventsData?.reduce((acc: Record<string, { count: number; revenue: number }>, event) => {
+        const type = event.type || 'outros';
+        if (!acc[type]) {
+          acc[type] = { count: 0, revenue: 0 };
+        }
+        acc[type].count++;
+        
+        // Find related contract revenue
+        const relatedContract = contractsData?.find(c => c.event_type === type);
+        if (relatedContract) {
+          acc[type].revenue += parseFloat(relatedContract.total_price?.toString() || '0');
+        }
+        
+        return acc;
+      }, {}) || {};
+
+      const topEventTypes = Object.entries(eventTypeCounts)
+        .map(([type, data]) => ({ type, ...data }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 5);
+
+      const analyticsMetrics: AnalyticsMetrics = {
+        totalRevenue,
+        monthlyRevenue,
+        revenueGrowth,
+        averageTicket: totalClients > 0 ? totalRevenue / totalClients : 0,
+        
+        totalLeads,
+        monthlyLeads,
+        conversionRate,
+        leadsToday,
+        
+        totalEvents,
+        activeEvents,
+        completedEvents,
+        upcomingEvents,
+        
+        totalClients,
+        activeClients,
+        newClientsThisMonth,
+        clientRetentionRate: 85, // Placeholder - calculate based on repeat customers
+        
+        profitMargin: 25, // Placeholder
+        operationalCosts: totalRevenue * 0.3, // Estimate 30% operational costs
+        netProfit: totalRevenue * 0.7, // Estimate 70% net profit
+        
+        eventCompletionRate: totalEvents > 0 ? (completedEvents / totalEvents) * 100 : 0,
+        averageEventDuration: 6, // Placeholder - hours
+        clientSatisfactionScore: 4.7, // Placeholder
+        
+        growthTrend: revenueGrowth > 5 ? 'up' : revenueGrowth < -5 ? 'down' : 'stable',
+        topEventTypes,
+        seasonalTrends: [], // Placeholder - calculate seasonal data
       };
-      
-      setMetrics(metrics);
-      
+
+      setMetrics(analyticsMetrics);
     } catch (error: any) {
-      console.error('Erro ao buscar métricas:', error);
-      toast.error('Erro ao carregar métricas do dashboard');
+      console.error('Erro ao buscar analytics:', error);
+      toast.error('Erro ao carregar analytics');
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchAnalyticsData = async () => {
+  const generateReport = async (type: 'revenue' | 'events' | 'clients' | 'complete') => {
     try {
-      // Fetch revenue chart data
-      const { data: contractsData } = await supabase
-        .from('contracts')
-        .select('created_at, total_price')
-        .gte('created_at', dateRange.start)
-        .lte('created_at', dateRange.end);
-
-      // Fetch events by type
-      const { data: eventsData } = await supabase
-        .from('events')
-        .select('type')
-        .gte('created_at', dateRange.start)
-        .lte('created_at', dateRange.end);
-
-      // Fetch clients by month
-      const { data: clientsData } = await supabase
-        .from('clientes')
-        .select('created_at')
-        .gte('created_at', dateRange.start)
-        .lte('created_at', dateRange.end);
-
-      // Process revenue chart data
-      const revenueByMonth = contractsData?.reduce((acc, contract) => {
-        const month = new Date(contract.created_at).toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' });
-        acc[month] = (acc[month] || 0) + (parseFloat(contract.total_price) || 0);
-        return acc;
-      }, {} as Record<string, number>) || {};
-
-      const revenueChart = Object.entries(revenueByMonth).map(([name, value]) => ({
-        name,
-        value
-      }));
-
-      // Process events by type
-      const eventsByType = eventsData?.reduce((acc, event) => {
-        acc[event.type] = (acc[event.type] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>) || {};
-
-      const eventsChart = Object.entries(eventsByType).map(([name, value]) => ({
-        name,
-        value
-      }));
-
-      // Process clients by month
-      const clientsByMonth = clientsData?.reduce((acc, client) => {
-        const month = new Date(client.created_at).toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' });
-        acc[month] = (acc[month] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>) || {};
-
-      const clientsChart = Object.entries(clientsByMonth).map(([name, value]) => ({
-        name,
-        value
-      }));
-
-      const analyticsData: AnalyticsData = {
-        revenue_chart: revenueChart,
-        events_by_type: eventsChart,
-        clients_by_month: clientsChart,
-        proposals_funnel: [
-          { name: 'Propostas', value: 100 },
-          { name: 'Negociação', value: 75 },
-          { name: 'Contratos', value: 50 },
-          { name: 'Concluídos', value: 40 }
-        ],
-        top_services: [
-          { name: 'Casamento', value: 45 },
-          { name: 'Aniversário', value: 25 },
-          { name: 'Formatura', value: 15 },
-          { name: 'Corporativo', value: 15 }
-        ],
-        supplier_performance: [
-          { name: 'Fotografia', value: 4.8 },
-          { name: 'Decoração', value: 4.5 },
-          { name: 'Buffet', value: 4.2 },
-          { name: 'Música', value: 4.0 }
-        ]
-      };
-
-      setAnalyticsData(analyticsData);
-
-    } catch (error: any) {
-      console.error('Erro ao buscar dados de analytics:', error);
-      toast.error('Erro ao carregar dados de analytics');
-    }
-  };
-
-  const exportReport = async (type: 'revenue' | 'clients' | 'events' | 'full', format: 'pdf' | 'excel' = 'pdf') => {
-    try {
-      toast.success('Funcionalidade de relatórios será implementada em breve');
+      // Generate different types of reports
+      toast.success(`Relatório de ${type} será gerado em breve`);
     } catch (error) {
       toast.error('Erro ao gerar relatório');
     }
   };
 
-  const updateDateRange = (start: string, end: string) => {
-    setDateRange({ start, end });
-    fetchAnalyticsData();
+  const exportData = async (format: 'csv' | 'excel' | 'pdf') => {
+    try {
+      toast.success(`Export em ${format} será implementado em breve`);
+    } catch (error) {
+      toast.error('Erro ao exportar dados');
+    }
+  };
+
+  const applyFilters = (newFilters: AnalyticsFilters) => {
+    setFilters(newFilters);
+    fetchAnalytics(newFilters);
+  };
+
+  const getKPIComparison = (current: number, previous: number) => {
+    if (previous === 0) return { percentage: 0, trend: 'stable' as const };
+    
+    const percentage = ((current - previous) / previous) * 100;
+    const trend = percentage > 5 ? 'up' : percentage < -5 ? 'down' : 'stable';
+    
+    return { percentage: Math.abs(percentage), trend };
+  };
+
+  const getPredictions = async (metric: string, days: number = 30) => {
+    try {
+      // Placeholder for AI-powered predictions
+      toast.success('Previsões com IA serão implementadas em breve');
+      return null;
+    } catch (error) {
+      console.error('Erro ao gerar previsões:', error);
+      return null;
+    }
   };
 
   useEffect(() => {
-    fetchMetrics();
-    fetchAnalyticsData();
+    fetchAnalytics();
   }, []);
 
   return {
     metrics,
-    analyticsData,
     loading,
-    dateRange,
-    fetchMetrics,
-    fetchAnalyticsData,
-    exportReport,
-    updateDateRange,
-    refetch: () => {
-      fetchMetrics();
-      fetchAnalyticsData();
-    }
+    filters,
+    fetchAnalytics,
+    generateReport,
+    exportData,
+    applyFilters,
+    getKPIComparison,
+    getPredictions,
+    refetch: () => fetchAnalytics()
   };
 };

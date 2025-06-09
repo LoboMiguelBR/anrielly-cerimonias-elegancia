@@ -9,8 +9,7 @@ export type EventStatus =
   | 'confirmado'
   | 'em_andamento'
   | 'concluido'
-  | 'cancelado'
-  | 'finalizado';
+  | 'cancelado';
 
 export type EventType = 
   | 'casamento'
@@ -28,44 +27,63 @@ export type EventType =
   | 'funeral'
   | 'outros';
 
+export interface EventFilters {
+  status?: EventStatus[];
+  event_type?: EventType[];
+  date_range?: {
+    start: string;
+    end: string;
+  };
+  search_query?: string;
+}
+
 export interface Event {
   id: string;
   tenant_id: string;
   
   // Informações básicas
   title: string;
-  description: string;
+  description?: string;
   event_type: EventType;
   status: EventStatus;
   
   // Data e local
   event_date: string;
-  start_time: string;
-  end_time: string;
-  venue: EventVenue;
+  start_time?: string;
+  end_time?: string;
+  venue?: EventVenue;
   
   // Participantes
   client_id: string;
   organizer_id: string;
-  participants: EventParticipant[];
-  guest_count: number;
+  participants?: EventParticipant[];
+  guest_count?: number;
   
   // Orçamento
-  budget: EventBudget;
+  budget?: EventBudget;
   
   // Timeline e checklist
-  timeline: EventTimeline[];
-  checklist: EventChecklist[];
+  timeline?: EventTimeline[];
+  checklist?: EventChecklist[];
   
   // Fornecedores
-  suppliers: EventSupplier[];
+  suppliers?: EventSupplier[];
   
   // Documentos e mídia
-  documents: EventDocument[];
-  gallery: EventGallery[];
+  documents?: EventDocument[];
+  gallery?: EventGallery[];
   
   // Configurações
-  settings: EventSettings;
+  settings?: EventSettings;
+  
+  // Compatibilidade com campos existentes
+  quote_id?: string;
+  proposal_id?: string;
+  contract_id?: string;
+  type?: string;
+  date?: string;
+  location?: string;
+  notes?: string;
   
   // Metadados
   created_at: string;
