@@ -6,8 +6,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import { ArrowLeft, Save } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ArrowLeft, Save, Image, Code, Eye } from 'lucide-react';
 import { CMSHomeSection } from '@/hooks/useCMSHomeSections';
+import CMSAssetsManager from './CMSAssetsManager';
+import CMSVisualTemplates from './CMSVisualTemplates';
+import { CMSAsset } from '@/hooks/useCMSAssets';
 
 interface CMSSectionEditorProps {
   section: CMSHomeSection | null;
@@ -22,6 +26,7 @@ const CMSSectionEditor: React.FC<CMSSectionEditorProps> = ({
   onCancel,
   isCreating
 }) => {
+  const [activeTab, setActiveTab] = useState('content');
   const [formData, setFormData] = useState({
     slug: '',
     title: '',
@@ -69,48 +74,52 @@ const CMSSectionEditor: React.FC<CMSSectionEditorProps> = ({
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const loadTemplate = (templateType: string) => {
-    const templates = {
-      hero: `<div class="text-center py-20 bg-gradient-to-br from-purple-50 to-pink-50">
-  <h1 class="text-5xl font-serif text-primary mb-4">{{title}}</h1>
-  <p class="text-xl text-gray-600 mb-8">{{subtitle}}</p>
-  <div class="space-x-4">
-    <a href="{{cta_link}}" class="bg-primary text-white px-8 py-3 rounded-lg hover:bg-opacity-90 transition-colors">{{cta_label}}</a>
-  </div>
-</div>`,
-      section: `<section class="py-20 bg-white">
-  <div class="container mx-auto px-4">
-    <div class="max-w-4xl mx-auto text-center">
-      <h2 class="text-4xl font-serif text-primary mb-6">{{title}}</h2>
-      <p class="text-lg text-gray-600 leading-relaxed">{{subtitle}}</p>
-    </div>
-  </div>
-</section>`,
-      cards: `<section class="py-20 bg-gray-50">
-  <div class="container mx-auto px-4">
-    <div class="text-center mb-12">
-      <h2 class="text-4xl font-serif text-primary mb-4">{{title}}</h2>
-      <p class="text-xl text-gray-600">{{subtitle}}</p>
-    </div>
-    <div class="grid md:grid-cols-3 gap-8">
-      <div class="bg-white p-6 rounded-lg shadow-lg">
-        <h3 class="text-xl font-semibold mb-4">Card 1</h3>
-        <p class="text-gray-600">Descrição do primeiro card.</p>
-      </div>
-      <div class="bg-white p-6 rounded-lg shadow-lg">
-        <h3 class="text-xl font-semibold mb-4">Card 2</h3>
-        <p class="text-gray-600">Descrição do segundo card.</p>
-      </div>
-      <div class="bg-white p-6 rounded-lg shadow-lg">
-        <h3 class="text-xl font-semibold mb-4">Card 3</h3>
-        <p class="text-gray-600">Descrição do terceiro card.</p>
-      </div>
-    </div>
-  </div>
-</section>`
-    };
+  const handleAssetSelect = (asset: CMSAsset) => {
+    const assetUrl = `https://oampddkpuybkbwqggrty.supabase.co/storage/v1/object/public/cms-assets/${asset.file_path}`;
+    const imageTag = `<img src="${assetUrl}" alt="${asset.alt_text || asset.title}" class="w-full h-auto" />`;
+    
+    // Inserir a imagem no HTML
+    const textarea = document.getElementById('content_html') as HTMLTextAreaElement;
+    if (textarea) {
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const text = textarea.value;
+      const before = text.substring(0, start);
+      const after = text.substring(end, text.length);
+      const newText = before + imageTag + after;
+      
+      handleChange('content_html', newText);
+      
+      // Voltar para a aba de conteúdo
+      setActiveTab('content');
+    }
+  };
 
-    handleChange('content_html', templates[templateType as keyof typeof templates] || '');
+  const handleTemplateSelect = (html: string) => {
+    handleChange('content_html', html);
+    setActiveTab('content');
+  };
+
+  const processContentVariables = (content: string) => {
+    return content
+      .replace(/\{\{title\}\}/g, formData.title || 'Título da Seção')
+      .replace(/\{\{subtitle\}\}/g, formData.subtitle || 'Subtítulo da seção')
+      .replace(/\{\{cta_label\}\}/g, formData.cta_label || 'Botão')
+      .replace(/\{\{cta_link\}\}/g, formData.cta_link || '#')
+      .replace(/\{\{background_image\}\}/g, 'https://images.unsplash.com/photo-1519741497674-611481863552?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80')
+      .replace(/\{\{image_url\}\}/g, 'https://images.unsplash.com/photo-1465495976277-4387d4b0e4a6?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80')
+      .replace(/\{\{image_alt\}\}/g, 'Imagem ilustrativa')
+      .replace(/\{\{content_text\}\}/g, 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.')
+      .replace(/\{\{(image_\d+)\}\}/g, 'https://images.unsplash.com/photo-1519741497674-611481863552?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80')
+      .replace(/\{\{(alt_\d+)\}\}/g, 'Imagem da galeria')
+      .replace(/\{\{(service_image_\d+)\}\}/g, 'https://images.unsplash.com/photo-1465495976277-4387d4b0e4a6?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80')
+      .replace(/\{\{(service_alt_\d+)\}\}/g, 'Serviço')
+      .replace(/\{\{(service_title_\d+)\}\}/g, 'Nome do Serviço')
+      .replace(/\{\{(service_description_\d+)\}\}/g, 'Descrição do serviço oferecido.')
+      .replace(/\{\{client_photo\}\}/g, 'https://images.unsplash.com/photo-1494790108755-2616b612b5bb?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80')
+      .replace(/\{\{client_name\}\}/g, 'Nome do Cliente')
+      .replace(/\{\{client_role\}\}/g, 'Cargo ou Descrição')
+      .replace(/\{\{testimonial_text\}\}/g, 'Depoimento incrível sobre o serviço prestado. Foi uma experiência maravilhosa e superou todas as expectativas.');
   };
 
   return (
@@ -224,33 +233,71 @@ const CMSSectionEditor: React.FC<CMSSectionEditorProps> = ({
 
         <Card>
           <CardHeader>
-            <CardTitle>Conteúdo HTML</CardTitle>
-            <div className="flex gap-2">
-              <Button type="button" size="sm" onClick={() => loadTemplate('hero')}>
-                Template Hero
-              </Button>
-              <Button type="button" size="sm" onClick={() => loadTemplate('section')}>
-                Template Seção
-              </Button>
-              <Button type="button" size="sm" onClick={() => loadTemplate('cards')}>
-                Template Cards
-              </Button>
-            </div>
+            <CardTitle>Editor Visual</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2">
-              <Label htmlFor="content_html">HTML Personalizado</Label>
-              <Textarea
-                id="content_html"
-                value={formData.content_html}
-                onChange={(e) => handleChange('content_html', e.target.value)}
-                placeholder="HTML da seção. Use {{title}}, {{subtitle}}, {{cta_label}}, {{cta_link}} como variáveis."
-                className="min-h-96 font-mono text-sm"
-              />
-              <p className="text-xs text-gray-500">
-                Variáveis disponíveis: {`{{title}}, {{subtitle}}, {{cta_label}}, {{cta_link}}`}
-              </p>
-            </div>
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="content" className="flex items-center gap-2">
+                  <Code className="h-4 w-4" />
+                  HTML
+                </TabsTrigger>
+                <TabsTrigger value="templates" className="flex items-center gap-2">
+                  <Eye className="h-4 w-4" />
+                  Templates
+                </TabsTrigger>
+                <TabsTrigger value="assets" className="flex items-center gap-2">
+                  <Image className="h-4 w-4" />
+                  Imagens
+                </TabsTrigger>
+                <TabsTrigger value="preview" className="flex items-center gap-2">
+                  <Eye className="h-4 w-4" />
+                  Preview
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="content" className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="content_html">HTML da Seção</Label>
+                  <Textarea
+                    id="content_html"
+                    value={formData.content_html}
+                    onChange={(e) => handleChange('content_html', e.target.value)}
+                    placeholder="HTML da seção. Use {{title}}, {{subtitle}}, {{cta_label}}, {{cta_link}} como variáveis."
+                    className="min-h-96 font-mono text-sm"
+                  />
+                  <div className="text-xs text-gray-500 space-y-1">
+                    <p><strong>Variáveis disponíveis:</strong></p>
+                    <p>• Básicas: {{`{title}, {subtitle}, {cta_label}, {cta_link}`}}</p>
+                    <p>• Imagens: {{`{background_image}, {image_url}, {image_1}, {image_2}...`}}</p>
+                    <p>• Serviços: {{`{service_image_1}, {service_title_1}, {service_description_1}...`}}</p>
+                    <p>• Depoimentos: {{`{client_photo}, {client_name}, {testimonial_text}...`}}</p>
+                  </div>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="templates" className="space-y-4">
+                <CMSVisualTemplates onSelectTemplate={handleTemplateSelect} />
+              </TabsContent>
+
+              <TabsContent value="assets" className="space-y-4">
+                <CMSAssetsManager 
+                  onSelectAsset={handleAssetSelect}
+                  selectionMode={true}
+                />
+              </TabsContent>
+
+              <TabsContent value="preview" className="space-y-4">
+                <div className="border rounded-lg p-4 bg-white min-h-96">
+                  <div 
+                    dangerouslySetInnerHTML={{ 
+                      __html: processContentVariables(formData.content_html)
+                    }}
+                    style={{ backgroundColor: formData.bg_color }}
+                  />
+                </div>
+              </TabsContent>
+            </Tabs>
           </CardContent>
         </Card>
 
