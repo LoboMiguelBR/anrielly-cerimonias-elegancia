@@ -58,8 +58,9 @@ export const useEventsEnhanced = () => {
       const activeFilters = eventFilters || filters;
 
       if (activeFilters.status && activeFilters.status.length > 0) {
-        // Type cast para string[] para compatibilidade com Supabase
-        query = query.in('status', activeFilters.status as string[]);
+        // Converter array de EventStatus para array de strings
+        const statusStrings = activeFilters.status.map(status => status as string);
+        query = query.in('status', statusStrings);
       }
 
       if (activeFilters.event_type && activeFilters.event_type.length > 0) {
@@ -127,10 +128,20 @@ export const useEventsEnhanced = () => {
     try {
       setLoading(true);
       
-      // Preparar dados com type casting
+      // Preparar dados garantindo que o type seja obrigatório
       const insertData = {
-        ...eventData,
-        status: eventData.status as string // Cast para string para inserção
+        type: eventData.type || 'evento',
+        date: eventData.date,
+        location: eventData.location,
+        status: eventData.status,
+        tenant_id: eventData.tenant_id,
+        notes: eventData.notes,
+        client_id: eventData.client_id,
+        cerimonialista_id: eventData.cerimonialista_id,
+        description: eventData.description,
+        quote_id: eventData.quote_id,
+        proposal_id: eventData.proposal_id,
+        contract_id: eventData.contract_id,
       };
 
       const { data, error } = await supabase
@@ -157,11 +168,8 @@ export const useEventsEnhanced = () => {
     try {
       setLoading(true);
       
-      // Preparar dados com type casting
-      const updateData = {
-        ...updates,
-        ...(updates.status && { status: updates.status as string })
-      };
+      // Preparar dados removendo campos read-only
+      const { created_at, updated_at, ...updateData } = updates;
 
       const { error } = await supabase
         .from('events')
@@ -185,7 +193,7 @@ export const useEventsEnhanced = () => {
     try {
       const { error } = await supabase
         .from('events')
-        .update({ status: status as string }) // Cast para string
+        .update({ status })
         .eq('id', id);
 
       if (error) throw error;
@@ -226,7 +234,7 @@ export const useEventsEnhanced = () => {
       setLoading(true);
       const { error } = await supabase
         .from('events')
-        .update({ status: status as string }) // Cast para string
+        .update({ status })
         .in('id', eventIds);
 
       if (error) throw error;

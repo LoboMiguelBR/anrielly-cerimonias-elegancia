@@ -9,6 +9,7 @@ import { TooltipProvider } from "@/components/ui/tooltip"
 import { BrowserRouter as Router } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { createStorageBuckets } from './integrations/supabase/setupStorage'
+import { AuthProvider } from '@/hooks/useAuthEnhanced'
 import ErrorBoundary from './components/ErrorBoundary'
 
 // Initialize storage buckets
@@ -66,10 +67,12 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
       <QueryClientProvider client={queryClient}>
         <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
           <TooltipProvider>
-            <Router>
-              <App />
-              <Toaster />
-            </Router>
+            <AuthProvider>
+              <Router>
+                <App />
+                <Toaster />
+              </Router>
+            </AuthProvider>
           </TooltipProvider>
         </ThemeProvider>
       </QueryClientProvider>

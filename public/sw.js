@@ -2,12 +2,6 @@
 const CACHE_NAME = 'anrielly-gomes-v1.0.0';
 const urlsToCache = [
   '/',
-  '/static/js/bundle.js',
-  '/static/css/main.css',
-  '/lovable-uploads/a1e9c8bb-3ef0-4768-8b5e-9fac87c9d598.png',
-  '/lovable-uploads/51ec6ddc-43be-45c4-9c33-1f407dba1411.png',
-  '/LogoAG_192x192.png',
-  '/LogoAG_512x512.png',
   '/manifest.json'
 ];
 
@@ -42,10 +36,16 @@ self.addEventListener('install', (event) => {
     caches.open(CACHE_NAME)
       .then((cache) => {
         console.log('Cache opened, adding URLs...');
-        return cache.addAll(urlsToCache);
+        // Only cache essential files that exist
+        return cache.addAll(urlsToCache.filter(url => {
+          // Only cache basic paths that we know exist
+          return url === '/' || url === '/manifest.json';
+        }));
       })
       .catch((error) => {
         console.error('Cache installation failed:', error);
+        // Don't fail installation if cache fails
+        return Promise.resolve();
       })
   );
   self.skipWaiting();
