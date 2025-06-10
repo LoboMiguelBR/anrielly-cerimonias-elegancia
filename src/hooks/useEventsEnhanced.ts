@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -58,9 +57,14 @@ export const useEventsEnhanced = () => {
       const activeFilters = eventFilters || filters;
 
       if (activeFilters.status && activeFilters.status.length > 0) {
-        // Converter array de EventStatus para array de strings
-        const statusStrings = activeFilters.status.map(status => status as string);
-        query = query.in('status', statusStrings);
+        // Garantir que os status são do tipo EventStatus correto
+        const validStatuses = activeFilters.status.filter((status): status is EventStatus => 
+          ['em_planejamento', 'contratado', 'concluido', 'cancelado'].includes(status)
+        );
+        
+        if (validStatuses.length > 0) {
+          query = query.in('status', validStatuses);
+        }
       }
 
       if (activeFilters.event_type && activeFilters.event_type.length > 0) {
@@ -84,7 +88,7 @@ export const useEventsEnhanced = () => {
       // Type cast para garantir compatibilidade com nossos tipos
       const typedEvents: Event[] = (data || []).map(event => ({
         ...event,
-        status: event.status as EventStatus
+        status: (event.status as EventStatus) || 'em_planejamento'
       }));
 
       setEvents(typedEvents);

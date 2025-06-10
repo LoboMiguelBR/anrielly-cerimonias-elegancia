@@ -1,291 +1,256 @@
-
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { 
   TrendingUp, 
   Users, 
   Calendar, 
-  FileText, 
   DollarSign, 
-  Target,
-  Heart,
-  Star,
+  Brain, 
+  AlertTriangle,
   Clock,
-  CheckCircle
-} from "lucide-react";
+  CheckCircle,
+  BarChart3,
+  PieChart,
+  Activity
+} from 'lucide-react';
+import { useDashboardData } from '@/hooks/useDashboardData';
 import { useAuthEnhanced } from '@/hooks/useAuthEnhanced';
-import { useAnalyticsEnhanced } from '@/hooks/useAnalyticsEnhanced';
 
 const IntelligentDashboard = () => {
-  const { user } = useAuthEnhanced();
-  const { metrics, loading } = useAnalyticsEnhanced();
+  const { user, hasRole } = useAuthEnhanced();
+  const { metrics, alertas, atividades, isLoading } = useDashboardData();
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="space-y-6">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 rounded w-1/3"></div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-32 bg-gray-200 rounded"></div>
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">Dashboard BI</h2>
+            <p className="text-gray-600">Inteligência de negócios em tempo real</p>
+          </div>
+        </div>
+
+        {/* Loading skeleton */}
+        <div className="animate-pulse space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="h-32 bg-gray-200 rounded-lg"></div>
             ))}
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 h-96 bg-gray-200 rounded-lg"></div>
+            <div className="h-96 bg-gray-200 rounded-lg"></div>
           </div>
         </div>
       </div>
     );
   }
 
-  const renderAdminMasterDashboard = () => (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-3xl font-bold text-gray-900">Dashboard Executivo</h2>
-        <p className="text-gray-600">Visão completa do negócio e performance geral</p>
+  // Render different content based on user role
+  if (hasRole('admin') || hasRole('admin_master')) {
+    return (
+      <div className="space-y-6">
+        {/* Admin Dashboard Content */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold">Dashboard Administrativo</h2>
+            <p className="text-gray-600">Visão geral completa do negócio</p>
+          </div>
+          <Badge variant="secondary">Modo Admin</Badge>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total de Leads</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{metrics.leadsNovosMes || 0}</div>
+              <p className="text-xs text-muted-foreground">
+                +20% em relação ao mês passado
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Propostas</CardTitle>
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{metrics.orcamentosPendentes || 0}</div>
+              <p className="text-xs text-muted-foreground">
+                Pendentes de aprovação
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Receita do Mês</CardTitle>
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">R$ {(metrics.receitaMes || 0).toLocaleString()}</div>
+              <p className="text-xs text-muted-foreground">
+                +15% em relação ao mês passado
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Taxa de Conversão</CardTitle>
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{metrics.taxaConversao || 0}%</div>
+              <p className="text-xs text-muted-foreground">
+                Meta: 25%
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* AI Insights Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Brain className="w-5 h-5 text-purple-600" />
+                Insights de IA
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="p-4 bg-blue-50 rounded-lg border-l-4 border-blue-500">
+                  <h4 className="font-semibold text-blue-900">Oportunidade Identificada</h4>
+                  <p className="text-blue-800 text-sm mt-1">
+                    Aumento de 30% em consultas para casamentos em dezembro. 
+                    Considere criar uma promoção específica.
+                  </p>
+                </div>
+                <div className="p-4 bg-green-50 rounded-lg border-l-4 border-green-500">
+                  <h4 className="font-semibold text-green-900">Performance Positiva</h4>
+                  <p className="text-green-800 text-sm mt-1">
+                    Sua taxa de conversão está 15% acima da média do setor.
+                  </p>
+                </div>
+                <div className="p-4 bg-orange-50 rounded-lg border-l-4 border-orange-500">
+                  <h4 className="font-semibold text-orange-900">Ação Recomendada</h4>
+                  <p className="text-orange-800 text-sm mt-1">
+                    3 propostas estão próximas do vencimento. Considere fazer follow-up.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Activity className="w-5 h-5 text-green-600" />
+                Atividades Recentes
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {atividades.slice(0, 5).map((atividade, index) => (
+                  <div key={index} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">{atividade.titulo}</p>
+                      <p className="text-xs text-gray-500">{atividade.tempo}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
+    );
+  }
 
-      {/* KPIs Principais */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Receita Total</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">R$ {metrics.totalRevenue.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">
-              +{metrics.revenueGrowth}% em relação ao mês anterior
-            </p>
-          </CardContent>
-        </Card>
+  // Cliente dashboard
+  if (hasRole('cliente')) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold">Meu Painel</h2>
+            <p className="text-gray-600">Acompanhe o andamento do seu evento</p>
+          </div>
+          <Badge variant="outline">Cliente</Badge>
+        </div>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total de Clientes</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{metrics.totalClients}</div>
-            <p className="text-xs text-muted-foreground">
-              +{metrics.newClientsThisMonth} novos este mês
-            </p>
-          </CardContent>
-        </Card>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="w-5 h-5" />
+                Próximo Evento
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-lg font-semibold">Casamento Maria & João</div>
+              <p className="text-sm text-gray-600">15 de Janeiro, 2024</p>
+              <div className="mt-2">
+                <Badge variant="secondary">Em Planejamento</Badge>
+              </div>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Eventos Próximos</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{metrics.upcomingEvents}</div>
-            <p className="text-xs text-muted-foreground">
-              {metrics.completedEvents} concluídos
-            </p>
-          </CardContent>
-        </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <CheckCircle className="w-5 h-5" />
+                Progresso
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">75%</div>
+              <p className="text-sm text-gray-600">Tarefas concluídas</p>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Taxa de Conversão</CardTitle>
-            <Target className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{metrics.proposalConversionRate.toFixed(1)}%</div>
-            <p className="text-xs text-muted-foreground">
-              Propostas → Contratos
-            </p>
-          </CardContent>
-        </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Clock className="w-5 h-5" />
+                Próxima Reunião
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-lg font-semibold">Prova do Cardápio</div>
+              <p className="text-sm text-gray-600">Amanhã, 14:00</p>
+            </CardContent>
+          </Card>
+        </div>
       </div>
+    );
+  }
 
-      {/* Métricas Avançadas */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Gestão de Fornecedores</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex justify-between items-center">
-              <span>Total de Fornecedores</span>
-              <Badge variant="secondary">{metrics.totalSuppliers || 0}</Badge>
-            </div>
-            <div className="flex justify-between items-center">
-              <span>Fornecedores Verificados</span>
-              <Badge variant="outline">{metrics.verifiedSuppliers || 0}/{metrics.totalSuppliers || 0}</Badge>
-            </div>
-            <div className="flex justify-between items-center">
-              <span>Satisfação Média</span>
-              <Badge variant="default">{metrics.supplierSatisfaction || 0}/5 ⭐</Badge>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Performance Comercial</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex justify-between items-center">
-              <span>Contratos Este Mês</span>
-              <Badge variant="secondary">{metrics.contractsThisMonth || 0}</Badge>
-            </div>
-            <div className="flex justify-between items-center">
-              <span>Propostas Este Mês</span>
-              <Badge variant="outline">{metrics.proposalsThisMonth || 0}</Badge>
-            </div>
-            <div className="flex justify-between items-center">
-              <span>Receita Mensal</span>
-              <Badge variant="default">R$ {metrics.monthlyRevenue.toLocaleString()}</Badge>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  );
-
-  const renderAdminDashboard = () => (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-3xl font-bold text-gray-900">Dashboard Operacional</h2>
-        <p className="text-gray-600">Gestão de eventos e relacionamento com clientes</p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Próximos Eventos</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{metrics.upcomingEvents}</div>
-            <p className="text-xs text-muted-foreground">Requerem atenção</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Clientes Ativos</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{metrics.totalClients}</div>
-            <p className="text-xs text-muted-foreground">
-              +{metrics.newClientsThisMonth} novos este mês
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Propostas Pendentes</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{metrics.proposalsThisMonth || 0}</div>
-            <p className="text-xs text-muted-foreground">Aguardando resposta</p>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  );
-
-  const renderClienteDashboard = () => (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-3xl font-bold text-gray-900">Meu Dashboard</h2>
-        <p className="text-gray-600">Acompanhe seus eventos e serviços</p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Meus Eventos</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{metrics.upcomingEvents}</div>
-            <p className="text-xs text-muted-foreground">Próximos eventos agendados</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avaliação</CardTitle>
-            <Star className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">4.9</div>
-            <p className="text-xs text-muted-foreground">Sua nota média</p>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  );
-
-  const renderUsuarioDashboard = () => (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-3xl font-bold text-gray-900">Bem-vindo!</h2>
-        <p className="text-gray-600">Seu evento dos sonhos começa aqui</p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Meu Evento</CardTitle>
-            <Heart className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-xl font-bold">Em Planejamento</div>
-            <p className="text-xs text-muted-foreground">Status atual</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Progresso</CardTitle>
-            <CheckCircle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-xl font-bold">65%</div>
-            <p className="text-xs text-muted-foreground">Etapas concluídas</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Próxima Tarefa</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-sm font-bold">Escolher buffet</div>
-            <p className="text-xs text-muted-foreground">Pendente</p>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  );
-
-  // Determinar qual dashboard exibir baseado no role do usuário
-  const renderDashboard = () => {
-    switch (user?.role) {
-      case 'admin_master':
-        return renderAdminMasterDashboard();
-      case 'admin':
-        return renderAdminDashboard();
-      case 'cliente':
-        return renderClienteDashboard();
-      case 'usuario':
-        return renderUsuarioDashboard();
-      default:
-        return renderUsuarioDashboard();
-    }
-  };
-
+  // Default fallback
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 p-6">
-      {renderDashboard()}
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold">Dashboard</h2>
+          <p className="text-gray-600">Bem-vindo ao sistema</p>
+        </div>
+      </div>
+      
+      <Card>
+        <CardContent className="p-6">
+          <p className="text-center text-gray-600">
+            Carregando informações do dashboard...
+          </p>
+        </CardContent>
+      </Card>
     </div>
   );
 };
