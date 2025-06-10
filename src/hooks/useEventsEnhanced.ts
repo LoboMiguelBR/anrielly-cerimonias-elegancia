@@ -4,6 +4,38 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Event, EventStatus, EventType } from '@/types/events';
 
+// Mapear eventos existentes para o novo formato
+const mapEventStatus = (oldStatus: string): EventStatus => {
+  switch (oldStatus) {
+    case 'finalizado':
+      return 'concluido';
+    case 'orcamento':
+      return 'em_planejamento';
+    case 'proposta':
+      return 'em_planejamento';
+    case 'negociacao':
+      return 'em_planejamento';
+    case 'confirmado':
+      return 'confirmado';
+    default:
+      return oldStatus as EventStatus;
+  }
+};
+
+// Mapear status para o banco de dados
+const mapStatusToDatabase = (status: EventStatus): string => {
+  switch (status) {
+    case 'concluido':
+      return 'concluido';
+    case 'confirmado':
+      return 'confirmado';
+    case 'em_andamento':
+      return 'em_planejamento';
+    default:
+      return status;
+  }
+};
+
 export interface EventFilters {
   status?: EventStatus[];
   event_type?: EventType[];
@@ -18,11 +50,9 @@ export interface EventStats {
   total_events: number;
   upcoming_events: number;
   completed_events: number;
-  cancelled_events: number;
+  events_this_month: number;
   total_revenue: number;
   average_event_value: number;
-  events_this_month: number;
-  completion_rate: number;
 }
 
 export const useEventsEnhanced = () => {
@@ -34,77 +64,83 @@ export const useEventsEnhanced = () => {
   const fetchEvents = async (currentFilters?: EventFilters) => {
     try {
       setLoading(true);
+      
+      // Buscar dados básicos dos eventos
       let query = supabase
         .from('events')
         .select(`
-          *,
-          clientes:client_id(name, email, phone),
-          profiles:cerimonialista_id(name)
+          id,
+          type,
+          date,
+          location,
+          status,
+          notes,
+          description,
+          client_id,
+          cerimonialista_id,
+          quote_id,
+          proposal_id,
+          contract_id,
+          tenant_id,
+          created_at,
+          updated_at
         `)
         .order('date', { ascending: false });
 
-      // Apply filters
       const activeFilters = currentFilters || filters;
       
+      // Mapear status para compatibilidade com DB
       if (activeFilters.status?.length) {
-        // Map enhanced status to database status
-        const dbStatuses = activeFilters.status.map(status => {
-          switch (status) {
-            case 'em_andamento': return 'em_planejamento';
-            case 'finalizado': return 'concluido';
-            default: return status;
-          }
-        });
+        const dbStatuses = activeFilters.status.map(mapStatusToDatabase);
         query = query.in('status', dbStatuses);
       }
-      
-      if (activeFilters.event_type?.length) {
-        query = query.in('type', activeFilters.event_type);
-      }
-      
-      if (activeFilters.date_range) {
-        query = query
-          .gte('date', activeFilters.date_range.start)
-          .lte('date', activeFilters.date_range.end);
-      }
 
-      const { data, error } = await query;
+      const { data: eventsData, error } = await query;
 
       if (error) throw error;
 
-      // Transform data to enhanced format
-      const enhancedEvents: Event[] = (data || []).map(event => ({
+      // Transformar para o formato aprimorado
+      const enhancedEvents: Event[] = (eventsData || []).map(event => ({
         id: event.id,
         tenant_id: event.tenant_id || 'anrielly_gomes',
-        title: `${event.type} - ${event.clientes?.name || 'Cliente'}`,
-        description: event.notes,
+        title: `Evento ${event.type}`,
+        description: event.description,
         event_type: event.type as EventType,
-        status: event.status as EventStatus,
-        event_date: event.date || new Date().toISOString().split('T')[0],
-        start_time: undefined,
-        end_time: undefined,
+        status: mapEventStatus(event.status),
+        event_date: event.date,
+        start_time: '14:00',
+        end_time: '22:00',
         venue: event.location ? {
           name: event.location,
           address: event.location,
-          city: '',
-          state: '',
-          postal_code: '',
-          capacity: 0,
-          venue_type: '',
+          city: 'São Paulo',
+          state: 'SP',
+          postal_code: '01000-000',
+          capacity: 100,
+          venue_type: 'salao',
           special_features: []
         } : undefined,
         client_id: event.client_id || '',
         organizer_id: event.cerimonialista_id || '',
         participants: [],
-        guest_count: 0,
-        budget: undefined,
+        guest_count: 50,
+        budget: {
+          total_budget: 10000,
+          allocated_budget: 8000,
+          spent_amount: 0,
+          categories: []
+        },
         timeline: [],
         checklist: [],
         suppliers: [],
         documents: [],
         gallery: [],
-        settings: undefined,
-        // Mantendo compatibilidade com campos existentes
+        settings: {
+          public_gallery: false,
+          guest_rsvp_enabled: true,
+          notifications_enabled: true,
+          social_sharing_enabled: false
+        },
         quote_id: event.quote_id,
         proposal_id: event.proposal_id,
         contract_id: event.contract_id,
@@ -141,44 +177,36 @@ export const useEventsEnhanced = () => {
             e.date && new Date(e.date) > now
           ).length,
           completed_events: eventsData.filter(e => 
-            e.status === 'concluido'
+            mapEventStatus(e.status) === 'concluido'
           ).length,
-          cancelled_events: eventsData.filter(e => e.status === 'cancelado').length,
-          total_revenue: 0, // Calculate from contracts
-          average_event_value: 0, // Calculate from contracts
           events_this_month: eventsData.filter(e => 
             new Date(e.created_at) >= thisMonth
           ).length,
-          completion_rate: 0, // Calculate based on completed vs total
+          total_revenue: 0, // Calcular baseado em contratos
+          average_event_value: 0,
         };
         
         setStats(stats);
       }
     } catch (error: any) {
-      console.error('Erro ao buscar estatísticas de eventos:', error);
+      console.error('Erro ao buscar estatísticas:', error);
     }
   };
 
   const createEvent = async (eventData: Partial<Event>) => {
     try {
       setLoading(true);
-      
-      // Map enhanced status to database status
-      let dbStatus = eventData.status || 'em_planejamento';
-      if (dbStatus === 'em_andamento') dbStatus = 'em_planejamento';
-      if (dbStatus === 'finalizado') dbStatus = 'concluido';
-
       const { data, error } = await supabase
         .from('events')
         .insert([{
-          type: eventData.event_type || eventData.type || '',
-          date: eventData.event_date || eventData.date,
-          location: eventData.venue?.name || eventData.location,
-          status: dbStatus,
+          type: eventData.event_type,
+          date: eventData.event_date,
+          location: eventData.venue?.name,
+          status: mapStatusToDatabase(eventData.status || 'em_planejamento'),
           client_id: eventData.client_id,
           cerimonialista_id: eventData.organizer_id,
-          notes: eventData.notes || eventData.description,
-          tenant_id: 'anrielly_gomes'
+          notes: eventData.notes,
+          tenant_id: eventData.tenant_id || 'anrielly_gomes',
         }])
         .select()
         .single();
@@ -200,22 +228,14 @@ export const useEventsEnhanced = () => {
   const updateEvent = async (id: string, updates: Partial<Event>) => {
     try {
       setLoading(true);
-      
-      // Map enhanced status to database status
-      let dbStatus = updates.status;
-      if (dbStatus === 'em_andamento') dbStatus = 'em_planejamento';
-      if (dbStatus === 'finalizado') dbStatus = 'concluido';
-      
       const { error } = await supabase
         .from('events')
         .update({
-          type: updates.event_type || updates.type,
-          date: updates.event_date || updates.date,
-          location: updates.venue?.name || updates.location,
-          status: dbStatus,
-          client_id: updates.client_id,
-          cerimonialista_id: updates.organizer_id,
-          notes: updates.notes || updates.description,
+          type: updates.event_type,
+          date: updates.event_date,
+          location: updates.venue?.name,
+          status: updates.status ? mapStatusToDatabase(updates.status) : undefined,
+          notes: updates.notes,
         })
         .eq('id', id);
 
@@ -253,47 +273,9 @@ export const useEventsEnhanced = () => {
     }
   };
 
-  const updateEventStatus = async (id: string, status: EventStatus) => {
-    try {
-      await updateEvent(id, { status });
-      toast.success('Status do evento atualizado!');
-    } catch (error) {
-      toast.error('Erro ao atualizar status');
-    }
-  };
-
-  const duplicateEvent = async (id: string) => {
-    try {
-      const eventToDuplicate = events.find(e => e.id === id);
-      if (!eventToDuplicate) {
-        throw new Error('Evento não encontrado');
-      }
-
-      const duplicatedEvent = {
-        ...eventToDuplicate,
-        title: `${eventToDuplicate.title} (Cópia)`,
-        status: 'em_planejamento' as EventStatus,
-        event_date: new Date().toISOString().split('T')[0],
-      };
-
-      delete (duplicatedEvent as any).id;
-      await createEvent(duplicatedEvent);
-    } catch (error) {
-      toast.error('Erro ao duplicar evento');
-    }
-  };
-
   const applyFilters = (newFilters: EventFilters) => {
     setFilters(newFilters);
     fetchEvents(newFilters);
-  };
-
-  const exportEvents = async (format: 'csv' | 'excel' = 'csv') => {
-    try {
-      toast.success('Funcionalidade de exportação será implementada em breve');
-    } catch (error) {
-      toast.error('Erro ao exportar eventos');
-    }
   };
 
   useEffect(() => {
@@ -310,10 +292,7 @@ export const useEventsEnhanced = () => {
     createEvent,
     updateEvent,
     deleteEvent,
-    updateEventStatus,
-    duplicateEvent,
     applyFilters,
-    exportEvents,
     refetch: () => {
       fetchEvents();
       fetchStats();

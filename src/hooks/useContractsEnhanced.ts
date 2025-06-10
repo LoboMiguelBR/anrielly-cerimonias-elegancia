@@ -3,77 +3,106 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-export interface ContractEnhanced {
-  id: string;
-  contract_number: string;
-  client_name: string;
-  client_email: string;
-  client_phone: string;
-  client_address?: string;
-  event_type: string;
-  event_date?: string;
-  event_time?: string;
-  event_location?: string;
-  total_price: number;
-  down_payment?: number;
-  remaining_amount?: number;
-  down_payment_date?: string;
-  remaining_payment_date?: string;
-  status: 'draft' | 'sent' | 'signed' | 'completed' | 'cancelled';
-  template_id?: string;
-  html_content?: string;
-  css_content?: string;
-  notes?: string;
-  public_token: string;
-  public_slug?: string;
-  signature_data?: any;
-  signed_at?: string;
-  pdf_url?: string;
-  version: number;
-  version_timestamp?: string;
-  created_at: string;
-  updated_at: string;
-  
-  // Enhanced fields
-  payment_schedule?: PaymentSchedule[];
-  contract_items?: ContractItem[];
-  additional_terms?: string;
-  cancellation_policy?: string;
-  force_majeure_clause?: string;
-  dispute_resolution?: string;
-  governing_law?: string;
-}
-
 export interface PaymentSchedule {
   id: string;
-  description: string;
+  contract_id: string;
+  installment_number: number;
   amount: number;
-  percentage: number;
   due_date: string;
-  status: 'pending' | 'paid' | 'overdue';
-  paid_date?: string;
+  status: 'pending' | 'paid' | 'overdue' | 'cancelled';
   payment_method?: string;
+  paid_at?: string;
+  notes?: string;
 }
 
 export interface ContractItem {
   id: string;
+  contract_id: string;
+  service_name: string;
   description: string;
   quantity: number;
   unit_price: number;
   total_price: number;
   category: string;
+}
+
+export interface ContractEnhanced {
+  id: string;
+  contract_number: string;
+  
+  // Cliente
+  client_name: string;
+  client_email: string;
+  client_phone: string;
+  client_address?: string;
+  client_profession?: string;
+  civil_status?: string;
+  
+  // Evento
+  event_type: string;
+  event_date?: string;
+  event_time?: string;
+  event_location?: string;
+  
+  // Financeiro
+  total_price: number;
+  down_payment?: number;
+  down_payment_date?: string;
+  remaining_amount?: number;
+  remaining_payment_date?: string;
+  payment_schedule: PaymentSchedule[];
+  
+  // Itens do contrato
+  contract_items: ContractItem[];
+  
+  // Status e versionamento
+  status: 'draft' | 'sent' | 'signed' | 'completed' | 'cancelled';
+  version: number;
+  version_timestamp: string;
+  
+  // Conteúdo
+  html_content?: string;
+  css_content?: string;
   notes?: string;
+  
+  // Assinatura
+  signature_data?: any;
+  signed_at?: string;
+  signature_drawn_at?: string;
+  signer_ip?: string;
+  
+  // URLs e tokens
+  pdf_url?: string;
+  public_token: string;
+  public_slug?: string;
+  preview_signature_url?: string;
+  
+  // Templates
+  template_id?: string;
+  
+  // Referências
+  proposal_id?: string;
+  quote_request_id?: string;
+  
+  // Termos e condições
+  additional_terms?: string;
+  cancellation_policy?: string;
+  
+  // Metadados
+  created_at: string;
+  updated_at: string;
+  ip_address?: string;
+  user_agent?: string;
 }
 
 export interface ContractStats {
   total_contracts: number;
+  draft_contracts: number;
   signed_contracts: number;
-  pending_signatures: number;
   completed_contracts: number;
-  total_value: number;
-  monthly_value: number;
-  average_contract_value: number;
-  signature_rate: number;
+  monthly_revenue: number;
+  pending_signatures: number;
+  overdue_payments: number;
 }
 
 export interface ContractFilters {
@@ -83,11 +112,11 @@ export interface ContractFilters {
     start: string;
     end: string;
   };
-  value_range?: {
+  client_search?: string;
+  amount_range?: {
     min: number;
     max: number;
   };
-  search_query?: string;
 }
 
 export const useContractsEnhanced = () => {
@@ -104,7 +133,6 @@ export const useContractsEnhanced = () => {
         .select('*')
         .order('created_at', { ascending: false });
 
-      // Apply filters
       const activeFilters = currentFilters || filters;
       
       if (activeFilters.status?.length) {
@@ -115,37 +143,57 @@ export const useContractsEnhanced = () => {
         query = query.in('event_type', activeFilters.event_type);
       }
       
-      if (activeFilters.date_range) {
-        query = query
-          .gte('event_date', activeFilters.date_range.start)
-          .lte('event_date', activeFilters.date_range.end);
-      }
-      
-      if (activeFilters.value_range) {
-        query = query
-          .gte('total_price', activeFilters.value_range.min)
-          .lte('total_price', activeFilters.value_range.max);
-      }
-
-      if (activeFilters.search_query) {
-        query = query.or(`client_name.ilike.%${activeFilters.search_query}%,client_email.ilike.%${activeFilters.search_query}%`);
+      if (activeFilters.client_search) {
+        query = query.or(`client_name.ilike.%${activeFilters.client_search}%,client_email.ilike.%${activeFilters.client_search}%`);
       }
 
       const { data, error } = await query;
 
       if (error) throw error;
 
-      // Transform to enhanced format
       const enhancedContracts: ContractEnhanced[] = (data || []).map(contract => ({
-        ...contract,
-        contract_number: `CTR-${contract.id.slice(0, 8).toUpperCase()}`,
-        payment_schedule: generatePaymentSchedule(contract),
-        contract_items: generateContractItems(contract),
-        additional_terms: 'Termos adicionais padrão',
-        cancellation_policy: 'Política de cancelamento padrão',
-        force_majeure_clause: 'Cláusula de força maior padrão',
-        dispute_resolution: 'Resolução de disputas por mediação',
-        governing_law: 'Lei brasileira aplicável'
+        id: contract.id,
+        contract_number: `CONT-${contract.id.substring(0, 8).toUpperCase()}`,
+        client_name: contract.client_name,
+        client_email: contract.client_email,
+        client_phone: contract.client_phone,
+        client_address: contract.client_address,
+        client_profession: contract.client_profession,
+        civil_status: contract.civil_status,
+        event_type: contract.event_type,
+        event_date: contract.event_date,
+        event_time: contract.event_time,
+        event_location: contract.event_location,
+        total_price: parseFloat(contract.total_price?.toString() || '0'),
+        down_payment: contract.down_payment ? parseFloat(contract.down_payment.toString()) : undefined,
+        down_payment_date: contract.down_payment_date,
+        remaining_amount: contract.remaining_amount ? parseFloat(contract.remaining_amount.toString()) : undefined,
+        remaining_payment_date: contract.remaining_payment_date,
+        payment_schedule: [], // Will be populated from related table
+        contract_items: [], // Will be populated from related table
+        status: contract.status as 'draft' | 'sent' | 'signed' | 'completed' | 'cancelled',
+        version: contract.version,
+        version_timestamp: contract.version_timestamp || contract.created_at,
+        html_content: contract.html_content,
+        css_content: contract.css_content,
+        notes: contract.notes,
+        signature_data: contract.signature_data,
+        signed_at: contract.signed_at,
+        signature_drawn_at: contract.signature_drawn_at,
+        signer_ip: contract.signer_ip,
+        pdf_url: contract.pdf_url,
+        public_token: contract.public_token,
+        public_slug: contract.public_slug,
+        preview_signature_url: contract.preview_signature_url,
+        template_id: contract.template_id,
+        proposal_id: contract.proposal_id,
+        quote_request_id: contract.quote_request_id,
+        additional_terms: '',
+        cancellation_policy: '',
+        created_at: contract.created_at,
+        updated_at: contract.updated_at,
+        ip_address: contract.ip_address,
+        user_agent: contract.user_agent,
       }));
 
       setContracts(enhancedContracts);
@@ -161,107 +209,47 @@ export const useContractsEnhanced = () => {
     try {
       const { data: contractsData } = await supabase
         .from('contracts')
-        .select('status, total_price, created_at, signed_at');
+        .select('status, total_price, created_at');
 
       if (contractsData) {
         const now = new Date();
         const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
         
-        const signedContracts = contractsData.filter(c => c.status === 'signed');
-        const totalValue = contractsData.reduce((sum, c) => sum + (parseFloat(c.total_price?.toString() || '0')), 0);
-        const monthlyValue = contractsData
-          .filter(c => new Date(c.created_at) >= thisMonth)
-          .reduce((sum, c) => sum + (parseFloat(c.total_price?.toString() || '0')), 0);
-
         const stats: ContractStats = {
           total_contracts: contractsData.length,
-          signed_contracts: signedContracts.length,
-          pending_signatures: contractsData.filter(c => c.status === 'sent').length,
+          draft_contracts: contractsData.filter(c => c.status === 'draft').length,
+          signed_contracts: contractsData.filter(c => c.status === 'signed').length,
           completed_contracts: contractsData.filter(c => c.status === 'completed').length,
-          total_value: totalValue,
-          monthly_value: monthlyValue,
-          average_contract_value: totalValue / Math.max(contractsData.length, 1),
-          signature_rate: contractsData.length > 0 ? (signedContracts.length / contractsData.length) * 100 : 0,
+          monthly_revenue: contractsData
+            .filter(c => c.status === 'signed' && new Date(c.created_at) >= thisMonth)
+            .reduce((sum, c) => sum + parseFloat(c.total_price?.toString() || '0'), 0),
+          pending_signatures: contractsData.filter(c => c.status === 'sent').length,
+          overdue_payments: 0, // Calculate based on payment schedule
         };
         
         setStats(stats);
       }
     } catch (error: any) {
-      console.error('Erro ao buscar estatísticas de contratos:', error);
+      console.error('Erro ao buscar estatísticas:', error);
     }
-  };
-
-  const generatePaymentSchedule = (contract: any): PaymentSchedule[] => {
-    const schedule: PaymentSchedule[] = [];
-    
-    if (contract.down_payment && contract.down_payment_date) {
-      schedule.push({
-        id: `${contract.id}_down`,
-        description: 'Entrada',
-        amount: parseFloat(contract.down_payment?.toString() || '0'),
-        percentage: (parseFloat(contract.down_payment?.toString() || '0') / parseFloat(contract.total_price?.toString() || '1')) * 100,
-        due_date: contract.down_payment_date,
-        status: 'pending',
-      });
-    }
-    
-    if (contract.remaining_amount && contract.remaining_payment_date) {
-      schedule.push({
-        id: `${contract.id}_remaining`,
-        description: 'Saldo restante',
-        amount: parseFloat(contract.remaining_amount?.toString() || '0'),
-        percentage: (parseFloat(contract.remaining_amount?.toString() || '0') / parseFloat(contract.total_price?.toString() || '1')) * 100,
-        due_date: contract.remaining_payment_date,
-        status: 'pending',
-      });
-    }
-    
-    return schedule;
-  };
-
-  const generateContractItems = (contract: any): ContractItem[] => {
-    // Mock contract items based on event type
-    const mockItems: ContractItem[] = [
-      {
-        id: `${contract.id}_item_1`,
-        description: `Cerimonial completo para ${contract.event_type}`,
-        quantity: 1,
-        unit_price: parseFloat(contract.total_price?.toString() || '0'),
-        total_price: parseFloat(contract.total_price?.toString() || '0'),
-        category: 'Serviços',
-        notes: 'Inclui planejamento, coordenação e execução'
-      }
-    ];
-    
-    return mockItems;
   };
 
   const createContract = async (contractData: Partial<ContractEnhanced>) => {
     try {
       setLoading(true);
-      
       const { data, error } = await supabase
         .from('contracts')
         .insert([{
-          client_name: contractData.client_name || '',
-          client_email: contractData.client_email || '',
-          client_phone: contractData.client_phone || '',
+          client_name: contractData.client_name,
+          client_email: contractData.client_email,
+          client_phone: contractData.client_phone,
           client_address: contractData.client_address,
-          event_type: contractData.event_type || '',
+          event_type: contractData.event_type,
           event_date: contractData.event_date,
-          event_time: contractData.event_time,
           event_location: contractData.event_location,
-          total_price: contractData.total_price || 0,
-          down_payment: contractData.down_payment,
-          remaining_amount: contractData.remaining_amount,
-          down_payment_date: contractData.down_payment_date,
-          remaining_payment_date: contractData.remaining_payment_date,
+          total_price: contractData.total_price,
           status: contractData.status || 'draft',
-          template_id: contractData.template_id,
-          html_content: contractData.html_content,
-          css_content: contractData.css_content,
           notes: contractData.notes,
-          version: 1
         }])
         .select()
         .single();
@@ -283,27 +271,19 @@ export const useContractsEnhanced = () => {
   const updateContract = async (id: string, updates: Partial<ContractEnhanced>) => {
     try {
       setLoading(true);
-      
       const { error } = await supabase
         .from('contracts')
         .update({
           client_name: updates.client_name,
           client_email: updates.client_email,
           client_phone: updates.client_phone,
-          client_address: updates.client_address,
           event_type: updates.event_type,
           event_date: updates.event_date,
-          event_time: updates.event_time,
           event_location: updates.event_location,
           total_price: updates.total_price,
-          down_payment: updates.down_payment,
-          remaining_amount: updates.remaining_amount,
-          down_payment_date: updates.down_payment_date,
-          remaining_payment_date: updates.remaining_payment_date,
           status: updates.status,
-          html_content: updates.html_content,
-          css_content: updates.css_content,
           notes: updates.notes,
+          html_content: updates.html_content,
         })
         .eq('id', id);
 
@@ -320,96 +300,24 @@ export const useContractsEnhanced = () => {
     }
   };
 
-  const deleteContract = async (id: string) => {
+  const signContract = async (id: string, signatureData: any) => {
     try {
-      setLoading(true);
-      
       const { error } = await supabase
         .from('contracts')
-        .delete()
+        .update({
+          status: 'signed',
+          signature_data: signatureData,
+          signed_at: new Date().toISOString(),
+        })
         .eq('id', id);
 
       if (error) throw error;
 
-      toast.success('Contrato removido com sucesso!');
+      toast.success('Contrato assinado com sucesso!');
       await fetchContracts();
     } catch (error: any) {
-      console.error('Erro ao remover contrato:', error);
-      toast.error('Erro ao remover contrato');
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const duplicateContract = async (id: string) => {
-    try {
-      const contractToDuplicate = contracts.find(c => c.id === id);
-      if (!contractToDuplicate) {
-        throw new Error('Contrato não encontrado');
-      }
-
-      const duplicatedContract = {
-        ...contractToDuplicate,
-        client_name: `${contractToDuplicate.client_name} (Cópia)`,
-        status: 'draft' as const,
-        public_token: crypto.randomUUID(),
-        signed_at: undefined,
-        signature_data: undefined,
-        version: 1
-      };
-
-      delete (duplicatedContract as any).id;
-      await createContract(duplicatedContract);
-    } catch (error) {
-      toast.error('Erro ao duplicar contrato');
-    }
-  };
-
-  const sendContract = async (id: string, method: 'email' | 'whatsapp' = 'email') => {
-    try {
-      const contract = contracts.find(c => c.id === id);
-      if (!contract) {
-        throw new Error('Contrato não encontrado');
-      }
-
-      await updateContract(id, { status: 'sent' });
-      
-      if (method === 'email') {
-        toast.success('Contrato enviado por email!');
-      } else {
-        toast.success('Link do contrato copiado para WhatsApp!');
-      }
-    } catch (error) {
-      toast.error('Erro ao enviar contrato');
-    }
-  };
-
-  const signContract = async (id: string, signatureData: any) => {
-    try {
-      await updateContract(id, {
-        status: 'signed',
-        signature_data: signatureData,
-        signed_at: new Date().toISOString()
-      });
-      
-      toast.success('Contrato assinado com sucesso!');
-    } catch (error) {
+      console.error('Erro ao assinar contrato:', error);
       toast.error('Erro ao assinar contrato');
-    }
-  };
-
-  const generatePDF = async (id: string): Promise<string> => {
-    try {
-      // Mock PDF generation
-      const pdfUrl = `${window.location.origin}/contract/${id}/pdf`;
-      
-      await updateContract(id, { pdf_url: pdfUrl });
-      
-      toast.success('PDF gerado com sucesso!');
-      return pdfUrl;
-    } catch (error) {
-      toast.error('Erro ao gerar PDF');
       throw error;
     }
   };
@@ -417,14 +325,6 @@ export const useContractsEnhanced = () => {
   const applyFilters = (newFilters: ContractFilters) => {
     setFilters(newFilters);
     fetchContracts(newFilters);
-  };
-
-  const exportContracts = async (format: 'csv' | 'excel' | 'pdf' = 'csv') => {
-    try {
-      toast.success('Funcionalidade de exportação será implementada em breve');
-    } catch (error) {
-      toast.error('Erro ao exportar contratos');
-    }
   };
 
   useEffect(() => {
@@ -440,13 +340,8 @@ export const useContractsEnhanced = () => {
     fetchContracts,
     createContract,
     updateContract,
-    deleteContract,
-    duplicateContract,
-    sendContract,
     signContract,
-    generatePDF,
     applyFilters,
-    exportContracts,
     refetch: () => {
       fetchContracts();
       fetchStats();
