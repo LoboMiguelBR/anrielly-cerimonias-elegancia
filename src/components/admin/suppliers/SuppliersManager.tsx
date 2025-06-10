@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Search, Filter, Star, Phone, Mail, MapPin } from 'lucide-react';
+import { Plus, Search, Star, Phone, Mail, MapPin } from 'lucide-react';
 import { useSuppliersEnhanced } from '@/hooks/useSuppliersEnhanced';
 
 const SuppliersManager = () => {
@@ -31,7 +31,6 @@ const SuppliersManager = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold">Fornecedores</h2>
@@ -43,7 +42,6 @@ const SuppliersManager = () => {
         </Button>
       </div>
 
-      {/* Stats */}
       {stats && (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card>
@@ -73,7 +71,6 @@ const SuppliersManager = () => {
         </div>
       )}
 
-      {/* Filters */}
       <Card>
         <CardContent className="p-4">
           <div className="flex flex-col md:flex-row gap-4">
@@ -102,7 +99,6 @@ const SuppliersManager = () => {
         </CardContent>
       </Card>
 
-      {/* Suppliers Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredSuppliers.map(supplier => (
           <Card key={supplier.id} className="hover:shadow-lg transition-shadow">

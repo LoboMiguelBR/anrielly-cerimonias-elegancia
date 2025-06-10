@@ -2,43 +2,94 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Event, EventStatus, EventType } from '@/types/events';
 
 // Mapear eventos existentes para o novo formato
-const mapEventStatus = (oldStatus: string): EventStatus => {
+const mapEventStatus = (oldStatus: string): 'em_planejamento' | 'contratado' | 'concluido' | 'cancelado' => {
   switch (oldStatus) {
     case 'finalizado':
       return 'concluido';
     case 'orcamento':
-      return 'em_planejamento';
     case 'proposta':
-      return 'em_planejamento';
     case 'negociacao':
       return 'em_planejamento';
     case 'confirmado':
-      return 'confirmado';
+      return 'contratado';
     default:
-      return oldStatus as EventStatus;
+      return oldStatus as 'em_planejamento' | 'contratado' | 'concluido' | 'cancelado';
   }
 };
 
 // Mapear status para o banco de dados
-const mapStatusToDatabase = (status: EventStatus): string => {
+const mapStatusToDatabase = (status: 'em_planejamento' | 'contratado' | 'concluido' | 'cancelado'): string => {
   switch (status) {
     case 'concluido':
       return 'concluido';
-    case 'confirmado':
+    case 'contratado':
       return 'confirmado';
-    case 'em_andamento':
+    case 'em_planejamento':
       return 'em_planejamento';
+    case 'cancelado':
+      return 'cancelado';
     default:
       return status;
   }
 };
 
+export interface Event {
+  id: string;
+  tenant_id: string;
+  title: string;
+  description?: string;
+  event_type: string;
+  status: 'em_planejamento' | 'contratado' | 'concluido' | 'cancelado';
+  event_date: string;
+  start_time: string;
+  end_time: string;
+  venue?: {
+    name: string;
+    address: string;
+    city: string;
+    state: string;
+    postal_code: string;
+    capacity: number;
+    venue_type: string;
+    special_features: string[];
+  };
+  client_id?: string;
+  organizer_id?: string;
+  participants: any[];
+  guest_count: number;
+  budget: {
+    total_budget: number;
+    allocated_budget: number;
+    spent_amount: number;
+    categories: any[];
+  };
+  timeline: any[];
+  checklist: any[];
+  suppliers: any[];
+  documents: any[];
+  gallery: any[];
+  settings: {
+    public_gallery: boolean;
+    guest_rsvp_enabled: boolean;
+    notifications_enabled: boolean;
+    social_sharing_enabled: boolean;
+  };
+  quote_id?: string;
+  proposal_id?: string;
+  contract_id?: string;
+  type: string;
+  date: string;
+  location?: string;
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface EventFilters {
-  status?: EventStatus[];
-  event_type?: EventType[];
+  status?: ('em_planejamento' | 'contratado' | 'concluido' | 'cancelado')[];
+  event_type?: string[];
   date_range?: {
     start: string;
     end: string;
@@ -65,7 +116,6 @@ export const useEventsEnhanced = () => {
     try {
       setLoading(true);
       
-      // Buscar dados básicos dos eventos
       let query = supabase
         .from('events')
         .select(`
@@ -89,7 +139,6 @@ export const useEventsEnhanced = () => {
 
       const activeFilters = currentFilters || filters;
       
-      // Mapear status para compatibilidade com DB
       if (activeFilters.status?.length) {
         const dbStatuses = activeFilters.status.map(mapStatusToDatabase);
         query = query.in('status', dbStatuses);
@@ -99,13 +148,12 @@ export const useEventsEnhanced = () => {
 
       if (error) throw error;
 
-      // Transformar para o formato aprimorado
       const enhancedEvents: Event[] = (eventsData || []).map(event => ({
         id: event.id,
         tenant_id: event.tenant_id || 'anrielly_gomes',
         title: `Evento ${event.type}`,
         description: event.description,
-        event_type: event.type as EventType,
+        event_type: event.type,
         status: mapEventStatus(event.status),
         event_date: event.date,
         start_time: '14:00',
@@ -182,7 +230,7 @@ export const useEventsEnhanced = () => {
           events_this_month: eventsData.filter(e => 
             new Date(e.created_at) >= thisMonth
           ).length,
-          total_revenue: 0, // Calcular baseado em contratos
+          total_revenue: 0,
           average_event_value: 0,
         };
         
@@ -199,9 +247,9 @@ export const useEventsEnhanced = () => {
       const { data, error } = await supabase
         .from('events')
         .insert([{
-          type: eventData.event_type,
-          date: eventData.event_date,
-          location: eventData.venue?.name,
+          type: eventData.event_type || eventData.type,
+          date: eventData.event_date || eventData.date,
+          location: eventData.venue?.name || eventData.location,
           status: mapStatusToDatabase(eventData.status || 'em_planejamento'),
           client_id: eventData.client_id,
           cerimonialista_id: eventData.organizer_id,
@@ -231,9 +279,9 @@ export const useEventsEnhanced = () => {
       const { error } = await supabase
         .from('events')
         .update({
-          type: updates.event_type,
-          date: updates.event_date,
-          location: updates.venue?.name,
+          type: updates.event_type || updates.type,
+          date: updates.event_date || updates.date,
+          location: updates.venue?.name || updates.location,
           status: updates.status ? mapStatusToDatabase(updates.status) : undefined,
           notes: updates.notes,
         })

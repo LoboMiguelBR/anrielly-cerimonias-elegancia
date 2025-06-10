@@ -39,6 +39,30 @@ export type Database = {
         }
         Relationships: []
       }
+      cache_entries: {
+        Row: {
+          cache_key: string
+          cache_value: Json
+          created_at: string | null
+          expires_at: string | null
+          id: string
+        }
+        Insert: {
+          cache_key: string
+          cache_value: Json
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+        }
+        Update: {
+          cache_key?: string
+          cache_value?: Json
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+        }
+        Relationships: []
+      }
       client_interactions: {
         Row: {
           client_id: string | null
@@ -804,6 +828,51 @@ export type Database = {
         }
         Relationships: []
       }
+      integrations: {
+        Row: {
+          category: string
+          config: Json | null
+          created_at: string | null
+          description: string | null
+          documentation_url: string | null
+          enabled: boolean | null
+          features: string[] | null
+          id: string
+          logo_url: string | null
+          name: string
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          category: string
+          config?: Json | null
+          created_at?: string | null
+          description?: string | null
+          documentation_url?: string | null
+          enabled?: boolean | null
+          features?: string[] | null
+          id?: string
+          logo_url?: string | null
+          name: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string
+          config?: Json | null
+          created_at?: string | null
+          description?: string | null
+          documentation_url?: string | null
+          enabled?: boolean | null
+          features?: string[] | null
+          id?: string
+          logo_url?: string | null
+          name?: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       landing_page_templates: {
         Row: {
           created_at: string | null
@@ -834,6 +903,42 @@ export type Database = {
           slug?: string
           tenant_id?: string
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          action_url: string | null
+          created_at: string | null
+          id: string
+          message: string
+          metadata: Json | null
+          read: boolean | null
+          title: string
+          type: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action_url?: string | null
+          created_at?: string | null
+          id?: string
+          message: string
+          metadata?: Json | null
+          read?: boolean | null
+          title: string
+          type?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action_url?: string | null
+          created_at?: string | null
+          id?: string
+          message?: string
+          metadata?: Json | null
+          read?: boolean | null
+          title?: string
+          type?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -1644,6 +1749,66 @@ export type Database = {
           },
         ]
       }
+      suppliers: {
+        Row: {
+          address: Json | null
+          category: string
+          created_at: string | null
+          description: string | null
+          email: string
+          id: string
+          instagram: string | null
+          name: string
+          phone: string
+          portfolio_images: string[] | null
+          preferred: boolean | null
+          price_range: string | null
+          rating: number | null
+          tags: string[] | null
+          updated_at: string | null
+          verified: boolean | null
+          website: string | null
+        }
+        Insert: {
+          address?: Json | null
+          category: string
+          created_at?: string | null
+          description?: string | null
+          email: string
+          id?: string
+          instagram?: string | null
+          name: string
+          phone: string
+          portfolio_images?: string[] | null
+          preferred?: boolean | null
+          price_range?: string | null
+          rating?: number | null
+          tags?: string[] | null
+          updated_at?: string | null
+          verified?: boolean | null
+          website?: string | null
+        }
+        Update: {
+          address?: Json | null
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          email?: string
+          id?: string
+          instagram?: string | null
+          name?: string
+          phone?: string
+          portfolio_images?: string[] | null
+          preferred?: boolean | null
+          price_range?: string | null
+          rating?: number | null
+          tags?: string[] | null
+          updated_at?: string | null
+          verified?: boolean | null
+          website?: string | null
+        }
+        Relationships: []
+      }
       template_sections: {
         Row: {
           created_at: string
@@ -1840,6 +2005,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      clean_expired_cache: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       get_section_template: {
         Args: { section_type_param: string }
         Returns: {

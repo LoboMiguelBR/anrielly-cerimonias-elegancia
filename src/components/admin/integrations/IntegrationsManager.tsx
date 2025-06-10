@@ -12,7 +12,7 @@ const IntegrationsManager = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'connected': return 'bg-green-100 text-green-800';
+      case 'active': return 'bg-green-100 text-green-800';
       case 'error': return 'bg-red-100 text-red-800';
       case 'pending': return 'bg-yellow-100 text-yellow-800';
       default: return 'bg-gray-100 text-gray-800';
@@ -21,7 +21,7 @@ const IntegrationsManager = () => {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'connected': return <Check className="w-4 h-4" />;
+      case 'active': return <Check className="w-4 h-4" />;
       case 'error': return <X className="w-4 h-4" />;
       case 'pending': return <AlertCircle className="w-4 h-4" />;
       default: return <AlertCircle className="w-4 h-4" />;
@@ -30,10 +30,10 @@ const IntegrationsManager = () => {
 
   const getStatusLabel = (status: string) => {
     switch (status) {
-      case 'connected': return 'Conectado';
+      case 'active': return 'Conectado';
       case 'error': return 'Erro';
       case 'pending': return 'Pendente';
-      case 'disconnected': return 'Desconectado';
+      case 'inactive': return 'Desconectado';
       default: return status;
     }
   };
@@ -48,7 +48,6 @@ const IntegrationsManager = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold">Integrações</h2>
@@ -56,7 +55,6 @@ const IntegrationsManager = () => {
         </div>
       </div>
 
-      {/* Integrations Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {integrations.map(integration => (
           <Card key={integration.id} className="hover:shadow-lg transition-shadow">
@@ -104,8 +102,8 @@ const IntegrationsManager = () => {
                   <div>
                     <div className="text-sm font-medium mb-2">Recursos:</div>
                     <div className="space-y-1">
-                      {integration.features.map(feature => (
-                        <div key={feature} className="text-xs text-gray-600 flex items-center gap-1">
+                      {integration.features.map((feature, index) => (
+                        <div key={index} className="text-xs text-gray-600 flex items-center gap-1">
                           <Check className="w-3 h-3 text-green-600" />
                           {feature}
                         </div>
@@ -136,14 +134,13 @@ const IntegrationsManager = () => {
         ))}
       </div>
 
-      {/* Categories */}
       <div className="space-y-4">
         <h3 className="text-lg font-semibold">Categorias Disponíveis</h3>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {['Pagamentos', 'Email', 'AI/ML', 'Automação'].map(category => {
             const categoryIntegrations = integrations.filter(i => i.category === category);
-            const connectedCount = categoryIntegrations.filter(i => i.status === 'connected').length;
+            const connectedCount = categoryIntegrations.filter(i => i.status === 'active').length;
             
             return (
               <Card key={category}>
