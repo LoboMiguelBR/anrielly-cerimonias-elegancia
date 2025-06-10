@@ -1,10 +1,12 @@
 
+export type IntegrationStatus = 'active' | 'inactive' | 'pending' | 'error';
+
 export interface Integration {
   id: string;
   name: string;
   category: string;
   description?: string;
-  status: 'active' | 'inactive' | 'pending' | 'error';
+  status: IntegrationStatus;
   enabled: boolean;
   logo_url?: string;
   documentation_url?: string;

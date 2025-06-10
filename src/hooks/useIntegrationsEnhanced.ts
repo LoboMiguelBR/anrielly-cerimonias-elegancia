@@ -2,7 +2,32 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Integration, IntegrationTemplate } from '@/types/integrations';
+
+// Tipos para integrações
+export type IntegrationStatus = 'active' | 'inactive' | 'pending' | 'error';
+
+export interface Integration {
+  id: string;
+  name: string;
+  category: string;
+  description?: string;
+  status: IntegrationStatus;
+  enabled: boolean;
+  logo_url?: string;
+  documentation_url?: string;
+  features: string[];
+  config: Record<string, any>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface IntegrationTemplate {
+  id: string;
+  name: string;
+  category: string;
+  description: string;
+  config_schema: Record<string, any>;
+}
 
 export const useIntegrationsEnhanced = () => {
   const [integrations, setIntegrations] = useState<Integration[]>([]);
@@ -18,7 +43,15 @@ export const useIntegrationsEnhanced = () => {
         .order('name');
 
       if (error) throw error;
-      setIntegrations(data || []);
+      
+      // Type cast para garantir compatibilidade com nossos tipos
+      const typedIntegrations: Integration[] = (data || []).map(integration => ({
+        ...integration,
+        status: integration.status as IntegrationStatus,
+        config: typeof integration.config === 'object' ? integration.config as Record<string, any> : {}
+      }));
+      
+      setIntegrations(typedIntegrations);
     } catch (error: any) {
       console.error('Erro ao buscar integrações:', error);
       toast.error('Erro ao carregar integrações');
@@ -32,17 +65,20 @@ export const useIntegrationsEnhanced = () => {
       const integration = integrations.find(i => i.id === id);
       if (!integration) return;
 
+      const newEnabled = !integration.enabled;
+      const newStatus: IntegrationStatus = newEnabled ? 'active' : 'inactive';
+
       const { error } = await supabase
         .from('integrations')
         .update({ 
-          enabled: !integration.enabled,
-          status: !integration.enabled ? 'active' : 'inactive'
+          enabled: newEnabled,
+          status: newStatus as string // Cast para string
         })
         .eq('id', id);
 
       if (error) throw error;
 
-      toast.success(`Integração ${!integration.enabled ? 'ativada' : 'desativada'} com sucesso!`);
+      toast.success(`Integração ${newEnabled ? 'ativada' : 'desativada'} com sucesso!`);
       await fetchIntegrations();
     } catch (error: any) {
       console.error('Erro ao alterar integração:', error);
@@ -55,8 +91,6 @@ export const useIntegrationsEnhanced = () => {
       const integration = integrations.find(i => i.id === id);
       if (!integration) return;
 
-      // Aqui você pode implementar a lógica específica de configuração
-      // Por exemplo, abrir um modal de configuração
       console.log('Configurando integração:', integration.name);
       
       if (config) {
@@ -88,6 +122,26 @@ export const useIntegrationsEnhanced = () => {
           api_key: { type: 'string', required: true },
           webhook_url: { type: 'string', required: false }
         }
+      },
+      {
+        id: '2',
+        name: 'OpenAI Assistant',
+        category: 'AI/ML',
+        description: 'Template para integração com OpenAI',
+        config_schema: {
+          api_key: { type: 'string', required: true },
+          model: { type: 'string', required: false, default: 'gpt-3.5-turbo' }
+        }
+      },
+      {
+        id: '3',
+        name: 'Resend Email',
+        category: 'Email',
+        description: 'Template para integração com Resend',
+        config_schema: {
+          api_key: { type: 'string', required: true },
+          from_email: { type: 'string', required: true }
+        }
       }
     ];
     setTemplates(mockTemplates);
@@ -95,9 +149,14 @@ export const useIntegrationsEnhanced = () => {
 
   const createIntegration = async (data: Omit<Integration, 'id' | 'created_at' | 'updated_at'>) => {
     try {
+      const insertData = {
+        ...data,
+        status: data.status as string // Cast para string
+      };
+
       const { error } = await supabase
         .from('integrations')
-        .insert([data]);
+        .insert([insertData]);
 
       if (error) throw error;
 
@@ -126,6 +185,23 @@ export const useIntegrationsEnhanced = () => {
     }
   };
 
+  const updateIntegrationStatus = async (id: string, status: IntegrationStatus) => {
+    try {
+      const { error } = await supabase
+        .from('integrations')
+        .update({ status: status as string }) // Cast para string
+        .eq('id', id);
+
+      if (error) throw error;
+
+      toast.success('Status da integração atualizado!');
+      await fetchIntegrations();
+    } catch (error: any) {
+      console.error('Erro ao atualizar status:', error);
+      toast.error('Erro ao atualizar status');
+    }
+  };
+
   const refetch = async () => {
     await Promise.all([fetchIntegrations(), fetchTemplates()]);
   };
@@ -145,6 +221,7 @@ export const useIntegrationsEnhanced = () => {
     configureIntegration,
     createIntegration,
     deleteIntegration,
+    updateIntegrationStatus,
     refetch
   };
 };
