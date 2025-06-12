@@ -2,54 +2,116 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Supplier, SupplierStats, SupplierSearchFilters } from '@/types/suppliers';
+import { useCache } from './useCache';
+
+export interface Supplier {
+  id: string;
+  name: string;
+  category: string;
+  email: string;
+  phone: string;
+  website?: string;
+  instagram?: string;
+  description?: string;
+  address?: any;
+  tags?: string[];
+  rating: number;
+  verified: boolean;
+  preferred: boolean;
+  price_range?: string;
+  portfolio_images?: string[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SupplierFilters {
+  category?: string[];
+  verified?: boolean;
+  preferred?: boolean;
+  rating_min?: number;
+  search_query?: string;
+}
+
+export interface SupplierStats {
+  total_suppliers: number;
+  verified_suppliers: number;
+  preferred_suppliers: number;
+  avg_rating: number;
+}
 
 export const useSuppliersEnhanced = () => {
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [stats, setStats] = useState<SupplierStats | null>(null);
   const [loading, setLoading] = useState(false);
-  const [searchFilters, setSearchFilters] = useState<SupplierSearchFilters>({});
+  const [filters, setFilters] = useState<SupplierFilters>({});
+  const { getCache, setCache } = useCache();
 
-  const fetchSuppliers = async (filters?: SupplierSearchFilters) => {
+  const fetchSuppliers = async (supplierFilters?: SupplierFilters) => {
     try {
       setLoading(true);
+      const activeFilters = supplierFilters || filters;
+      const cacheKey = `suppliers_${JSON.stringify(activeFilters)}`;
+      
+      // Try cache first
+      const cachedData = await getCache(cacheKey);
+      if (cachedData) {
+        setSuppliers(cachedData);
+        setLoading(false);
+        return;
+      }
+
+      // Optimized query with selective fields and proper indexing
       let query = supabase
         .from('suppliers')
-        .select('*')
-        .order('rating', { ascending: false });
+        .select(`
+          id,
+          name,
+          category,
+          email,
+          phone,
+          website,
+          instagram,
+          description,
+          rating,
+          verified,
+          preferred,
+          price_range,
+          created_at,
+          updated_at
+        `)
+        .order('rating', { ascending: false })
+        .order('name');
 
-      const activeFilters = filters || searchFilters;
+      if (activeFilters.category && activeFilters.category.length > 0) {
+        query = query.in('category', activeFilters.category);
+      }
 
-      if (activeFilters.category) {
-        query = query.eq('category', activeFilters.category);
+      if (activeFilters.verified !== undefined) {
+        query = query.eq('verified', activeFilters.verified);
+      }
+
+      if (activeFilters.preferred !== undefined) {
+        query = query.eq('preferred', activeFilters.preferred);
+      }
+
+      if (activeFilters.rating_min !== undefined) {
+        query = query.gte('rating', activeFilters.rating_min);
       }
 
       if (activeFilters.search_query) {
-        query = query.or(`name.ilike.%${activeFilters.search_query}%,description.ilike.%${activeFilters.search_query}%`);
+        query = query.or(`name.ilike.%${activeFilters.search_query}%,category.ilike.%${activeFilters.search_query}%,description.ilike.%${activeFilters.search_query}%`);
       }
 
-      if (activeFilters.min_rating) {
-        query = query.gte('rating', activeFilters.min_rating);
-      }
-
-      if (activeFilters.verified_only) {
-        query = query.eq('verified', true);
-      }
-
-      if (activeFilters.preferred_only) {
-        query = query.eq('preferred', true);
-      }
-
-      const { data, error } = await query;
+      const { data, error } = await query.limit(100); // Limit results for performance
 
       if (error) throw error;
 
-      const mappedSuppliers: Supplier[] = (data || []).map(item => ({
-        ...item,
-        address: typeof item.address === 'string' ? JSON.parse(item.address) : item.address || {}
-      }));
-
-      setSuppliers(mappedSuppliers);
+      const typedSuppliers: Supplier[] = data || [];
+      setSuppliers(typedSuppliers);
+      
+      // Cache the results
+      await setCache(cacheKey, typedSuppliers, 300); // 5 minutes cache
+      
     } catch (error: any) {
       console.error('Erro ao buscar fornecedores:', error);
       toast.error('Erro ao carregar fornecedores');
@@ -60,18 +122,31 @@ export const useSuppliersEnhanced = () => {
 
   const fetchStats = async () => {
     try {
-      const { data } = await supabase
+      const cacheKey = 'suppliers_stats';
+      const cachedStats = await getCache(cacheKey);
+      
+      if (cachedStats) {
+        setStats(cachedStats);
+        return;
+      }
+
+      // Optimized stats query
+      const { data, error } = await supabase
         .from('suppliers')
         .select('verified, preferred, rating');
+
+      if (error) throw error;
 
       if (data) {
         const stats: SupplierStats = {
           total_suppliers: data.length,
           verified_suppliers: data.filter(s => s.verified).length,
           preferred_suppliers: data.filter(s => s.preferred).length,
-          average_rating: data.reduce((acc, s) => acc + (s.rating || 0), 0) / data.length || 0,
+          avg_rating: data.reduce((acc, s) => acc + (s.rating || 0), 0) / data.length || 0,
         };
+        
         setStats(stats);
+        await setCache(cacheKey, stats, 600); // 10 minutes cache
       }
     } catch (error: any) {
       console.error('Erro ao buscar estatísticas:', error);
@@ -81,6 +156,7 @@ export const useSuppliersEnhanced = () => {
   const createSupplier = async (supplierData: Omit<Supplier, 'id' | 'created_at' | 'updated_at'>) => {
     try {
       setLoading(true);
+      
       const { data, error } = await supabase
         .from('suppliers')
         .insert([supplierData])
@@ -104,6 +180,7 @@ export const useSuppliersEnhanced = () => {
   const updateSupplier = async (id: string, updates: Partial<Supplier>) => {
     try {
       setLoading(true);
+      
       const { error } = await supabase
         .from('suppliers')
         .update(updates)
@@ -125,6 +202,7 @@ export const useSuppliersEnhanced = () => {
   const deleteSupplier = async (id: string) => {
     try {
       setLoading(true);
+      
       const { error } = await supabase
         .from('suppliers')
         .delete()
@@ -143,9 +221,14 @@ export const useSuppliersEnhanced = () => {
     }
   };
 
-  const applyFilters = (filters: SupplierSearchFilters) => {
-    setSearchFilters(filters);
-    fetchSuppliers(filters);
+  const applyFilters = (newFilters: SupplierFilters) => {
+    setFilters(newFilters);
+    fetchSuppliers(newFilters);
+  };
+
+  const clearFilters = () => {
+    setFilters({});
+    fetchSuppliers({});
   };
 
   const refetch = () => {
@@ -162,12 +245,13 @@ export const useSuppliersEnhanced = () => {
     suppliers,
     stats,
     loading,
-    searchFilters,
+    filters,
     fetchSuppliers,
     createSupplier,
     updateSupplier,
     deleteSupplier,
     applyFilters,
+    clearFilters,
     refetch
   };
 };
