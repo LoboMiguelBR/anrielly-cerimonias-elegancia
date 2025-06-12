@@ -136,14 +136,14 @@ export const useOptimizedQueries = () => {
     }
   }, [getCache, setCache]);
 
-  // Batch operations for better performance
+  // Batch operations for better performance - corrigido para usar tipo específico
   const batchUpdate = useCallback(async (
-    table: string,
+    tableName: 'suppliers' | 'clientes' | 'events' | 'contracts' | 'proposals',
     updates: Array<{ id: string; data: any }>
   ) => {
     try {
       const promises = updates.map(({ id, data }) =>
-        supabase.from(table).update(data).eq('id', id)
+        supabase.from(tableName).update(data).eq('id', id)
       );
 
       const results = await Promise.allSettled(promises);
