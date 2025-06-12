@@ -68,14 +68,16 @@ export const useSuppliersEnhanced = () => {
       
       if (error) throw error;
       
-      // Transform data to match our interface
+      // Transform data to match our interface with proper address handling
       const transformedData: Supplier[] = (data || []).map(item => ({
         id: item.id,
         name: item.name,
         category: item.category,
         email: item.email,
         phone: item.phone,
-        address: item.address || {},
+        address: typeof item.address === 'object' && item.address !== null && !Array.isArray(item.address) 
+          ? item.address as { street?: string; city?: string; state?: string; postal_code?: string; }
+          : {},
         rating: item.rating || 0,
         verified: item.verified || false,
         preferred: item.preferred || false,
