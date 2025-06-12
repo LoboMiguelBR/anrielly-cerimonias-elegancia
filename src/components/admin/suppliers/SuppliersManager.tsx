@@ -128,7 +128,10 @@ const SuppliersManager = () => {
                 </div>
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <MapPin className="w-4 h-4" />
-                  {supplier.address.city}, {supplier.address.state}
+                  {supplier.address?.city && supplier.address?.state ? 
+                    `${supplier.address.city}, ${supplier.address.state}` : 
+                    'Endereço não informado'
+                  }
                 </div>
                 
                 {supplier.price_range && (
