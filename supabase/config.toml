@@ -58,3 +58,9 @@ verify_jwt = false
 
 [functions.cache]
 verify_jwt = false
+
+[functions.questionario-auth]
+verify_jwt = false
+
+[functions.questionario-respostas]
+verify_jwt = false
