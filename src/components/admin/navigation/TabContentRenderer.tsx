@@ -1,4 +1,3 @@
-
 import React from 'react';
 import DashboardTab from '../tabs/DashboardTab';
 import LeadsTab from '../tabs/LeadsTab';
@@ -19,7 +18,6 @@ import HistoriasCasaisTab from '../tabs/HistoriasCasaisTab';
 import ProposalTemplatesTab from '../tabs/ProposalTemplatesTab';
 import ContractTemplatesTab from '../tabs/ContractTemplatesTab';
 import ContractEmailTemplatesTab from '../tabs/ContractEmailTemplatesTab';
-import WebsiteTab from '../tabs/WebsiteTab';
 import AnalyticsTab from '../tabs/AnalyticsTab';
 import SettingsTab from '../tabs/SettingsTab';
 import UsersTab from '../tabs/UsersTab';
@@ -47,7 +45,6 @@ const TabContentRenderer: React.FC<TabContentRendererProps> = ({ activeTab }) =>
     'proposal-templates': ProposalTemplatesTab,
     'contract-templates': ContractTemplatesTab,
     'contract-email-templates': ContractEmailTemplatesTab,
-    website: WebsiteTab,
     analytics: AnalyticsTab,
     settings: SettingsTab,
     users: UsersTab,

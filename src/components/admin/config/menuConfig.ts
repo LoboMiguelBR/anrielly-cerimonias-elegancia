@@ -1,9 +1,6 @@
 
-/**
- * Sidebar menu configuration and helpers
- */
+// Sidebar menu configuration and helpers
 
-// Define the MenuItem and MenuSection types
 export interface MenuItem {
   id: string; // key
   label: string;
@@ -14,7 +11,7 @@ export interface MenuSection {
   items: MenuItem[];
 }
 
-// Raw menu config CMS/landing pages removidos
+// Novo menuConfig SEM CMS/Web/Website/Landing Pages
 export const menuConfig = [
   {
     section: 'Dashboard',
@@ -70,7 +67,7 @@ export const menuConfig = [
   },
 ];
 
-// Converts menuConfig to the structure expected by sidebars
+// Helper atualizados
 export function getMenuSections(): MenuSection[] {
   return menuConfig.map(section => ({
     title: section.section,
@@ -82,7 +79,6 @@ export function getMenuSections(): MenuSection[] {
   }));
 }
 
-// Flattens all menu items for tab accessibility, etc
 export function getAllMenuItems(): MenuItem[] {
   return menuConfig.flatMap(section =>
     (section.items || []).map(item => ({
