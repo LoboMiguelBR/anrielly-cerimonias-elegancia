@@ -8,6 +8,10 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    // Force reload on file changes
+    hmr: {
+      overlay: true
+    }
   },
   plugins: [
     react(),
@@ -23,6 +27,8 @@ export default defineConfig(({ mode }) => ({
     assetsDir: 'assets',
     sourcemap: false,
     minify: 'esbuild',
+    // Clear output directory before build
+    emptyOutDir: true,
     rollupOptions: {
       output: {
         manualChunks: {
@@ -32,4 +38,10 @@ export default defineConfig(({ mode }) => ({
       },
     },
   },
+  // Clear dependency cache
+  optimizeDeps: {
+    force: true
+  },
+  // Clear cache directory
+  cacheDir: 'node_modules/.vite',
 }));
