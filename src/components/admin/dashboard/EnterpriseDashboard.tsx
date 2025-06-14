@@ -1,4 +1,3 @@
-
 import React from "react";
 import KPIStatCard from "./KPIStatCard";
 import WhatsAppIntegrationSection from "./WhatsAppIntegrationSection";
@@ -6,6 +5,8 @@ import ReceitaLeadsChartSection from "./ReceitaLeadsChartSection";
 import FollowUpAutomations from "./FollowUpAutomations";
 import { DollarSign, Users, CheckCircle, Clock } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+
+console.log("EnterpriseDashboard: Component loaded successfully");
 
 const data = [
   { name: "Jan", receita: 4000, leads: 2400 },
@@ -23,6 +24,8 @@ const data = [
 ];
 
 const EnterpriseDashboard = () => {
+  console.log("EnterpriseDashboard: Rendering component");
+  
   const totalReceita = data.reduce((acc, item) => acc + item.receita, 0);
   const totalLeads = data.reduce((acc, item) => acc + item.leads, 0);
   const clientesAtivos = 55;
