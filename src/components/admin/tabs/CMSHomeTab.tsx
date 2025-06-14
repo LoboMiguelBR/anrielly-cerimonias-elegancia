@@ -1,4 +1,6 @@
-
+/**
+ * Renomeada para Website & CMS na navegação.
+ */
 import React from 'react';
 import CMSHomeManager from '../cms-home/CMSHomeManager';
 
