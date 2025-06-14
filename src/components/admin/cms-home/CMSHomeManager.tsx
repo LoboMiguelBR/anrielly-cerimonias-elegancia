@@ -1,89 +1,113 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Plus, Edit, Trash2, Eye, EyeOff, GripVertical, Save, X } from 'lucide-react';
+import { useCMSHomeSections } from '@/hooks/useCMSHomeSections';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Edit, Trash2, Eye, EyeOff, GripVertical, Image, Layout } from 'lucide-react';
-import { useCMSHomeSections, CMSHomeSection } from '@/hooks/useCMSHomeSections';
-import CMSSectionEditor from './CMSSectionEditor';
-import CMSAssetsManager from './CMSAssetsManager';
-import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import { toast } from 'sonner';
 
 const CMSHomeManager = () => {
-  const { 
-    sections, 
-    loading, 
-    updateSection, 
-    createSection, 
-    deleteSection, 
-    reorderSections 
-  } = useCMSHomeSections();
-  
-  const [editingSection, setEditingSection] = useState<CMSHomeSection | null>(null);
-  const [isCreating, setIsCreating] = useState(false);
-  const [activeTab, setActiveTab] = useState('sections');
+  const { sections, loading, error, createSection, updateSection, deleteSection } = useCMSHomeSections();
+  const [editingSection, setEditingSection] = useState<string | null>(null);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [formData, setFormData] = useState({
+    title: '',
+    subtitle: '',
+    content_html: '',
+    bg_color: '#ffffff',
+    cta_label: '',
+    cta_link: '',
+    active: true
+  });
 
-  const handleToggleActive = async (section: CMSHomeSection) => {
-    await updateSection(section.id, { active: !section.active });
-  };
-
-  const handleEdit = (section: CMSHomeSection) => {
-    setEditingSection(section);
-  };
-
-  const handleCreate = () => {
-    setIsCreating(true);
-  };
-
-  const handleDelete = async (section: CMSHomeSection) => {
-    if (window.confirm(`Tem certeza que deseja excluir a seção "${section.title}"?`)) {
-      await deleteSection(section.id);
-    }
-  };
-
-  const handleSave = async (sectionData: Omit<CMSHomeSection, 'id' | 'created_at' | 'updated_at'>) => {
-    if (editingSection) {
-      await updateSection(editingSection.id, sectionData);
-      setEditingSection(null);
-    } else {
-      await createSection(sectionData);
-      setIsCreating(false);
-    }
-  };
-
-  const handleCancel = () => {
+  const resetForm = () => {
+    setFormData({
+      title: '',
+      subtitle: '',
+      content_html: '',
+      bg_color: '#ffffff',
+      cta_label: '',
+      cta_link: '',
+      active: true
+    });
     setEditingSection(null);
-    setIsCreating(false);
+    setShowAddForm(false);
   };
 
-  const handleDragEnd = (result: any) => {
-    if (!result.destination) return;
+  const handleSave = async () => {
+    try {
+      const slug = formData.title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+      const sectionData = {
+        ...formData,
+        slug,
+        order_index: sections.length + 1
+      };
 
-    const reorderedSections = Array.from(sections);
-    const [removed] = reorderedSections.splice(result.source.index, 1);
-    reorderedSections.splice(result.destination.index, 0, removed);
+      if (editingSection) {
+        await updateSection(editingSection, sectionData);
+        toast.success('Seção atualizada!');
+      } else {
+        await createSection(sectionData);
+        toast.success('Seção criada!');
+      }
+      resetForm();
+    } catch (err) {
+      toast.error('Erro ao salvar seção');
+    }
+  };
 
-    reorderSections(reorderedSections);
+  const handleEdit = (section: any) => {
+    setFormData({
+      title: section.title,
+      subtitle: section.subtitle || '',
+      content_html: section.content_html || '',
+      bg_color: section.bg_color || '#ffffff',
+      cta_label: section.cta_label || '',
+      cta_link: section.cta_link || '',
+      active: section.active
+    });
+    setEditingSection(section.id);
+    setShowAddForm(true);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (window.confirm('Tem certeza que deseja excluir esta seção?')) {
+      try {
+        await deleteSection(id);
+        toast.success('Seção excluída!');
+      } catch (err) {
+        toast.error('Erro ao excluir seção');
+      }
+    }
+  };
+
+  const toggleActive = async (id: string, active: boolean) => {
+    try {
+      await updateSection(id, { active });
+      toast.success(`Seção ${active ? 'ativada' : 'desativada'}!`);
+    } catch (err) {
+      toast.error('Erro ao alterar status');
+    }
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+      <div className="flex items-center justify-center p-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }
 
-  // Se estiver editando ou criando, mostrar o editor
-  if (editingSection || isCreating) {
+  if (error) {
     return (
-      <CMSSectionEditor
-        section={editingSection}
-        onSave={handleSave}
-        onCancel={handleCancel}
-        isCreating={isCreating}
-      />
+      <div className="text-center p-8">
+        <p className="text-red-600 mb-4">Erro ao carregar seções: {error}</p>
+        <Button onClick={() => window.location.reload()}>Tentar novamente</Button>
+      </div>
     );
   }
 
@@ -91,144 +115,181 @@ const CMSHomeManager = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold">Gerenciar Home - CMS Visual</h2>
-          <p className="text-gray-600">Configure as seções da página principal com imagens e layouts visuais</p>
+          <h2 className="text-2xl font-bold">Gerenciar Página Inicial</h2>
+          <p className="text-gray-600">Configure as seções da página inicial do site</p>
         </div>
+        <Button onClick={() => setShowAddForm(true)} className="flex items-center gap-2">
+          <Plus className="w-4 h-4" />
+          Nova Seção
+        </Button>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="sections" className="flex items-center gap-2">
-            <Layout className="h-4 w-4" />
-            Seções
-          </TabsTrigger>
-          <TabsTrigger value="assets" className="flex items-center gap-2">
-            <Image className="h-4 w-4" />
-            Biblioteca de Imagens
-          </TabsTrigger>
-        </TabsList>
+      {/* Formulário de Criação/Edição */}
+      {showAddForm && (
+        <Card className="border-2 border-primary/20">
+          <CardHeader className="pb-4">
+            <div className="flex justify-between items-center">
+              <CardTitle>{editingSection ? 'Editar Seção' : 'Nova Seção'}</CardTitle>
+              <Button variant="ghost" size="sm" onClick={resetForm}>
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">Título *</label>
+                <Input
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  placeholder="Ex: Sobre nós"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Subtítulo</label>
+                <Input
+                  value={formData.subtitle}
+                  onChange={(e) => setFormData({ ...formData, subtitle: e.target.value })}
+                  placeholder="Ex: Conheça nossa história"
+                />
+              </div>
+            </div>
 
-        <TabsContent value="sections" className="space-y-6">
-          <div className="flex justify-end">
-            <Button onClick={handleCreate} className="flex items-center gap-2">
-              <Plus className="h-4 w-4" />
-              Nova Seção
-            </Button>
-          </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Conteúdo HTML</label>
+              <Textarea
+                value={formData.content_html}
+                onChange={(e) => setFormData({ ...formData, content_html: e.target.value })}
+                placeholder="<section class='py-20'><div class='container mx-auto px-4'>...</div></section>"
+                rows={6}
+              />
+            </div>
 
-          <DragDropContext onDragEnd={handleDragEnd}>
-            <Droppable droppableId="sections">
-              {(provided) => (
-                <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-4">
-                  {sections.map((section, index) => (
-                    <Draggable key={section.id} draggableId={section.id} index={index}>
-                      {(provided, snapshot) => (
-                        <Card 
-                          ref={provided.innerRef}
-                          {...provided.draggableProps}
-                          className={`${snapshot.isDragging ? 'shadow-lg' : ''}`}
-                        >
-                          <CardHeader>
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-3">
-                                <div 
-                                  {...provided.dragHandleProps}
-                                  className="cursor-grab active:cursor-grabbing"
-                                >
-                                  <GripVertical className="h-5 w-5 text-gray-400" />
-                                </div>
-                                <div>
-                                  <CardTitle className="flex items-center gap-2">
-                                    {section.title}
-                                    <Badge variant={section.active ? 'default' : 'secondary'}>
-                                      {section.active ? 'Ativa' : 'Inativa'}
-                                    </Badge>
-                                    <Badge variant="outline">
-                                      #{section.order_index}
-                                    </Badge>
-                                  </CardTitle>
-                                  <p className="text-sm text-gray-600">{section.subtitle}</p>
-                                </div>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => handleToggleActive(section)}
-                                >
-                                  {section.active ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => handleEdit(section)}
-                                >
-                                  <Edit className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => handleDelete(section)}
-                                  className="text-red-600 hover:bg-red-50"
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </div>
-                          </CardHeader>
-                          {section.content_html && (
-                            <CardContent>
-                              <div className="bg-gray-50 p-3 rounded text-sm space-y-2">
-                                <div><strong>Slug:</strong> {section.slug}</div>
-                                <div><strong>Cor de Fundo:</strong> 
-                                  <span 
-                                    className="inline-block w-4 h-4 rounded ml-2 border" 
-                                    style={{ backgroundColor: section.bg_color }}
-                                  ></span>
-                                  {section.bg_color}
-                                </div>
-                                {section.content_html.includes('<img') && (
-                                  <div className="flex items-center gap-1 text-green-600">
-                                    <Image className="h-3 w-3" />
-                                    <span className="text-xs">Contém imagens</span>
-                                  </div>
-                                )}
-                              </div>
-                            </CardContent>
-                          )}
-                        </Card>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">Cor de Fundo</label>
+                <Input
+                  type="color"
+                  value={formData.bg_color}
+                  onChange={(e) => setFormData({ ...formData, bg_color: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Texto do Botão</label>
+                <Input
+                  value={formData.cta_label}
+                  onChange={(e) => setFormData({ ...formData, cta_label: e.target.value })}
+                  placeholder="Ex: Saiba mais"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Link do Botão</label>
+                <Input
+                  value={formData.cta_link}
+                  onChange={(e) => setFormData({ ...formData, cta_link: e.target.value })}
+                  placeholder="Ex: #contato"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Switch
+                checked={formData.active}
+                onCheckedChange={(checked) => setFormData({ ...formData, active: checked })}
+              />
+              <label className="text-sm font-medium">Seção ativa</label>
+            </div>
+
+            <div className="flex gap-2 pt-4">
+              <Button onClick={handleSave} className="flex items-center gap-2">
+                <Save className="w-4 h-4" />
+                {editingSection ? 'Atualizar' : 'Criar'} Seção
+              </Button>
+              <Button variant="outline" onClick={resetForm}>
+                Cancelar
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Lista de Seções */}
+      <div className="space-y-4">
+        {sections.length === 0 ? (
+          <Card>
+            <CardContent className="text-center py-8">
+              <p className="text-gray-500 mb-4">Nenhuma seção criada ainda</p>
+              <Button onClick={() => setShowAddForm(true)}>Criar primeira seção</Button>
+            </CardContent>
+          </Card>
+        ) : (
+          sections.map((section, index) => (
+            <Card key={section.id} className={section.active ? '' : 'opacity-60'}>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <GripVertical className="w-4 h-4 text-gray-400" />
+                    <div>
+                      <h3 className="font-semibold flex items-center gap-2">
+                        {section.title}
+                        {!section.active && <Badge variant="secondary">Inativa</Badge>}
+                      </h3>
+                      {section.subtitle && (
+                        <p className="text-sm text-gray-600">{section.subtitle}</p>
                       )}
-                    </Draggable>
-                  ))}
-                  {provided.placeholder}
+                      <div className="flex items-center gap-4 mt-1">
+                        <span className="text-xs text-gray-500">Ordem: {section.order_index}</span>
+                        {section.bg_color !== '#ffffff' && (
+                          <div className="flex items-center gap-1">
+                            <div 
+                              className="w-3 h-3 rounded border"
+                              style={{ backgroundColor: section.bg_color }}
+                            />
+                            <span className="text-xs text-gray-500">{section.bg_color}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => toggleActive(section.id, !section.active)}
+                    >
+                      {section.active ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleEdit(section)}
+                    >
+                      <Edit className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDelete(section.id)}
+                      className="text-red-600 hover:text-red-700"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </div>
-              )}
-            </Droppable>
-          </DragDropContext>
-
-          {sections.length === 0 && (
-            <Card>
-              <CardContent className="text-center py-12">
-                <div className="mb-4">
-                  <Layout className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-                  <p className="text-gray-500 mb-4">Nenhuma seção criada ainda.</p>
-                  <p className="text-sm text-gray-400 mb-4">
-                    Crie seções visuais com imagens, templates prontos e layouts responsivos.
-                  </p>
-                </div>
-                <Button onClick={handleCreate}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Criar primeira seção visual
-                </Button>
               </CardContent>
             </Card>
-          )}
-        </TabsContent>
+          ))
+        )}
+      </div>
 
-        <TabsContent value="assets" className="space-y-6">
-          <CMSAssetsManager />
-        </TabsContent>
-      </Tabs>
+      {sections.length > 0 && (
+        <div className="text-center p-4 bg-blue-50 rounded-lg">
+          <p className="text-sm text-blue-700">
+            💡 Dica: As seções são exibidas na ordem indicada. Apenas seções ativas aparecem no site.
+          </p>
+        </div>
+      )}
     </div>
   );
 };
