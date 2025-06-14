@@ -1,6 +1,7 @@
 
+// Corrigindo o import do createClient para a URL oficial do Supabase para Deno Edge Functions
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.42.9";
+import { createClient } from "https://deno.land/x/supabase_js@2.42.9/mod.ts";
 import { decode } from "https://deno.land/std@0.190.0/encoding/base64.ts";
 import { createHash } from "https://deno.land/std@0.190.0/hash/mod.ts";
 import { compareSync, hashSync } from "https://deno.land/x/bcrypt@v0.4.1/mod.ts";
