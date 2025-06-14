@@ -5,8 +5,6 @@ import { Zap } from "lucide-react";
 import { toast } from "sonner";
 import { FollowUpListItem, FollowUpItemProps } from "./FollowUpListItem";
 
-console.log("FollowUpAutomations: Component loaded successfully");
-
 const demoFollowUps: FollowUpItemProps[] = [
   {
     id: 1,
@@ -29,14 +27,11 @@ const demoFollowUps: FollowUpItemProps[] = [
 ];
 
 const FollowUpAutomations = () => {
-  console.log("FollowUpAutomations: Rendering component");
-  
   const [items, setItems] = useState<Omit<FollowUpItemProps, "onMarkDone">[]>(
     demoFollowUps.map(({ onMarkDone, ...rest }) => rest)
   );
 
   const handleFollowUp = (id: number) => {
-    console.log("FollowUpAutomations: Handling follow-up for id:", id);
     setItems(items =>
       items.map(item =>
         item.id === id ? { ...item, status: "feito" } : item

@@ -9,20 +9,18 @@ import { TooltipProvider } from "@/components/ui/tooltip"
 import { BrowserRouter as Router } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { createStorageBuckets } from './integrations/supabase/setupStorage'
-import { AuthProvider } from '@/hooks/useAuthEnhanced'
+import { AuthProvider } from '@/hooks/useAuth'
 import ErrorBoundary from './components/ErrorBoundary'
 
 // Initialize storage buckets
 createStorageBuckets().catch(console.error);
 
-// Create a client with better error handling
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
+      staleTime: 1000 * 60 * 5,
       refetchOnWindowFocus: false,
       retry: (failureCount, error) => {
-        // Don't retry on certain errors
         if (error && typeof error === 'object' && 'status' in error) {
           const status = (error as any).status;
           if (status === 404 || status === 403) return false;
@@ -36,14 +34,12 @@ const queryClient = new QueryClient({
   },
 });
 
-// Register service worker for PWA with better error handling
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js')
       .then((registration) => {
         console.log('SW registered: ', registration);
         
-        // Listen for updates
         registration.addEventListener('updatefound', () => {
           const newWorker = registration.installing;
           if (newWorker) {
