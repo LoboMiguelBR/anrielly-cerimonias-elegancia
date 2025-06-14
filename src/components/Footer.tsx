@@ -1,5 +1,6 @@
 
 import { Instagram } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const Footer = () => {
   return (
@@ -46,13 +47,13 @@ const Footer = () => {
               </a>
             </address>
             
-            <div className="mt-3">
-              <a 
-                href="/admin" 
-                className="text-xs text-gray-600 hover:text-gray-400 transition-colors opacity-50 hover:opacity-75"
+            <div className="mt-2">
+              <Link 
+                to="/admin" 
+                className="text-xs text-gray-600 hover:text-gold transition-colors"
               >
-                Admin
-              </a>
+                Área Administrativa
+              </Link>
             </div>
           </div>
         </div>

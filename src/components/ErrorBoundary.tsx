@@ -1,51 +1,96 @@
 
 import React, { Component, ErrorInfo, ReactNode } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { AlertTriangle, RefreshCw } from 'lucide-react';
 
 interface Props {
-  children?: ReactNode;
+  children: ReactNode;
+  fallback?: ReactNode;
 }
 
 interface State {
   hasError: boolean;
-  error?: Error;
+  error: Error | null;
+  errorInfo: ErrorInfo | null;
 }
 
 class ErrorBoundary extends Component<Props, State> {
   public state: State = {
-    hasError: false
+    hasError: false,
+    error: null,
+    errorInfo: null
   };
 
   public static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, error };
+    return {
+      hasError: true,
+      error,
+      errorInfo: null
+    };
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('ErrorBoundary caught an error:', error, errorInfo);
+    
+    this.setState({
+      error,
+      errorInfo
+    });
   }
+
+  private handleReload = () => {
+    window.location.reload();
+  };
+
+  private handleReset = () => {
+    this.setState({
+      hasError: false,
+      error: null,
+      errorInfo: null
+    });
+  };
 
   public render() {
     if (this.state.hasError) {
+      if (this.props.fallback) {
+        return this.props.fallback;
+      }
+
       return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-          <div className="max-w-md mx-auto text-center p-6">
-            <div className="text-red-600 mb-4">
-              <svg className="w-16 h-16 mx-auto" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-              </svg>
-            </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              Oops! Algo deu errado
-            </h2>
-            <p className="text-gray-600 mb-4">
-              Ocorreu um erro inesperado. Por favor, recarregue a página.
-            </p>
-            <button
-              onClick={() => window.location.reload()}
-              className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700"
-            >
-              Recarregar Página
-            </button>
-          </div>
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+          <Card className="w-full max-w-lg">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-red-600">
+                <AlertTriangle className="w-5 h-5" />
+                Ops! Algo deu errado
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-gray-600">
+                Ocorreu um erro inesperado. Nossa equipe foi notificada e estamos trabalhando para resolver.
+              </p>
+              
+              {process.env.NODE_ENV === 'development' && this.state.error && (
+                <div className="bg-red-50 border border-red-200 rounded p-3">
+                  <p className="text-sm font-medium text-red-800 mb-2">Detalhes do erro (desenvolvimento):</p>
+                  <pre className="text-xs text-red-700 overflow-auto max-h-32">
+                    {this.state.error.toString()}
+                  </pre>
+                </div>
+              )}
+              
+              <div className="flex gap-2">
+                <Button onClick={this.handleReset} variant="outline" className="flex-1">
+                  Tentar Novamente
+                </Button>
+                <Button onClick={this.handleReload} className="flex-1">
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Recarregar Página
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       );
     }

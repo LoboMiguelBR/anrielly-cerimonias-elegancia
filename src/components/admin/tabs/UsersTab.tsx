@@ -1,247 +1,276 @@
 
-import React from 'react';
-import { useUserProfiles } from '@/hooks/useUserProfiles';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Users, UserPlus, Mail, Phone, Shield } from 'lucide-react';
+import { useState } from 'react';
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Plus, Search, UserPlus, Mail, Edit, Trash2 } from 'lucide-react';
+import { useUserProfiles, UserRole } from '@/hooks/useUserProfiles';
+import { useProfessionals } from '@/hooks/useProfessionals';
+import { useMobileLayout } from '@/hooks/useMobileLayout';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 const UsersTab = () => {
-  const { 
-    profiles, 
-    invitations, 
-    loading, 
-    createInvitation, 
-    updateProfile 
-  } = useUserProfiles();
+  const [showInviteDialog, setShowInviteDialog] = useState(false);
+  const [filterRole, setFilterRole] = useState<string>('all');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [inviteForm, setInviteForm] = useState({
+    email: '',
+    role: 'noivo' as UserRole,
+    professional_id: ''
+  });
 
-  const getRoleColor = (role: string) => {
+  const { profiles, invitations, loading, createInvitation, deleteInvitation } = useUserProfiles();
+  const { professionals } = useProfessionals();
+  const { isMobile } = useMobileLayout();
+
+  const getRoleBadge = (role: string) => {
     switch (role) {
       case 'admin':
-        return 'bg-purple-100 text-purple-800';
+        return <Badge className="bg-red-100 text-red-800">Admin</Badge>;
       case 'cerimonialista':
-        return 'bg-blue-100 text-blue-800';
-      case 'cliente':
-        return 'bg-green-100 text-green-800';
+        return <Badge className="bg-blue-100 text-blue-800">Cerimonialista</Badge>;
       case 'noivo':
-        return 'bg-pink-100 text-pink-800';
+        return <Badge className="bg-green-100 text-green-800">Noivo</Badge>;
       default:
-        return 'bg-gray-100 text-gray-800';
+        return <Badge variant="outline">{role}</Badge>;
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
-      </div>
-    );
-  }
+  const filteredProfiles = profiles.filter(profile => {
+    const matchesRole = filterRole === 'all' || profile.role === filterRole;
+    const matchesSearch = searchTerm === '' || 
+      profile.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      profile.email.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    return matchesRole && matchesSearch;
+  });
+
+  const handleInvite = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await createInvitation({
+        email: inviteForm.email,
+        role: inviteForm.role,
+        professional_id: inviteForm.professional_id || undefined
+      });
+      
+      setInviteForm({ email: '', role: 'noivo', professional_id: '' });
+      setShowInviteDialog(false);
+    } catch (error) {
+      // Error is handled in the hook
+    }
+  };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
+    <div className={`space-y-6 ${isMobile ? 'p-2' : ''}`}>
+      <div className="flex flex-col gap-4 justify-between items-start">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Usuários</h1>
-          <p className="text-gray-600">Gerencie usuários e permissões do sistema</p>
+          <h2 className={`${isMobile ? 'text-lg' : 'text-2xl'} font-bold text-gray-900`}>
+            Gerenciar Usuários
+          </h2>
+          <p className={`text-gray-600 ${isMobile ? 'text-sm' : ''}`}>
+            Gerencie perfis de acesso e convites para novos usuários
+          </p>
         </div>
-        <Button>
-          <UserPlus className="w-4 h-4 mr-2" />
-          Convidar Usuário
-        </Button>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center">
-              <Users className="w-8 h-8 text-purple-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total Usuários</p>
-                <p className="text-2xl font-bold text-gray-900">{profiles.length}</p>
+        
+        <Dialog open={showInviteDialog} onOpenChange={setShowInviteDialog}>
+          <DialogTrigger asChild>
+            <Button className={`bg-blue-600 hover:bg-blue-700 text-white ${isMobile ? 'w-full' : ''}`}>
+              <UserPlus className="w-4 h-4 mr-2" />
+              Convidar Usuário
+            </Button>
+          </DialogTrigger>
+          <DialogContent className={`${isMobile ? 'w-[95vw] max-w-[95vw]' : 'sm:max-w-[500px]'}`}>
+            <DialogHeader>
+              <DialogTitle>Convidar Novo Usuário</DialogTitle>
+            </DialogHeader>
+            
+            <form onSubmit={handleInvite} className="space-y-4">
+              <div>
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={inviteForm.email}
+                  onChange={(e) => setInviteForm({ ...inviteForm, email: e.target.value })}
+                  required
+                />
               </div>
-            </div>
-          </CardContent>
-        </Card>
 
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center">
-              <Shield className="w-8 h-8 text-blue-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Administradores</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {profiles.filter(p => p.role === 'admin').length}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center">
-              <Mail className="w-8 h-8 text-green-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Convites Pendentes</p>
-                <p className="text-2xl font-bold text-gray-900">{invitations.length}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center">
-              <Users className="w-8 h-8 text-orange-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Usuários Ativos</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {profiles.filter(p => p.status === 'ativo').length}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-4">
-        <Input 
-          placeholder="Buscar usuários..." 
-          className="flex-1"
-        />
-        <Select>
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder="Filtrar por role" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos os roles</SelectItem>
-            <SelectItem value="admin">Administrador</SelectItem>
-            <SelectItem value="cerimonialista">Cerimonialista</SelectItem>
-            <SelectItem value="cliente">Cliente</SelectItem>
-            <SelectItem value="noivo">Noivo/Noiva</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select>
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder="Filtrar por status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos os status</SelectItem>
-            <SelectItem value="ativo">Ativo</SelectItem>
-            <SelectItem value="inativo">Inativo</SelectItem>
-            <SelectItem value="pendente">Pendente</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* Users List */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Lista de Usuários</CardTitle>
-          <CardDescription>
-            Visualize e gerencie todos os usuários do sistema
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {profiles.map((profile) => (
-              <div 
-                key={profile.id}
-                className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
-              >
-                <div className="flex items-center space-x-4">
-                  <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
-                    <span className="text-purple-600 font-medium">
-                      {profile.name?.charAt(0).toUpperCase() || profile.email.charAt(0).toUpperCase()}
-                    </span>
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-gray-900">
-                      {profile.name || 'Nome não informado'}
-                    </h3>
-                    <div className="flex items-center space-x-2 text-sm text-gray-600">
-                      <Mail className="w-4 h-4" />
-                      <span>{profile.email}</span>
-                    </div>
-                    {profile.created_at && (
-                      <p className="text-xs text-gray-500">
-                        Criado em {new Date(profile.created_at).toLocaleDateString('pt-BR')}
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                <div className="flex items-center space-x-3">
-                  <Badge className={getRoleColor(profile.role)}>
-                    {profile.role}
-                  </Badge>
-                  <Badge variant={profile.status === 'ativo' ? 'default' : 'secondary'}>
-                    {profile.status}
-                  </Badge>
-                  <Button variant="outline" size="sm">
-                    Editar
-                  </Button>
-                </div>
-              </div>
-            ))}
-
-            {profiles.length === 0 && (
-              <div className="text-center py-8">
-                <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  Nenhum usuário encontrado
-                </h3>
-                <p className="text-gray-600">
-                  Comece convidando usuários para o sistema.
-                </p>
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Pending Invitations */}
-      {invitations.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Convites Pendentes</CardTitle>
-            <CardDescription>
-              Convites enviados aguardando aceite
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {invitations.map((invitation) => (
-                <div 
-                  key={invitation.id}
-                  className="flex items-center justify-between p-3 border rounded-lg"
+              <div>
+                <Label htmlFor="role">Tipo de Usuário</Label>
+                <Select 
+                  value={inviteForm.role} 
+                  onValueChange={(value: UserRole) => setInviteForm({ ...inviteForm, role: value })}
                 >
-                  <div>
-                    <p className="font-medium text-gray-900">{invitation.email}</p>
-                    <p className="text-sm text-gray-600">
-                      Role: {invitation.role} • Enviado em {' '}
-                      {new Date(invitation.created_at).toLocaleDateString('pt-BR')}
-                    </p>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="admin">Admin</SelectItem>
+                    <SelectItem value="cerimonialista">Cerimonialista</SelectItem>
+                    <SelectItem value="noivo">Noivo</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {inviteForm.role === 'cerimonialista' && (
+                <div>
+                  <Label htmlFor="professional">Profissional</Label>
+                  <Select 
+                    value={inviteForm.professional_id} 
+                    onValueChange={(value) => setInviteForm({ ...inviteForm, professional_id: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione um profissional" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {professionals?.map((professional) => (
+                        <SelectItem key={professional.id} value={professional.id}>
+                          {professional.name} - {professional.category}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              <div className="flex gap-2 justify-end">
+                <Button type="button" variant="outline" onClick={() => setShowInviteDialog(false)}>
+                  Cancelar
+                </Button>
+                <Button type="submit" disabled={loading}>
+                  {loading ? 'Enviando...' : 'Enviar Convite'}
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      {/* Filtros */}
+      <div className={`flex gap-4 ${isMobile ? 'flex-col' : 'items-center'}`}>
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+          <Input
+            placeholder="Buscar por nome ou email..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        
+        <Select value={filterRole} onValueChange={setFilterRole}>
+          <SelectTrigger className={isMobile ? 'w-full' : 'w-48'}>
+            <SelectValue placeholder="Filtrar por tipo" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos</SelectItem>
+            <SelectItem value="admin">Admin</SelectItem>
+            <SelectItem value="cerimonialista">Cerimonialista</SelectItem>
+            <SelectItem value="noivo">Noivo</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Lista de Usuários */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold text-gray-900">Usuários Ativos</h3>
+        
+        {filteredProfiles.length === 0 ? (
+          <Card>
+            <CardContent className="p-8 text-center">
+              <p className="text-gray-500">Nenhum usuário encontrado</p>
+            </CardContent>
+          </Card>
+        ) : (
+          filteredProfiles.map((profile) => (
+            <Card key={profile.id}>
+              <CardContent className="p-4">
+                <div className={`flex justify-between items-start ${isMobile ? 'flex-col gap-3' : ''}`}>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <h4 className="font-semibold text-gray-900">
+                        {profile.name || profile.email}
+                      </h4>
+                      {getRoleBadge(profile.role)}
+                    </div>
+                    
+                    <div className="text-sm text-gray-600 space-y-1">
+                      <div className="flex items-center gap-1">
+                        <Mail className="w-4 h-4" />
+                        {profile.email}
+                      </div>
+                      <div>
+                        <strong>Status:</strong> {profile.status}
+                      </div>
+                      {profile.last_login && (
+                        <div>
+                          <strong>Último login:</strong> {format(new Date(profile.last_login), 'dd/MM/yyyy HH:mm', { locale: ptBR })}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  <div className="flex space-x-2">
-                    <Button variant="outline" size="sm">
-                      Reenviar
+                  
+                  <div className={`flex gap-2 ${isMobile ? 'w-full' : ''}`}>
+                    <Button variant="outline" size="sm" className={isMobile ? 'flex-1' : ''}>
+                      <Edit className="w-4 h-4 mr-2" />
+                      Editar
                     </Button>
-                    <Button variant="outline" size="sm">
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        )}
+      </div>
+
+      {/* Lista de Convites Pendentes */}
+      {invitations.length > 0 && (
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold text-gray-900">Convites Pendentes</h3>
+          
+          {invitations.map((invitation) => (
+            <Card key={invitation.id}>
+              <CardContent className="p-4">
+                <div className={`flex justify-between items-start ${isMobile ? 'flex-col gap-3' : ''}`}>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <h4 className="font-semibold text-gray-900">{invitation.email}</h4>
+                      {getRoleBadge(invitation.role)}
+                    </div>
+                    
+                    <div className="text-sm text-gray-600">
+                      <div>
+                        <strong>Enviado em:</strong> {format(new Date(invitation.created_at), 'dd/MM/yyyy HH:mm', { locale: ptBR })}
+                      </div>
+                      <div>
+                        <strong>Expira em:</strong> {format(new Date(invitation.expires_at), 'dd/MM/yyyy HH:mm', { locale: ptBR })}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className={`flex gap-2 ${isMobile ? 'w-full' : ''}`}>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => deleteInvitation(invitation.id)}
+                      className={isMobile ? 'flex-1' : ''}
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
                       Cancelar
                     </Button>
                   </div>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       )}
     </div>
   );

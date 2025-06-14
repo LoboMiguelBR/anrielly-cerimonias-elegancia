@@ -29,40 +29,26 @@ const Services = () => {
 
   const services = [
     {
-      id: "1",
-      title: "Casamentos",
-      description: "Celebrações matrimoniais únicas e emocionantes, conduzidas com carinho e profissionalismo.",
-      icon: "Heart"
+      icon: <Heart className="w-10 h-10 text-gold" />,
+      title: "Casamentos personalizados",
+      description: "Cerimônias únicas que refletem a história e personalidade do casal."
     },
     {
-      id: "2", 
-      title: "Formaturas",
-      description: "Cerimônias de formatura solenes e marcantes para celebrar conquistas acadêmicas.",
-      icon: "Award"
+      icon: <Calendar className="w-10 h-10 text-gold" />,
+      title: "Festas de 15 anos",
+      description: "Momentos especiais conduzidos com elegância e emoção para debutantes."
     },
     {
-      id: "3",
-      title: "Aniversários",
-      description: "Comemorações especiais de aniversário com roteiro personalizado e momentos únicos.",
-      icon: "Calendar"
+      icon: <Award className="w-10 h-10 text-gold" />,
+      title: "Eventos sociais e corporativos",
+      description: "Condução profissional para eventos empresariais e comemorações."
     },
     {
-      id: "4",
-      title: "Eventos Corporativos",
-      description: "Conduções profissionais para eventos empresariais, lançamentos e premiações.",
-      icon: "Image"
+      icon: <Image className="w-10 h-10 text-gold" />,
+      title: "Formaturas e apresentações",
+      description: "Cerimônias acadêmicas conduzidas com formalidade e brilhantismo."
     }
   ];
-
-  const getIcon = (iconName: string) => {
-    const iconMap: Record<string, React.ReactNode> = {
-      Heart: <Heart className="w-10 h-10 text-gold" />,
-      Calendar: <Calendar className="w-10 h-10 text-gold" />,
-      Award: <Award className="w-10 h-10 text-gold" />,
-      Image: <Image className="w-10 h-10 text-gold" />
-    };
-    return iconMap[iconName] || <Heart className="w-10 h-10 text-gold" />;
-  };
 
   return (
     <section id="servicos" className="bg-white" ref={sectionRef}>
@@ -72,12 +58,12 @@ const Services = () => {
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           {services.map((service, index) => (
             <div 
-              key={service.id} 
+              key={index} 
               className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow animate-on-scroll border border-gold/10 hover:border-gold/30"
               style={{ animationDelay: `${index * 150}ms` }}
             >
               <div className="mb-4 flex justify-center">
-                {getIcon(service.icon)}
+                {service.icon}
               </div>
               <h3 className="text-xl font-playfair font-semibold text-center mb-3">
                 {service.title}

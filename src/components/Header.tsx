@@ -36,8 +36,8 @@ const Header = () => {
 
   return (
     <header 
-      className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
-        isScrolled ? 'bg-white/95 backdrop-blur-md shadow-lg py-2' : 'bg-white/90 backdrop-blur-sm py-4'
+      className={`fixed top-0 left-0 w-full z-header transition-all duration-300 ${
+        isScrolled ? 'bg-white/95 backdrop-blur-md shadow-md py-2' : 'bg-transparent py-3 md:py-4'
       }`}
     >
       <div className="container mx-auto px-4 flex justify-between items-center">
@@ -45,20 +45,19 @@ const Header = () => {
           <img 
             src="/lovable-uploads/a1e9c8bb-3ef0-4768-8b5e-9fac87c9d598.png" 
             alt="Anrielly Gomes - Mestre de Cerimônias" 
-            className="h-12 lg:h-16 w-auto"
+            className="h-10 md:h-12 lg:h-16 w-auto"
           />
         </a>
         
         {/* Desktop Navigation */}
-        <nav className="hidden lg:flex items-center space-x-8">
+        <nav className="hidden md:flex items-center space-x-6 lg:space-x-8">
           {navItems.map(item => (
             <a 
               key={item.title} 
               href={item.href} 
-              className="text-gray-700 hover:text-purple-600 font-medium transition-colors text-base py-2 px-1 relative group"
+              className="text-gray-800 hover:text-gold font-medium transition-colors text-sm lg:text-base py-2 px-1 mobile-form-field"
             >
               {item.title}
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-purple-600 transition-all duration-300 group-hover:w-full"></span>
             </a>
           ))}
         </nav>
@@ -66,7 +65,7 @@ const Header = () => {
         {/* Mobile Menu Button */}
         <button 
           onClick={toggleMenu} 
-          className="lg:hidden text-gray-700 hover:text-purple-600 p-2"
+          className="md:hidden text-gray-800 hover:text-gold p-2 mobile-form-field"
           aria-label="Toggle Menu"
         >
           {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -75,13 +74,13 @@ const Header = () => {
 
       {/* Mobile Navigation */}
       {isMenuOpen && (
-        <div className="lg:hidden absolute top-full left-0 w-full bg-white/95 backdrop-blur-md shadow-lg py-4 border-t border-gray-100">
+        <div className="md:hidden absolute top-full left-0 w-full bg-white/95 backdrop-blur-md shadow-md py-4 animate-fade-in z-dropdown border-t border-gray-100">
           <nav className="flex flex-col container mx-auto px-4 space-y-1">
             {navItems.map(item => (
               <a 
                 key={item.title} 
                 href={item.href} 
-                className="text-gray-700 hover:text-purple-600 py-3 px-4 font-medium transition-colors rounded-md hover:bg-gray-50"
+                className="text-gray-800 hover:text-gold py-3 px-4 font-medium transition-colors rounded-md hover:bg-gray-50 mobile-form-field"
                 onClick={() => setIsMenuOpen(false)}
               >
                 {item.title}

@@ -1,42 +1,40 @@
 
 import React from 'react';
-import { Routes, Route, Navigate, BrowserRouter as Router } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import Index from './pages/Index';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminLogin from './pages/AdminLogin';
-import AdminProtectedRoute from './components/AdminProtectedRoute';
+import QuestionarioLogin from './pages/QuestionarioLogin';
+import QuestionarioFormulario from './pages/QuestionarioFormulario';
+import ContractSigning from './pages/ContractSigning/index';
 import NotFound from './pages/NotFound';
-import { AdminProviders } from './components/AdminProviders';
-import LandingErrorBoundary from './components/LandingErrorBoundary';
+import DynamicLandingPage from './components/DynamicLandingPage';
+import AdminProtectedRoute from './components/AdminProtectedRoute';
+import WebChat from './components/WebChat';
+import ErrorBoundary from './components/ErrorBoundary';
+import { Toaster } from 'sonner';
+import { GalleryProvider } from './components/gallery/GalleryContext';
 
 function App() {
-  console.log("App component rendering..."); // Debug log
-  
   return (
-    <Router>
-      <Routes>
-        {/* Landing page - sem providers complexos */}
-        <Route path="/" element={
-          <LandingErrorBoundary>
-            <Index />
-          </LandingErrorBoundary>
-        } />
-        
-        {/* Admin routes - com providers completos */}
-        <Route path="/admin/*" element={
-          <AdminProviders>
-            <Routes>
-              <Route path="/" element={<Navigate to="/admin/dashboard" replace />} />
-              <Route path="/dashboard" element={<AdminProtectedRoute element={<AdminDashboard />} />} />
-              <Route path="/login" element={<AdminLogin />} />
-            </Routes>
-          </AdminProviders>
-        } />
-        
-        {/* 404 */}
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </Router>
+    <ErrorBoundary>
+      <GalleryProvider>
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+          <Route path="/admin/dashboard" element={<AdminProtectedRoute element={<AdminDashboard />} />} />
+          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/questionario/:linkPublico" element={<QuestionarioLogin />} />
+          <Route path="/questionario/:linkPublico/formulario" element={<QuestionarioFormulario />} />
+          <Route path="/contrato/:slug" element={<ContractSigning />} />
+          {/* Rota dinâmica para landing pages - deve vir por último */}
+          <Route path="/:slug" element={<DynamicLandingPage />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+        <WebChat />
+        <Toaster position="top-right" richColors />
+      </GalleryProvider>
+    </ErrorBoundary>
   );
 }
 

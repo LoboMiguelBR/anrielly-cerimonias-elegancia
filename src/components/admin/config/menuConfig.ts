@@ -1,90 +1,220 @@
 
-// Sidebar menu configuration and helpers
+import {
+  BarChart3,
+  Calendar,
+  Palette,
+  FileText,
+  Settings,
+  ShoppingBag,
+  TrendingUp,
+  Users,
+  AlertTriangle,
+  ClipboardList,
+  UserPlus,
+  Star,
+  Image,
+  Globe,
+  Phone,
+  DollarSign,
+  Building2,
+} from "lucide-react";
 
-export interface MenuItem {
-  id: string; // key
+export type MenuItem = {
+  id: string;
   label: string;
-  icon: string;
-}
-export interface MenuSection {
-  title: string; // section
-  items: MenuItem[];
-}
+  icon: any;
+  href?: string;
+  group: string;
+};
 
-// Novo menuConfig SEM CMS/Web/Website/Landing Pages
-export const menuConfig = [
+// Função para validar se o ícone existe
+const validateIcon = (icon: any, itemId: string) => {
+  try {
+    if (!icon || typeof icon !== 'function') {
+      console.warn(`menuConfig: Ícone inválido para item ${itemId}, usando fallback`);
+      return AlertTriangle;
+    }
+    return icon;
+  } catch (error) {
+    console.error(`menuConfig: Erro ao validar ícone para ${itemId}:`, error);
+    return AlertTriangle;
+  }
+};
+
+export const primaryMenuItems: MenuItem[] = [
   {
-    section: 'Dashboard',
-    items: [
-      { label: 'Visão Geral', key: 'dashboard', icon: 'home' }
-    ],
-  },
-  {
-    section: 'Gestão Comercial',
-    items: [
-      { label: 'Leads', key: 'leads', icon: 'users' },
-      { label: 'Orçamentos', key: 'quotes', icon: 'file-signature' },
-      { label: 'Propostas', key: 'proposals', icon: 'clipboard-list' },
-      { label: 'Contratos', key: 'contracts', icon: 'file-text' },
-    ],
-  },
-  {
-    section: 'Eventos & Clientes',
-    items: [
-      { label: 'Eventos', key: 'events', icon: 'calendar-days' },
-      { label: 'Clientes', key: 'clients', icon: 'users' },
-      { label: 'Profissionais', key: 'professionals', icon: 'user-check' },
-      { label: 'Serviços', key: 'services', icon: 'star' }
-    ],
-  },
-  {
-    section: 'Website & Conteúdo',
-    items: [
-      { label: 'Galeria', key: 'gallery', icon: 'image' },
-      { label: 'Depoimentos', key: 'testimonials', icon: 'messages-square' }
-    ],
-  },
-  {
-    section: 'Templates & Formulários',
-    items: [
-      { label: 'Templates de Proposta', key: 'proposal-templates', icon: 'document' },
-      { label: 'Templates de Contrato', key: 'contract-templates', icon: 'file-text' },
-      { label: 'Emails de Contrato', key: 'contract-email-templates', icon: 'mail' },
-      { label: 'Questionários', key: 'questionarios', icon: 'list-checks' },
-      { label: 'Histórias de Casais', key: 'historias-casais', icon: 'heart' }
-    ],
-  },
-  {
-    section: 'Sistema',
-    items: [
-      { label: 'Vendas e Financeiro', key: 'vendas-financeiro', icon: 'dollar-sign' },
-      { label: 'Gestão Comercial', key: 'gestao-comercial', icon: 'briefcase' },
-      { label: 'Usuários', key: 'users', icon: 'user' },
-      { label: 'Templates', key: 'templates', icon: 'copy' },
-      { label: 'Analytics', key: 'analytics', icon: 'bar-chart' },
-      { label: 'Configurações', key: 'settings', icon: 'settings' },
-    ],
-  },
+    id: "dashboard",
+    label: "Dashboard",
+    icon: validateIcon(BarChart3, "dashboard"),
+    href: "/admin",
+    group: "main"
+  }
 ];
 
-// Helper atualizados
-export function getMenuSections(): MenuSection[] {
-  return menuConfig.map(section => ({
-    title: section.section,
-    items: (section.items || []).map(item => ({
-      id: item.key,
-      label: item.label,
-      icon: item.icon,
-    })),
-  }));
-}
+export const crmVendasItems: MenuItem[] = [
+  {
+    id: "leads",
+    label: "Leads",
+    icon: validateIcon(Phone, "leads"),
+    group: "crm"
+  },
+  {
+    id: "gestao-comercial",
+    label: "Gestão Comercial",
+    icon: validateIcon(TrendingUp, "gestao-comercial"),
+    group: "crm"
+  },
+  {
+    id: "quotes",
+    label: "Orçamentos",
+    icon: validateIcon(DollarSign, "quotes"),
+    group: "crm"
+  },
+  {
+    id: "proposals",
+    label: "Propostas",
+    icon: validateIcon(FileText, "proposals"),
+    group: "crm"
+  },
+  {
+    id: "contracts",
+    label: "Contratos",
+    icon: validateIcon(FileText, "contracts"),
+    group: "crm"
+  },
+  {
+    id: "clientes",
+    label: "Clientes",
+    icon: validateIcon(Users, "clientes"),
+    group: "crm"
+  }
+];
 
-export function getAllMenuItems(): MenuItem[] {
-  return menuConfig.flatMap(section =>
-    (section.items || []).map(item => ({
-      id: item.key,
-      label: item.label,
-      icon: item.icon,
-    }))
-  );
-}
+export const operacionalItems: MenuItem[] = [
+  {
+    id: "events",
+    label: "Gestão de Eventos",
+    icon: validateIcon(Calendar, "events"),
+    group: "operacional"
+  },
+  {
+    id: "calendario-eventos",
+    label: "Calendário & Timeline", 
+    icon: validateIcon(Calendar, "calendario-eventos"),
+    group: "operacional"
+  },
+  {
+    id: "questionarios",
+    label: "Questionários",
+    icon: validateIcon(ClipboardList, "questionarios"),
+    group: "operacional"
+  },
+  {
+    id: "fornecedores",
+    label: "Fornecedores",
+    icon: validateIcon(ShoppingBag, "fornecedores"),
+    group: "operacional"
+  },
+  {
+    id: "professionals",
+    label: "Profissionais",
+    icon: validateIcon(Building2, "professionals"),
+    group: "operacional"
+  }
+];
+
+export const conteudoItems: MenuItem[] = [
+  {
+    id: "website",
+    label: "Website",
+    icon: validateIcon(Palette, "website"),
+    group: "conteudo"
+  },
+  {
+    id: "gallery",
+    label: "Galeria",
+    icon: validateIcon(Image, "gallery"),
+    group: "conteudo"
+  },
+  {
+    id: "testimonials",
+    label: "Depoimentos",
+    icon: validateIcon(Star, "testimonials"),
+    group: "conteudo"
+  },
+  {
+    id: "landing-pages",
+    label: "Landing Pages",
+    icon: validateIcon(Globe, "landing-pages"),
+    group: "conteudo"
+  }
+];
+
+export const sistemaItems: MenuItem[] = [
+  {
+    id: "templates",
+    label: "Templates",
+    icon: validateIcon(FileText, "templates"),
+    group: "sistema"
+  },
+  {
+    id: "users",
+    label: "Usuários & Permissões",
+    icon: validateIcon(UserPlus, "users"),
+    group: "sistema"
+  },
+  {
+    id: "settings",
+    label: "Configurações",
+    icon: validateIcon(Settings, "settings"),
+    href: "/admin/settings",
+    group: "sistema"
+  }
+];
+
+export const getAllMenuItems = (): MenuItem[] => {
+  try {
+    const allItems = [
+      ...primaryMenuItems,
+      ...crmVendasItems,
+      ...operacionalItems,
+      ...conteudoItems,
+      ...sistemaItems
+    ];
+    console.log('menuConfig: Total de itens carregados:', allItems.length);
+    return allItems;
+  } catch (error) {
+    console.error('menuConfig: Erro ao obter todos os itens do menu:', error);
+    return [];
+  }
+};
+
+export const getMenuSections = () => {
+  try {
+    return [
+      {
+        title: "Principal",
+        items: primaryMenuItems
+      },
+      {
+        title: "CRM & Vendas",
+        items: crmVendasItems
+      },
+      {
+        title: "Operacional",
+        items: operacionalItems
+      },
+      {
+        title: "Conteúdo",
+        items: conteudoItems
+      },
+      {
+        title: "Sistema",
+        items: sistemaItems
+      }
+    ];
+  } catch (error) {
+    console.error('menuConfig: Erro ao obter seções do menu:', error);
+    return [];
+  }
+};
