@@ -1,5 +1,6 @@
 
 import { useState, useEffect } from 'react';
+// @ts-ignore: website_pages e website_sections podem não estar no typegen local
 import { supabase } from '@/integrations/supabase/client';
 
 export interface CMSLandingPage {
@@ -16,6 +17,10 @@ export interface CMSLandingPage {
   };
 }
 
+/**
+ * Hook para obter a landing page do CMS (tabelas website_pages e website_sections)
+ * Usa o "any" para contornar restrição do typegen local do Supabase.
+ */
 export const useCMSLandingPage = (slug: string = 'home') => {
   const [landingPage, setLandingPage] = useState<CMSLandingPage | null>(null);
   const [loading, setLoading] = useState(true);
@@ -29,25 +34,25 @@ export const useCMSLandingPage = (slug: string = 'home') => {
         
         console.log('Buscando página CMS para slug:', slug);
         
-        // Primeiro tentar buscar pelo slug especificado
-        let { data: page, error: pageError } = await supabase
+        // Buscar pelo slug especificado
+        let { data: page, error: pageError } = await (supabase as any)
           .from('website_pages')
           .select('*')
           .eq('slug', slug)
           .eq('status', 'published')
           .maybeSingle();
 
-        // Se não encontrar e o slug for 'home', tentar buscar qualquer página publicada
+        // Se não encontrar e slug for 'home', buscar primeira disponível
         if (!page && slug === 'home') {
           console.log('Página home não encontrada, buscando primeira página disponível...');
-          const { data: firstPage, error: firstPageError } = await supabase
+          const { data: firstPage, error: firstPageError } = await (supabase as any)
             .from('website_pages')
             .select('*')
             .eq('status', 'published')
             .order('created_at', { ascending: true })
             .limit(1)
             .maybeSingle();
-          
+
           if (firstPageError) {
             console.error('Erro ao buscar primeira página:', firstPageError);
           } else if (firstPage) {
@@ -68,10 +73,8 @@ export const useCMSLandingPage = (slug: string = 'home') => {
           return;
         }
 
-        console.log('Página encontrada:', page);
-
-        // Buscar as seções da página
-        const { data: sections, error: sectionsError } = await supabase
+        // Buscar seções relacionadas à página
+        const { data: sections, error: sectionsError } = await (supabase as any)
           .from('website_sections')
           .select('*')
           .eq('page_id', page.id)
@@ -83,15 +86,11 @@ export const useCMSLandingPage = (slug: string = 'home') => {
           throw sectionsError;
         }
 
-        console.log('Seções encontradas:', sections);
-
-        // Organizar seções por tipo
-        const organizedSections = sections?.reduce((acc, section) => {
+        // Organizar as seções por tipo
+        const organizedSections = sections?.reduce((acc: any, section: any) => {
           acc[section.section_type] = section.content;
           return acc;
-        }, {} as any) || {};
-
-        console.log('Seções organizadas:', organizedSections);
+        }, {}) || {};
 
         setLandingPage({
           id: page.id,
@@ -100,7 +99,6 @@ export const useCMSLandingPage = (slug: string = 'home') => {
           status: page.status as 'published' | 'draft' | 'archived',
           sections: organizedSections
         });
-
       } catch (err) {
         console.error('Erro ao buscar landing page do CMS:', err);
         setError(err instanceof Error ? err.message : 'Erro desconhecido');
@@ -116,13 +114,13 @@ export const useCMSLandingPage = (slug: string = 'home') => {
   const refetch = () => {
     setLoading(true);
     setError(null);
-    // Reexecutar o useEffect
+    // Rebuscar com os patches do "any" novamente
     const fetchLandingPage = async () => {
       try {
         setLoading(true);
         setError(null);
-        
-        let { data: page, error: pageError } = await supabase
+
+        let { data: page, error: pageError } = await (supabase as any)
           .from('website_pages')
           .select('*')
           .eq('slug', slug)
@@ -130,14 +128,14 @@ export const useCMSLandingPage = (slug: string = 'home') => {
           .maybeSingle();
 
         if (!page && slug === 'home') {
-          const { data: firstPage, error: firstPageError } = await supabase
+          const { data: firstPage, error: firstPageError } = await (supabase as any)
             .from('website_pages')
             .select('*')
             .eq('status', 'published')
             .order('created_at', { ascending: true })
             .limit(1)
             .maybeSingle();
-          
+
           if (!firstPageError && firstPage) {
             page = firstPage;
           }
@@ -149,7 +147,7 @@ export const useCMSLandingPage = (slug: string = 'home') => {
           return;
         }
 
-        const { data: sections, error: sectionsError } = await supabase
+        const { data: sections, error: sectionsError } = await (supabase as any)
           .from('website_sections')
           .select('*')
           .eq('page_id', page.id)
@@ -158,10 +156,10 @@ export const useCMSLandingPage = (slug: string = 'home') => {
 
         if (sectionsError) throw sectionsError;
 
-        const organizedSections = sections?.reduce((acc, section) => {
+        const organizedSections = sections?.reduce((acc: any, section: any) => {
           acc[section.section_type] = section.content;
           return acc;
-        }, {} as any) || {};
+        }, {}) || {};
 
         setLandingPage({
           id: page.id,
@@ -170,7 +168,6 @@ export const useCMSLandingPage = (slug: string = 'home') => {
           status: page.status as 'published' | 'draft' | 'archived',
           sections: organizedSections
         });
-
       } catch (err) {
         console.error('Erro ao buscar landing page do CMS:', err);
         setError(err instanceof Error ? err.message : 'Erro desconhecido');
