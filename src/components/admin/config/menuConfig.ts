@@ -1,5 +1,20 @@
 
-// Sidebar menu configuration
+/**
+ * Sidebar menu configuration and helpers
+ */
+
+// Define the MenuItem and MenuSection types
+export interface MenuItem {
+  id: string; // key
+  label: string;
+  icon: string;
+}
+export interface MenuSection {
+  title: string; // section
+  items: MenuItem[];
+}
+
+// Raw menu config (as before)
 export const menuConfig = [
   {
     section: 'Dashboard',
@@ -13,7 +28,7 @@ export const menuConfig = [
       { label: 'Leads', key: 'leads', icon: 'users' },
       { label: 'Orçamentos', key: 'quotes', icon: 'file-signature' },
       { label: 'Propostas', key: 'proposals', icon: 'clipboard-list' },
-      { label: 'Contratos', key: 'contracts', icon: 'file-text' }
+      { label: 'Contratos', key: 'contracts', icon: 'file-text' },
     ],
   },
   {
@@ -57,3 +72,25 @@ export const menuConfig = [
   },
 ];
 
+// Converts menuConfig to the structure expected by sidebars
+export function getMenuSections(): MenuSection[] {
+  return menuConfig.map(section => ({
+    title: section.section,
+    items: (section.items || []).map(item => ({
+      id: item.key,
+      label: item.label,
+      icon: item.icon,
+    })),
+  }));
+}
+
+// Flattens all menu items for tab accessibility, etc
+export function getAllMenuItems(): MenuItem[] {
+  return menuConfig.flatMap(section =>
+    (section.items || []).map(item => ({
+      id: item.key,
+      label: item.label,
+      icon: item.icon,
+    }))
+  );
+}
