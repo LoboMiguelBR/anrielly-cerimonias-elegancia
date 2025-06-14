@@ -1,7 +1,7 @@
 
-// Corrigindo o import do createClient de volta para a URL ESM correta para Deno Edge Functions Supabase
+// Corrigindo o import do createClient para uma URL ESM estável para Deno Edge Functions Supabase
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.42.9";
+import { createClient } from "https://esm.sh/@supabase/supabase-js";
 import { hashSync, compareSync } from "https://deno.land/x/bcrypt@v0.4.1/mod.ts";
 
 const corsHeaders = {
