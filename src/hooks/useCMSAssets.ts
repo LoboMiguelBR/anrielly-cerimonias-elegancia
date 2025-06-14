@@ -77,6 +77,47 @@ export const useCMSAssets = () => {
     return data.publicUrl;
   };
 
+  // NOVO: método para deletar asset
+  const deleteAsset = async (assetId: string, filePath: string) => {
+    setLoading(true);
+    // Deleta do storage
+    const { error: storageError } = await supabase.storage.from('cms-assets').remove([filePath]);
+    if (storageError) {
+      toast.error("Erro ao remover arquivo do storage.");
+      setLoading(false);
+      return false;
+    }
+
+    // Deleta do banco de dados
+    const { error: dbError } = await supabase
+      .from("cms_assets")
+      .delete()
+      .eq("id", assetId);
+    if (dbError) {
+      toast.error("Erro ao remover do banco de dados.");
+      setLoading(false);
+      return false;
+    }
+
+    toast.success("Imagem removida!");
+    await fetchAssets();
+    setLoading(false);
+    return true;
+  };
+
+  // NOVO: Alias para getPublicUrl, por compatibilidade
+  const getAssetUrl = (filePath: string) => getPublicUrl(filePath);
+
   useEffect(() => { fetchAssets(); }, []);
-  return { assets, loading, uploading, uploadAsset, getPublicUrl, fetchAssets };
+  // Exportando os novos métodos
+  return { 
+    assets, 
+    loading, 
+    uploading, 
+    uploadAsset, 
+    getPublicUrl, 
+    fetchAssets,
+    deleteAsset,
+    getAssetUrl,
+  };
 };
