@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -16,6 +17,7 @@ const MobileAdminNav = ({ activeTab = "dashboard", onTabChange }: MobileAdminNav
   const menuSections = getMenuSections();
 
   const handleTabSelect = (tabId: string) => {
+    console.log('MobileAdminNav: Selecionando tab:', tabId);
     onTabChange?.(tabId);
     setIsOpen(false);
   };
@@ -42,7 +44,7 @@ const MobileAdminNav = ({ activeTab = "dashboard", onTabChange }: MobileAdminNav
                   
                   <div className="space-y-1">
                     {section.items.map((item: MenuItem) => {
-                      const IconComponent = Icons[item.icon] as React.ComponentType<{ className?: string }>;
+                      const IconComponent = Icons[item.icon as keyof typeof Icons] as React.ComponentType<{ className?: string }>;
                       return (
                         <button
                           key={item.id}

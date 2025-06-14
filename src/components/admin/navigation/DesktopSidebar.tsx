@@ -1,6 +1,7 @@
 
 import { Separator } from "@/components/ui/separator";
 import { AlertTriangle } from "lucide-react";
+import * as Icons from "lucide-react";
 import { getMenuSections, MenuItem } from "../config/menuConfig";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -59,7 +60,7 @@ const DesktopSidebar = ({ activeTab, onTabChange }: DesktopSidebarProps) => {
                       }
 
                       try {
-                        const IconComponent = item.icon || AlertTriangle;
+                        const IconComponent = Icons[item.icon as keyof typeof Icons] as React.ComponentType<{ className?: string }> || AlertTriangle;
                         
                         return (
                           <button
