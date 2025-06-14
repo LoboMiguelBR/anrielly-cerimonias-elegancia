@@ -26,13 +26,16 @@ const DynamicLandingPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold"></div>
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="text-center animate-fade-in">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold mb-4"></div>
+          <p className="text-gray-600 font-medium">Carregando landing page...</p>
+        </div>
       </div>
     );
   }
 
-  // Se não encontrar landing page ou erro, renderiza página padrão
+  // Se não encontrar landing page ou erro, renderiza página padrão (home CMS)
   if (error || !landingPage) {
     return <Index />;
   }

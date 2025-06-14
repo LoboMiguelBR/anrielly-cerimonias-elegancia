@@ -24,9 +24,10 @@ const SimplifiedHomePage = () => {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
-        <div className="text-center">
+        <div className="text-center animate-fade-in">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mb-4"></div>
-          <p className="text-gray-600">Carregando página...</p>
+          <p className="text-gray-600 font-medium">Carregando página CMS personalizada...</p>
+          <p className="text-xs text-gray-400 mt-2">Aguarde, estamos buscando o conteúdo &#x2026;</p>
         </div>
       </div>
     );
@@ -36,8 +37,32 @@ const SimplifiedHomePage = () => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="text-center">
-          <p className="text-red-600">Erro ao carregar a página: {error}</p>
+          <p className="text-red-600 text-lg font-semibold mb-2">Erro ao carregar página inicial 🚨</p>
+          <p className="text-gray-500 text-sm">{error}</p>
+          <p className="text-xs text-gray-400 mt-4">Verifique sua conexão ou tente recarregar.</p>
         </div>
+      </div>
+    );
+  }
+
+  if (!sections || sections.length === 0) {
+    // Fallback se não há conteúdo CMS
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Header />
+        <main id="main-content" className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <h2 className="text-3xl font-playfair text-gray-800 mb-2 animate-fade-in">
+              Bem-vindo(a) ao site!
+            </h2>
+            <p className="text-gray-600 text-lg mb-6">Nenhuma seção personalizada cadastrada no CMS.</p>
+            <p className="text-xs text-gray-400">Entre na área administrativa para configurar!</p>
+          </div>
+        </main>
+        <Footer />
+        <PWAInstallPrompt />
+        <WebChat />
+        <Toaster position="top-right" richColors />
       </div>
     );
   }
@@ -51,7 +76,7 @@ const SimplifiedHomePage = () => {
           <div 
             key={section.id}
             style={{ backgroundColor: section.bg_color }}
-            className="cms-section"
+            className="cms-section animate-fade-in"
           >
             {section.content_html ? (
               <div 
@@ -96,3 +121,4 @@ const SimplifiedHomePage = () => {
 };
 
 export default SimplifiedHomePage;
+
