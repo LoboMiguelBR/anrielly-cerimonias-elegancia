@@ -14,7 +14,7 @@ export interface CMSHomeSection {
   cta_link?: string;
   order_index: number;
   active: boolean;
-  background_image?: string; // <-- NOVO: imagem de fundo para a seção!
+  background_image?: string;
   created_at: string;
   updated_at: string;
 }
@@ -23,11 +23,13 @@ export const useCMSHomeSections = () => {
   const [sections, setSections] = useState<CMSHomeSection[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [timedOut, setTimedOut] = useState(false);
 
   const fetchSections = async (includeInactive = false) => {
     try {
       setLoading(true);
       setError(null);
+      setTimedOut(false);
 
       let query = supabase
         .from('cms_home_sections')
@@ -38,14 +40,37 @@ export const useCMSHomeSections = () => {
         query = query.eq('active', true);
       }
 
-      const { data, error } = await query;
+      // Faz uma Promise.race para controlar timeout manual (10s)
+      const timeoutPromise = new Promise<null>((_, reject) =>
+        setTimeout(() => reject(new Error('Timeout ao carregar as seções')), 10000)
+      );
+
+      const { data, error } = await Promise.race([
+        query, // supabase query
+        timeoutPromise,
+      ]) as any;
 
       if (error) throw error;
 
+      if (!data) throw new Error("Sem dados carregados (possível timeout)");
+
+      // LOG EXTRA para debugar dados duplicados/índices
+      const orderIndexes = data.map((s: CMSHomeSection) => s.order_index);
+      const duplicates = orderIndexes.filter((val, idx, arr) => arr.indexOf(val) !== idx);
+      if (duplicates.length > 0) {
+        // Não impede o usuário, mas mostra no console
+        console.warn("CMSHomeSections - order_index duplicado detectado!", duplicates, data);
+      }
+
       setSections(data || []);
     } catch (err) {
-      console.error('Error fetching CMS home sections:', err);
-      setError(err instanceof Error ? err.message : 'Erro desconhecido');
+      if (String((err as Error)?.message || '').toLowerCase().includes('timeout')) {
+        setTimedOut(true);
+        setError("A carga das seções excedeu o tempo limite. Verifique sua conexão ou tente novamente.");
+      } else {
+        console.error('Error fetching CMS home sections:', err);
+        setError(err instanceof Error ? err.message : 'Erro desconhecido');
+      }
     } finally {
       setLoading(false);
     }
@@ -61,7 +86,7 @@ export const useCMSHomeSections = () => {
       if (error) throw error;
 
       toast.success('Seção atualizada com sucesso!');
-      await fetchSections(true); // Recarregar todas as seções
+      await fetchSections(true);
     } catch (err) {
       console.error('Error updating section:', err);
       toast.error('Erro ao atualizar seção');
@@ -106,7 +131,7 @@ export const useCMSHomeSections = () => {
 
   const reorderSections = async (reorderedSections: CMSHomeSection[]) => {
     try {
-      const updates = reorderedSections.map((section, index) => 
+      const updates = reorderedSections.map((section, index) =>
         supabase
           .from('cms_home_sections')
           .update({ order_index: index + 1 })
@@ -123,14 +148,19 @@ export const useCMSHomeSections = () => {
     }
   };
 
+  // Adiciona logs para diagnóstico do loading
   useEffect(() => {
     fetchSections();
+    // debug log
+    console.log("[CMS] useCMSHomeSections hook inicializado");
+    // eslint-disable-next-line
   }, []);
 
   return {
     sections,
     loading,
     error,
+    timedOut,
     fetchSections,
     updateSection,
     createSection,

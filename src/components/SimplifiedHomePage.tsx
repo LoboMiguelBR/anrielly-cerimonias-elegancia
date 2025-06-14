@@ -11,7 +11,7 @@ import WebChat from '@/components/WebChat';
 import { Toaster } from 'sonner';
 
 const SimplifiedHomePage = () => {
-  const { sections, loading, error } = useCMSHomeSections();
+  const { sections, loading, error, timedOut } = useCMSHomeSections();
 
   const processContentVariables = (content: string, section: any) => {
     return content
@@ -20,6 +20,26 @@ const SimplifiedHomePage = () => {
       .replace(/\{\{cta_label\}\}/g, section.cta_label || '')
       .replace(/\{\{cta_link\}\}/g, section.cta_link || '');
   };
+
+  // Nova verificação: Timeout na consulta ou erro crítico
+  if (timedOut) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="text-center animate-fade-in">
+          <p className="text-red-600 text-lg font-semibold mb-2">
+            Tempo limite excedido ao carregar as seções do CMS 😓
+          </p>
+          <p className="text-gray-500 text-sm">Tente recarregar a página ou entre em contato com o administrador.</p>
+          <button
+            className="mt-6 px-6 py-2 bg-primary hover:bg-primary/80 text-white rounded"
+            onClick={() => window.location.reload()}
+          >
+            Recarregar página
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -45,8 +65,31 @@ const SimplifiedHomePage = () => {
     );
   }
 
+  // Nova verificação: detectar índices duplicados, caso aconteça no banco
+  if (
+    Array.isArray(sections) &&
+    sections.length > 0 &&
+    new Set(sections.map(s => s.order_index)).size !== sections.length
+  ) {
+    // pelo menos 2 indices duplicados
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="text-center">
+          <p className="text-orange-600 text-lg font-semibold mb-2">
+            Problema de configuração nas seções do CMS 🚧
+          </p>
+          <p className="text-gray-500 text-sm">
+            Existem seções da Home com índices de ordenação duplicados. Peça a um administrador para corrigir no CMS.
+          </p>
+          <p className="text-xs text-gray-400 mt-4">
+            Corrija a ordem das seções manualmente no painel do CMS e recarregue esta página.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   if (!sections || sections.length === 0) {
-    // Fallback se não há conteúdo CMS
     return (
       <div className="min-h-screen flex flex-col">
         <Header />
@@ -127,4 +170,5 @@ const SimplifiedHomePage = () => {
     </div>
   );
 };
+
 export default SimplifiedHomePage;
