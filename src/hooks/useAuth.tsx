@@ -36,11 +36,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const loadUserProfile = async (userId: string) => {
     try {
-      const { data: profileData } = await supabase
+      const { data: profileData, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .maybeSingle();
+
+      if (error) {
+        console.error('Erro ao carregar perfil:', error);
+        return;
+      }
 
       if (profileData) {
         setProfile({
@@ -69,7 +74,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { error: error.message };
       }
 
-      toast.success('Login realizado com sucesso!');
       return {};
     } catch (error: any) {
       return { error: error.message || 'Erro ao fazer login' };
@@ -93,7 +97,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { error: error.message };
       }
 
-      toast.success('Conta criada com sucesso!');
       return {};
     } catch (error: any) {
       return { error: error.message || 'Erro ao criar conta' };
@@ -136,8 +139,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
+    // Configurar listener de mudanças de auth
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('Auth state changed:', event, !!session);
         setSession(session);
         setUser(session?.user || null);
         setIsAuthenticated(!!session?.user);
@@ -152,6 +157,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     );
 
+    // Verificar sessão inicial
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user || null);

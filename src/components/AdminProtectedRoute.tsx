@@ -1,76 +1,16 @@
 
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
-import { supabase } from "@/integrations/supabase/client";
-import { User } from '@supabase/supabase-js';
+import { useAuth } from '@/hooks/useAuth';
 
 interface AdminProtectedRouteProps {
   element: ReactNode;
 }
 
 const AdminProtectedRoute = ({ element }: AdminProtectedRouteProps) => {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
-  const [user, setUser] = useState<User | null>(null);
-  const [userRole, setUserRole] = useState<string | null>(null);
-  
-  const checkAuth = async () => {
-    try {
-      const { data, error } = await supabase.auth.getSession();
-      
-      if (error) {
-        console.error('AdminProtectedRoute: Erro ao verificar sessão:', error);
-        setIsAuthenticated(false);
-        setUser(null);
-        setUserRole(null);
-        return;
-      }
-      
-      const isAuth = !!data.session?.user;
-      setIsAuthenticated(isAuth);
-      setUser(data.session?.user || null);
-      
-      if (isAuth && data.session?.user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', data.session.user.id)
-          .maybeSingle();
-        
-        setUserRole(profile?.role || null);
-      }
-      
-    } catch (error) {
-      console.error('AdminProtectedRoute: Erro crítico na verificação:', error);
-      setIsAuthenticated(false);
-      setUser(null);
-      setUserRole(null);
-    }
-  };
-  
-  useEffect(() => {
-    checkAuth();
-    
-    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
-      setIsAuthenticated(!!session);
-      setUser(session?.user || null);
-      
-      if (session?.user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', session.user.id)
-          .maybeSingle();
-        
-        setUserRole(profile?.role || null);
-      } else {
-        setUserRole(null);
-      }
-    });
-    
-    return () => authListener.subscription.unsubscribe();
-  }, []);
+  const { user, profile, isLoading, isAuthenticated } = useAuth();
 
-  if (isAuthenticated === null) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
         <div className="text-center">
@@ -87,7 +27,7 @@ const AdminProtectedRoute = ({ element }: AdminProtectedRouteProps) => {
     return <Navigate to="/admin/login" replace />;
   }
 
-  if (userRole === null) {
+  if (!profile) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
         <div className="text-center max-w-md mx-auto p-6">
@@ -113,7 +53,7 @@ const AdminProtectedRoute = ({ element }: AdminProtectedRouteProps) => {
     );
   }
 
-  if (userRole !== 'admin') {
+  if (profile.role !== 'admin') {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
         <div className="text-center max-w-md mx-auto p-6">

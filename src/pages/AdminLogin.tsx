@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -12,15 +12,15 @@ const AdminLogin = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { signIn, isAuthenticated } = useAuth();
+  const { signIn, isAuthenticated, profile } = useAuth();
   const navigate = useNavigate();
 
-  // Redirect if already authenticated
-  React.useEffect(() => {
-    if (isAuthenticated) {
+  // Redirect if already authenticated and is admin
+  useEffect(() => {
+    if (isAuthenticated && profile?.role === 'admin') {
       navigate('/admin/dashboard');
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, profile, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,7 +39,7 @@ const AdminLogin = () => {
         toast.error(result.error);
       } else {
         toast.success('Login realizado com sucesso!');
-        navigate('/admin/dashboard');
+        // O redirecionamento será feito pelo useEffect quando o profile for carregado
       }
     } catch (error: any) {
       toast.error(error.message || 'Erro ao fazer login');
@@ -68,6 +68,7 @@ const AdminLogin = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                disabled={isLoading}
               />
             </div>
             <div className="space-y-2">
@@ -79,6 +80,7 @@ const AdminLogin = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                disabled={isLoading}
               />
             </div>
             <Button 
@@ -89,6 +91,16 @@ const AdminLogin = () => {
               {isLoading ? 'Entrando...' : 'Entrar'}
             </Button>
           </form>
+          
+          <div className="mt-4 text-center">
+            <Button 
+              variant="outline" 
+              onClick={() => navigate('/')}
+              className="text-sm"
+            >
+              Voltar ao Site
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>
