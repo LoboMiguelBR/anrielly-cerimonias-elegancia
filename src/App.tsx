@@ -24,6 +24,9 @@ function App() {
           <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
           <Route path="/admin/dashboard" element={<AdminProtectedRoute element={<AdminDashboard />} />} />
           <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/questionario/:linkPublico/:subpath" element={
+            <Navigate to="/not-found" replace />
+          } />
           <Route path="/questionario/:linkPublico" element={<QuestionarioLogin />} />
           <Route path="/questionario/:linkPublico/formulario" element={<QuestionarioFormulario />} />
           <Route path="/contrato/:slug" element={<ContractSigning />} />
@@ -37,5 +40,4 @@ function App() {
     </ErrorBoundary>
   );
 }
-
 export default App;
