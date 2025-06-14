@@ -5,7 +5,7 @@ import { Zap } from "lucide-react";
 import { toast } from "sonner";
 import { FollowUpListItem, FollowUpItemProps } from "./FollowUpListItem";
 
-const demoFollowUps = [
+const demoFollowUps: FollowUpItemProps[] = [
   {
     id: 1,
     title: "Lead aguardando retorno",
@@ -13,6 +13,7 @@ const demoFollowUps = [
     contact: "Maria Silva",
     tipo: "WhatsApp",
     lastAction: "há 2 dias",
+    onMarkDone: () => {},
   },
   {
     id: 2,
@@ -21,11 +22,13 @@ const demoFollowUps = [
     contact: "João Carlos",
     tipo: "E-mail",
     lastAction: "há 3 dias",
+    onMarkDone: () => {},
   },
 ];
 
+// Remover a função onMarkDone de cada item de demo, ela será adicionada nos props
 const FollowUpAutomations = () => {
-  const [items, setItems] = useState(demoFollowUps);
+  const [items, setItems] = useState<Omit<FollowUpItemProps, "onMarkDone">[]>(demoFollowUps.map(({ onMarkDone, ...rest }) => rest));
 
   const handleFollowUp = (id: number) => {
     setItems(items =>
