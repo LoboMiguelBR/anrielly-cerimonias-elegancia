@@ -307,6 +307,7 @@ export type Database = {
       cms_home_sections: {
         Row: {
           active: boolean
+          background_image: string | null
           bg_color: string | null
           content_html: string | null
           created_at: string | null
@@ -321,6 +322,7 @@ export type Database = {
         }
         Insert: {
           active?: boolean
+          background_image?: string | null
           bg_color?: string | null
           content_html?: string | null
           created_at?: string | null
@@ -335,6 +337,7 @@ export type Database = {
         }
         Update: {
           active?: boolean
+          background_image?: string | null
           bg_color?: string | null
           content_html?: string | null
           created_at?: string | null
@@ -1925,6 +1928,7 @@ export type Database = {
       }
       website_sections: {
         Row: {
+          background_image: string | null
           content: Json | null
           created_at: string | null
           id: string
@@ -1936,6 +1940,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          background_image?: string | null
           content?: Json | null
           created_at?: string | null
           id?: string
@@ -1947,6 +1952,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          background_image?: string | null
           content?: Json | null
           created_at?: string | null
           id?: string

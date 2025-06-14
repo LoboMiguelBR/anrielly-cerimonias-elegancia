@@ -75,7 +75,15 @@ const SimplifiedHomePage = () => {
         {sections.map((section) => (
           <div 
             key={section.id}
-            style={{ backgroundColor: section.bg_color }}
+            style={{
+              backgroundColor: section.bg_color,
+              backgroundImage: section.background_image
+                ? `url(${section.background_image})`
+                : undefined,
+              backgroundSize: section.background_image ? 'cover' : undefined,
+              backgroundRepeat: section.background_image ? 'no-repeat' : undefined,
+              backgroundPosition: section.background_image ? 'center' : undefined
+            }}
             className="cms-section animate-fade-in"
           >
             {section.content_html ? (
@@ -87,7 +95,7 @@ const SimplifiedHomePage = () => {
             ) : (
               /* Fallback básico se não houver HTML */
               <section className="py-20">
-                <div className="container mx-auto px-4 text-center">
+                <div className="container mx-auto px-4 text-center bg-opacity-80">
                   <h2 className="text-4xl font-serif text-primary mb-4">{section.title}</h2>
                   {section.subtitle && (
                     <p className="text-xl text-gray-600 mb-8">{section.subtitle}</p>
@@ -119,6 +127,4 @@ const SimplifiedHomePage = () => {
     </div>
   );
 };
-
 export default SimplifiedHomePage;
-

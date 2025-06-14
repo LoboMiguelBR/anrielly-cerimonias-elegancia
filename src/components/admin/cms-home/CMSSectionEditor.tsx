@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,6 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { Trash2, Save, Eye, EyeOff } from "lucide-react";
 import { CMSHomeSection } from '@/hooks/useCMSHomeSections';
+import CMSImageUpload from "./CMSImageUpload";
 
 interface CMSSectionEditorProps {
   section?: CMSHomeSection;
@@ -30,6 +30,7 @@ const CMSSectionEditor = ({ section, onSave, onCancel, onDelete, isCreating }: C
       cta_link: section.cta_link || '',
       order_index: section.order_index,
       active: section.active,
+      background_image: section.background_image || "",
     } : {
       slug: '',
       title: '',
@@ -40,6 +41,7 @@ const CMSSectionEditor = ({ section, onSave, onCancel, onDelete, isCreating }: C
       cta_link: '',
       order_index: 0,
       active: true,
+      background_image: "",
     }
   );
   const [previewMode, setPreviewMode] = useState(false);
@@ -152,6 +154,14 @@ const CMSSectionEditor = ({ section, onSave, onCancel, onDelete, isCreating }: C
                 />
                 <Label htmlFor="active">Seção Ativa</Label>
               </div>
+
+              {/* ============ NOVO: Upload e seleção de imagem de fundo ============= */}
+              <CMSImageUpload
+                value={formData.background_image}
+                onChange={(url) => setFormData({ ...formData, background_image: url || "" })}
+                label="Imagem de Fundo"
+                helperText="Opcional. Upload ou URL de imagem."
+              />
             </div>
 
             {/* Conteúdo */}
@@ -189,7 +199,16 @@ const CMSSectionEditor = ({ section, onSave, onCancel, onDelete, isCreating }: C
             </div>
           </div>
         ) : (
-          <div className="border rounded-lg p-4 bg-gray-50" style={{ backgroundColor: formData.bg_color }}>
+          <div className="border rounded-lg p-4 bg-gray-50" 
+            style={{
+              backgroundColor: formData.bg_color, 
+              backgroundImage: formData.background_image 
+                ? `url(${formData.background_image})` 
+                : undefined,
+              backgroundSize: "cover",
+              backgroundRepeat: "no-repeat",
+              backgroundPosition: "center"
+            }}>
             <h3 className="text-lg font-semibold mb-2">{formData.title}</h3>
             {formData.subtitle && (
               <p className="text-gray-600 mb-4">{formData.subtitle}</p>
