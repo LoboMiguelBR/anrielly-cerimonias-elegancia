@@ -67,7 +67,7 @@ export const useCMSLandingPageEnhanced = (slug: string = 'home') => {
       }
 
       // Buscar página
-      let { data: page, error: pageError } = await supabase
+      let { data: page, error: pageError } = await (supabase as any)
         .from('website_pages')
         .select('*')
         .eq('slug', slug)
@@ -77,7 +77,7 @@ export const useCMSLandingPageEnhanced = (slug: string = 'home') => {
       // Fallback para primeira página disponível se slug for 'home'
       if (!page && slug === 'home') {
         console.log('📄 Página home não encontrada, buscando primeira página disponível...');
-        const { data: firstPage, error: firstPageError } = await supabase
+        const { data: firstPage, error: firstPageError } = await (supabase as any)
           .from('website_pages')
           .select('*')
           .eq('status', 'published')
@@ -88,7 +88,7 @@ export const useCMSLandingPageEnhanced = (slug: string = 'home') => {
         if (firstPageError) {
           console.error('❌ Erro ao buscar primeira página:', firstPageError);
         } else if (firstPage) {
-          console.log('✅ Primeira página encontrada:', firstPage.slug);
+          console.log('✅ Primeira página encontrada:', (firstPage as any).slug);
           page = firstPage;
         }
       }
@@ -106,18 +106,21 @@ export const useCMSLandingPageEnhanced = (slug: string = 'home') => {
         return null;
       }
 
+      // Cast page as any to safely access expected CMS fields
+      const pageObj = page as any;
+
       console.log('📄 Página encontrada:', {
-        id: page.id,
-        title: page.title,
-        slug: page.slug,
-        status: page.status
+        id: pageObj.id,
+        title: pageObj.title,
+        slug: pageObj.slug,
+        status: pageObj.status
       });
 
       // Buscar seções ativas da página
-      const { data: sections, error: sectionsError } = await supabase
+      const { data: sections, error: sectionsError } = await (supabase as any)
         .from('website_sections')
         .select('*')
-        .eq('page_id', page.id)
+        .eq('page_id', pageObj.id)
         .eq('is_active', true)
         .order('order_index', { ascending: true });
 
@@ -126,25 +129,26 @@ export const useCMSLandingPageEnhanced = (slug: string = 'home') => {
         throw sectionsError;
       }
 
-      console.log('📋 Seções encontradas:', sections?.map(s => ({
+      // Cast section as any to access CMS-specific fields
+      console.log('📋 Seções encontradas:', (sections || []).map((s: any) => ({
         type: s.section_type,
         active: s.is_active,
         order: s.order_index
       })));
 
       // Organizar seções por tipo
-      const organizedSections = sections?.reduce((acc, section) => {
+      const organizedSections = (sections || []).reduce((acc: any, section: any) => {
         acc[section.section_type] = section.content;
         return acc;
-      }, {} as any) || {};
+      }, {}) || {};
 
       console.log('✅ Seções organizadas:', Object.keys(organizedSections));
 
       const result: CMSLandingPage = {
-        id: page.id,
-        title: page.title,
-        slug: page.slug,
-        status: page.status as 'published' | 'draft' | 'archived',
+        id: pageObj.id,
+        title: pageObj.title,
+        slug: pageObj.slug,
+        status: pageObj.status as 'published' | 'draft' | 'archived',
         sections: organizedSections
       };
 
@@ -181,35 +185,35 @@ export const useCMSLandingPageEnhanced = (slug: string = 'home') => {
     fetchLandingPage();
 
     // Setup realtime para mudanças nas páginas
-    const pagesChannel = supabase
+    const pagesChannel = (supabase as any)
       .channel('website_pages_changes')
       .on('postgres_changes', {
         event: '*',
         schema: 'public',
         table: 'website_pages',
         filter: `slug=eq.${slug}`
-      }, (payload) => {
+      }, (payload: any) => {
         console.log('🔄 Página atualizada em tempo real:', payload);
         refetch();
       })
       .subscribe();
 
     // Setup realtime para mudanças nas seções
-    const sectionsChannel = supabase
+    const sectionsChannel = (supabase as any)
       .channel('website_sections_changes')
       .on('postgres_changes', {
         event: '*',
         schema: 'public',
         table: 'website_sections'
-      }, (payload) => {
+      }, (payload: any) => {
         console.log('🔄 Seção atualizada em tempo real:', payload);
         refetch();
       })
       .subscribe();
 
     return () => {
-      supabase.removeChannel(pagesChannel);
-      supabase.removeChannel(sectionsChannel);
+      (supabase as any).removeChannel(pagesChannel);
+      (supabase as any).removeChannel(sectionsChannel);
     };
   }, [slug, fetchLandingPage, refetch]);
 
