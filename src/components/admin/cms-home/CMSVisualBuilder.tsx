@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useCMSHomeSections, CMSHomeSection } from "@/hooks/useCMSHomeSections";
 import CMSVisualSectionEditor from "./CMSVisualSectionEditor";
@@ -152,7 +151,7 @@ const CMSVisualBuilder: React.FC = () => {
           </Droppable>
         </DragDropContext>
         <div className="pt-6 flex gap-3">
-          <Button onClick={fetchSections} variant="outline">
+          <Button onClick={() => fetchSections()} variant="outline">
             Recarregar Seções
           </Button>
         </div>
@@ -204,4 +203,3 @@ const CMSVisualBuilder: React.FC = () => {
 };
 
 export default CMSVisualBuilder;
-
