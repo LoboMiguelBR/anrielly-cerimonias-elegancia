@@ -14,7 +14,6 @@ import FinalCTA from "@/components/FinalCTA";
 import ContactSection from "@/components/ContactSection";
 import Footer from "@/components/Footer";
 import PWAInstallPrompt from "@/components/PWAInstallPrompt";
-import WebChat from "@/components/WebChat";
 import { GalleryProvider } from "@/components/gallery";
 import { Toaster } from "sonner";
 
@@ -38,7 +37,6 @@ const Index = () => (
       </main>
       <Footer />
       <PWAInstallPrompt />
-      <WebChat />
       <Toaster position="top-right" richColors />
     </div>
   </GalleryProvider>
