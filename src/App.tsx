@@ -7,7 +7,6 @@ import QuestionarioLogin from './pages/QuestionarioLogin';
 import QuestionarioFormulario from './pages/QuestionarioFormulario';
 import ContractSigning from './pages/ContractSigning/index';
 import NotFound from './pages/NotFound';
-import DynamicLandingPage from './components/DynamicLandingPage';
 import AdminProtectedRoute from './components/AdminProtectedRoute';
 import WebChat from './components/WebChat';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -29,8 +28,6 @@ function App() {
           <Route path="/questionario/:linkPublico" element={<QuestionarioLogin />} />
           <Route path="/questionario/:linkPublico/formulario" element={<QuestionarioFormulario />} />
           <Route path="/contrato/:slug" element={<ContractSigning />} />
-          {/* Rota dinâmica para landing pages - deve vir por último */}
-          <Route path="/:slug" element={<DynamicLandingPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
         <WebChat />
