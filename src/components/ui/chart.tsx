@@ -1,3 +1,4 @@
+
 import React from "react"
 import {
   Area,
@@ -14,6 +15,8 @@ import {
   PolarAngleAxis,
   PolarGrid,
   PolarRadiusAxis,
+  RadarChart,  // ADDED
+  Radar,       // ADDED
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -63,7 +66,6 @@ const Chart = ({
           <LineChart
             data={data}
             margin={margin}
-            aspect={aspect}
           >
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey={xAxisKey} />
@@ -78,7 +80,6 @@ const Chart = ({
           <AreaChart
             data={data}
             margin={margin}
-            aspect={aspect}
           >
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey={xAxisKey} />
@@ -93,7 +94,6 @@ const Chart = ({
           <BarChart
             data={data}
             margin={margin}
-            aspect={aspect}
           >
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey={xAxisKey} />
@@ -138,7 +138,6 @@ const Chart = ({
       <LineChart
         data={data}
         margin={margin}
-        aspect={aspect}
       >
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey={xAxisKey} />
@@ -167,7 +166,6 @@ const Chart = ({
       <BarChart
         data={data}
         margin={margin}
-        aspect={aspect}
       >
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey={xAxisKey} />
@@ -214,34 +212,30 @@ const Chart = ({
     if (!dataKeys || dataKeys.length < 2) {
       return <div>At least two data keys are required for radar chart</div>
     }
-
     return (
-      <ResponsiveContainer width="100%" height={300}>
-        <RadarChart data={data}>
-          <PolarGrid />
-          <PolarAngleAxis dataKey={xAxisKey} />
-          <PolarRadiusAxis angle={30} domain={[0, 150]} />
-          {dataKeys.map((key, index) => (
-            <Radar
-              key={key}
-              name={key}
-              dataKey={key}
-              stroke={colors[index % colors.length]}
-              fill={colors[index % colors.length]}
-              fillOpacity={0.6}
-            />
-          ))}
-          {tooltip && <Tooltip /> }
-          {legend && <Legend /> }
-        </RadarChart>
-      </ResponsiveContainer>
+      <RadarChart data={data}>
+        <PolarGrid />
+        <PolarAngleAxis dataKey={xAxisKey} />
+        <PolarRadiusAxis angle={30} domain={[0, 150]} />
+        {dataKeys.map((key, index) => (
+          <Radar
+            key={key}
+            name={key}
+            dataKey={key}
+            stroke={colors[index % colors.length]}
+            fill={colors[index % colors.length]}
+            fillOpacity={0.6}
+          />
+        ))}
+        {tooltip && <Tooltip /> }
+        {legend && <Legend /> }
+      </RadarChart>
     )
   }
 
   const renderCustomTooltip = (props: any) => {
     const { active, payload, label } = props
     if (active && payload && payload.length) {
-      // Corrigir: dataKey não existe em payload[i], se precisar mostrar a chave, obtenha do componente/dados
       return (
         <div className="rounded-lg bg-white border shadow p-3">
           <p className="font-bold mb-1">{label}</p>
@@ -265,7 +259,7 @@ const Chart = ({
   }
 
   return (
-    <ResponsiveContainer width="100%" height={400}>
+    <ResponsiveContainer width="100%" aspect={aspect} height={400}>
       {dataKeys && dataKeys.length > 1
         ? type === "bar"
           ? renderMultipleBars()
@@ -274,9 +268,12 @@ const Chart = ({
             : type === "radar"
               ? renderRadarChart()
               : renderMultipleLines()
-        : renderChart()}
+        : type === "radar"
+          ? renderRadarChart()
+          : renderChart()}
     </ResponsiveContainer>
   )
 }
 
 export default Chart
+
