@@ -15,26 +15,30 @@ import ContactSection from "@/components/ContactSection";
 import Footer from "@/components/Footer";
 import { Toaster } from "sonner";
 
-const Index = () => (
-  <div className="bg-white min-h-screen">
-    <Header />
-    <main id="main-content">
-      <Hero />
-      <About />
-      <Experience />
-      <Services />
-      <Timeline />
-      <Differentials />
-      <SpecialRituals />
-      <Gallery />
-      <Testimonials />
-      <ServiceArea />
-      <FinalCTA />
-      <ContactSection />
-    </main>
-    <Footer />
-    <Toaster position="top-right" richColors />
-  </div>
-);
+const Index = () => {
+  console.log("Index component rendering..."); // Debug log
+  
+  return (
+    <div className="landing-page bg-white min-h-screen w-full">
+      <Header />
+      <main id="main-content" className="w-full">
+        <Hero />
+        <About />
+        <Experience />
+        <Services />
+        <Timeline />
+        <Differentials />
+        <SpecialRituals />
+        <Gallery />
+        <Testimonials />
+        <ServiceArea />
+        <FinalCTA />
+        <ContactSection />
+      </main>
+      <Footer />
+      <Toaster position="top-right" richColors />
+    </div>
+  );
+};
 
 export default Index;

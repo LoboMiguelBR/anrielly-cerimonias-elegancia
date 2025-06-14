@@ -9,32 +9,23 @@
   :root {
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
-
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
-
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-
     --primary: 262 83% 58%;
     --primary-foreground: 0 0% 98%;
-
     --secondary: 300 14% 92%;
     --secondary-foreground: 222.2 47.4% 11.2%;
-
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
-
     --accent: 300 14% 92%;
     --accent-foreground: 222.2 47.4% 11.2%;
-
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
     --ring: 262 83% 58%;
-
     --radius: 0.5rem;
   }
 
@@ -53,6 +44,13 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     line-height: 1.6;
+    margin: 0;
+    padding: 0;
+  }
+
+  #root {
+    min-height: 100vh;
+    width: 100%;
   }
 
   section {
@@ -144,11 +142,11 @@
 /* Mobile optimizations */
 @media (max-width: 768px) {
   .mobile-optimized {
-    font-size: 16px; /* Prevent zoom on iOS */
+    font-size: 16px;
   }
   
   .mobile-form-field {
-    min-height: 44px; /* iOS minimum touch target */
+    min-height: 44px;
   }
 }
 
@@ -167,4 +165,24 @@
     min-height: 44px;
     min-width: 44px;
   }
+}
+
+/* Ensure proper rendering */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+/* Fix potential conflicts */
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Landing page specific fixes */
+.landing-page {
+  min-height: 100vh;
+  width: 100%;
+  overflow-x: hidden;
 }

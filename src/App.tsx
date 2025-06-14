@@ -7,13 +7,20 @@ import AdminLogin from './pages/AdminLogin';
 import AdminProtectedRoute from './components/AdminProtectedRoute';
 import NotFound from './pages/NotFound';
 import { AdminProviders } from './components/AdminProviders';
+import LandingErrorBoundary from './components/LandingErrorBoundary';
 
 function App() {
+  console.log("App component rendering..."); // Debug log
+  
   return (
     <Router>
       <Routes>
         {/* Landing page - sem providers complexos */}
-        <Route path="/" element={<Index />} />
+        <Route path="/" element={
+          <LandingErrorBoundary>
+            <Index />
+          </LandingErrorBoundary>
+        } />
         
         {/* Admin routes - com providers completos */}
         <Route path="/admin/*" element={
