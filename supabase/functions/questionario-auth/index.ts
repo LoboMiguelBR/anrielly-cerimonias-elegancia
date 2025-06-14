@@ -17,7 +17,7 @@ interface AuthRequest {
 }
 
 serve(async (req) => {
-  console.log('Função questionario-auth iniciada')
+  console.log('🚀 Função questionario-auth iniciada')
   
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
@@ -29,25 +29,46 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    const { action, email, senha, nomeResponsavel, linkPublico } = await req.json() as AuthRequest
-
-    console.log('Dados recebidos:', { action, email, linkPublico, nomeResponsavel })
-
-    // Verificar se existe um questionário com este link público
-    const { data: questionarioExistente, error: errorBusca } = await supabaseClient
-      .from('questionarios_noivos')
-      .select('*')
-      .eq('link_publico', linkPublico)
-      .maybeSingle()
-
-    console.log('Questionário existente:', questionarioExistente)
-    console.log('Erro na busca:', errorBusca)
-
-    if (errorBusca) {
-      console.error('Erro ao buscar questionário:', errorBusca)
+    let requestData: AuthRequest
+    try {
+      requestData = await req.json() as AuthRequest
+    } catch (error) {
+      console.error('❌ Erro ao parsear JSON da requisição:', error)
       return new Response(
-        JSON.stringify({ error: 'Erro ao buscar questionário' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+        JSON.stringify({ error: 'Dados da requisição inválidos' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+      )
+    }
+
+    const { action, email, senha, nomeResponsavel, linkPublico } = requestData
+
+    console.log('📝 Dados recebidos:', { action, email, linkPublico, nomeResponsavel: !!nomeResponsavel })
+
+    // Validações básicas
+    if (!action || !email || !senha || !linkPublico) {
+      console.error('❌ Dados obrigatórios faltando')
+      return new Response(
+        JSON.stringify({ error: 'Dados obrigatórios faltando' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+      )
+    }
+
+    // Validação de email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      console.error('❌ Email inválido:', email)
+      return new Response(
+        JSON.stringify({ error: 'Email inválido' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+      )
+    }
+
+    // Validação de senha
+    if (senha.length < 6) {
+      console.error('❌ Senha muito curta')
+      return new Response(
+        JSON.stringify({ error: 'A senha deve ter pelo menos 6 caracteres' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
       )
     }
 
@@ -55,26 +76,26 @@ serve(async (req) => {
     const senhaHash = createHash('sha256').update(senha).digest('hex')
 
     if (action === 'login') {
-      console.log('Tentativa de login para:', email)
+      console.log('🔑 Tentativa de login para:', email)
       
-      if (!questionarioExistente) {
-        console.log('Questionário não encontrado para login')
-        return new Response(
-          JSON.stringify({ error: 'Link de questionário não encontrado' }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 404 }
-        )
-      }
-
-      // Verificar se já existe uma conta com este email para este questionário
-      const { data: contaExistente } = await supabaseClient
+      // Verificar se existe uma conta com este email para este questionário
+      const { data: contaExistente, error: errorBusca } = await supabaseClient
         .from('questionarios_noivos')
         .select('*')
         .eq('link_publico', linkPublico)
         .eq('email', email)
         .maybeSingle()
 
+      if (errorBusca) {
+        console.error('❌ Erro ao buscar conta:', errorBusca)
+        return new Response(
+          JSON.stringify({ error: 'Erro ao verificar credenciais' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+        )
+      }
+
       if (!contaExistente) {
-        console.log('Conta não encontrada para este email e questionário')
+        console.log('❌ Conta não encontrada para este email e questionário')
         return new Response(
           JSON.stringify({ error: 'Credenciais inválidas' }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
@@ -83,14 +104,14 @@ serve(async (req) => {
 
       // Verificar senha
       if (contaExistente.senha_hash !== senhaHash) {
-        console.log('Senha incorreta')
+        console.log('❌ Senha incorreta')
         return new Response(
           JSON.stringify({ error: 'Credenciais inválidas' }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
         )
       }
 
-      console.log('Login realizado com sucesso')
+      console.log('✅ Login realizado com sucesso')
       
       return new Response(
         JSON.stringify({
@@ -108,9 +129,9 @@ serve(async (req) => {
     }
 
     if (action === 'register') {
-      console.log('Tentativa de registro para:', email, 'nome:', nomeResponsavel)
+      console.log('📝 Tentativa de registro para:', email, 'nome:', nomeResponsavel)
       
-      if (!nomeResponsavel) {
+      if (!nomeResponsavel || nomeResponsavel.trim().length === 0) {
         return new Response(
           JSON.stringify({ error: 'Nome é obrigatório' }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
@@ -118,42 +139,67 @@ serve(async (req) => {
       }
 
       // Verificar se já existe uma conta com este email para este questionário
-      const { data: contaExistente } = await supabaseClient
+      const { data: contaExistente, error: errorBuscaExistente } = await supabaseClient
         .from('questionarios_noivos')
         .select('*')
         .eq('link_publico', linkPublico)
         .eq('email', email)
         .maybeSingle()
 
+      if (errorBuscaExistente) {
+        console.error('❌ Erro ao verificar conta existente:', errorBuscaExistente)
+        return new Response(
+          JSON.stringify({ error: 'Erro ao verificar dados' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+        )
+      }
+
       if (contaExistente) {
-        console.log('Já existe uma conta com este email para este questionário')
+        console.log('❌ Já existe uma conta com este email para este questionário')
         return new Response(
           JSON.stringify({ error: 'Já existe uma conta com este email para este questionário' }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 409 }
         )
       }
 
+      // Verificar se existe um questionário placeholder para este link
+      const { data: questionarioPlaceholder, error: errorBuscaPlaceholder } = await supabaseClient
+        .from('questionarios_noivos')
+        .select('*')
+        .eq('link_publico', linkPublico)
+        .eq('email', 'aguardando@preenchimento.com')
+        .maybeSingle()
+
+      if (errorBuscaPlaceholder) {
+        console.error('❌ Erro ao buscar placeholder:', errorBuscaPlaceholder)
+        return new Response(
+          JSON.stringify({ error: 'Erro ao verificar questionário' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+        )
+      }
+
       let questionarioData
 
-      if (questionarioExistente && questionarioExistente.email === 'aguardando@preenchimento.com') {
+      if (questionarioPlaceholder) {
         // Atualizar o registro placeholder existente
-        console.log('Atualizando registro placeholder existente')
+        console.log('🔄 Atualizando registro placeholder existente')
         
         const { data, error } = await supabaseClient
           .from('questionarios_noivos')
           .update({
-            nome_responsavel: nomeResponsavel,
+            nome_responsavel: nomeResponsavel.trim(),
             email: email,
             senha_hash: senhaHash,
             status: 'rascunho',
-            respostas_json: {}
+            respostas_json: {},
+            data_atualizacao: new Date().toISOString()
           })
-          .eq('id', questionarioExistente.id)
+          .eq('id', questionarioPlaceholder.id)
           .select()
           .single()
 
         if (error) {
-          console.error('Erro ao atualizar questionário:', error)
+          console.error('❌ Erro ao atualizar questionário:', error)
           return new Response(
             JSON.stringify({ error: 'Erro ao criar conta' }),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
@@ -163,23 +209,25 @@ serve(async (req) => {
         questionarioData = data
       } else {
         // Criar novo registro
-        console.log('Criando novo registro de questionário')
+        console.log('➕ Criando novo registro de questionário')
         
         const { data, error } = await supabaseClient
           .from('questionarios_noivos')
           .insert({
             link_publico: linkPublico,
-            nome_responsavel: nomeResponsavel,
+            nome_responsavel: nomeResponsavel.trim(),
             email: email,
             senha_hash: senhaHash,
             status: 'rascunho',
-            respostas_json: {}
+            respostas_json: {},
+            data_criacao: new Date().toISOString(),
+            data_atualizacao: new Date().toISOString()
           })
           .select()
           .single()
 
         if (error) {
-          console.error('Erro ao criar questionário:', error)
+          console.error('❌ Erro ao criar questionário:', error)
           return new Response(
             JSON.stringify({ error: 'Erro ao criar conta' }),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
@@ -189,7 +237,7 @@ serve(async (req) => {
         questionarioData = data
       }
 
-      console.log('Registro criado/atualizado com sucesso:', questionarioData.id)
+      console.log('✅ Registro criado/atualizado com sucesso:', questionarioData.id)
 
       return new Response(
         JSON.stringify({
@@ -212,7 +260,7 @@ serve(async (req) => {
     )
 
   } catch (error) {
-    console.error('Erro na função questionario-auth:', error)
+    console.error('❌ Erro na função questionario-auth:', error)
     return new Response(
       JSON.stringify({ error: 'Erro interno do servidor' }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
