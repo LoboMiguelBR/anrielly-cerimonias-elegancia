@@ -1,3 +1,4 @@
+
 import React from 'react';
 import DashboardTab from '../tabs/DashboardTab';
 import LeadsTab from '../tabs/LeadsTab';
@@ -19,12 +20,10 @@ import ProposalTemplatesTab from '../tabs/ProposalTemplatesTab';
 import ContractTemplatesTab from '../tabs/ContractTemplatesTab';
 import ContractEmailTemplatesTab from '../tabs/ContractEmailTemplatesTab';
 import WebsiteTab from '../tabs/WebsiteTab';
-import LandingPagesTab from '../tabs/LandingPagesTab';
 import AnalyticsTab from '../tabs/AnalyticsTab';
 import SettingsTab from '../tabs/SettingsTab';
 import UsersTab from '../tabs/UsersTab';
 import TemplatesTab from '../tabs/TemplatesTab';
-import CMSHomeTab from '../tabs/CMSHomeTab';
 import { TabContentRendererProps } from './types';
 
 const TabContentRenderer: React.FC<TabContentRendererProps> = ({ activeTab }) => {
@@ -39,7 +38,6 @@ const TabContentRenderer: React.FC<TabContentRendererProps> = ({ activeTab }) =>
     clients: ClientesTab,
     professionals: ProfessionalsTab,
     services: ServicesTab,
-    'website-cms': CMSHomeTab,
     gallery: AdminGalleryTab,
     testimonials: TestimonialsTab,
     'vendas-financeiro': VendasFinanceiroTab,
@@ -50,7 +48,6 @@ const TabContentRenderer: React.FC<TabContentRendererProps> = ({ activeTab }) =>
     'contract-templates': ContractTemplatesTab,
     'contract-email-templates': ContractEmailTemplatesTab,
     website: WebsiteTab,
-    'landing-pages': LandingPagesTab,
     analytics: AnalyticsTab,
     settings: SettingsTab,
     users: UsersTab,

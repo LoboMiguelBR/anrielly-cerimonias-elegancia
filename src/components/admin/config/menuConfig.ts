@@ -14,7 +14,7 @@ export interface MenuSection {
   items: MenuItem[];
 }
 
-// Raw menu config (as before)
+// Raw menu config CMS/landing pages removidos
 export const menuConfig = [
   {
     section: 'Dashboard',
@@ -43,7 +43,6 @@ export const menuConfig = [
   {
     section: 'Website & Conteúdo',
     items: [
-      { label: 'Website & CMS', key: 'website-cms', icon: 'globe' },
       { label: 'Galeria', key: 'gallery', icon: 'image' },
       { label: 'Depoimentos', key: 'testimonials', icon: 'messages-square' }
     ],
@@ -54,7 +53,6 @@ export const menuConfig = [
       { label: 'Templates de Proposta', key: 'proposal-templates', icon: 'document' },
       { label: 'Templates de Contrato', key: 'contract-templates', icon: 'file-text' },
       { label: 'Emails de Contrato', key: 'contract-email-templates', icon: 'mail' },
-      { label: 'Landing Pages', key: 'landing-pages', icon: 'layers' },
       { label: 'Questionários', key: 'questionarios', icon: 'list-checks' },
       { label: 'Histórias de Casais', key: 'historias-casais', icon: 'heart' }
     ],
