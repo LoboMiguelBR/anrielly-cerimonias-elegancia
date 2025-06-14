@@ -18,9 +18,9 @@ import WebChat from "@/components/WebChat";
 import { Toaster } from "sonner";
 
 const Index = () => (
-  <div className="bg-white min-h-screen">
+  <div className="bg-white min-h-screen flex flex-col">
     <Header />
-    <main id="main-content">
+    <main id="main-content" className="flex-1 w-full">
       <Hero />
       <About />
       <Experience />
