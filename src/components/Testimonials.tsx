@@ -1,11 +1,14 @@
 
 import { useRef } from 'react';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import { useTestimonialsData } from '@/components/testimonials/useTestimonialsData';
 
 const Testimonials = () => {
   const sectionRef = useRef<HTMLElement>(null);
+  const { testimonials, isLoading } = useTestimonialsData();
 
-  const testimonials = [
+  // Fallback para depoimentos estáticos se não houver depoimentos aprovados
+  const staticTestimonials = [
     {
       id: "1",
       name: "Maria Silva",
@@ -29,6 +32,29 @@ const Testimonials = () => {
     }
   ];
 
+  // Usar depoimentos do banco ou fallback para estáticos
+  const displayTestimonials = testimonials.length > 0 ? testimonials : staticTestimonials;
+
+  if (isLoading) {
+    return (
+      <section id="depoimentos" className="bg-white py-16" ref={sectionRef}>
+        <div className="container mx-auto px-4">
+          <h2 className="section-title animate-on-scroll text-3xl font-semibold text-center mb-8">
+            Depoimentos
+          </h2>
+          <div className="max-w-2xl mx-auto">
+            <div className="animate-pulse flex flex-col items-center text-center space-y-2 px-2">
+              <div className="w-16 h-16 bg-gray-300 rounded-full mb-2"></div>
+              <div className="h-4 bg-gray-300 rounded w-24 mb-1"></div>
+              <div className="h-3 bg-gray-300 rounded w-16 mb-2"></div>
+              <div className="h-20 bg-gray-300 rounded w-64"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section id="depoimentos" className="bg-white py-16" ref={sectionRef}>
       <div className="container mx-auto px-4">
@@ -36,10 +62,10 @@ const Testimonials = () => {
           Depoimentos
         </h2>
         
-        {testimonials.length > 0 ? (
+        {displayTestimonials.length > 0 ? (
           <Carousel className="max-w-2xl mx-auto">
             <CarouselContent>
-              {testimonials.map((testimonial) => (
+              {displayTestimonials.map((testimonial) => (
                 <CarouselItem key={testimonial.id} className="py-6">
                   <div className="flex flex-col items-center text-center space-y-2 px-2">
                     <img

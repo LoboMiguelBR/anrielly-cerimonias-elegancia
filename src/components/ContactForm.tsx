@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { User, Mail, Phone, MessageSquare, Calendar, Heart, MapPin } from 'lucide-react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 const ContactForm: React.FC = () => {
   const [name, setName] = useState('');
@@ -28,9 +29,20 @@ const ContactForm: React.FC = () => {
 
     setIsSubmitting(true);
     
-    // Simular envio de formulário
     try {
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      const { data, error } = await supabase.functions.invoke('save-lead', {
+        body: {
+          name,
+          email,
+          phone,
+          message,
+          event_type: eventType || 'Não especificado',
+          event_date: eventDate || null,
+          event_location: eventLocation || ''
+        }
+      });
+
+      if (error) throw error;
       
       toast.success('Mensagem enviada com sucesso! Em breve entraremos em contato.');
       
@@ -42,7 +54,8 @@ const ContactForm: React.FC = () => {
       setEventType('');
       setEventDate('');
       setEventLocation('');
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Erro ao enviar mensagem:', error);
       toast.error('Falha ao enviar a mensagem. Por favor, tente novamente.');
     } finally {
       setIsSubmitting(false);
