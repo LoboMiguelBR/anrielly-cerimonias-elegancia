@@ -23,9 +23,9 @@ import SettingsTab from '../tabs/SettingsTab';
 import UsersTab from '../tabs/UsersTab';
 import TemplatesTab from '../tabs/TemplatesTab';
 import { TabContentRendererProps } from './types';
+import EnterpriseDashboardTab from '../tabs/EnterpriseDashboardTab';
 
-const TabContentRenderer: React.FC<TabContentRendererProps> = ({ activeTab }) => {
-  const tabComponents: Record<string, React.ComponentType> = {
+const tabComponents: Record<string, React.ComponentType> = {
     dashboard: DashboardTab,
     leads: LeadsTab,
     quotes: QuotesTab,
@@ -48,16 +48,18 @@ const TabContentRenderer: React.FC<TabContentRendererProps> = ({ activeTab }) =>
     analytics: AnalyticsTab,
     settings: SettingsTab,
     users: UsersTab,
-    templates: TemplatesTab
-  };
+    templates: TemplatesTab,
+    "enterprise-dashboard": EnterpriseDashboardTab,
+};
 
-  const TabComponent = tabComponents[activeTab] || (() => <div className="p-4">Conteúdo não encontrado</div>);
+const TabContentRenderer: React.FC<TabContentRendererProps> = ({ activeTab }) => {
+    const TabComponent = tabComponents[activeTab] || (() => <div className="p-4">Conteúdo não encontrado</div>);
 
-  return (
-    <div className="h-full">
-      <TabComponent />
-    </div>
-  );
+    return (
+        <div className="h-full">
+            <TabComponent />
+        </div>
+    );
 };
 
 export default TabContentRenderer;
