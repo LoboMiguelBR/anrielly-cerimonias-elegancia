@@ -1,4 +1,3 @@
-
 import React from 'react';
 import Header from '@/components/Header';
 import Hero from '@/components/Hero';
@@ -14,27 +13,30 @@ import ServiceArea from '@/components/ServiceArea';
 import ContactSection from '@/components/ContactSection';
 import FinalCTA from '@/components/FinalCTA';
 import Footer from '@/components/Footer';
+import { GalleryProvider } from '@/components/gallery';
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gold-50 via-white to-purple-50">
-      <Header />
-      <main>
-        <Hero />
-        <About />
-        <Services />
-        <Differentials />
-        <Timeline />
-        <Experience />
-        <SpecialRituals />
-        <Testimonials />
-        <Gallery />
-        <ServiceArea />
-        <ContactSection />
-        <FinalCTA />
-      </main>
-      <Footer />
-    </div>
+    <GalleryProvider>
+      <div className="min-h-screen bg-gradient-to-br from-gold-50 via-white to-purple-50">
+        <Header />
+        <main>
+          <Hero />
+          <About />
+          <Services />
+          <Differentials />
+          <Timeline />
+          <Experience />
+          <SpecialRituals />
+          <Testimonials />
+          <Gallery />
+          <ServiceArea />
+          <ContactSection />
+          <FinalCTA />
+        </main>
+        <Footer />
+      </div>
+    </GalleryProvider>
   );
 };
 
