@@ -45,6 +45,15 @@ const Footer = () => {
                 WhatsApp: (24) 99268-9947
               </a>
             </address>
+            
+            <div className="mt-3">
+              <a 
+                href="/admin" 
+                className="text-xs text-gray-600 hover:text-gray-400 transition-colors opacity-50 hover:opacity-75"
+              >
+                Admin
+              </a>
+            </div>
           </div>
         </div>
       </div>
