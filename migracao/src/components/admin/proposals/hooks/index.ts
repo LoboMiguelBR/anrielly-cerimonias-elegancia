@@ -1,2 +1,0 @@
-
-export { useProposalActions } from './useProposalActions';
