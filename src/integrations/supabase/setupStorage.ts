@@ -2,53 +2,48 @@
 import { supabase } from './client';
 
 export const createStorageBuckets = async () => {
-  const bucketNames = ['testimonials', 'gallery', 'proposals'];
-
-  for (const bucketName of bucketNames) {
-    try {
-      const { data, error } = await supabase.storage.from(bucketName).list('');
-
-      if (error) {
-        console.warn(`Bucket '${bucketName}' pode não estar acessível ou não existe:`, error.message);
-        
-        // Try to create the bucket if it doesn't exist
-        const { error: createError } = await supabase.storage.createBucket(bucketName, {
-          public: true
+  try {
+    // Check existing buckets
+    const { data: buckets } = await supabase.storage.listBuckets();
+    const bucketNames = buckets?.map(b => b.name) || [];
+    
+    const requiredBuckets = ['gallery', 'proposals', 'testimonials'];
+    
+    for (const bucketName of requiredBuckets) {
+      if (!bucketNames.includes(bucketName)) {
+        const { error } = await supabase.storage.createBucket(bucketName, {
+          public: true,
+          allowedMimeTypes: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
+          fileSizeLimit: 10485760 // 10MB
         });
         
-        if (createError) {
-          console.error(`Erro ao criar bucket '${bucketName}':`, createError.message);
+        if (error) {
+          console.warn(`Erro ao criar bucket ${bucketName}:`, error.message);
         } else {
-          console.log(`Bucket '${bucketName}' criado com sucesso.`);
-          
-          // Set bucket as public
-          const { error: updateError } = await supabase.storage.updateBucket(bucketName, {
-            public: true
-          });
-          
-          if (updateError) {
-            console.error(`Erro ao tornar bucket '${bucketName}' público:`, updateError.message);
-          }
+          console.log(`Bucket ${bucketName} criado com sucesso`);
         }
-      } else {
-        console.log(`Bucket '${bucketName}' está acessível. Contém ${data.length} arquivos.`);
       }
-    } catch (error) {
-      console.error(`Erro ao acessar bucket '${bucketName}':`, error);
     }
-  }
-
-  try {
-    // Teste de geração de URL pública para verificar o formato
-    const { data } = supabase.storage.from('gallery').getPublicUrl('test.jpg');
-    console.log('Public URL de teste para referência:', data.publicUrl);
+    
+    // Verify buckets are accessible
+    for (const bucketName of requiredBuckets) {
+      try {
+        const { data, error } = await supabase.storage.from(bucketName).list();
+        if (error) {
+          console.warn(`Bucket ${bucketName} não está acessível:`, error.message);
+        } else {
+          console.log(`Bucket '${bucketName}' está acessível. Contém ${data?.length || 0} arquivos.`);
+        }
+      } catch (err) {
+        console.warn(`Erro ao verificar bucket ${bucketName}:`, err);
+      }
+    }
+    
+    // Test public URL generation
+    const testUrl = supabase.storage.from('gallery').getPublicUrl('test.jpg');
+    console.log('Public URL de teste para referência:', testUrl.data.publicUrl);
+    
   } catch (error) {
-    console.error('Erro ao gerar URL pública:', error);
+    console.error('Erro crítico na configuração de storage:', error);
   }
-
-  return {
-    testimonialsBucket: { name: 'testimonials', id: 'testimonials' },
-    galleryBucket: { name: 'gallery', id: 'gallery' },
-    proposalsBucket: { name: 'proposals', id: 'proposals' }
-  };
 };
