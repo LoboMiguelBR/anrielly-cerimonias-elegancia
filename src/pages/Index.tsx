@@ -13,33 +13,28 @@ import ServiceArea from "@/components/ServiceArea";
 import FinalCTA from "@/components/FinalCTA";
 import ContactSection from "@/components/ContactSection";
 import Footer from "@/components/Footer";
-import PWAInstallPrompt from "@/components/PWAInstallPrompt";
-import { GalleryProvider } from "@/components/gallery";
 import { Toaster } from "sonner";
 
 const Index = () => (
-  <GalleryProvider>
-    <div className="bg-white min-h-screen">
-      <Header />
-      <main id="main-content">
-        <Hero />
-        <About />
-        <Experience />
-        <Services />
-        <Timeline />
-        <Differentials />
-        <SpecialRituals />
-        <Gallery />
-        <Testimonials />
-        <ServiceArea />
-        <FinalCTA />
-        <ContactSection />
-      </main>
-      <Footer />
-      <PWAInstallPrompt />
-      <Toaster position="top-right" richColors />
-    </div>
-  </GalleryProvider>
+  <div className="bg-white min-h-screen">
+    <Header />
+    <main id="main-content">
+      <Hero />
+      <About />
+      <Experience />
+      <Services />
+      <Timeline />
+      <Differentials />
+      <SpecialRituals />
+      <Gallery />
+      <Testimonials />
+      <ServiceArea />
+      <FinalCTA />
+      <ContactSection />
+    </main>
+    <Footer />
+    <Toaster position="top-right" richColors />
+  </div>
 );
 
 export default Index;

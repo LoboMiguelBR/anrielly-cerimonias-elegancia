@@ -1,11 +1,9 @@
 
 import { useEffect, useRef } from 'react';
-import { useServices } from '@/hooks/useServices';
 import { Calendar, Heart, Award, Image } from 'lucide-react';
 
 const Services = () => {
   const sectionRef = useRef<HTMLElement>(null);
-  const { services, isLoading } = useServices();
   
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -29,6 +27,33 @@ const Services = () => {
     };
   }, []);
 
+  const services = [
+    {
+      id: "1",
+      title: "Casamentos",
+      description: "Celebrações matrimoniais únicas e emocionantes, conduzidas com carinho e profissionalismo.",
+      icon: "Heart"
+    },
+    {
+      id: "2", 
+      title: "Formaturas",
+      description: "Cerimônias de formatura solenes e marcantes para celebrar conquistas acadêmicas.",
+      icon: "Award"
+    },
+    {
+      id: "3",
+      title: "Aniversários",
+      description: "Comemorações especiais de aniversário com roteiro personalizado e momentos únicos.",
+      icon: "Calendar"
+    },
+    {
+      id: "4",
+      title: "Eventos Corporativos",
+      description: "Conduções profissionais para eventos empresariais, lançamentos e premiações.",
+      icon: "Image"
+    }
+  ];
+
   const getIcon = (iconName: string) => {
     const iconMap: Record<string, React.ReactNode> = {
       Heart: <Heart className="w-10 h-10 text-gold" />,
@@ -38,19 +63,6 @@ const Services = () => {
     };
     return iconMap[iconName] || <Heart className="w-10 h-10 text-gold" />;
   };
-
-  if (isLoading) {
-    return (
-      <section id="servicos" className="bg-white" ref={sectionRef}>
-        <div className="container mx-auto px-4">
-          <h2 className="section-title animate-on-scroll">Serviços</h2>
-          <div className="flex justify-center items-center h-32">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gold"></div>
-          </div>
-        </div>
-      </section>
-    );
-  }
 
   return (
     <section id="servicos" className="bg-white" ref={sectionRef}>
@@ -76,12 +88,6 @@ const Services = () => {
             </div>
           ))}
         </div>
-
-        {services.length === 0 && (
-          <div className="text-center py-8 text-gray-500">
-            <p>Nenhum serviço disponível no momento.</p>
-          </div>
-        )}
       </div>
     </section>
   );

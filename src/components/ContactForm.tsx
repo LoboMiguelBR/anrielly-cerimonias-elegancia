@@ -7,8 +7,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { User, Mail, Phone, MessageSquare, Calendar, Heart, MapPin } from 'lucide-react';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
-import { sendContactNotification } from '@/utils/email';
 
 const ContactForm: React.FC = () => {
   const [name, setName] = useState('');
@@ -29,44 +27,22 @@ const ContactForm: React.FC = () => {
     }
 
     setIsSubmitting(true);
+    
+    // Simular envio de formulário
     try {
-      // Salvar na tabela quote_requests
-      const { error: dbError } = await supabase
-        .from('quote_requests')
-        .insert([{
-          name,
-          email,
-          phone,
-          event_type: eventType || 'Contato Geral',
-          event_date: eventDate || null,
-          event_location: eventLocation || null,
-          message,
-          status: 'aguardando'
-        }]);
-
-      if (dbError) {
-        console.error('Erro ao salvar no banco:', dbError);
-        throw new Error('Erro ao salvar os dados');
-      }
-
-      // Enviar emails (notificação para admin e confirmação para cliente)
-      const emailSuccess = await sendContactNotification(name, email, phone, message);
+      await new Promise(resolve => setTimeout(resolve, 2000));
       
-      if (emailSuccess) {
-        toast.success('Mensagem enviada com sucesso! Em breve entraremos em contato.');
-        // Limpar formulário
-        setName('');
-        setEmail('');
-        setPhone('');
-        setMessage('');
-        setEventType('');
-        setEventDate('');
-        setEventLocation('');
-      } else {
-        toast.warning('Dados salvos, mas houve um problema no envio do email.');
-      }
+      toast.success('Mensagem enviada com sucesso! Em breve entraremos em contato.');
+      
+      // Limpar formulário
+      setName('');
+      setEmail('');
+      setPhone('');
+      setMessage('');
+      setEventType('');
+      setEventDate('');
+      setEventLocation('');
     } catch (error) {
-      console.error('Erro ao processar formulário:', error);
       toast.error('Falha ao enviar a mensagem. Por favor, tente novamente.');
     } finally {
       setIsSubmitting(false);
@@ -129,7 +105,6 @@ const ContactForm: React.FC = () => {
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Campos obrigatórios */}
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -183,7 +158,6 @@ const ContactForm: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Campos opcionais do evento */}
                 <div className="border-t pt-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                     <Heart className="h-5 w-5 text-rose-500" />
@@ -244,7 +218,6 @@ const ContactForm: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Mensagem */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Mensagem *

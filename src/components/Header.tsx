@@ -1,7 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Menu, X, Shield } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -62,13 +61,6 @@ const Header = () => {
               <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-purple-600 transition-all duration-300 group-hover:w-full"></span>
             </a>
           ))}
-          <Link 
-            to="/admin/login" 
-            className="text-gray-500 hover:text-purple-600 transition-colors p-2 rounded-md hover:bg-gray-100"
-            title="Área Administrativa"
-          >
-            <Shield size={20} />
-          </Link>
         </nav>
 
         {/* Mobile Menu Button */}
@@ -95,14 +87,6 @@ const Header = () => {
                 {item.title}
               </a>
             ))}
-            <Link 
-              to="/admin/login" 
-              className="text-gray-500 hover:text-purple-600 py-3 px-4 font-medium transition-colors rounded-md hover:bg-gray-50 flex items-center"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              <Shield size={18} className="mr-2" />
-              Admin
-            </Link>
           </nav>
         </div>
       )}
