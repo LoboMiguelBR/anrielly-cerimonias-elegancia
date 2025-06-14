@@ -1,26 +1,35 @@
 
 import { useRef, useState } from 'react';
 import useTestimonialsData from './testimonials/useTestimonialsData';
-import EnhancedTestimonialCarousel from './testimonials/EnhancedTestimonialCarousel';
 import { Button } from "@/components/ui/button";
 import { TestimonialSubmissionModal } from './testimonials';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import { Skeleton } from "@/components/ui/skeleton";
+
+const TestimonialSkeleton = () => (
+  <div className="flex flex-col items-center py-8 px-4 animate-pulse">
+    <Skeleton className="w-16 h-16 rounded-full mb-3" />
+    <Skeleton className="w-32 h-4 mb-2" />
+    <Skeleton className="w-20 h-4 mb-2" />
+    <Skeleton className="w-60 h-4" />
+  </div>
+);
 
 const Testimonials = () => {
   const sectionRef = useRef<HTMLElement>(null);
   const { testimonials, isLoading, error, fetchTestimonials } = useTestimonialsData();
   const [showSubmissionModal, setShowSubmissionModal] = useState(false);
-  
-  const mappedTestimonials = testimonials.map(testimonial => ({
-    id: testimonial.id,
-    name: testimonial.name,
-    role: testimonial.role,
-    quote: testimonial.quote,
-    imageUrl: testimonial.image_url,
-    status: testimonial.status
-  }));
 
-  console.log('[Testimonials] Renderizando componente com', mappedTestimonials.length, 'depoimentos randomizados');
-  console.log('[Testimonials] Estado:', { isLoading, hasError: !!error, testimonialCount: mappedTestimonials.length });
+  // Responsividade: controle de quantos slides por tela
+  const getSlidesToShow = () => {
+    if (typeof window !== 'undefined') {
+      if (window.innerWidth >= 1024) return 3;
+      if (window.innerWidth >= 640) return 2;
+    }
+    return 1;
+  };
+
+  const slidesToShow = getSlidesToShow();
 
   return (
     <section id="depoimentos" className="bg-white py-16" ref={sectionRef}>
@@ -30,10 +39,16 @@ const Testimonials = () => {
         </h2>
         
         {isLoading ? (
-          <div className="py-10 text-center" aria-busy="true">
-            <div className="animate-pulse">
-              <div className="h-32 bg-gray-200 rounded-lg max-w-md mx-auto"></div>
-            </div>
+          <div className="py-10" aria-busy="true">
+            <Carousel className="max-w-2xl mx-auto">
+              <CarouselContent>
+                {[...Array(slidesToShow)].map((_, idx) => (
+                  <CarouselItem key={idx}>
+                    <TestimonialSkeleton />
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+            </Carousel>
           </div>
         ) : error ? (
           <div className="py-10 text-center text-red-500" role="alert">
@@ -48,11 +63,31 @@ const Testimonials = () => {
               </Button>
             </div>
           </div>
-        ) : mappedTestimonials.length > 0 ? (
+        ) : testimonials.length > 0 ? (
           <>
-            <div className="mx-auto">
-              <EnhancedTestimonialCarousel testimonials={mappedTestimonials} />
-            </div>
+            <Carousel className="max-w-2xl mx-auto">
+              <CarouselContent>
+                {testimonials.map((testimonial, index) => (
+                  <CarouselItem key={testimonial.id} className="py-6">
+                    <div className="flex flex-col items-center text-center space-y-2 px-2">
+                      <img
+                        src={testimonial.image_url ?? "/placeholder.svg"}
+                        alt={testimonial.name}
+                        loading="lazy"
+                        className="w-16 h-16 rounded-full object-cover border-2 border-gold mb-2"
+                        width={64}
+                        height={64}
+                      />
+                      <span className="font-bold text-gold mb-1">{testimonial.name}</span>
+                      <span className="text-sm text-gray-500 mb-2">{testimonial.role}</span>
+                      <p className="italic text-gray-700 max-w-xs">{testimonial.quote}</p>
+                    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious />
+              <CarouselNext />
+            </Carousel>
             <div className="text-center mt-10">
               <p className="text-gray-500 italic mb-4">
                 Conheça a experiência de nossos clientes
