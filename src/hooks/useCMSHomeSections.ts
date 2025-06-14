@@ -14,6 +14,7 @@ export interface CMSHomeSection {
   cta_link?: string;
   order_index: number;
   active: boolean;
+  background_image?: string; // <-- NOVO: imagem de fundo para a seção!
   created_at: string;
   updated_at: string;
 }
