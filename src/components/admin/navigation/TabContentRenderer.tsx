@@ -14,7 +14,7 @@ import TestimonialsTab from '../tabs/TestimonialsTab';
 import AdminGalleryTab from '../tabs/AdminGalleryTab';
 import UsersTab from '../tabs/UsersTab';
 import ErrorBoundary from '../../ErrorBoundary';
-import { ClientesTab } from '../tabs';
+import { ClientesTab, SuppliersTab } from '../tabs';
 
 interface TabContentRendererProps {
   activeTab: string;
@@ -63,6 +63,8 @@ const TabContentRenderer = ({ activeTab }: TabContentRendererProps) => {
           return <ContractsMain />;
         case "clientes":
           return <ClientesTab />;
+        case "fornecedores":
+          return <SuppliersTab />;
         // Operacional
         case "events":
           return <EventsTab />;
