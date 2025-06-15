@@ -1,4 +1,3 @@
-
 import React from 'react';
 import DashboardTab from '../tabs/DashboardTab';
 import ProposalsMain from '../proposals/ProposalsMain';
@@ -14,7 +13,6 @@ import ProfessionalsTab from '../tabs/ProfessionalsTab';
 import TestimonialsTab from '../tabs/TestimonialsTab';
 import AdminGalleryTab from '../tabs/AdminGalleryTab';
 import UsersTab from '../tabs/UsersTab';
-import LandingPagesTab from '../tabs/LandingPagesTab';
 import ErrorBoundary from '../../ErrorBoundary';
 
 interface TabContentRendererProps {
@@ -51,7 +49,6 @@ const TabContentRenderer = ({ activeTab }: TabContentRendererProps) => {
         // Principal
         case "dashboard":
           return <DashboardTab onNavigate={handleNavigate} />;
-
         // CRM & Vendas
         case "leads":
           return <LeadsTab />;
@@ -70,7 +67,6 @@ const TabContentRenderer = ({ activeTab }: TabContentRendererProps) => {
               <p className="text-gray-600">Funcionalidade em desenvolvimento...</p>
             </div>
           );
-
         // Operacional
         case "events":
           return <EventsTab />;
@@ -87,22 +83,11 @@ const TabContentRenderer = ({ activeTab }: TabContentRendererProps) => {
           );
         case "professionals":
           return <ProfessionalsTab />;
-
         // Conteúdo
-        case "website":
-          return (
-            <div className="p-6">
-              <h2 className="text-2xl font-bold mb-4">Website</h2>
-              <p className="text-gray-600">Funcionalidade em desenvolvimento...</p>
-            </div>
-          );
         case "gallery":
           return <AdminGalleryTab />;
         case "testimonials":
           return <TestimonialsTab />;
-        case "landing-pages":
-          return <LandingPagesTab />;
-
         // Sistema
         case "templates":
           return <TemplatesTab />;
@@ -115,7 +100,6 @@ const TabContentRenderer = ({ activeTab }: TabContentRendererProps) => {
               <p className="text-gray-600">Funcionalidade em desenvolvimento...</p>
             </div>
           );
-
         default:
           console.warn(`TabContentRenderer: Unknown tab: ${activeTab}, falling back to dashboard`);
           return <DashboardTab onNavigate={handleNavigate} />;

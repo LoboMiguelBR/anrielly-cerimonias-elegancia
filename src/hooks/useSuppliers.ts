@@ -17,6 +17,26 @@ export interface Supplier {
   updated_at: string;
 }
 
+function parseSupplier(raw: any): Supplier {
+  return {
+    id: raw.id,
+    name: raw.name,
+    email: raw.email,
+    phone: raw.phone,
+    category: raw.category,
+    rating: Number(raw.rating ?? 0),
+    contracts: Array.isArray(raw.contracts)
+      ? raw.contracts
+      : (typeof raw.contracts === 'string'
+        ? JSON.parse(raw.contracts)
+        : []),
+    portfolio_images: Array.isArray(raw.portfolio_images) ? raw.portfolio_images : [],
+    tags: Array.isArray(raw.tags) ? raw.tags : [],
+    created_at: raw.created_at,
+    updated_at: raw.updated_at,
+  };
+}
+
 export const useSuppliers = () => {
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [loading, setLoading] = useState(true);
@@ -33,16 +53,32 @@ export const useSuppliers = () => {
       setLoading(false);
       return;
     }
-    setSuppliers(data || []);
+    setSuppliers((data || []).map(parseSupplier));
     setLoading(false);
   }, []);
 
   useEffect(() => { fetchSuppliers(); }, [fetchSuppliers]);
 
-  const addSupplier = async (data: Partial<Supplier>) => {
-    const { data: created, error } = await supabase
+  const addSupplier = async (input: Partial<Supplier>) => {
+    if (!input.name || !input.email || !input.phone || !input.category) {
+      toast.error('Preencha todos os campos obrigatórios: nome, email, telefone, categoria');
+      throw new Error("Campos obrigatórios ausentes");
+    }
+
+    const insertObj = {
+      name: input.name,
+      email: input.email,
+      phone: input.phone,
+      category: input.category,
+      rating: input.rating ?? 0,
+      contracts: input.contracts ?? [],
+      portfolio_images: input.portfolio_images ?? [],
+      tags: input.tags ?? [],
+    };
+
+    const { data, error } = await supabase
       .from('suppliers')
-      .insert([data])
+      .insert([insertObj])
       .select()
       .single();
 
@@ -50,15 +86,22 @@ export const useSuppliers = () => {
       toast.error('Erro ao adicionar fornecedor: ' + error.message);
       throw error;
     }
-    setSuppliers(prev => [created, ...prev]);
+    setSuppliers(prev => [parseSupplier(data), ...prev]);
     toast.success('Fornecedor cadastrado!');
-    return created;
+    return parseSupplier(data);
   };
 
   const updateSupplier = async (id: string, updates: Partial<Supplier>) => {
-    const { data: updated, error } = await supabase
+    const updateObj = {
+      ...updates,
+      contracts: updates.contracts ?? [],
+      portfolio_images: updates.portfolio_images ?? [],
+      tags: updates.tags ?? [],
+    };
+
+    const { data, error } = await supabase
       .from('suppliers')
-      .update(updates)
+      .update(updateObj)
       .eq('id', id)
       .select()
       .single();
@@ -67,9 +110,9 @@ export const useSuppliers = () => {
       toast.error('Erro ao atualizar fornecedor: ' + error.message);
       throw error;
     }
-    setSuppliers(prev => prev.map(s => s.id === id ? updated : s));
+    setSuppliers(prev => prev.map(s => s.id === id ? parseSupplier(data) : s));
     toast.success('Fornecedor atualizado!');
-    return updated;
+    return parseSupplier(data);
   };
 
   const deleteSupplier = async (id: string) => {

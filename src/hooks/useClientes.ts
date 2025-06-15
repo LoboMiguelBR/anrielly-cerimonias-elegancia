@@ -21,13 +21,23 @@ export interface Cliente {
 
 function parseCliente(raw: any): Cliente {
   return {
-    ...raw,
+    id: raw.id,
+    name: raw.name,
+    email: raw.email,
+    phone: raw.phone,
+    event_type: raw.event_type,
+    event_date: raw.event_date ?? undefined,
+    event_location: raw.event_location ?? undefined,
+    message: raw.message ?? undefined,
+    status: raw.status ?? undefined,
     tags: Array.isArray(raw.tags) ? raw.tags : (typeof raw.tags === 'string' ? JSON.parse(raw.tags) : []),
     historical_interactions: Array.isArray(raw.historical_interactions)
       ? raw.historical_interactions
       : (typeof raw.historical_interactions === 'string'
         ? JSON.parse(raw.historical_interactions)
         : []),
+    created_at: raw.created_at,
+    updated_at: raw.updated_at,
   };
 }
 
@@ -54,18 +64,27 @@ export const useClientes = () => {
   useEffect(() => { fetchClientes(); }, [fetchClientes]);
 
   const addCliente = async (input: Partial<Cliente>) => {
-    // Garantir campos obrigatórios
     if (!input.name || !input.email || !input.phone || !input.event_type) {
       toast.error('Preencha todos os campos obrigatórios: nome, email, telefone, tipo do evento');
       throw new Error("Campos obrigatórios ausentes");
     }
+
+    const insertObj = {
+      name: input.name,
+      email: input.email,
+      phone: input.phone,
+      event_type: input.event_type,
+      event_date: input.event_date,
+      event_location: input.event_location,
+      message: input.message,
+      status: input.status,
+      tags: input.tags ?? [],
+      historical_interactions: input.historical_interactions ?? [],
+    };
+
     const { data, error } = await supabase
       .from('clientes')
-      .insert([{
-        ...input,
-        tags: input.tags ?? [],
-        historical_interactions: input.historical_interactions ?? []
-      }])
+      .insert([insertObj])
       .select();
 
     if (error) {
@@ -78,13 +97,15 @@ export const useClientes = () => {
   };
 
   const updateCliente = async (id: string, updates: Partial<Cliente>) => {
+    const updateObj = {
+      ...updates,
+      tags: updates.tags ?? [],
+      historical_interactions: updates.historical_interactions ?? [],
+    };
+
     const { data, error } = await supabase
       .from('clientes')
-      .update({
-        ...updates,
-        tags: updates.tags ?? [],
-        historical_interactions: updates.historical_interactions ?? [],
-      })
+      .update(updateObj)
       .eq('id', id)
       .select();
 

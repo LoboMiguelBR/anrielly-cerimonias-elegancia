@@ -1,4 +1,3 @@
-
 import { useParams } from 'react-router-dom';
 import { useLandingPageData } from '@/hooks/useLandingPageData';
 import Header from '@/components/Header';
