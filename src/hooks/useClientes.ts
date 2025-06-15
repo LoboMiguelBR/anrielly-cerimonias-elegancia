@@ -19,6 +19,18 @@ export interface Cliente {
   updated_at: string;
 }
 
+function parseCliente(raw: any): Cliente {
+  return {
+    ...raw,
+    tags: Array.isArray(raw.tags) ? raw.tags : (typeof raw.tags === 'string' ? JSON.parse(raw.tags) : []),
+    historical_interactions: Array.isArray(raw.historical_interactions)
+      ? raw.historical_interactions
+      : (typeof raw.historical_interactions === 'string'
+        ? JSON.parse(raw.historical_interactions)
+        : []),
+  };
+}
+
 export const useClientes = () => {
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [loading, setLoading] = useState(true);
@@ -35,43 +47,56 @@ export const useClientes = () => {
       setLoading(false);
       return;
     }
-    setClientes(data || []);
+    setClientes((data || []).map(parseCliente));
     setLoading(false);
   }, []);
 
   useEffect(() => { fetchClientes(); }, [fetchClientes]);
 
-  const addCliente = async (data: Partial<Cliente>) => {
-    const { data: created, error } = await supabase
+  const addCliente = async (input: Partial<Cliente>) => {
+    // Garantir campos obrigatórios
+    if (!input.name || !input.email || !input.phone || !input.event_type) {
+      toast.error('Preencha todos os campos obrigatórios: nome, email, telefone, tipo do evento');
+      throw new Error("Campos obrigatórios ausentes");
+    }
+    const { data, error } = await supabase
       .from('clientes')
-      .insert([data])
-      .select()
-      .single();
+      .insert([{
+        ...input,
+        tags: input.tags ?? [],
+        historical_interactions: input.historical_interactions ?? []
+      }])
+      .select();
 
     if (error) {
       toast.error('Erro ao adicionar cliente: ' + error.message);
       throw error;
     }
-    setClientes(prev => [created, ...prev]);
+    setClientes(prev => [...(data || []).map(parseCliente), ...prev]);
     toast.success('Cliente cadastrado com sucesso!');
-    return created;
+    return data ? parseCliente(data[0]) : null;
   };
 
   const updateCliente = async (id: string, updates: Partial<Cliente>) => {
-    const { data: updated, error } = await supabase
+    const { data, error } = await supabase
       .from('clientes')
-      .update(updates)
+      .update({
+        ...updates,
+        tags: updates.tags ?? [],
+        historical_interactions: updates.historical_interactions ?? [],
+      })
       .eq('id', id)
-      .select()
-      .single();
+      .select();
 
     if (error) {
       toast.error('Erro ao atualizar cliente: ' + error.message);
       throw error;
     }
-    setClientes(prev => prev.map(cli => cli.id === id ? updated : cli));
+    setClientes(prev =>
+      prev.map(cli => cli.id === id ? parseCliente((data && data[0]) ?? cli) : cli)
+    );
     toast.success('Cliente atualizado!');
-    return updated;
+    return data ? parseCliente(data[0]) : null;
   };
 
   const deleteCliente = async (id: string) => {

@@ -41,7 +41,9 @@ export const useInternalNotifications = () => {
     await fetchNotifications();
   };
 
-  const addNotification = async (notif: Partial<InternalNotification>) => {
+  const addNotification = async (notif: Omit<InternalNotification, "id" | "created_at" | "read"> & { read?: boolean }) => {
+    // Campos obrigatórios: type, message
+    if (!notif.message) throw new Error("Mensagem obrigatória");
     await supabase
       .from('internal_notifications')
       .insert([notif]);
