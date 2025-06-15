@@ -113,7 +113,7 @@ export default function EventTasks({ eventId }: EventTasksProps) {
         ) : (
           tasks
             .slice()
-            .sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0))
+            .sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0)) // Corrigido uso do campo order_index
             .map((task, index) => (
             <div
               key={task.id}

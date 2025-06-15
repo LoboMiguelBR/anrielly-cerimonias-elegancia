@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -12,6 +13,7 @@ export interface EventTask {
   completed_at?: string;
   created_at?: string;
   updated_at?: string;
+  order_index?: number; // <-- ADICIONADO
 }
 
 export function useEventTasks(eventId: string | null) {
@@ -28,7 +30,7 @@ export function useEventTasks(eventId: string | null) {
       .from("event_tasks")
       .select("*")
       .eq("event_id", eventId)
-      .order("due_date", { ascending: true });
+      .order("order_index", { ascending: true }); // agora usa order_index
 
     if (!error) setTasks(data || []);
     setLoading(false);
@@ -38,7 +40,9 @@ export function useEventTasks(eventId: string | null) {
     fetchTasks();
   }, [fetchTasks, eventId]);
 
-  const addTask = async (task: Omit<EventTask, "id" | "created_at" | "updated_at" | "completed" | "completed_at">) => {
+  const addTask = async (
+    task: Omit<EventTask, "id" | "created_at" | "updated_at" | "completed" | "completed_at" | "order_index">
+  ) => {
     const { data, error } = await supabase
       .from("event_tasks")
       .insert([{ ...task, event_id: eventId }])
@@ -74,13 +78,13 @@ export function useEventTasks(eventId: string | null) {
     return { error };
   };
 
-  // Nova função para reordenar tarefas
+  // Função para reordenar tarefas
   const reorderTasks = async (newOrder: string[]) => {
     // Atualiza todos no Supabase, sequencialmente (simples, pode otimizar depois em batch)
     for (let i = 0; i < newOrder.length; i++) {
       await supabase
         .from("event_tasks")
-        .update({ order_index: i })
+        .update({ order_index: i }) // agora o campo existe e está tipado
         .eq("id", newOrder[i]);
     }
     // Refaz busca no final para garantir ordem correta
@@ -98,3 +102,4 @@ export function useEventTasks(eventId: string | null) {
     reorderTasks,
   };
 }
+
