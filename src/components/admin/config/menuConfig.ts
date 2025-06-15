@@ -1,4 +1,3 @@
-
 import {
   BarChart3,
   Calendar,
@@ -125,12 +124,6 @@ export const operacionalItems: MenuItem[] = [
 
 export const conteudoItems: MenuItem[] = [
   {
-    id: "website",
-    label: "Website",
-    icon: validateIcon(Palette, "website"),
-    group: "conteudo"
-  },
-  {
     id: "gallery",
     label: "Galeria",
     icon: validateIcon(Image, "gallery"),
@@ -140,12 +133,6 @@ export const conteudoItems: MenuItem[] = [
     id: "testimonials",
     label: "Depoimentos",
     icon: validateIcon(Star, "testimonials"),
-    group: "conteudo"
-  },
-  {
-    id: "landing-pages",
-    label: "Landing Pages",
-    icon: validateIcon(Globe, "landing-pages"),
     group: "conteudo"
   }
 ];
