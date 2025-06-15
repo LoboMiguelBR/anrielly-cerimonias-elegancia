@@ -63,7 +63,7 @@ export default function UserAdminActions({ profile, onChange }: UserAdminActions
 
   return (
     <div className="flex flex-col gap-1 min-w-[140px]">
-      <Select value={profile.role} onValueChange={handleRoleChange} disabled={loading || !profile.ativo}>
+      <Select value={profile.role} onValueChange={handleRoleChange} disabled={loading || profile.ativo === false}>
         <SelectTrigger className="h-8 text-xs">
           <SelectValue />
         </SelectTrigger>
@@ -87,7 +87,7 @@ export default function UserAdminActions({ profile, onChange }: UserAdminActions
         variant="ghost"
         className="w-full mt-1"
         onClick={handleSendReset}
-        disabled={loading || !profile.ativo}
+        disabled={loading || profile.ativo === false}
       >
         Resetar Senha
       </Button>

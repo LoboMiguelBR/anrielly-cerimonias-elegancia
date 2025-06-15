@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -12,6 +11,7 @@ export interface UserProfile {
   role: UserRole;
   professional_id?: string;
   status: string;
+  ativo?: boolean; // ADICIONADO
   invited_by?: string;
   invited_at?: string;
   last_login?: string;
@@ -55,6 +55,7 @@ export const useUserProfiles = () => {
         role: profile.role as UserRole,
         professional_id: (profile as any).professional_id || undefined,
         status: (profile as any).status || 'ativo',
+        ativo: profile.ativo !== undefined ? profile.ativo : true, // CORRIGIDO
         invited_by: (profile as any).invited_by || undefined,
         invited_at: (profile as any).invited_at || undefined,
         last_login: (profile as any).last_login || undefined,

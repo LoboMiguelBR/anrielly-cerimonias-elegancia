@@ -49,7 +49,7 @@ const UsersTab = () => {
         profile.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         profile.email.toLowerCase().includes(searchTerm.toLowerCase());
 
-      // Exibe todos (ativos/inativos). Se quiser filtro só ativos por padrão, adicione "&& profile.ativo"
+      // Exibe todos usuários, pois queremos mostrar ativos/inativos
       return matchesRole && matchesSearch;
     });
 
@@ -193,7 +193,7 @@ const UsersTab = () => {
           </Card>
         ) : (
           filteredProfiles.map((profile) => (
-            <Card key={profile.id} className={profile.ativo ? "" : "opacity-60"}>
+            <Card key={profile.id} className={profile.ativo === false ? "opacity-60" : ""}>
               <CardContent className="p-4">
                 <div className={`flex justify-between items-start ${isMobile ? 'flex-col gap-3' : ''}`}>
                   <div className="flex-1">
@@ -202,7 +202,7 @@ const UsersTab = () => {
                         {profile.name || profile.email}
                       </h4>
                       {getRoleBadge(profile.role)}
-                      {!profile.ativo && (
+                      {profile.ativo === false && (
                         <Badge variant="outline" className="text-xs bg-gray-100 text-gray-600 ml-2">Inativo</Badge>
                       )}
                     </div>
