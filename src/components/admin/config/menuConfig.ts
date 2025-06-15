@@ -1,4 +1,3 @@
-
 import { primaryMenuItems } from './primaryMenuItems';
 import { crmVendasItems } from './crmVendasItems';
 import { operacionalItems } from './operacionalItems';
@@ -52,3 +51,6 @@ export const getMenuSections = () => {
     return [];
   }
 };
+
+// Exportar MenuItem diretamente para evitar erro de build
+export type { MenuItem } from './menuTypes';
