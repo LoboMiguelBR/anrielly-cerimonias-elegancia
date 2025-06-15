@@ -8,6 +8,8 @@ import MobileQuestionarioNav from './MobileQuestionarioNav';
 import { Badge } from '@/components/ui/badge';
 import { Heart } from 'lucide-react';
 import useQuestionarioForm from '@/hooks/useQuestionarioForm';
+import QuestionarioTabs from "@/components/questionario/QuestionarioTabs";
+import { questionarioSections } from '@/utils/questionarioSections';
 
 interface QuestionarioContainerProps {
   questionario: any;
@@ -106,47 +108,26 @@ const QuestionarioContainer = ({
       )}
 
       <div className="container mx-auto px-4 py-8">
-        {/* Desktop Layout */}
-        <div className="hidden lg:grid lg:grid-cols-4 gap-8">
-          <div className="lg:col-span-1">
-            <QuestionarioSidebar 
-              respostas={respostas}
-              onNavigateToSection={(sectionId) => setSecaoAtual(parseInt(sectionId))}
-              currentSection={secaoAtual.toString()}
-            />
-          </div>
-          
-          <div className="lg:col-span-3">
+        {/* Tabs por seção para navegação simplificada */}
+        <QuestionarioTabs
+          respostas={respostas}
+          podeEditar={podeEditar}
+          onRespostaChange={handleRespostaChange}
+          // O children abaixo renderiza apenas a seção corrente
+          // Se quiser mostrar todas, é só remover o if
+        >
+          {(sectionId, section) => (
             <QuestionarioContent
               respostas={respostas}
               podeEditar={podeEditar}
               onRespostaChange={handleRespostaChange}
+              sectionId={sectionId}
+              section={section}
             />
-            
-            <QuestionarioFooter
-              isSaving={isSaving}
-              canFinalize={canFinalize}
-              podeEditar={podeEditar}
-              onSave={handleSave}
-              onFinalize={handleFinalize}
-            />
-          </div>
-        </div>
-
-        {/* Mobile Layout */}
-        <div className="lg:hidden">
-          <MobileQuestionarioNav 
-            respostas={respostas}
-            onNavigateToSection={(sectionId) => setSecaoAtual(parseInt(sectionId))}
-            currentSection={secaoAtual.toString()}
-          />
-          
-          <QuestionarioContent
-            respostas={respostas}
-            podeEditar={podeEditar}
-            onRespostaChange={handleRespostaChange}
-          />
-          
+          )}
+        </QuestionarioTabs>
+        
+        <div className="max-w-2xl mx-auto mt-8">
           <QuestionarioFooter
             isSaving={isSaving}
             canFinalize={canFinalize}
@@ -161,3 +142,4 @@ const QuestionarioContainer = ({
 };
 
 export default QuestionarioContainer;
+
