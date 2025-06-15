@@ -1,5 +1,4 @@
-
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useEventTasks } from "@/hooks/useEventTasks";
 import { Plus, Trash, Edit, CheckCircle2, Circle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -21,10 +20,13 @@ const emptyForm = {
 };
 
 export default function EventTasks({ eventId }: EventTasksProps) {
-  const { tasks, loading, addTask, updateTask, deleteTask } = useEventTasks(eventId);
+  const { tasks, loading, addTask, updateTask, deleteTask, reorderTasks } = useEventTasks(eventId);
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<any>(emptyForm);
   const [editId, setEditId] = useState<string | null>(null);
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const dragItem = useRef<number | null>(null);
 
   const handleOpenNew = () => {
     setForm(emptyForm);
@@ -76,6 +78,19 @@ export default function EventTasks({ eventId }: EventTasksProps) {
     }
   };
 
+  // Função para aplicar nova ordem
+  const onDrop = () => {
+    if (draggedIndex !== null && dragOverIndex !== null && draggedIndex !== dragOverIndex) {
+      const newTasks = [...tasks];
+      const [removed] = newTasks.splice(draggedIndex, 1);
+      newTasks.splice(dragOverIndex, 0, removed);
+
+      reorderTasks(newTasks.map(t => t.id));
+      setDraggedIndex(null);
+      setDragOverIndex(null);
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -96,8 +111,36 @@ export default function EventTasks({ eventId }: EventTasksProps) {
         ) : tasks.length === 0 ? (
           <div className="text-gray-400 text-center py-8">Nenhuma tarefa cadastrada.</div>
         ) : (
-          tasks.map(task => (
-            <div key={task.id} className="flex items-center gap-3 p-3 hover:bg-blue-50 transition">
+          tasks
+            .slice()
+            .sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0))
+            .map((task, index) => (
+            <div
+              key={task.id}
+              className={`flex items-center gap-3 p-3 hover:bg-blue-50 transition 
+                ${draggedIndex === index ? "opacity-40" : ""}
+                ${dragOverIndex === index ? "ring-2 ring-blue-400" : ""}
+              `}
+              draggable
+              onDragStart={() => {
+                setDraggedIndex(index);
+                dragItem.current = index;
+              }}
+              onDragEnter={() => {
+                if (draggedIndex !== null && draggedIndex !== index) setDragOverIndex(index);
+              }}
+              onDragOver={e => e.preventDefault()}
+              onDrop={onDrop}
+              onDragEnd={() => {
+                setDraggedIndex(null);
+                setDragOverIndex(null);
+              }}
+              style={{
+                cursor: "grab",
+                userSelect: "none",
+              }}
+              title="Arraste para reordenar"
+            >
               <button
                 className={`mr-2 rounded-full border-none bg-transparent ${task.completed ? "text-green-500" : "text-gray-400"}`}
                 onClick={() => handleToggleComplete(task)}
@@ -123,6 +166,15 @@ export default function EventTasks({ eventId }: EventTasksProps) {
               <Button size="icon" variant="ghost" onClick={() => handleDelete(task.id)} title="Excluir">
                 <Trash className="w-4 h-4 text-red-600" />
               </Button>
+              {/* Ícone visual de arrastar */}
+              <span className="ml-2 text-gray-400 cursor-grab hover:scale-110 transition" title="Arrastar para reordenar">
+                <svg width="16" height="16" fill="none" viewBox="0 0 20 20">
+                  <circle cx="6" cy="6" r="1.5" fill="currentColor"/>
+                  <circle cx="14" cy="6" r="1.5" fill="currentColor"/>
+                  <circle cx="6" cy="14" r="1.5" fill="currentColor"/>
+                  <circle cx="14" cy="14" r="1.5" fill="currentColor"/>
+                </svg>
+              </span>
             </div>
           ))
         )}
