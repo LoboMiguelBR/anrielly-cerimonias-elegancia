@@ -1,5 +1,5 @@
 
-import { Calendar, ClipboardList, ShoppingBag, Building2 } from "lucide-react";
+import { Calendar, ClipboardList, Building2 } from "lucide-react";
 import { MenuItem, validateIcon } from './menuTypes';
 
 export const operacionalItems: MenuItem[] = [
@@ -21,12 +21,12 @@ export const operacionalItems: MenuItem[] = [
     icon: validateIcon(ClipboardList, "questionarios"),
     group: "operacional"
   },
-  {
-    id: "fornecedores",
-    label: "Fornecedores",
-    icon: validateIcon(ShoppingBag, "fornecedores"),
-    group: "operacional"
-  },
+  // {
+  //   id: "fornecedores",
+  //   label: "Fornecedores",
+  //   icon: validateIcon(ShoppingBag, "fornecedores"),
+  //   group: "operacional"
+  // },
   {
     id: "professionals",
     label: "Profissionais",
@@ -34,3 +34,4 @@ export const operacionalItems: MenuItem[] = [
     group: "operacional"
   }
 ];
+
