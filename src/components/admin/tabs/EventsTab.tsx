@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useEvents } from '@/hooks/useEvents';
 import { useEventActions } from '@/hooks/useEventActions';
@@ -13,6 +12,7 @@ import CreateEventModal from '../events/CreateEventModal';
 import EditEventModal from '../events/EditEventModal';
 import EventStatusSelect from '../events/EventStatusSelect';
 import ManageParticipantsModal from '../events/ManageParticipantsModal';
+import TimelineEvento from "../events/TimelineEvento";
 
 interface Event {
   id: string;
@@ -140,7 +140,7 @@ const EventsTab = () => {
         ) : (
           events.map((event) => {
             const eventParticipants = getEventParticipants(event.id);
-            
+
             return (
               <Card key={event.id} className="hover:shadow-md transition-shadow">
                 <CardHeader>
@@ -158,7 +158,7 @@ const EventsTab = () => {
                         {event.date && (
                           <div className="flex items-center gap-1">
                             <Calendar className="w-4 h-4" />
-                            {format(new Date(event.date), 'dd/MM/yyyy', { locale: ptBR })}
+                            {format(new Date(event.date), "dd/MM/yyyy", { locale: ptBR })}
                           </div>
                         )}
                         {event.location && (
@@ -180,7 +180,7 @@ const EventsTab = () => {
                         size="sm"
                         onClick={() => setSelectedEvent(selectedEvent === event.id ? null : event.id)}
                       >
-                        {selectedEvent === event.id ? 'Ocultar' : 'Ver Detalhes'}
+                        {selectedEvent === event.id ? "Ocultar" : "Ver Detalhes"}
                       </Button>
                       <Button
                         variant="outline"
@@ -213,6 +213,8 @@ const EventsTab = () => {
                 {selectedEvent === event.id && (
                   <CardContent className="border-t">
                     <div className="space-y-4">
+                      {/* TimelineEvento: Checklist/Tarefas + Financeiro */}
+                      <TimelineEvento eventId={event.id} />
                       {/* Participantes */}
                       <div>
                         <h4 className="font-semibold mb-2">Participantes</h4>
@@ -305,7 +307,7 @@ const EventsTab = () => {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete} disabled={actionLoading}>
-              {actionLoading ? 'Deletando...' : 'Deletar'}
+              {actionLoading ? "Deletando..." : "Deletar"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
