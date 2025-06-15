@@ -1,41 +1,56 @@
 
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
-import { questionarioSections } from '@/utils/questionarioSections'
 import { CheckCircle2, Circle } from 'lucide-react'
 
+interface SecaoType {
+  id: string;
+  titulo: string;
+  descricao?: string;
+  ordem: number;
+  perguntas: {
+    id: string;
+    texto: string;
+    ordem: number;
+    tipo_resposta: string;
+    obrigatoria?: boolean;
+    placeholder?: string;
+    opcoes_resposta?: any;
+  }[];
+}
+
 interface QuestionarioTabsProps {
+  secoes: SecaoType[];
   respostas: Record<string, string>
   podeEditar: boolean
-  onRespostaChange: (index: number, valor: string) => void
-  children: (sectionId: string, section: any) => React.ReactNode
+  onRespostaChange: (index: string, valor: string) => void
+  children: (sectionId: string, section: SecaoType) => React.ReactNode
 }
 
 const QuestionarioTabs = ({
+  secoes,
   respostas,
   podeEditar,
   onRespostaChange,
   children
 }: QuestionarioTabsProps) => {
-  
-  const getSectionProgress = (section: any) => {
-    const sectionQuestions = section.range[1] - section.range[0]
-    const answeredQuestions = section.questions.filter((_, index) => {
-      const globalIndex = section.range[0] + index
-      return respostas[globalIndex] && respostas[globalIndex].trim().length > 0
-    }).length
-    
-    return { answered: answeredQuestions, total: sectionQuestions }
-  }
+
+  const getSectionProgress = (section: SecaoType) => {
+    const total = section.perguntas.length;
+    const answered = section.perguntas.filter((q) => {
+      const val = respostas[q.id] || '';
+      return val.trim().length > 0;
+    }).length;
+    return { answered, total };
+  };
 
   return (
-    <Tabs defaultValue={questionarioSections[0]?.id} className="w-full">
+    <Tabs defaultValue={secoes[0]?.id} className="w-full">
       <div className="sticky top-20 z-40 bg-gradient-to-r from-rose-50 to-pink-50 border-b border-rose-200 mb-6">
         <div className="container mx-auto px-4">
           <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4 h-auto p-2 bg-white/80 backdrop-blur-sm shadow-lg rounded-lg">
-            {questionarioSections.map((section) => {
-              const progress = getSectionProgress(section)
-              const isCompleted = progress.answered === progress.total
-              
+            {secoes.map((section) => {
+              const progress = getSectionProgress(section);
+              const isCompleted = progress.answered === progress.total;
               return (
                 <TabsTrigger
                   key={section.id}
@@ -48,7 +63,7 @@ const QuestionarioTabs = ({
                     ) : (
                       <Circle className="w-4 h-4 text-gray-400" />
                     )}
-                    <span className="font-medium">{section.title}</span>
+                    <span className="font-medium">{section.titulo}</span>
                   </div>
                   <div className="text-xs text-gray-600">
                     {progress.answered}/{progress.total}
@@ -65,9 +80,8 @@ const QuestionarioTabs = ({
           </TabsList>
         </div>
       </div>
-
       <div className="container mx-auto px-4">
-        {questionarioSections.map((section) => (
+        {secoes.map((section) => (
           <TabsContent key={section.id} value={section.id} className="space-y-6 mt-0">
             {children(section.id, section)}
           </TabsContent>
