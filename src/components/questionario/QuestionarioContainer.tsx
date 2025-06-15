@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import QuestionarioHeader from './QuestionarioHeader';
 import QuestionarioSidebar from './QuestionarioSidebar';
@@ -69,8 +70,8 @@ const QuestionarioContainer = ({
     }
   };
 
-  // Wrapper function for respostas (mantém compatibilidade)
-  const handleRespostaChange = (index: number, valor: string) => {
+  // Wrapper function for respostas, agora recebe string (id da pergunta)
+  const handleRespostaChange = (index: string, valor: string) => {
     updateResposta(index, valor);
   };
 

@@ -50,7 +50,7 @@ const QuestionarioContent = ({
           <div key={pergunta.id} id={`pergunta-${pergunta.id}`}>
             <PerguntaCard
               pergunta={pergunta.texto}
-              index={pergunta.id}
+              index={idx} {/* Corrigido para number, que é o esperado */}
               valor={respostas[pergunta.id] || ''}
               onChange={(valor) => onRespostaChange(pergunta.id, valor)}
               disabled={!podeEditar}
