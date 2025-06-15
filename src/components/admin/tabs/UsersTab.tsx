@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,6 +12,7 @@ import { useProfessionals } from '@/hooks/useProfessionals';
 import { useMobileLayout } from '@/hooks/useMobileLayout';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import UserAdminActions from "./UserAdminActions";
 
 const UsersTab = () => {
   const [showInviteDialog, setShowInviteDialog] = useState(false);
@@ -24,7 +24,7 @@ const UsersTab = () => {
     professional_id: ''
   });
 
-  const { profiles, invitations, loading, createInvitation, deleteInvitation } = useUserProfiles();
+  const { profiles, invitations, loading, createInvitation, deleteInvitation, fetchProfiles } = useUserProfiles();
   const { professionals } = useProfessionals();
   const { isMobile } = useMobileLayout();
 
@@ -41,14 +41,17 @@ const UsersTab = () => {
     }
   };
 
-  const filteredProfiles = profiles.filter(profile => {
-    const matchesRole = filterRole === 'all' || profile.role === filterRole;
-    const matchesSearch = searchTerm === '' || 
-      profile.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      profile.email.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    return matchesRole && matchesSearch;
-  });
+  // Filtrar apenas perfis ativos ou inativos conforme necessário (se quiser, pode adicionar filtro extra)
+  const filteredProfiles = profiles
+    .filter(profile => {
+      const matchesRole = filterRole === 'all' || profile.role === filterRole;
+      const matchesSearch = searchTerm === '' ||
+        profile.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        profile.email.toLowerCase().includes(searchTerm.toLowerCase());
+
+      // Exibe todos (ativos/inativos). Se quiser filtro só ativos por padrão, adicione "&& profile.ativo"
+      return matchesRole && matchesSearch;
+    });
 
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -180,7 +183,7 @@ const UsersTab = () => {
 
       {/* Lista de Usuários */}
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-gray-900">Usuários Ativos</h3>
+        <h3 className="text-lg font-semibold text-gray-900">Usuários Ativos / Inativos</h3>
         
         {filteredProfiles.length === 0 ? (
           <Card>
@@ -190,7 +193,7 @@ const UsersTab = () => {
           </Card>
         ) : (
           filteredProfiles.map((profile) => (
-            <Card key={profile.id}>
+            <Card key={profile.id} className={profile.ativo ? "" : "opacity-60"}>
               <CardContent className="p-4">
                 <div className={`flex justify-between items-start ${isMobile ? 'flex-col gap-3' : ''}`}>
                   <div className="flex-1">
@@ -199,6 +202,9 @@ const UsersTab = () => {
                         {profile.name || profile.email}
                       </h4>
                       {getRoleBadge(profile.role)}
+                      {!profile.ativo && (
+                        <Badge variant="outline" className="text-xs bg-gray-100 text-gray-600 ml-2">Inativo</Badge>
+                      )}
                     </div>
                     
                     <div className="text-sm text-gray-600 space-y-1">
@@ -217,11 +223,9 @@ const UsersTab = () => {
                     </div>
                   </div>
                   
+                  {/* Ações admin para upgrade, reset e ativar/desativar */}
                   <div className={`flex gap-2 ${isMobile ? 'w-full' : ''}`}>
-                    <Button variant="outline" size="sm" className={isMobile ? 'flex-1' : ''}>
-                      <Edit className="w-4 h-4 mr-2" />
-                      Editar
-                    </Button>
+                    <UserAdminActions profile={profile} onChange={fetchProfiles} />
                   </div>
                 </div>
               </CardContent>
