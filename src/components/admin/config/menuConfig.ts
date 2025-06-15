@@ -26,18 +26,13 @@ export type MenuItem = {
   group: string;
 };
 
-// Função para validar se o ícone existe
+// Nova função: aceita qualquer valor truthy (basta ser import válido do lucide)
 const validateIcon = (icon: any, itemId: string) => {
-  try {
-    if (!icon || typeof icon !== 'function') {
-      console.warn(`menuConfig: Ícone inválido para item ${itemId}, usando fallback`);
-      return AlertTriangle;
-    }
-    return icon;
-  } catch (error) {
-    console.error(`menuConfig: Erro ao validar ícone para ${itemId}:`, error);
+  if (!icon) {
+    console.warn(`menuConfig: Ícone inválido para item ${itemId}, usando fallback`);
     return AlertTriangle;
   }
+  return icon;
 };
 
 export const primaryMenuItems: MenuItem[] = [
