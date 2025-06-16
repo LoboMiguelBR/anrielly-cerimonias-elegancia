@@ -7,9 +7,8 @@ import QuestionarioFooter from './QuestionarioFooter';
 import MobileQuestionarioNav from './MobileQuestionarioNav';
 import { Badge } from '@/components/ui/badge';
 import { Heart } from 'lucide-react';
-import useQuestionarioForm from '@/hooks/useQuestionarioForm';
+import useQuestionarioFormDynamic from '@/hooks/useQuestionarioFormDynamic';
 import QuestionarioTabs from "@/components/questionario/QuestionarioTabs";
-import { questionarioSections } from '@/utils/questionarioSections';
 import useQuestionarioEstruturaDinamica from "@/hooks/useQuestionarioEstruturaDinamica";
 
 interface QuestionarioContainerProps {
@@ -38,16 +37,18 @@ const QuestionarioContainer = ({
   // Hook dinâmico: busca estrutura REAL via Supabase
   const { secoes, loading } = useQuestionarioEstruturaDinamica(questionario.template_id);
 
-  // Use the existing hook for form state
+  // Use the new dynamic hook
   const {
     progresso,
     respostasPreenchidas,
     podeEditar,
     canFinalize,
     perguntas,
-    salvarRespostas
-  } = useQuestionarioForm({ 
+    salvarRespostas,
+    handleRespostaChange: dynamicHandleRespostaChange
+  } = useQuestionarioFormDynamic({ 
     questionario, 
+    secoes,
     updateQuestionario: () => {},
     logout: () => {} 
   });
@@ -70,9 +71,10 @@ const QuestionarioContainer = ({
     }
   };
 
-  // Wrapper function for respostas, agora recebe string (id da pergunta)
-  const handleRespostaChange = (index: string, valor: string) => {
-    updateResposta(index, valor);
+  // Wrapper function for respostas, usando string (id da pergunta)
+  const handleRespostaChange = (perguntaId: string, valor: string) => {
+    updateResposta(perguntaId, valor);
+    dynamicHandleRespostaChange(perguntaId, valor);
   };
 
   const getRoleLabel = (role: string) => {
@@ -97,7 +99,6 @@ const QuestionarioContainer = ({
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50">
-      {/* ... keep existing header/role-indicator ... */}
       <QuestionarioHeader 
         nomeResponsavel={questionario.nome_responsavel}
         progresso={progresso}
@@ -123,7 +124,7 @@ const QuestionarioContainer = ({
       )}
 
       <div className="container mx-auto px-4 py-8">
-        {/* Tabs por seção - agora DADOS REAIS */}
+        {/* Tabs por seção - dados REAIS do Supabase */}
         <QuestionarioTabs
           secoes={secoes}
           respostas={respostas}

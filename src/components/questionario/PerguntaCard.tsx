@@ -8,7 +8,8 @@ import { useMobileLayout } from '@/hooks/useMobileLayout'
 
 interface PerguntaCardProps {
   pergunta: string
-  index: number
+  perguntaId: string
+  ordem: number
   valor: string
   onChange: (valor: string) => void
   disabled?: boolean
@@ -17,7 +18,8 @@ interface PerguntaCardProps {
 
 const PerguntaCard = ({
   pergunta,
-  index,
+  perguntaId,
+  ordem,
   valor,
   onChange,
   disabled = false,
@@ -40,7 +42,7 @@ const PerguntaCard = ({
     "Nos conte mais detalhes..."
   ]
 
-  const placeholder = placeholders[index % placeholders.length]
+  const placeholder = placeholders[ordem % placeholders.length]
 
   return (
     <Card 
@@ -55,7 +57,7 @@ const PerguntaCard = ({
           <CardTitle className={`${
             isMobile ? 'text-base' : 'text-lg md:text-xl'
           } font-medium text-gray-800 pr-4`}>
-            {index + 1}. {pergunta}
+            {ordem}. {pergunta}
           </CardTitle>
           {isAnswered && (
             <Badge variant="default" className="bg-green-100 text-green-800 border-green-200 flex items-center gap-1 flex-shrink-0">

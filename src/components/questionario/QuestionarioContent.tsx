@@ -22,7 +22,7 @@ interface QuestionarioContentProps {
   secao: SecaoType;
   respostas: Record<string, string>
   podeEditar: boolean
-  onRespostaChange: (index: string, valor: string) => void
+  onRespostaChange: (perguntaId: string, valor: string) => void
 }
 
 const QuestionarioContent = ({
@@ -46,15 +46,16 @@ const QuestionarioContent = ({
       </div>
 
       <div className="space-y-6">
-        {secao.perguntas.map((pergunta, idx) => (
+        {secao.perguntas.map((pergunta) => (
           <div key={pergunta.id} id={`pergunta-${pergunta.id}`}>
             <PerguntaCard
               pergunta={pergunta.texto}
-              index={idx}
+              perguntaId={pergunta.id}
+              ordem={pergunta.ordem}
               valor={respostas[pergunta.id] || ''}
               onChange={(valor) => onRespostaChange(pergunta.id, valor)}
               disabled={!podeEditar}
-              isEven={idx % 2 === 0}
+              isEven={pergunta.ordem % 2 === 0}
             />
           </div>
         ))}
