@@ -128,14 +128,50 @@ const GraficosBI: React.FC = () => {
           { etapa: 'Contratos', quantidade: totalContratos || 0, cor: '#10B981' }
         ];
 
-        // Origem dos leads (simulado - pode ser implementado com campo específico)
-        const totalLeadsNum = totalLeads || 0;
-        const origens = [
-          { origem: 'Instagram', quantidade: Math.floor(totalLeadsNum * 0.4), cor: '#E1306C' },
-          { origem: 'WhatsApp', quantidade: Math.floor(totalLeadsNum * 0.3), cor: '#25D366' },
-          { origem: 'Site', quantidade: Math.floor(totalLeadsNum * 0.2), cor: '#3B82F6' },
-          { origem: 'Indicação', quantidade: Math.floor(totalLeadsNum * 0.1), cor: '#F59E0B' }
-        ];
+        // Origem dos leads - AGORA USANDO DADOS REAIS DO BANCO
+        const { data: leadsOrigin, error: originError } = await supabase
+          .from('quote_requests')
+          .select('origin')
+          .not('origin', 'is', null);
+
+        if (originError) {
+          console.warn('Erro ao buscar origem dos leads:', originError);
+        }
+
+        // Processar dados reais de origem
+        const originCount: Record<string, number> = {};
+        if (Array.isArray(leadsOrigin)) {
+          leadsOrigin.forEach(lead => {
+            const origin = lead.origin || 'outros';
+            originCount[origin] = (originCount[origin] || 0) + 1;
+          });
+        }
+
+        // Mapear cores para cada origem
+        const colorMap: Record<string, string> = {
+          instagram: '#E1306C',
+          whatsapp: '#25D366',
+          site: '#3B82F6',
+          indicacao: '#F59E0B',
+          outros: '#8B5CF6'
+        };
+
+        // Criar array de origem dos leads com dados reais
+        const origens = Object.entries(originCount).map(([origem, quantidade]) => ({
+          origem: origem.charAt(0).toUpperCase() + origem.slice(1),
+          quantidade,
+          cor: colorMap[origem] || '#8B5CF6'
+        }));
+
+        // Se não há dados, usar estrutura mínima
+        if (origens.length === 0) {
+          origens.push(
+            { origem: 'Instagram', quantidade: 0, cor: '#E1306C' },
+            { origem: 'WhatsApp', quantidade: 0, cor: '#25D366' },
+            { origem: 'Site', quantidade: 0, cor: '#3B82F6' },
+            { origem: 'Indicação', quantidade: 0, cor: '#F59E0B' }
+          );
+        }
 
         // Receita mensal
         const receitaMeses = [];
@@ -314,7 +350,7 @@ const GraficosBI: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Origem dos Leads */}
+      {/* Origem dos Leads - AGORA COM DADOS REAIS */}
       <Card className="shadow-lg border-0">
         <CardHeader>
           <CardTitle className="text-lg font-semibold text-gray-800 flex items-center">

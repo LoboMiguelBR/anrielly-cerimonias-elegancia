@@ -1589,6 +1589,7 @@ export type Database = {
           id: string
           message: string | null
           name: string
+          origin: string | null
           phone: string
           status: string | null
           updated_at: string
@@ -1602,6 +1603,7 @@ export type Database = {
           id?: string
           message?: string | null
           name: string
+          origin?: string | null
           phone: string
           status?: string | null
           updated_at?: string
@@ -1615,6 +1617,7 @@ export type Database = {
           id?: string
           message?: string | null
           name?: string
+          origin?: string | null
           phone?: string
           status?: string | null
           updated_at?: string

@@ -39,7 +39,7 @@ serve(async (req) => {
       );
     }
 
-    // Insert lead into quote_requests table (corrigido de 'leads' para 'quote_requests')
+    // Insert lead into quote_requests table
     const { data, error } = await supabase
       .from('quote_requests')
       .insert([
@@ -51,6 +51,7 @@ serve(async (req) => {
           event_date: body.event_date || null,
           event_location: body.event_location || '',
           message: body.message || '',
+          origin: body.origin || 'site',
           status: 'aguardando'
         }
       ]);

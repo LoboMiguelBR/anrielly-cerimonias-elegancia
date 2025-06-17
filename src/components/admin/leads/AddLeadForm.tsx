@@ -18,6 +18,7 @@ interface AddLeadFormData {
   event_date?: string;
   event_location: string;
   message?: string;
+  origin: string;
 }
 
 interface AddLeadFormProps {
@@ -38,9 +39,14 @@ const AddLeadForm = ({ onSuccess }: AddLeadFormProps) => {
   } = useForm<AddLeadFormData>();
 
   const eventType = watch('event_type');
+  const origin = watch('origin');
 
   const handleEventTypeChange = (value: string) => {
     setValue('event_type', value);
+  };
+
+  const handleOriginChange = (value: string) => {
+    setValue('origin', value);
   };
 
   const onSubmit = async (data: AddLeadFormData) => {
@@ -57,6 +63,7 @@ const AddLeadForm = ({ onSuccess }: AddLeadFormProps) => {
           event_date: data.event_date || null,
           event_location: data.event_location,
           message: data.message || null,
+          origin: data.origin,
           status: 'aguardando'
         }]);
 
@@ -112,7 +119,7 @@ const AddLeadForm = ({ onSuccess }: AddLeadFormProps) => {
           </div>
         </div>
 
-        {/* Telefone e Tipo de Evento */}
+        {/* Telefone e Origem */}
         <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-2'}`}>
           <div className="space-y-2">
             <Label htmlFor="phone">Telefone *</Label>
@@ -127,6 +134,28 @@ const AddLeadForm = ({ onSuccess }: AddLeadFormProps) => {
             )}
           </div>
 
+          <div className="space-y-2">
+            <Label htmlFor="origin">Origem do Lead *</Label>
+            <Select value={origin} onValueChange={handleOriginChange}>
+              <SelectTrigger className={isMobile ? 'h-12 text-base' : ''}>
+                <SelectValue placeholder="Como conheceu nosso trabalho?" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="instagram">Instagram</SelectItem>
+                <SelectItem value="whatsapp">WhatsApp</SelectItem>
+                <SelectItem value="site">Site</SelectItem>
+                <SelectItem value="indicacao">Indicação</SelectItem>
+                <SelectItem value="outros">Outros</SelectItem>
+              </SelectContent>
+            </Select>
+            {errors.origin && (
+              <p className="text-sm text-red-600">Origem é obrigatória</p>
+            )}
+          </div>
+        </div>
+
+        {/* Tipo de Evento e Data */}
+        <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-2'}`}>
           <div className="space-y-2">
             <Label htmlFor="event_type">Tipo de Evento *</Label>
             <Select value={eventType} onValueChange={handleEventTypeChange}>
@@ -147,10 +176,7 @@ const AddLeadForm = ({ onSuccess }: AddLeadFormProps) => {
               <p className="text-sm text-red-600">{errors.event_type.message}</p>
             )}
           </div>
-        </div>
 
-        {/* Data e Local */}
-        <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-2'}`}>
           <div className="space-y-2">
             <Label htmlFor="event_date">Data do Evento</Label>
             <Input
@@ -160,19 +186,20 @@ const AddLeadForm = ({ onSuccess }: AddLeadFormProps) => {
               className={isMobile ? 'h-12 text-base' : ''}
             />
           </div>
+        </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="event_location">Local do Evento *</Label>
-            <Input
-              id="event_location"
-              {...register('event_location', { required: 'Local é obrigatório' })}
-              placeholder="Cidade, Estado"
-              className={isMobile ? 'h-12 text-base' : ''}
-            />
-            {errors.event_location && (
-              <p className="text-sm text-red-600">{errors.event_location.message}</p>
-            )}
-          </div>
+        {/* Local do Evento */}
+        <div className="space-y-2">
+          <Label htmlFor="event_location">Local do Evento *</Label>
+          <Input
+            id="event_location"
+            {...register('event_location', { required: 'Local é obrigatório' })}
+            placeholder="Cidade, Estado"
+            className={isMobile ? 'h-12 text-base' : ''}
+          />
+          {errors.event_location && (
+            <p className="text-sm text-red-600">{errors.event_location.message}</p>
+          )}
         </div>
 
         {/* Observações */}
