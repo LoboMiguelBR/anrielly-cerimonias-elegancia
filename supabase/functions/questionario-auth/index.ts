@@ -182,11 +182,44 @@ serve(async (req) => {
       }
 
       if (existingUser) {
-        console.log('Usuário já existe:', { email, linkPublico })
-        return new Response(
-          JSON.stringify({ error: 'Já existe uma conta com este email para este questionário' }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 409 }
-        )
+        console.log('Usuário já existe - permitindo login:', { email, linkPublico })
+        // Em vez de retornar erro, vamos permitir o login se a senha estiver correta
+        const { data: userForLogin, error: loginError } = await supabaseClient
+          .from('questionarios_noivos')
+          .select('*')
+          .eq('link_publico', linkPublico)
+          .eq('email', email)
+          .single()
+
+        if (loginError || !userForLogin) {
+          return new Response(
+            JSON.stringify({ error: 'Erro ao acessar conta existente' }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+          )
+        }
+
+        // Verificar se a senha está correta para permitir acesso
+        if (userForLogin.senha_hash === senha) {
+          console.log('Login automático para usuário existente:', email)
+          return new Response(
+            JSON.stringify({ 
+              success: true, 
+              questionario: {
+                id: userForLogin.id,
+                nomeResponsavel: userForLogin.nome_responsavel,
+                email: userForLogin.email,
+                respostasJson: userForLogin.respostas_json || {},
+                status: userForLogin.status
+              }
+            }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          )
+        } else {
+          return new Response(
+            JSON.stringify({ error: 'Já existe uma conta com este email. Use o login com a senha correta.' }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 409 }
+          )
+        }
       }
 
       // Verificar se existe um registro placeholder para este link específico
@@ -234,8 +267,8 @@ serve(async (req) => {
         resultQuestionario = updatedQuestionario
         console.log('Registro atualizado com sucesso')
       } else {
-        console.log('Criando novo registro')
-        // Criar novo registro - agora permite múltiplas contas por link_publico
+        console.log('Criando novo registro - permite múltiplas pessoas por questionário')
+        // Criar novo registro - permite múltiplas pessoas por link_publico
         const { data: novoQuestionario, error: insertError } = await supabaseClient
           .from('questionarios_noivos')
           .insert({

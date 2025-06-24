@@ -121,6 +121,7 @@ const QuestionarioAuthForms = ({ linkPublico }: QuestionarioAuthFormsProps) => {
                     onChange={(e) => setLoginData(prev => ({ ...prev, email: e.target.value }))}
                     className="pl-10 border-rose-200 focus:border-rose-400 focus:ring-rose-400"
                     disabled={loginLoading}
+                    autoComplete="email"
                     required
                   />
                 </div>
@@ -140,6 +141,7 @@ const QuestionarioAuthForms = ({ linkPublico }: QuestionarioAuthFormsProps) => {
                     onChange={(e) => setLoginData(prev => ({ ...prev, senha: e.target.value }))}
                     className="pl-10 border-rose-200 focus:border-rose-400 focus:ring-rose-400"
                     disabled={loginLoading}
+                    autoComplete="current-password"
                     required
                   />
                 </div>
@@ -178,6 +180,7 @@ const QuestionarioAuthForms = ({ linkPublico }: QuestionarioAuthFormsProps) => {
                     onChange={(e) => setRegisterData(prev => ({ ...prev, nomeResponsavel: e.target.value }))}
                     className="pl-10 border-rose-200 focus:border-rose-400 focus:ring-rose-400"
                     disabled={registerLoading}
+                    autoComplete="name"
                     required
                   />
                 </div>
@@ -197,6 +200,7 @@ const QuestionarioAuthForms = ({ linkPublico }: QuestionarioAuthFormsProps) => {
                     onChange={(e) => setRegisterData(prev => ({ ...prev, email: e.target.value }))}
                     className="pl-10 border-rose-200 focus:border-rose-400 focus:ring-rose-400"
                     disabled={registerLoading}
+                    autoComplete="email"
                     required
                   />
                 </div>
@@ -216,6 +220,7 @@ const QuestionarioAuthForms = ({ linkPublico }: QuestionarioAuthFormsProps) => {
                     onChange={(e) => setRegisterData(prev => ({ ...prev, senha: e.target.value }))}
                     className="pl-10 border-rose-200 focus:border-rose-400 focus:ring-rose-400"
                     disabled={registerLoading}
+                    autoComplete="new-password"
                     required
                     minLength={6}
                   />
