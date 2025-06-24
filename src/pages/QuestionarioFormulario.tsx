@@ -23,14 +23,19 @@ const QuestionarioFormulario = () => {
   const [currentSection, setCurrentSection] = useState(0);
   const [respostas, setRespostas] = useState<Record<string, string>>({});
 
+  console.log('QuestionarioFormulario - questionario:', questionario);
+  console.log('QuestionarioFormulario - authLoading:', authLoading);
+
   // Initialize respostas when questionario changes
   useEffect(() => {
     if (questionario?.respostasJson) {
+      console.log('Inicializando respostas:', questionario.respostasJson);
       setRespostas(questionario.respostasJson);
     }
   }, [questionario]);
 
   const updateResposta = (campo: string, valor: any) => {
+    console.log('Atualizando resposta:', campo, valor);
     setRespostas(prev => ({
       ...prev,
       [campo]: valor
@@ -40,6 +45,8 @@ const QuestionarioFormulario = () => {
   // Enhanced save function to also register as event participant
   const handleSaveWithEventLink = async (finalRespostas: any) => {
     try {
+      console.log('Salvando respostas:', finalRespostas);
+      
       // Save normal questionnaire data using edge function
       const { data, error } = await supabase.functions.invoke('questionario-respostas', {
         body: {
@@ -49,7 +56,12 @@ const QuestionarioFormulario = () => {
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erro ao salvar respostas:', error);
+        throw error;
+      }
+
+      console.log('Respostas salvas com sucesso:', data);
 
       // If we have event linking parameters, register as participant
       if (eventId && participantRole && questionario) {
@@ -85,10 +97,10 @@ const QuestionarioFormulario = () => {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-          <p>Carregando questionário...</p>
+          <p className="text-gray-600">Carregando questionário...</p>
         </div>
       </div>
     );
@@ -96,10 +108,10 @@ const QuestionarioFormulario = () => {
 
   if (!questionario) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-red-600 mb-4">Questionário não encontrado</h1>
-          <p>O link fornecido não é válido ou o questionário não existe.</p>
+          <p className="text-gray-600">O link fornecido não é válido ou o questionário não existe.</p>
         </div>
       </div>
     );

@@ -34,8 +34,14 @@ const QuestionarioContainer = ({
 }: QuestionarioContainerProps) => {
   const [isSaving, setIsSaving] = useState(false);
 
+  console.log('QuestionarioContainer - questionario:', questionario);
+  console.log('QuestionarioContainer - template_id:', questionario?.template_id);
+
   // Hook dinâmico: busca estrutura REAL via Supabase
-  const { secoes, loading } = useQuestionarioEstruturaDinamica(questionario.template_id);
+  const { secoes, loading } = useQuestionarioEstruturaDinamica(questionario?.template_id);
+
+  console.log('QuestionarioContainer - secoes carregadas:', secoes?.length);
+  console.log('QuestionarioContainer - loading:', loading);
 
   // Use the new dynamic hook
   const {
@@ -88,10 +94,23 @@ const QuestionarioContainer = ({
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-          <p>Carregando estrutura...</p>
+          <p className="text-gray-600">Carregando estrutura do questionário...</p>
+          <p className="text-sm text-gray-500 mt-2">Template ID: {questionario?.template_id || 'Não definido'}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!secoes || secoes.length === 0) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-red-600 mb-4">Estrutura não encontrada</h1>
+          <p className="text-gray-600">Não foi possível carregar a estrutura do questionário.</p>
+          <p className="text-sm text-gray-500 mt-2">Template ID: {questionario?.template_id || 'Não definido'}</p>
         </div>
       </div>
     );
