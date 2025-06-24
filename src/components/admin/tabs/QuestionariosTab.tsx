@@ -1,148 +1,59 @@
 
-import { useState } from "react";
+import React, { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, List, LayoutGrid } from "lucide-react";
-import { useQuestionarios } from "@/hooks/useQuestionarios";
-import { useQuestionarioActions } from "@/hooks/useQuestionarioActions";
-import { useQuestionarioExport } from "@/hooks/useQuestionarioExport";
-import QuestionarioCreateFormEnhanced from "./components/QuestionarioCreateFormEnhanced";
-import QuestionariosTableEnhanced from "../questionarios/QuestionariosTableEnhanced";
-import QuestionariosGroupedView from "./components/QuestionariosGroupedView";
-import QuestionarioAnswersModal from "./components/QuestionarioAnswersModal";
-import QuestionarioAdvancedEditor from "./components/QuestionarioAdvancedEditor";
-import QuestionarioHistoryModal from "./components/QuestionarioHistoryModal";
-import QuestionariosHeader from "./components/QuestionariosHeader";
-import QuestionariosStats from "./components/QuestionariosStats";
-import QuestionariosViewToggle from "./components/QuestionariosViewToggle";
-import QuestionariosLoading from "./components/QuestionariosLoading";
-import { Questionario } from '@/components/admin/tabs/types/questionario';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ClipboardList, Sparkles } from 'lucide-react';
+import HistoriasCasaisManager from './components/HistoriasCasaisManager';
 
 const QuestionariosTab = () => {
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [selectedQuestionario, setSelectedQuestionario] = useState<Questionario | null>(null);
-  const [showAnswersModal, setShowAnswersModal] = useState(false);
-  const [showAdvancedEditor, setShowAdvancedEditor] = useState(false);
-  const [showHistoryModal, setShowHistoryModal] = useState(false);
-  const [viewMode, setViewMode] = useState<'grouped' | 'table'>('grouped');
-
-  const { questionarios, stats, isLoading, refetch } = useQuestionarios();
-  const { deleteQuestionario, loading } = useQuestionarioActions();
-  const { exportQuestionario, isExporting } = useQuestionarioExport();
-
-  const handleViewAnswers = (questionario: Questionario) => {
-    setSelectedQuestionario(questionario);
-    setShowAnswersModal(true);
-  };
-
-  const handleEdit = (questionario: Questionario) => {
-    setSelectedQuestionario(questionario);
-    setShowAdvancedEditor(true);
-  };
-
-  const handleViewHistory = (questionario: Questionario) => {
-    setSelectedQuestionario(questionario);
-    setShowHistoryModal(true);
-  };
-
-  const handleExport = async (questionario: Questionario) => {
-    await exportQuestionario(questionario.id, 'pdf');
-  };
-
-  const handleDelete = async (questionario: Questionario) => {
-    if (window.confirm('Tem certeza que deseja excluir este questionário?')) {
-      const success = await deleteQuestionario(questionario.id);
-      if (success) {
-        refetch();
-      }
-    }
-  };
-
-  const handleCreateSuccess = () => {
-    setIsCreateDialogOpen(false);
-    refetch();
-  };
-
-  const handleEditSuccess = () => {
-    setShowAdvancedEditor(false);
-    refetch();
-  };
-
-  if (isLoading) {
-    return <QuestionariosLoading />;
-  }
-
   return (
     <div className="space-y-6">
-      <QuestionariosHeader>
-        <div className="flex items-center gap-2">
-          <QuestionariosViewToggle viewMode={viewMode} onViewModeChange={setViewMode} />
-          
-          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="flex items-center gap-2">
-                <Plus className="h-4 w-4" />
-                Novo Questionário
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-md">
-              <DialogHeader>
-                <DialogTitle>Criar Novo Questionário</DialogTitle>
-              </DialogHeader>
-              <QuestionarioCreateFormEnhanced onSuccess={handleCreateSuccess} />
-            </DialogContent>
-          </Dialog>
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-2xl font-bold">Questionários</h2>
+          <p className="text-gray-600">Gerencie questionários e histórias dos casais</p>
         </div>
-      </QuestionariosHeader>
+      </div>
 
-      <QuestionariosStats stats={stats} />
+      <Tabs defaultValue="questionarios" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="questionarios" className="flex items-center gap-2">
+            <ClipboardList className="w-4 h-4" />
+            Questionários
+          </TabsTrigger>
+          <TabsTrigger value="historias" className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4" />
+            Histórias dos Casais
+          </TabsTrigger>
+        </TabsList>
 
-      {viewMode === 'grouped' ? (
-        <QuestionariosGroupedView
-          questionarios={questionarios}
-          onViewAnswers={handleViewAnswers}
-          onViewHistory={handleViewHistory}
-          onEdit={handleEdit}
-          onExport={handleExport}
-          onDelete={handleDelete}
-          isExporting={isExporting}
-        />
-      ) : (
-        <QuestionariosTableEnhanced
-          questionarios={questionarios}
-          isLoading={isLoading}
-          onRefresh={refetch}
-        />
-      )}
+        <TabsContent value="questionarios">
+          <Card>
+            <CardHeader>
+              <CardTitle>Gerenciar Questionários</CardTitle>
+              <CardDescription>
+                Visualize e gerencie os questionários preenchidos pelos casais
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-8">
+                <ClipboardList className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-500 mb-4">
+                  Funcionalidade de gerenciamento de questionários será implementada aqui.
+                </p>
+                <Button variant="outline">
+                  Ver Questionários
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-      {showAnswersModal && (
-        <Dialog open={showAnswersModal} onOpenChange={setShowAnswersModal}>
-          <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden">
-            <QuestionarioAnswersModal
-              questionario={selectedQuestionario}
-              onClose={() => setShowAnswersModal(false)}
-            />
-          </DialogContent>
-        </Dialog>
-      )}
-
-      {showAdvancedEditor && (
-        <Dialog open={showAdvancedEditor} onOpenChange={setShowAdvancedEditor}>
-          <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden">
-            <QuestionarioAdvancedEditor
-              questionario={selectedQuestionario}
-              onClose={() => setShowAdvancedEditor(false)}
-              onSuccess={handleEditSuccess}
-            />
-          </DialogContent>
-        </Dialog>
-      )}
-
-      <QuestionarioHistoryModal
-        isOpen={showHistoryModal}
-        onClose={() => setShowHistoryModal(false)}
-        questionario={selectedQuestionario}
-      />
+        <TabsContent value="historias">
+          <HistoriasCasaisManager />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

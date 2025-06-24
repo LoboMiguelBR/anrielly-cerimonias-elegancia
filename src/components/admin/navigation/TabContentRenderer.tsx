@@ -1,131 +1,73 @@
 
 import React from 'react';
 import DashboardTab from '../tabs/DashboardTab';
-import ProposalsMain from '../proposals/ProposalsMain';
-import ContractsMain from '../contracts/ContractsMain';
+import LeadsTab from '../tabs/LeadsTab';
+import ClientsTab from '../tabs/ClientsTab';
+import ProposalsTab from '../tabs/ProposalsTab';
+import ContractsTab from '../tabs/ContractsTab';
+import EventsTab from '../tabs/EventsTab';
+import ProfessionalsTab from '../tabs/ProfessionalsTab';
+import GalleryTab from '../tabs/GalleryTab';
+import TestimonialsTab from '../tabs/TestimonialsTab';
 import QuestionariosTab from '../tabs/QuestionariosTab';
 import HistoriasCasaisTab from '../tabs/HistoriasCasaisTab';
-import GestaoComercialTab from '../tabs/GestaoComercialTab';
-import EventsTab from '../tabs/EventsTab';
-import CalendarioEventosTab from '../tabs/CalendarioEventosTab';
-import TemplatesTab from '../tabs/TemplatesTab';
-import QuotesTab from '../tabs/QuotesTab';
-import LeadsTab from '../tabs/LeadsTab';
-import ProfessionalsTab from '../tabs/ProfessionalsTab';
-import TestimonialsTab from '../tabs/TestimonialsTab';
-import AdminGalleryTab from '../tabs/AdminGalleryTab';
+import SystemSettingsTab from '../tabs/SystemSettingsTab';
+import TemplatePropostasTab from '../tabs/TemplatePropostasTab';
+import TemplateContratosTab from '../tabs/TemplateContratosTab';
+import TemplateEmailsTab from '../tabs/TemplateEmailsTab';
 import UsersTab from '../tabs/UsersTab';
-import ProposalTemplatesManager from '../proposals/templates/ProposalTemplatesManager';
-import ContractTemplatesManager from '../contracts/templates/ContractTemplatesManager';
-import ContractEmailTemplatesManager from '../contracts/email-templates/ContractEmailTemplatesManager';
-import ErrorBoundary from '../../ErrorBoundary';
-import { ClientesTab, SystemSettingsTab } from '../tabs';
+import GestaoComercialTab from '../tabs/GestaoComercialTab';
 
 interface TabContentRendererProps {
   activeTab: string;
 }
 
-const TabContentRenderer = ({ activeTab }: TabContentRendererProps) => {
-  // Verificação de segurança para props
-  if (!activeTab || typeof activeTab !== 'string') {
-    console.warn('TabContentRenderer: Invalid activeTab', activeTab);
-    return (
-      <ErrorBoundary>
-        <div className="w-full p-4">
-          <div className="text-center text-gray-500">
-            <p>Erro: Tab não especificada</p>
-            <p className="text-sm">Por favor, selecione uma aba válida</p>
-          </div>
-        </div>
-      </ErrorBoundary>
-    );
-  }
-
-  const handleNavigate = (tab: string) => {
-    if (!tab || typeof tab !== 'string') {
-      console.warn('TabContentRenderer: Invalid navigation tab', tab);
-      return;
-    }
-    console.log('Navigate to:', tab);
-  };
-
+const TabContentRenderer: React.FC<TabContentRendererProps> = ({ activeTab }) => {
   const renderTabContent = () => {
-    try {
-      switch (activeTab) {
-        // Principal
-        case "dashboard":
-          return <DashboardTab onNavigate={handleNavigate} />;
-        // CRM & Vendas
-        case "leads":
-          return <LeadsTab />;
-        case "gestao-comercial":
-          return <GestaoComercialTab />;
-        case "quotes":
-          return <QuotesTab />;
-        case "proposals":
-          return <ProposalsMain quoteRequests={[]} />;
-        case "contracts":
-          return <ContractsMain />;
-        case "clientes":
-          return <ClientesTab />;
-        // Operacional
-        case "events":
-          return <EventsTab />;
-        case "calendario-eventos":
-          return <CalendarioEventosTab />;
-        case "professionals":
-          return <ProfessionalsTab />;
-        // Conteúdo
-        case "gallery":
-          return <AdminGalleryTab />;
-        case "testimonials":
-          return <TestimonialsTab />;
-        case "questionarios":
-          return <QuestionariosTab />;
-        case "historias-casais":
-          return <HistoriasCasaisTab />;
-        // Sistema
-        case "template-propostas":
-          return <ProposalTemplatesManager />;
-        case "template-contratos":
-          return <ContractTemplatesManager />;
-        case "template-emails":
-          return <ContractEmailTemplatesManager />;
-        case "templates":
-          return <TemplatesTab />;
-        case "users":
-          return <UsersTab />;
-        case "settings":
-          return <SystemSettingsTab />;
-        default:
-          console.warn(`TabContentRenderer: Unknown tab: ${activeTab}, falling back to dashboard`);
-          return <DashboardTab onNavigate={handleNavigate} />;
-      }
-    } catch (error) {
-      console.error('TabContentRenderer: Error rendering tab content:', error);
-      return (
-        <div className="w-full p-4">
-          <div className="text-center text-red-500">
-            <p>Erro ao carregar conteúdo da aba</p>
-            <p className="text-sm">Tab: {activeTab}</p>
-            <button 
-              onClick={() => window.location.reload()} 
-              className="mt-2 px-4 py-2 bg-red-100 text-red-700 rounded hover:bg-red-200"
-            >
-              Recarregar página
-            </button>
-          </div>
-        </div>
-      );
+    switch (activeTab) {
+      case 'dashboard':
+        return <DashboardTab />;
+      case 'leads':
+        return <LeadsTab />;
+      case 'clients':
+        return <ClientsTab />;
+      case 'proposals':
+        return <ProposalsTab />;
+      case 'contracts':
+        return <ContractsTab />;
+      case 'events':
+        return <EventsTab />;
+      case 'professionals':
+        return <ProfessionalsTab />;
+      case 'gestao-comercial':
+        return <GestaoComercialTab />;
+      case 'gallery':
+        return <GalleryTab />;
+      case 'testimonials':
+        return <TestimonialsTab />;
+      case 'questionarios':
+        return <QuestionariosTab />;
+      case 'historias-casais':
+        return <HistoriasCasaisTab />;
+      case 'template-propostas':
+        return <TemplatePropostasTab />;
+      case 'template-contratos':
+        return <TemplateContratosTab />;
+      case 'template-emails':
+        return <TemplateEmailsTab />;
+      case 'users':
+        return <UsersTab />;
+      case 'settings':
+        return <SystemSettingsTab />;
+      default:
+        return <DashboardTab />;
     }
   };
 
   return (
-    <ErrorBoundary>
-      <div className="w-full">
-        {renderTabContent()}
-      </div>
-    </ErrorBoundary>
+    <div className="flex-1 overflow-y-auto">
+      {renderTabContent()}
+    </div>
   );
 };
 
