@@ -17,6 +17,9 @@ import {
   Phone,
   DollarSign,
   Building2,
+  Sparkles,
+  Layout,
+  Mail,
 } from "lucide-react";
 
 export type MenuItem = {

@@ -1,8 +1,10 @@
+
 import React from 'react';
 import DashboardTab from '../tabs/DashboardTab';
 import ProposalsMain from '../proposals/ProposalsMain';
 import ContractsMain from '../contracts/ContractsMain';
 import QuestionariosTab from '../tabs/QuestionariosTab';
+import HistoriasCasaisTab from '../tabs/HistoriasCasaisTab';
 import GestaoComercialTab from '../tabs/GestaoComercialTab';
 import EventsTab from '../tabs/EventsTab';
 import CalendarioEventosTab from '../tabs/CalendarioEventosTab';
@@ -13,6 +15,9 @@ import ProfessionalsTab from '../tabs/ProfessionalsTab';
 import TestimonialsTab from '../tabs/TestimonialsTab';
 import AdminGalleryTab from '../tabs/AdminGalleryTab';
 import UsersTab from '../tabs/UsersTab';
+import ProposalTemplatesManager from '../proposals/templates/ProposalTemplatesManager';
+import ContractTemplatesManager from '../contracts/templates/ContractTemplatesManager';
+import ContractEmailTemplatesManager from '../contracts/email-templates/ContractEmailTemplatesManager';
 import ErrorBoundary from '../../ErrorBoundary';
 import { ClientesTab, SystemSettingsTab } from '../tabs';
 
@@ -68,8 +73,6 @@ const TabContentRenderer = ({ activeTab }: TabContentRendererProps) => {
           return <EventsTab />;
         case "calendario-eventos":
           return <CalendarioEventosTab />;
-        case "questionarios":
-          return <QuestionariosTab />;
         case "professionals":
           return <ProfessionalsTab />;
         // Conteúdo
@@ -77,7 +80,17 @@ const TabContentRenderer = ({ activeTab }: TabContentRendererProps) => {
           return <AdminGalleryTab />;
         case "testimonials":
           return <TestimonialsTab />;
+        case "questionarios":
+          return <QuestionariosTab />;
+        case "historias-casais":
+          return <HistoriasCasaisTab />;
         // Sistema
+        case "template-propostas":
+          return <ProposalTemplatesManager />;
+        case "template-contratos":
+          return <ContractTemplatesManager />;
+        case "template-emails":
+          return <ContractEmailTemplatesManager />;
         case "templates":
           return <TemplatesTab />;
         case "users":

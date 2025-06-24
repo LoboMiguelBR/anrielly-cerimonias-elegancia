@@ -18,36 +18,81 @@ export const useSystemSettings = () => {
 
   const fetchSettings = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from('system_settings')
-      .select('*');
+    try {
+      // Verificar se o usuário está autenticado
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) {
+        console.error('Erro na sessão:', sessionError);
+        toast.error('Erro de autenticação. Faça login novamente.');
+        setLoading(false);
+        return;
+      }
 
-    if (error) {
-      toast.error('Erro ao carregar configurações: ' + error.message);
+      if (!session) {
+        console.warn('Usuário não autenticado');
+        toast.error('Você precisa estar logado para acessar as configurações.');
+        setLoading(false);
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('system_settings')
+        .select('*')
+        .order('key', { ascending: true });
+
+      if (error) {
+        console.error('Erro ao carregar configurações:', error);
+        if (error.message.includes('auth')) {
+          toast.error('Erro de autenticação: ' + error.message);
+        } else {
+          toast.error('Erro ao carregar configurações: ' + error.message);
+        }
+        setLoading(false);
+        return;
+      }
+      
+      setSettings(data || []);
+    } catch (error: any) {
+      console.error('Erro inesperado:', error);
+      toast.error('Erro inesperado ao carregar configurações');
+    } finally {
       setLoading(false);
-      return;
     }
-    setSettings(data || []);
-    setLoading(false);
   };
 
-  useEffect(() => { fetchSettings(); }, []);
+  useEffect(() => { 
+    fetchSettings(); 
+  }, []);
 
   const upsertSetting = async (key: string, value: any, description?: string) => {
-    const { data, error } = await supabase
-      .from('system_settings')
-      .upsert([{ key, value, description }])
-      .select()
-      .single();
+    try {
+      // Verificar autenticação antes de tentar salvar
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        throw new Error('Você precisa estar logado para salvar configurações');
+      }
 
-    if (error) {
-      toast.error('Erro ao salvar configuração: ' + error.message);
+      const { data, error } = await supabase
+        .from('system_settings')
+        .upsert([{ key, value, description }])
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Erro ao salvar configuração:', error);
+        throw new Error('Erro ao salvar configuração: ' + error.message);
+      }
+      
+      await fetchSettings();
+      toast.success('Configuração salva com sucesso!');
+      return data;
+    } catch (error: any) {
+      console.error('Erro ao salvar configuração:', error);
       throw error;
     }
-    await fetchSettings();
-    toast.success('Configuração salva!');
-    return data;
   };
 
   return { settings, loading, fetchSettings, upsertSetting };
-}
+};

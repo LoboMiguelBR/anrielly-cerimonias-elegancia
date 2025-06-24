@@ -1,12 +1,24 @@
 
-import { FileText, UserPlus, Settings } from "lucide-react";
+import { FileText, UserPlus, Settings, Layout, Mail } from "lucide-react";
 import { MenuItem, validateIcon } from './menuTypes';
 
 export const sistemaItems: MenuItem[] = [
   {
-    id: "templates",
-    label: "Templates",
-    icon: validateIcon(FileText, "templates"),
+    id: "template-propostas",
+    label: "Templates Propostas",
+    icon: validateIcon(FileText, "template-propostas"),
+    group: "sistema"
+  },
+  {
+    id: "template-contratos",
+    label: "Templates Contratos",
+    icon: validateIcon(Layout, "template-contratos"),
+    group: "sistema"
+  },
+  {
+    id: "template-emails",
+    label: "Templates E-mails",
+    icon: validateIcon(Mail, "template-emails"),
     group: "sistema"
   },
   {

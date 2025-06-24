@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Settings } from "lucide-react";
+import { Settings, AlertTriangle } from "lucide-react";
 import { useSystemSettings, SystemSetting } from "@/hooks/useSystemSettings";
 import { toast } from "sonner";
 
@@ -13,6 +13,7 @@ export default function SystemSettingsTab() {
   const { settings, loading, upsertSetting } = useSystemSettings();
   const [editing, setEditing] = useState<string | null>(null);
   const [form, setForm] = useState<{ [key: string]: any }>({});
+  const [error, setError] = useState<string | null>(null);
 
   const handleEdit = (setting: SystemSetting) => {
     setEditing(setting.id);
@@ -24,6 +25,7 @@ export default function SystemSettingsTab() {
 
   const handleSave = async (setting: SystemSetting) => {
     try {
+      setError(null);
       let value = form.value;
       // Tentar parsear para JSON se for válido
       try {
@@ -34,9 +36,37 @@ export default function SystemSettingsTab() {
       await upsertSetting(setting.key, value, form.description);
       setEditing(null);
     } catch (e: any) {
-      toast.error(e.message || "Erro ao salvar configuração");
+      const errorMessage = e.message || "Erro ao salvar configuração";
+      setError(errorMessage);
+      toast.error(errorMessage);
     }
   };
+
+  if (error && error.includes('auth')) {
+    return (
+      <div className="min-h-screen p-4 md:p-6 space-y-6">
+        <div className="flex items-center gap-3 mb-6">
+          <Settings className="w-7 h-7 text-blue-600" />
+          <h2 className="font-playfair text-2xl font-bold">Configurações do Sistema</h2>
+        </div>
+        <div className="bg-white rounded-lg shadow p-4 max-w-3xl mx-auto">
+          <div className="text-center py-10">
+            <AlertTriangle className="w-12 h-12 text-orange-500 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Erro de Autenticação</h3>
+            <p className="text-gray-600 mb-4">
+              Sua sessão expirou ou você não tem permissão para acessar as configurações.
+            </p>
+            <Button 
+              onClick={() => window.location.reload()}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              Recarregar Página
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen p-4 md:p-6 space-y-6">
@@ -44,6 +74,17 @@ export default function SystemSettingsTab() {
         <Settings className="w-7 h-7 text-blue-600" />
         <h2 className="font-playfair text-2xl font-bold">Configurações do Sistema</h2>
       </div>
+      
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 max-w-3xl mx-auto">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="w-5 h-5 text-red-600" />
+            <p className="text-red-800 font-medium">Erro</p>
+          </div>
+          <p className="text-red-700 mt-1">{error}</p>
+        </div>
+      )}
+
       <div className="bg-white rounded-lg shadow p-4 max-w-3xl mx-auto">
         {loading ? (
           <div className="space-y-2">
@@ -56,7 +97,9 @@ export default function SystemSettingsTab() {
           </div>
         ) : settings.length === 0 ? (
           <div className="text-gray-400 text-center py-10">
-            Nenhuma configuração encontrada.
+            <Settings className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+            <p>Nenhuma configuração encontrada.</p>
+            <p className="text-sm mt-2">As configurações serão criadas automaticamente conforme necessário.</p>
           </div>
         ) : (
           <table className="w-full text-sm">
