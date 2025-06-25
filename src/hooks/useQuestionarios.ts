@@ -7,7 +7,7 @@ const fetcher = async (): Promise<Questionario[]> => {
   const { data, error } = await supabase
     .from('questionarios_noivos')
     .select('*')
-    .order('created_at', { ascending: false });
+    .order('data_criacao', { ascending: false });
     
   if (error) throw error;
   
