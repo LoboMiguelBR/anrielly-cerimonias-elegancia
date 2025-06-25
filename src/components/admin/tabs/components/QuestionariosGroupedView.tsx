@@ -16,6 +16,7 @@ interface QuestionariosGroupedViewProps {
   onEdit: (questionario: Questionario) => void;
   onExport: (questionario: Questionario) => void;
   onDelete: (questionario: Questionario) => void;
+  onHistoriaIA: (linkPublico: string) => void;
   isExporting: boolean;
 }
 
@@ -26,6 +27,7 @@ const QuestionariosGroupedView = ({
   onEdit,
   onExport,
   onDelete,
+  onHistoriaIA,
   isExporting
 }: QuestionariosGroupedViewProps) => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -227,6 +229,7 @@ const QuestionariosGroupedView = ({
               onEdit={onEdit}
               onExport={onExport}
               onDelete={onDelete}
+              onHistoriaIA={onHistoriaIA}
               isExporting={isExporting}
             />
           ))

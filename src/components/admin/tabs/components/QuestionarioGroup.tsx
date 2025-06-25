@@ -2,7 +2,7 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Users, Copy, ExternalLink, Calendar, Tag } from "lucide-react";
+import { Users, Copy, ExternalLink, Calendar, Tag, Sparkles } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import QuestionarioItem from "./QuestionarioItem";
@@ -27,6 +27,7 @@ interface QuestionarioGroupProps {
   onEdit: (questionario: Questionario) => void;
   onExport: (questionario: Questionario) => void;
   onDelete: (questionario: Questionario) => void;
+  onHistoriaIA: (linkPublico: string) => void;
   isExporting: boolean;
 }
 
@@ -40,6 +41,7 @@ const QuestionarioGroup = ({
   onEdit,
   onExport,
   onDelete,
+  onHistoriaIA,
   isExporting
 }: QuestionarioGroupProps) => {
   const getQuestionarioLink = (linkPublico: string) => {
@@ -60,6 +62,9 @@ const QuestionarioGroup = ({
         return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
+
+  // Verifica se algum questionário do grupo já tem história gerada
+  const hasHistoria = grupo.questionarios.some(q => q.historia_gerada);
 
   return (
     <Card className="border-l-4 border-l-rose-200">
@@ -83,6 +88,12 @@ const QuestionarioGroup = ({
                         {grupo.tipo_evento}
                       </Badge>
                     )}
+                    {hasHistoria && (
+                      <Badge variant="outline" className="bg-purple-100 text-purple-800 border-purple-200">
+                        <Sparkles className="w-3 h-3 mr-1" />
+                        História IA
+                      </Badge>
+                    )}
                   </div>
                   <div className="flex items-center gap-4 text-sm text-gray-600">
                     <span className="flex items-center gap-1">
@@ -99,6 +110,26 @@ const QuestionarioGroup = ({
                 </div>
               </div>
               <div className="flex items-center gap-2">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onHistoriaIA(grupo.link_publico);
+                      }}
+                      className={hasHistoria ? "bg-purple-50 border-purple-200 text-purple-700" : ""}
+                    >
+                      <Sparkles className="w-4 h-4 mr-1" />
+                      História IA
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{hasHistoria ? 'Editar personalização da história' : 'Personalizar história com IA'}</p>
+                  </TooltipContent>
+                </Tooltip>
+
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
