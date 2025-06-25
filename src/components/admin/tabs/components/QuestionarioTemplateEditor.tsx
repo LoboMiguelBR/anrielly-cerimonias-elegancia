@@ -5,13 +5,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Trash2, GripVertical } from "lucide-react";
+import { Plus, Edit3, Trash2, GripVertical } from "lucide-react";
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { useQuestionarioTemplateStructure } from '@/hooks/useQuestionarioTemplateStructure';
+import TemplateSecaoEditor from './TemplateSecaoEditor';
+import TemplatePerguntaModal from './TemplatePerguntaModal';
 
 interface QuestionarioTemplateEditorProps {
   template: any;
@@ -21,42 +23,20 @@ interface QuestionarioTemplateEditorProps {
 
 const QuestionarioTemplateEditor = ({ template, onSuccess, onClose }: QuestionarioTemplateEditorProps) => {
   const [templateData, setTemplateData] = useState(template || {});
-  const [sections, setSections] = useState<any[]>([]);
-  const [questions, setQuestions] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [perguntaModalOpen, setPerguntaModalOpen] = useState(false);
+  const [selectedPergunta, setSelectedPergunta] = useState<any>(null);
+  const [selectedSecaoId, setSelectedSecaoId] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (template?.id) {
-      loadTemplateData();
-    }
-  }, [template]);
-
-  const loadTemplateData = async () => {
-    try {
-      // Carregar seções
-      const { data: sectionsData, error: sectionsError } = await supabase
-        .from('questionario_template_secoes')
-        .select('*')
-        .eq('template_id', template.id)
-        .order('ordem');
-
-      if (sectionsError) throw sectionsError;
-      setSections(sectionsData || []);
-
-      // Carregar perguntas
-      const { data: questionsData, error: questionsError } = await supabase
-        .from('questionario_template_perguntas')
-        .select('*')
-        .eq('template_id', template.id)
-        .order('ordem');
-
-      if (questionsError) throw questionsError;
-      setQuestions(questionsData || []);
-    } catch (error) {
-      console.error('Erro ao carregar dados do template:', error);
-      toast.error('Erro ao carregar dados do template');
-    }
-  };
+  const { 
+    structure, 
+    isLoading, 
+    updateTemplateSecao,
+    updateTemplatePergunta,
+    deleteTemplatePergunta,
+    addTemplatePergunta,
+    deleteTemplateSecao
+  } = useQuestionarioTemplateStructure(template?.id);
 
   const handleSaveTemplate = async () => {
     setLoading(true);
@@ -84,19 +64,16 @@ const QuestionarioTemplateEditor = ({ template, onSuccess, onClose }: Questionar
         template_id: template.id,
         titulo: 'Nova Seção',
         descricao: '',
-        ordem: sections.length,
+        ordem: structure?.secoes.length || 0,
         ativo: true
       };
 
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('questionario_template_secoes')
-        .insert([newSection])
-        .select()
-        .single();
+        .insert([newSection]);
 
       if (error) throw error;
 
-      setSections([...sections, data]);
       toast.success('Seção adicionada com sucesso!');
     } catch (error: any) {
       console.error('Erro ao adicionar seção:', error);
@@ -104,54 +81,46 @@ const QuestionarioTemplateEditor = ({ template, onSuccess, onClose }: Questionar
     }
   };
 
-  const deleteSection = async (sectionId: string) => {
-    if (!window.confirm('Tem certeza que deseja excluir esta seção?')) return;
+  const handleAddPergunta = (secaoId: string) => {
+    setSelectedSecaoId(secaoId);
+    setSelectedPergunta(null);
+    setPerguntaModalOpen(true);
+  };
 
-    try {
-      const { error } = await supabase
-        .from('questionario_template_secoes')
-        .delete()
-        .eq('id', sectionId);
+  const handleEditPergunta = (pergunta: any) => {
+    setSelectedSecaoId(pergunta.secao_id);
+    setSelectedPergunta(pergunta);
+    setPerguntaModalOpen(true);
+  };
 
-      if (error) throw error;
-
-      setSections(sections.filter(s => s.id !== sectionId));
-      setQuestions(questions.filter(q => q.secao_id !== sectionId));
-      toast.success('Seção excluída com sucesso!');
-    } catch (error: any) {
-      console.error('Erro ao excluir seção:', error);
-      toast.error('Erro ao excluir seção: ' + error.message);
+  const handleSavePergunta = async (perguntaId: string | null, perguntaData: any) => {
+    if (perguntaId) {
+      // Atualizar pergunta existente
+      return await updateTemplatePergunta(perguntaId, perguntaData);
+    } else {
+      // Criar nova pergunta
+      const perguntasNaSecao = structure?.perguntas.filter(p => p.secao_id === selectedSecaoId) || [];
+      perguntaData.ordem = perguntasNaSecao.length;
+      return await addTemplatePergunta(selectedSecaoId!, perguntaData);
     }
   };
 
-  const addQuestion = async (sectionId: string) => {
-    try {
-      const sectionQuestions = questions.filter(q => q.secao_id === sectionId);
-      const newQuestion = {
-        template_id: template.id,
-        secao_id: sectionId,
-        texto: 'Nova pergunta',
-        tipo_resposta: 'texto_longo',
-        ordem: sectionQuestions.length,
-        obrigatoria: false,
-        ativo: true
-      };
-
-      const { data, error } = await supabase
-        .from('questionario_template_perguntas')
-        .insert([newQuestion])
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      setQuestions([...questions, data]);
-      toast.success('Pergunta adicionada com sucesso!');
-    } catch (error: any) {
-      console.error('Erro ao adicionar pergunta:', error);
-      toast.error('Erro ao adicionar pergunta: ' + error.message);
+  const handleDeletePergunta = async (perguntaId: string) => {
+    if (window.confirm('Tem certeza que deseja excluir esta pergunta?')) {
+      await deleteTemplatePergunta(perguntaId);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div>
+          <p className="mt-2 text-gray-600">Carregando estrutura...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 max-h-[70vh] overflow-y-auto">
@@ -224,49 +193,26 @@ const QuestionarioTemplateEditor = ({ template, onSuccess, onClose }: Questionar
           </div>
           
           <div className="space-y-3">
-            {sections.map((section) => (
-              <Card key={section.id}>
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <GripVertical className="h-4 w-4 text-gray-400" />
-                      <div>
-                        <CardTitle className="text-base">{section.titulo}</CardTitle>
-                        <p className="text-sm text-gray-600">Ordem: {section.ordem}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {section.ativo && <Badge variant="outline">Ativo</Badge>}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => deleteSection(section.id)}
-                        className="text-red-600 hover:text-red-700"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardHeader>
-                {section.descricao && (
-                  <CardContent className="pt-0">
-                    <p className="text-sm text-gray-600">{section.descricao}</p>
-                  </CardContent>
-                )}
-              </Card>
+            {structure?.secoes.map((section) => (
+              <TemplateSecaoEditor
+                key={section.id}
+                secao={section}
+                onUpdate={updateTemplateSecao}
+                onDelete={deleteTemplateSecao}
+              />
             ))}
           </div>
         </TabsContent>
         
         <TabsContent value="questions" className="space-y-4">
           <div className="space-y-4">
-            {sections.map((section) => (
+            {structure?.secoes.map((section) => (
               <Card key={section.id}>
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-base">{section.titulo}</CardTitle>
                     <Button 
-                      onClick={() => addQuestion(section.id)} 
+                      onClick={() => handleAddPergunta(section.id)} 
                       size="sm"
                       variant="outline"
                     >
@@ -277,16 +223,44 @@ const QuestionarioTemplateEditor = ({ template, onSuccess, onClose }: Questionar
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
-                    {questions
+                    {structure?.perguntas
                       .filter(q => q.secao_id === section.id)
                       .map((question) => (
-                        <div key={question.id} className="flex items-center justify-between p-2 border rounded">
-                          <div className="flex items-center gap-2">
+                        <div key={question.id} className="flex items-center justify-between p-3 border rounded hover:bg-gray-50">
+                          <div className="flex items-center gap-3 flex-1">
                             <GripVertical className="h-4 w-4 text-gray-400" />
-                            <span className="text-sm">{question.texto}</span>
-                            {question.obrigatoria && <Badge variant="destructive" className="text-xs">Obrigatória</Badge>}
+                            <div className="flex-1">
+                              <span className="text-sm font-medium">{question.texto}</span>
+                              <div className="flex items-center gap-2 mt-1">
+                                <Badge variant="secondary" className="text-xs">
+                                  {question.tipo_resposta.replace('_', ' ')}
+                                </Badge>
+                                {question.obrigatoria && (
+                                  <Badge variant="destructive" className="text-xs">Obrigatória</Badge>
+                                )}
+                                {!question.ativo && (
+                                  <Badge variant="outline" className="text-xs">Inativa</Badge>
+                                )}
+                              </div>
+                            </div>
                           </div>
-                          <Badge variant="secondary" className="text-xs">{question.tipo_resposta}</Badge>
+                          <div className="flex gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleEditPergunta(question)}
+                            >
+                              <Edit3 className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDeletePergunta(question.id)}
+                              className="text-red-600 hover:text-red-700"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </div>
                       ))}
                   </div>
@@ -305,6 +279,15 @@ const QuestionarioTemplateEditor = ({ template, onSuccess, onClose }: Questionar
           {loading ? 'Salvando...' : 'Salvar Template'}
         </Button>
       </div>
+
+      <TemplatePerguntaModal
+        isOpen={perguntaModalOpen}
+        onClose={() => setPerguntaModalOpen(false)}
+        pergunta={selectedPergunta}
+        secaoId={selectedSecaoId || ''}
+        templateId={template.id}
+        onSave={handleSavePergunta}
+      />
     </div>
   );
 };
