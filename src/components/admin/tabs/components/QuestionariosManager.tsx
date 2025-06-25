@@ -2,13 +2,11 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ClipboardList, Plus, Sparkles } from 'lucide-react';
+import { ClipboardList, Plus } from 'lucide-react';
 import { useToast } from "@/components/ui/use-toast";
 import QuestionariosGroupedView from './QuestionariosGroupedView';
 import ModalPersonalizacao from './ModalPersonalizacao';
 import { useQuestionarios } from '@/hooks/useQuestionarios';
-import { usePersonalizacaoIA } from '@/hooks/usePersonalizacaoIA';
 import { Questionario } from '../types/questionario';
 
 const QuestionariosManager = () => {
@@ -16,11 +14,18 @@ const QuestionariosManager = () => {
   const [isPersonalizacaoOpen, setIsPersonalizacaoOpen] = useState(false);
   const { toast } = useToast();
   const { questionarios, isLoading, refetch } = useQuestionarios();
-  const { buscarPersonalizacao, salvarPersonalizacao } = usePersonalizacaoIA();
 
   const handleHistoriaIA = async (linkPublico: string) => {
     setSelectedLinkPublico(linkPublico);
     setIsPersonalizacaoOpen(true);
+  };
+
+  const handlePersonalizacaoSalva = () => {
+    toast({
+      title: "Personalização salva!",
+      description: "A personalização da história IA foi salva com sucesso.",
+    });
+    refetch(); // Recarregar dados para mostrar se história foi gerada
   };
 
   const handleViewAnswers = (questionario: Questionario) => {
@@ -102,22 +107,14 @@ const QuestionariosManager = () => {
         </CardContent>
       </Card>
 
-      <Dialog open={isPersonalizacaoOpen} onOpenChange={setIsPersonalizacaoOpen}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-purple-600" />
-              Personalizar História IA
-            </DialogTitle>
-          </DialogHeader>
-          {selectedLinkPublico && (
-            <ModalPersonalizacao
-              linkPublico={selectedLinkPublico}
-              onClose={() => setIsPersonalizacaoOpen(false)}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
+      {selectedLinkPublico && (
+        <ModalPersonalizacao
+          isOpen={isPersonalizacaoOpen}
+          onClose={() => setIsPersonalizacaoOpen(false)}
+          linkPublico={selectedLinkPublico}
+          onPersonalizacaoSalva={handlePersonalizacaoSalva}
+        />
+      )}
     </>
   );
 };
