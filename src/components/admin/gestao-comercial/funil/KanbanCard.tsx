@@ -103,6 +103,11 @@ const KanbanCard: React.FC<KanbanCardProps> = ({
 
   const canCreateProposal = item.type === 'quote' && !['perdido'].includes(item.status);
 
+  const handleCreateProposal = () => {
+    // Usar o originalId (ID real) para criar a proposta
+    onCreateProposal(item.originalId);
+  };
+
   return (
     <Card className="hover:shadow-md transition-shadow cursor-pointer">
       <CardContent className="p-4 space-y-3">
@@ -187,7 +192,7 @@ const KanbanCard: React.FC<KanbanCardProps> = ({
             <Button
               size="sm"
               variant="outline"
-              onClick={() => onCreateProposal(item.id)}
+              onClick={handleCreateProposal}
               className="flex-1 text-xs"
             >
               <FileText className="h-3 w-3 mr-1" />

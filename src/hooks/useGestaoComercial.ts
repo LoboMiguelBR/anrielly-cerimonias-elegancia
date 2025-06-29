@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuoteRequests } from './useQuoteRequests';
 
@@ -15,6 +15,7 @@ export interface FunilItem {
   type: 'quote' | 'proposal' | 'contract';
   created_at: string;
   total_price?: number;
+  originalId: string; // Para rastrear o ID original
 }
 
 export interface FinancialMetrics {
@@ -71,14 +72,36 @@ export const useGestaoComercial = () => {
     loadData();
   }, []);
 
-  // Converter dados para o funil
-  const getFunilData = (): Record<string, FunilItem[]> => {
-    const funilItems: FunilItem[] = [];
+  // Função para determinar o estágio correto no funil baseado no tipo e status
+  const getCorrectFunilStage = (item: FunilItem) => {
+    if (item.status === 'perdido') return 'perdido';
+    
+    switch (item.type) {
+      case 'quote':
+        if (['aguardando', 'novo'].includes(item.status)) return 'lead-captado';
+        if (item.status === 'contatado') return 'contato-realizado';
+        break;
+      case 'proposal':
+        if (['draft', 'enviado'].includes(item.status)) return 'orcamento-enviado';
+        if (item.status === 'negociacao') return 'em-negociacao';
+        if (item.status === 'aprovado') return 'pronto-contrato';
+        break;
+      case 'contract':
+        if (item.status === 'assinado') return 'contrato-assinado';
+        break;
+    }
+    return 'lead-captado'; // fallback
+  };
 
-    // Adicionar quote requests
+  // Converter dados para o funil com deduplicação
+  const getFunilData = useMemo((): Record<string, FunilItem[]> => {
+    const processedItems = new Map<string, FunilItem>();
+
+    // Processar quotes
     quoteRequests.forEach(quote => {
-      funilItems.push({
-        id: quote.id,
+      const item: FunilItem = {
+        id: `quote-${quote.id}`,
+        originalId: quote.id,
         name: quote.name,
         email: quote.email,
         phone: quote.phone,
@@ -88,13 +111,20 @@ export const useGestaoComercial = () => {
         status: quote.status || 'aguardando',
         type: 'quote',
         created_at: quote.created_at
-      });
+      };
+      
+      // Usar email como chave única para evitar duplicação
+      const key = `${quote.email}-${quote.event_type}`;
+      if (!processedItems.has(key) || processedItems.get(key)!.type === 'quote') {
+        processedItems.set(key, item);
+      }
     });
 
-    // Adicionar propostas
+    // Processar propostas (sobrescrever quotes relacionados)
     proposals.forEach(proposal => {
-      funilItems.push({
-        id: proposal.id,
+      const item: FunilItem = {
+        id: `proposal-${proposal.id}`,
+        originalId: proposal.id,
         name: proposal.client_name,
         email: proposal.client_email,
         phone: proposal.client_phone,
@@ -105,13 +135,17 @@ export const useGestaoComercial = () => {
         type: 'proposal',
         created_at: proposal.created_at,
         total_price: proposal.total_price
-      });
+      };
+      
+      const key = `${proposal.client_email}-${proposal.event_type}`;
+      processedItems.set(key, item);
     });
 
-    // Adicionar contratos
+    // Processar contratos (sobrescrever propostas relacionadas)
     contracts.forEach(contract => {
-      funilItems.push({
-        id: contract.id,
+      const item: FunilItem = {
+        id: `contract-${contract.id}`,
+        originalId: contract.id,
         name: contract.client_name,
         email: contract.client_email,
         phone: contract.client_phone,
@@ -122,34 +156,35 @@ export const useGestaoComercial = () => {
         type: 'contract',
         created_at: contract.created_at,
         total_price: contract.total_price
-      });
+      };
+      
+      const key = `${contract.client_email}-${contract.event_type}`;
+      processedItems.set(key, item);
     });
 
-    // Agrupar por status do funil
+    // Agrupar por estágio do funil
     const grouped: Record<string, FunilItem[]> = {
-      'lead-captado': funilItems.filter(item => 
-        (item.type === 'quote' && ['aguardando', 'novo'].includes(item.status))
-      ),
-      'contato-realizado': funilItems.filter(item => 
-        (item.type === 'quote' && item.status === 'contatado')
-      ),
-      'orcamento-enviado': funilItems.filter(item => 
-        (item.type === 'proposal' && ['enviado', 'draft'].includes(item.status))
-      ),
-      'em-negociacao': funilItems.filter(item => 
-        (item.type === 'proposal' && item.status === 'negociacao')
-      ),
-      'pronto-contrato': funilItems.filter(item => 
-        (item.type === 'proposal' && item.status === 'aprovado')
-      ),
-      'contrato-assinado': funilItems.filter(item => 
-        (item.type === 'contract' && item.status === 'assinado')
-      ),
-      'perdido': funilItems.filter(item => item.status === 'perdido')
+      'lead-captado': [],
+      'contato-realizado': [],
+      'orcamento-enviado': [],
+      'em-negociacao': [],
+      'pronto-contrato': [],
+      'contrato-assinado': [],
+      'perdido': []
     };
 
+    processedItems.forEach(item => {
+      const stage = getCorrectFunilStage(item);
+      grouped[stage].push(item);
+    });
+
+    // Ordenar por data de criação (mais recente primeiro)
+    Object.keys(grouped).forEach(stage => {
+      grouped[stage].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    });
+
     return grouped;
-  };
+  }, [quoteRequests, proposals, contracts]);
 
   // Calcular métricas financeiras
   const getFinancialMetrics = (): FinancialMetrics => {
@@ -183,13 +218,17 @@ export const useGestaoComercial = () => {
 
   const updateItemStatus = async (itemId: string, newStatus: string, itemType: 'quote' | 'proposal' | 'contract') => {
     try {
-      // Usar switch case com queries tipadas para evitar erro TypeScript
+      console.log('Updating item status:', { itemId, newStatus, itemType });
+      
+      // Extrair o ID real removendo o prefixo
+      const realId = itemId.replace(`${itemType}-`, '');
+      
       switch (itemType) {
         case 'quote':
           const { error: quoteError } = await supabase
             .from('quote_requests')
             .update({ status: newStatus })
-            .eq('id', itemId);
+            .eq('id', realId);
           if (quoteError) throw quoteError;
           break;
           
@@ -197,15 +236,20 @@ export const useGestaoComercial = () => {
           const { error: proposalError } = await supabase
             .from('proposals')
             .update({ status: newStatus })
-            .eq('id', itemId);
+            .eq('id', realId);
           if (proposalError) throw proposalError;
+          
+          // Se a proposta foi aprovada, criar um evento automaticamente
+          if (newStatus === 'aprovado') {
+            await createEventFromProposal(realId);
+          }
           break;
           
         case 'contract':
           const { error: contractError } = await supabase
             .from('contracts')
             .update({ status: newStatus })
-            .eq('id', itemId);
+            .eq('id', realId);
           if (contractError) throw contractError;
           break;
           
@@ -215,14 +259,44 @@ export const useGestaoComercial = () => {
 
       // Recarregar dados após atualização
       await Promise.all([fetchProposals(), fetchContracts()]);
+      
+      console.log('Status updated successfully');
     } catch (error) {
       console.error('Erro ao atualizar status:', error);
       throw error;
     }
   };
 
+  // Função para criar evento automaticamente quando proposta é aprovada
+  const createEventFromProposal = async (proposalId: string) => {
+    try {
+      const proposal = proposals.find(p => p.id === proposalId);
+      if (!proposal) return;
+
+      const { error } = await supabase
+        .from('events')
+        .insert([{
+          type: proposal.event_type,
+          date: proposal.event_date,
+          location: proposal.event_location,
+          description: `Evento criado automaticamente da proposta aprovada para ${proposal.client_name}`,
+          status: 'em_planejamento',
+          proposal_id: proposalId,
+          notes: proposal.notes
+        }]);
+
+      if (error) {
+        console.error('Erro ao criar evento:', error);
+      } else {
+        console.log('Evento criado automaticamente para proposta:', proposalId);
+      }
+    } catch (error) {
+      console.error('Erro ao criar evento automaticamente:', error);
+    }
+  };
+
   return {
-    funilData: getFunilData(),
+    funilData: getFunilData,
     financialMetrics: getFinancialMetrics(),
     isLoading,
     updateItemStatus,

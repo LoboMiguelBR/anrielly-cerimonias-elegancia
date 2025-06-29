@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { ProposalData, Service } from './types';
 import { Json } from '@/integrations/supabase/types';
@@ -94,11 +95,9 @@ export const saveProposal = async (proposal: Omit<ProposalData, 'id' | 'created_
   try {
     console.log('Saving proposal with template_id:', proposal.template_id);
     
-    // Validate and clean template_id
     let templateId = proposal.template_id;
     
     if (templateId) {
-      // Validate template_id exists in proposal_template_html table
       const { data: templateExists, error: templateError } = await supabase
         .from('proposal_template_html')
         .select('id')
@@ -116,7 +115,6 @@ export const saveProposal = async (proposal: Omit<ProposalData, 'id' | 'created_
       }
     }
     
-    // Prepare proposal data
     const proposalData = {
       client_name: proposal.client_name,
       client_email: proposal.client_email,
@@ -130,7 +128,7 @@ export const saveProposal = async (proposal: Omit<ProposalData, 'id' | 'created_
       notes: proposal.notes,
       quote_request_id: proposal.quote_request_id,
       validity_date: proposal.validity_date,
-      template_id: templateId, // Use validated templateId
+      template_id: templateId,
       status: proposal.status || 'draft',
       html_content: proposal.html_content,
       css_content: proposal.css_content,
@@ -146,7 +144,6 @@ export const saveProposal = async (proposal: Omit<ProposalData, 'id' | 'created_
     });
 
     if (proposal.id) {
-      // Update existing proposal
       const { error } = await supabase
         .from('proposals')
         .update(proposalData)
@@ -160,7 +157,6 @@ export const saveProposal = async (proposal: Omit<ProposalData, 'id' | 'created_
       console.log('Proposal updated successfully:', proposal.id);
       return proposal.id;
     } else {
-      // Create new proposal
       const { data, error } = await supabase
         .from('proposals')
         .insert([proposalData])
@@ -182,7 +178,6 @@ export const saveProposal = async (proposal: Omit<ProposalData, 'id' | 'created_
   } catch (error: any) {
     console.error('Error saving proposal:', error);
     
-    // Provide more specific error messages
     let errorMessage = 'Erro ao salvar proposta';
     if (error.message?.includes('foreign key')) {
       errorMessage = 'Erro de referência de template. Verifique se o template selecionado é válido.';
@@ -199,15 +194,24 @@ export const saveProposal = async (proposal: Omit<ProposalData, 'id' | 'created_
 
 const deleteProposal = async (id: string): Promise<boolean> => {
   try {
+    console.log('Attempting to delete proposal:', id);
+    
     const { error } = await supabase
       .from('proposals')
       .delete()
       .eq('id', id);
       
-    if (error) throw error;
+    if (error) {
+      console.error('Error deleting proposal:', error);
+      throw error;
+    }
+    
+    console.log('Proposal deleted successfully:', id);
+    toast.success('Proposta excluída com sucesso!');
     return true;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error deleting proposal:', error);
+    toast.error(`Erro ao excluir proposta: ${error.message}`);
     return false;
   }
 };
@@ -216,29 +220,36 @@ const sendProposalByEmail = async (proposal: ProposalData): Promise<boolean> => 
   try {
     console.log('Sending proposal by email:', proposal.id, 'to', proposal.client_email);
     
-    // Call the email edge function
-    const response = await fetch('/api/send-proposal-email', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        proposal,
+    // Use the correct edge function call
+    const { data, error } = await supabase.functions.invoke('send-proposal', {
+      body: {
+        proposalId: proposal.id,
         to: proposal.client_email,
-        name: proposal.client_name,
-        tipo: 'proposta-envio'
-      }),
+        clientName: proposal.client_name,
+        pdfUrl: proposal.pdf_url,
+        subject: `Proposta de Serviço - ${proposal.event_type}`,
+        message: `Olá ${proposal.client_name}, segue em anexo a proposta de serviços conforme solicitado.`
+      }
     });
 
-    if (!response.ok) {
-      throw new Error('Failed to send email');
+    if (error) {
+      console.error('Error response from send-proposal:', error);
+      throw new Error(`Erro ao enviar email: ${error.message}`);
     }
 
-    toast.success(`Proposta enviada para ${proposal.client_email}`);
+    console.log('Email sent successfully:', data);
+    
+    // Update proposal status to 'sent' after successful email
+    await supabase
+      .from('proposals')
+      .update({ status: 'enviado' })
+      .eq('id', proposal.id);
+
+    toast.success(`Proposta enviada para ${proposal.client_email}!`);
     return true;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error sending proposal by email:', error);
-    toast.error('Erro ao enviar proposta por email');
+    toast.error(`Erro ao enviar proposta por email: ${error.message}`);
     return false;
   }
 };
