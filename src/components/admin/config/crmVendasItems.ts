@@ -16,12 +16,6 @@ export const crmVendasItems: MenuItem[] = [
     group: "crm"
   },
   {
-    id: "quotes",
-    label: "Orçamentos",
-    icon: validateIcon(DollarSign, "quotes"),
-    group: "crm"
-  },
-  {
     id: "proposals",
     label: "Propostas",
     icon: validateIcon(FileText, "proposals"),
@@ -34,9 +28,9 @@ export const crmVendasItems: MenuItem[] = [
     group: "crm"
   },
   {
-    id: "clientes",
+    id: "clients",
     label: "Clientes",
-    icon: validateIcon(Users, "clientes"),
+    icon: validateIcon(Users, "clients"),
     group: "crm"
   }
 ];

@@ -31,6 +31,7 @@ const TabContentRenderer: React.FC<TabContentRendererProps> = ({ activeTab }) =>
       case 'leads':
         return <LeadsTab />;
       case 'clients':
+      case 'clientes':
         return <ClientesTab />;
       case 'proposals':
         return <ProposalsTab quoteRequests={[]} />;
@@ -63,6 +64,7 @@ const TabContentRenderer: React.FC<TabContentRendererProps> = ({ activeTab }) =>
       case 'settings':
         return <SystemSettingsTab />;
       default:
+        console.warn(`Tab não encontrada: ${activeTab}, redirecionando para dashboard`);
         return <DashboardTab onNavigate={() => {}} />;
     }
   };
