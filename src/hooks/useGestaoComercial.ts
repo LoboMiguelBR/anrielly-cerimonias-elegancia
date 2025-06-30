@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuoteRequests } from './useQuoteRequests';
@@ -101,7 +102,7 @@ export const useGestaoComercial = () => {
 
     // 1. Processar LEADS primeiro (base do funil)
     quoteRequests.forEach(quote => {
-      const leadKey = quote.id; // Usar ID do lead como chave única
+      const leadKey = `${quote.email}-${quote.event_type}-${quote.event_date || 'no-date'}`;
       const item: FunilItem = {
         id: `quote-${quote.id}`,
         originalId: quote.id,
@@ -123,48 +124,52 @@ export const useGestaoComercial = () => {
     // 2. Processar PROPOSTAS vinculadas aos leads
     proposals.forEach(proposal => {
       if (proposal.quote_request_id) {
-        const leadKey = proposal.quote_request_id;
-        const existingLead = processedItems.get(leadKey);
-        
-        if (existingLead) {
-          // Atualizar o item existente para proposta, mantendo dados do lead
-          const updatedItem: FunilItem = {
-            ...existingLead,
-            id: `proposal-${proposal.id}`,
-            originalId: proposal.id,
-            status: proposal.status || 'draft',
-            type: 'proposal',
-            created_at: proposal.created_at,
-            total_price: proposal.total_price,
-            // Manter dados do cliente da proposta se diferentes
-            name: proposal.client_name || existingLead.name,
-            email: proposal.client_email || existingLead.email,
-            phone: proposal.client_phone || existingLead.phone,
-          };
+        const relatedLead = quoteRequests.find(q => q.id === proposal.quote_request_id);
+        if (relatedLead) {
+          const leadKey = `${relatedLead.email}-${relatedLead.event_type}-${relatedLead.event_date || 'no-date'}`;
+          const existingLead = processedItems.get(leadKey);
           
-          processedItems.set(leadKey, updatedItem);
+          if (existingLead) {
+            // Atualizar o item existente para proposta, mantendo dados do lead
+            const updatedItem: FunilItem = {
+              ...existingLead,
+              id: `proposal-${proposal.id}`,
+              originalId: proposal.id,
+              status: proposal.status || 'draft',
+              type: 'proposal',
+              created_at: proposal.created_at,
+              total_price: proposal.total_price,
+              // Manter dados do cliente da proposta se diferentes
+              name: proposal.client_name || existingLead.name,
+              email: proposal.client_email || existingLead.email,
+              phone: proposal.client_phone || existingLead.phone,
+            };
+            
+            processedItems.set(leadKey, updatedItem);
+          }
         }
       }
     });
 
     // 3. Processar CONTRATOS vinculados às propostas/leads
     contracts.forEach(contract => {
-      let leadKey = null;
+      let relatedLead = null;
       
       // Buscar pelo proposal_id primeiro
       if (contract.proposal_id) {
         const relatedProposal = proposals.find(p => p.id === contract.proposal_id);
         if (relatedProposal && relatedProposal.quote_request_id) {
-          leadKey = relatedProposal.quote_request_id;
+          relatedLead = quoteRequests.find(q => q.id === relatedProposal.quote_request_id);
         }
       }
       
       // Se não encontrou pelo proposal, buscar pelo quote_request_id direto
-      if (!leadKey && contract.quote_request_id) {
-        leadKey = contract.quote_request_id;
+      if (!relatedLead && contract.quote_request_id) {
+        relatedLead = quoteRequests.find(q => q.id === contract.quote_request_id);
       }
       
-      if (leadKey) {
+      if (relatedLead) {
+        const leadKey = `${relatedLead.email}-${relatedLead.event_type}-${relatedLead.event_date || 'no-date'}`;
         const existingItem = processedItems.get(leadKey);
         
         if (existingItem) {
@@ -211,36 +216,6 @@ export const useGestaoComercial = () => {
 
     return grouped;
   }, [quoteRequests, proposals, contracts]);
-
-  // Calcular métricas financeiras
-  const getFinancialMetrics = (): FinancialMetrics => {
-    const orcamentosAbertos = proposals.filter(p => p.status === 'enviado').length;
-    const contratosAndamento = contracts.filter(c => c.status === 'em_andamento').length;
-    const contratosAssinados = contracts.filter(c => c.status === 'assinado').length;
-    
-    const valorOrcamentosAbertos = proposals
-      .filter(p => p.status === 'enviado')
-      .reduce((sum, p) => sum + (parseFloat(p.total_price) || 0), 0);
-    
-    const valorContratosAssinados = contracts
-      .filter(c => c.status === 'assinado')
-      .reduce((sum, c) => sum + (parseFloat(c.total_price) || 0), 0);
-    
-    const ticketMedio = contratosAssinados > 0 ? valorContratosAssinados / contratosAssinados : 0;
-    
-    const totalLeads = quoteRequests.length;
-    const taxaConversao = totalLeads > 0 ? (contratosAssinados / totalLeads) * 100 : 0;
-
-    return {
-      orcamentosAbertos,
-      contratosAndamento,
-      contratosAssinados,
-      valorOrcamentosAbertos,
-      valorContratosAssinados,
-      ticketMedio,
-      taxaConversao
-    };
-  };
 
   const updateItemStatus = async (itemId: string, newStatus: string, itemType: 'quote' | 'proposal' | 'contract') => {
     try {
