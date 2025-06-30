@@ -45,7 +45,11 @@ export const useGestaoComercial = () => {
 
   // Wrapper para converter mutateQuotes para Promise<void>
   const refetchQuotes = async (): Promise<void> => {
-    await mutateQuotes();
+    try {
+      await mutateQuotes();
+    } catch (error) {
+      console.error('Erro ao refetch quotes:', error);
+    }
   };
 
   useEffect(() => {
