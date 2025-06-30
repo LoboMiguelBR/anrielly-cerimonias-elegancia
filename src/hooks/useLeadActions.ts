@@ -43,6 +43,31 @@ export const useLeadActions = () => {
   const deleteLead = async (id: string) => {
     try {
       setLoading(true);
+      
+      // Primeiro, verificar se há clientes vinculados a este lead
+      const { data: linkedClients, error: checkError } = await supabase
+        .from('clientes')
+        .select('id')
+        .eq('quote_id', id);
+
+      if (checkError) {
+        throw checkError;
+      }
+
+      // Se houver clientes vinculados, remover a referência primeiro
+      if (linkedClients && linkedClients.length > 0) {
+        const { error: updateError } = await supabase
+          .from('clientes')
+          .update({ quote_id: null })
+          .eq('quote_id', id);
+
+        if (updateError) {
+          throw updateError;
+        }
+        console.log(`Removidas ${linkedClients.length} referências de clientes vinculadas ao lead ${id}`);
+      }
+
+      // Agora deletar o lead
       const { error } = await supabase
         .from('quote_requests')
         .delete()
