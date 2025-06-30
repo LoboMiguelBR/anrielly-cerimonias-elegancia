@@ -32,7 +32,7 @@ export const useGestaoComercial = () => {
   const [proposals, setProposals] = useState<any[]>([]);
   const [contracts, setContracts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { data: quoteRequests = [] } = useQuoteRequests();
+  const { data: quoteRequests = [], refetch: refetchQuotes } = useQuoteRequests();
 
   const fetchProposals = async () => {
     try {
@@ -82,23 +82,26 @@ export const useGestaoComercial = () => {
         if (item.status === 'contatado') return 'contato-realizado';
         break;
       case 'proposal':
-        if (['draft', 'enviado'].includes(item.status)) return 'orcamento-enviado';
+        if (['draft', 'rascunho'].includes(item.status)) return 'orcamento-enviado';
+        if (item.status === 'enviado') return 'orcamento-enviado';
         if (item.status === 'negociacao') return 'em-negociacao';
         if (item.status === 'aprovado') return 'pronto-contrato';
         break;
       case 'contract':
+        if (['draft', 'enviado', 'em_andamento'].includes(item.status)) return 'pronto-contrato';
         if (item.status === 'assinado') return 'contrato-assinado';
         break;
     }
     return 'lead-captado'; // fallback
   };
 
-  // Converter dados para o funil com deduplicação
+  // Converter dados para o funil com deduplicação melhorada
   const getFunilData = useMemo((): Record<string, FunilItem[]> => {
     const processedItems = new Map<string, FunilItem>();
 
-    // Processar quotes
+    // Processar quotes primeiro
     quoteRequests.forEach(quote => {
+      const key = `${quote.email}-${quote.event_type}-${quote.event_date || 'no-date'}`;
       const item: FunilItem = {
         id: `quote-${quote.id}`,
         originalId: quote.id,
@@ -113,15 +116,12 @@ export const useGestaoComercial = () => {
         created_at: quote.created_at
       };
       
-      // Usar email como chave única para evitar duplicação
-      const key = `${quote.email}-${quote.event_type}`;
-      if (!processedItems.has(key) || processedItems.get(key)!.type === 'quote') {
-        processedItems.set(key, item);
-      }
+      processedItems.set(key, item);
     });
 
-    // Processar propostas (sobrescrever quotes relacionados)
+    // Processar propostas (sobrescrever quotes relacionados se existirem)
     proposals.forEach(proposal => {
+      const key = `${proposal.client_email}-${proposal.event_type}-${proposal.event_date || 'no-date'}`;
       const item: FunilItem = {
         id: `proposal-${proposal.id}`,
         originalId: proposal.id,
@@ -137,12 +137,13 @@ export const useGestaoComercial = () => {
         total_price: proposal.total_price
       };
       
-      const key = `${proposal.client_email}-${proposal.event_type}`;
+      // Sempre substitui o quote se existir uma proposta para o mesmo cliente/evento
       processedItems.set(key, item);
     });
 
-    // Processar contratos (sobrescrever propostas relacionadas)
+    // Processar contratos (sobrescrever propostas relacionadas se existirem)
     contracts.forEach(contract => {
+      const key = `${contract.client_email}-${contract.event_type}-${contract.event_date || 'no-date'}`;
       const item: FunilItem = {
         id: `contract-${contract.id}`,
         originalId: contract.id,
@@ -158,7 +159,7 @@ export const useGestaoComercial = () => {
         total_price: contract.total_price
       };
       
-      const key = `${contract.client_email}-${contract.event_type}`;
+      // Sempre substitui a proposta se existir um contrato para o mesmo cliente/evento
       processedItems.set(key, item);
     });
 
@@ -230,6 +231,8 @@ export const useGestaoComercial = () => {
             .update({ status: newStatus })
             .eq('id', realId);
           if (quoteError) throw quoteError;
+          // Refetch quotes para atualizar o estado
+          await refetchQuotes();
           break;
           
         case 'proposal':
@@ -301,7 +304,7 @@ export const useGestaoComercial = () => {
     isLoading,
     updateItemStatus,
     refetch: async () => {
-      await Promise.all([fetchProposals(), fetchContracts()]);
+      await Promise.all([fetchProposals(), fetchContracts(), refetchQuotes()]);
     }
   };
 };

@@ -63,6 +63,11 @@ const TabContentRenderer: React.FC<TabContentRendererProps> = ({ activeTab }) =>
         return <UsersTab />;
       case 'settings':
         return <SystemSettingsTab />;
+      // Remover referências antigas que podem estar causando problemas
+      case 'quotes':
+      case 'orcamentos':
+        console.warn(`Redirecionando ${activeTab} para gestao-comercial`);
+        return <GestaoComercialTab />;
       default:
         console.warn(`Tab não encontrada: ${activeTab}, redirecionando para dashboard`);
         return <DashboardTab onNavigate={() => {}} />;
