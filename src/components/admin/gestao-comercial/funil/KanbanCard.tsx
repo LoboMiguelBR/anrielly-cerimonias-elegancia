@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { FunilItem } from '@/hooks/useGestaoComercial';
-import { FileText, Users, Calendar, MapPin, Phone, Mail, Edit } from 'lucide-react';
+import { FileText, Users, Calendar, MapPin, Phone, Mail, Edit, ArrowRight } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import {
@@ -104,13 +104,36 @@ const KanbanCard: React.FC<KanbanCardProps> = ({
   const canCreateProposal = item.type === 'quote' && !['perdido'].includes(item.status);
 
   const handleCreateProposal = () => {
-    // Usar o originalId (ID real) para criar a proposta
-    onCreateProposal(item.originalId);
+    // Usar o leadId para criar a proposta baseada no lead original
+    onCreateProposal(item.leadId || item.originalId);
+  };
+
+  const getNextStepLabel = () => {
+    switch (item.type) {
+      case 'quote': return 'Gerar Proposta';
+      case 'proposal': return 'Gerar Contrato';
+      case 'contract': return 'Criar Evento';
+      default: return null;
+    }
   };
 
   return (
     <Card className="hover:shadow-md transition-shadow cursor-pointer">
       <CardContent className="p-4 space-y-3">
+        {/* Lead Tracker */}
+        {item.leadId && (
+          <div className="bg-blue-50 p-2 rounded-lg border border-blue-200">
+            <div className="flex items-center gap-2 text-xs text-blue-700">
+              <Users className="h-3 w-3" />
+              <span className="font-medium">Lead #{item.leadId.slice(-8)}</span>
+              <ArrowRight className="h-3 w-3" />
+              <Badge className={`text-xs ${getTypeColor(item.type)}`}>
+                {getTypeLabel(item.type)}
+              </Badge>
+            </div>
+          </div>
+        )}
+
         {/* Header com nome e tipo */}
         <div className="flex items-start justify-between">
           <div className="flex-1">
@@ -196,7 +219,7 @@ const KanbanCard: React.FC<KanbanCardProps> = ({
               className="flex-1 text-xs"
             >
               <FileText className="h-3 w-3 mr-1" />
-              Gerar Proposta
+              {getNextStepLabel()}
             </Button>
           )}
         </div>

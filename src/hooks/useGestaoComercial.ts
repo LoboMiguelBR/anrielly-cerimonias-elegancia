@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuoteRequests } from './useQuoteRequests';
@@ -16,6 +15,7 @@ export interface FunilItem {
   created_at: string;
   total_price?: number;
   originalId: string; // Para rastrear o ID original
+  leadId?: string; // ID do lead original para rastreabilidade
 }
 
 export interface FinancialMetrics {
@@ -32,7 +32,7 @@ export const useGestaoComercial = () => {
   const [proposals, setProposals] = useState<any[]>([]);
   const [contracts, setContracts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { data: quoteRequests = [], refetch: refetchQuotes } = useQuoteRequests();
+  const { data: quoteRequests = [], mutate: refetchQuotes } = useQuoteRequests();
 
   const fetchProposals = async () => {
     try {
@@ -72,7 +72,7 @@ export const useGestaoComercial = () => {
     loadData();
   }, []);
 
-  // Função para determinar o estágio correto no funil baseado no tipo e status
+  // Função para determinar o estágio correto no funil baseado no Lead como origem
   const getCorrectFunilStage = (item: FunilItem) => {
     if (item.status === 'perdido') return 'perdido';
     
@@ -95,16 +95,17 @@ export const useGestaoComercial = () => {
     return 'lead-captado'; // fallback
   };
 
-  // Converter dados para o funil com deduplicação melhorada
+  // Converter dados para o funil com Lead como base - sem duplicação
   const getFunilData = useMemo((): Record<string, FunilItem[]> => {
     const processedItems = new Map<string, FunilItem>();
 
-    // Processar quotes primeiro
+    // 1. Processar LEADS primeiro (base do funil)
     quoteRequests.forEach(quote => {
-      const key = `${quote.email}-${quote.event_type}-${quote.event_date || 'no-date'}`;
+      const leadKey = quote.id; // Usar ID do lead como chave única
       const item: FunilItem = {
         id: `quote-${quote.id}`,
         originalId: quote.id,
+        leadId: quote.id, // Rastreabilidade do lead original
         name: quote.name,
         email: quote.email,
         phone: quote.phone,
@@ -116,51 +117,75 @@ export const useGestaoComercial = () => {
         created_at: quote.created_at
       };
       
-      processedItems.set(key, item);
+      processedItems.set(leadKey, item);
     });
 
-    // Processar propostas (sobrescrever quotes relacionados se existirem)
+    // 2. Processar PROPOSTAS vinculadas aos leads
     proposals.forEach(proposal => {
-      const key = `${proposal.client_email}-${proposal.event_type}-${proposal.event_date || 'no-date'}`;
-      const item: FunilItem = {
-        id: `proposal-${proposal.id}`,
-        originalId: proposal.id,
-        name: proposal.client_name,
-        email: proposal.client_email,
-        phone: proposal.client_phone,
-        event_type: proposal.event_type,
-        event_date: proposal.event_date,
-        event_location: proposal.event_location,
-        status: proposal.status || 'draft',
-        type: 'proposal',
-        created_at: proposal.created_at,
-        total_price: proposal.total_price
-      };
-      
-      // Sempre substitui o quote se existir uma proposta para o mesmo cliente/evento
-      processedItems.set(key, item);
+      if (proposal.quote_request_id) {
+        const leadKey = proposal.quote_request_id;
+        const existingLead = processedItems.get(leadKey);
+        
+        if (existingLead) {
+          // Atualizar o item existente para proposta, mantendo dados do lead
+          const updatedItem: FunilItem = {
+            ...existingLead,
+            id: `proposal-${proposal.id}`,
+            originalId: proposal.id,
+            status: proposal.status || 'draft',
+            type: 'proposal',
+            created_at: proposal.created_at,
+            total_price: proposal.total_price,
+            // Manter dados do cliente da proposta se diferentes
+            name: proposal.client_name || existingLead.name,
+            email: proposal.client_email || existingLead.email,
+            phone: proposal.client_phone || existingLead.phone,
+          };
+          
+          processedItems.set(leadKey, updatedItem);
+        }
+      }
     });
 
-    // Processar contratos (sobrescrever propostas relacionadas se existirem)
+    // 3. Processar CONTRATOS vinculados às propostas/leads
     contracts.forEach(contract => {
-      const key = `${contract.client_email}-${contract.event_type}-${contract.event_date || 'no-date'}`;
-      const item: FunilItem = {
-        id: `contract-${contract.id}`,
-        originalId: contract.id,
-        name: contract.client_name,
-        email: contract.client_email,
-        phone: contract.client_phone,
-        event_type: contract.event_type,
-        event_date: contract.event_date,
-        event_location: contract.event_location,
-        status: contract.status || 'draft',
-        type: 'contract',
-        created_at: contract.created_at,
-        total_price: contract.total_price
-      };
+      let leadKey = null;
       
-      // Sempre substitui a proposta se existir um contrato para o mesmo cliente/evento
-      processedItems.set(key, item);
+      // Buscar pelo proposal_id primeiro
+      if (contract.proposal_id) {
+        const relatedProposal = proposals.find(p => p.id === contract.proposal_id);
+        if (relatedProposal && relatedProposal.quote_request_id) {
+          leadKey = relatedProposal.quote_request_id;
+        }
+      }
+      
+      // Se não encontrou pelo proposal, buscar pelo quote_request_id direto
+      if (!leadKey && contract.quote_request_id) {
+        leadKey = contract.quote_request_id;
+      }
+      
+      if (leadKey) {
+        const existingItem = processedItems.get(leadKey);
+        
+        if (existingItem) {
+          // Atualizar para contrato, mantendo rastreabilidade do lead
+          const updatedItem: FunilItem = {
+            ...existingItem,
+            id: `contract-${contract.id}`,
+            originalId: contract.id,
+            status: contract.status || 'draft',
+            type: 'contract',
+            created_at: contract.created_at,
+            total_price: contract.total_price,
+            // Manter dados do cliente do contrato se diferentes
+            name: contract.client_name || existingItem.name,
+            email: contract.client_email || existingItem.email,
+            phone: contract.client_phone || existingItem.phone,
+          };
+          
+          processedItems.set(leadKey, updatedItem);
+        }
+      }
     });
 
     // Agrupar por estágio do funil
@@ -254,6 +279,11 @@ export const useGestaoComercial = () => {
             .update({ status: newStatus })
             .eq('id', realId);
           if (contractError) throw contractError;
+          
+          // Se contrato foi assinado, criar cliente automaticamente
+          if (newStatus === 'assinado') {
+            await createClientFromContract(realId);
+          }
           break;
           
         default:
@@ -285,6 +315,7 @@ export const useGestaoComercial = () => {
           description: `Evento criado automaticamente da proposta aprovada para ${proposal.client_name}`,
           status: 'em_planejamento',
           proposal_id: proposalId,
+          quote_id: proposal.quote_request_id,
           notes: proposal.notes
         }]);
 
@@ -296,6 +327,78 @@ export const useGestaoComercial = () => {
     } catch (error) {
       console.error('Erro ao criar evento automaticamente:', error);
     }
+  };
+
+  // Função para criar cliente automaticamente quando contrato é assinado
+  const createClientFromContract = async (contractId: string) => {
+    try {
+      const contract = contracts.find(c => c.id === contractId);
+      if (!contract) return;
+
+      // Verificar se já existe cliente com este email
+      const { data: existingClient } = await supabase
+        .from('clientes')
+        .select('id')
+        .eq('email', contract.client_email)
+        .maybeSingle();
+
+      if (existingClient) {
+        console.log('Cliente já existe:', existingClient.id);
+        return;
+      }
+
+      const { error } = await supabase
+        .from('clientes')
+        .insert([{
+          name: contract.client_name,
+          email: contract.client_email,
+          phone: contract.client_phone,
+          event_type: contract.event_type,
+          event_date: contract.event_date,
+          event_location: contract.event_location,
+          quote_id: contract.quote_request_id,
+          origin: 'contrato_assinado',
+          status: 'ativo'
+        }]);
+
+      if (error) {
+        console.error('Erro ao criar cliente:', error);
+      } else {
+        console.log('Cliente criado automaticamente do contrato:', contractId);
+      }
+    } catch (error) {
+      console.error('Erro ao criar cliente automaticamente:', error);
+    }
+  };
+
+  // Calcular métricas financeiras
+  const getFinancialMetrics = (): FinancialMetrics => {
+    const orcamentosAbertos = proposals.filter(p => p.status === 'enviado').length;
+    const contratosAndamento = contracts.filter(c => c.status === 'em_andamento').length;
+    const contratosAssinados = contracts.filter(c => c.status === 'assinado').length;
+    
+    const valorOrcamentosAbertos = proposals
+      .filter(p => p.status === 'enviado')
+      .reduce((sum, p) => sum + (parseFloat(p.total_price) || 0), 0);
+    
+    const valorContratosAssinados = contracts
+      .filter(c => c.status === 'assinado')
+      .reduce((sum, c) => sum + (parseFloat(c.total_price) || 0), 0);
+    
+    const ticketMedio = contratosAssinados > 0 ? valorContratosAssinados / contratosAssinados : 0;
+    
+    const totalLeads = quoteRequests.length;
+    const taxaConversao = totalLeads > 0 ? (contratosAssinados / totalLeads) * 100 : 0;
+
+    return {
+      orcamentosAbertos,
+      contratosAndamento,
+      contratosAssinados,
+      valorOrcamentosAbertos,
+      valorContratosAssinados,
+      ticketMedio,
+      taxaConversao
+    };
   };
 
   return {
