@@ -13,7 +13,7 @@ export const useGestaoComercial = () => {
   const [proposals, setProposals] = useState<any[]>([]);
   const [contracts, setContracts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { data: quoteRequests = [], mutate: refetchQuotes } = useQuoteRequests();
+  const { data: quoteRequests = [], mutate: mutateQuotes } = useQuoteRequests();
 
   const fetchProposals = async () => {
     try {
@@ -41,6 +41,11 @@ export const useGestaoComercial = () => {
     } catch (error) {
       console.error('Erro ao buscar contratos:', error);
     }
+  };
+
+  // Wrapper para converter mutateQuotes para Promise<void>
+  const refetchQuotes = async (): Promise<void> => {
+    await mutateQuotes();
   };
 
   useEffect(() => {
