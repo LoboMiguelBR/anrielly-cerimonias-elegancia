@@ -44,6 +44,86 @@ export type Database = {
         }
         Relationships: []
       }
+      automation_flows: {
+        Row: {
+          actions: Json
+          conditions: Json | null
+          created_at: string | null
+          flow_name: string
+          id: string
+          is_active: boolean | null
+          trigger_event: string
+          trigger_table: string
+          updated_at: string | null
+        }
+        Insert: {
+          actions: Json
+          conditions?: Json | null
+          created_at?: string | null
+          flow_name: string
+          id?: string
+          is_active?: boolean | null
+          trigger_event: string
+          trigger_table: string
+          updated_at?: string | null
+        }
+        Update: {
+          actions?: Json
+          conditions?: Json | null
+          created_at?: string | null
+          flow_name?: string
+          id?: string
+          is_active?: boolean | null
+          trigger_event?: string
+          trigger_table?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      automation_logs: {
+        Row: {
+          actions_executed: Json | null
+          created_at: string | null
+          error_message: string | null
+          execution_time_ms: number | null
+          flow_id: string | null
+          id: string
+          status: string | null
+          trigger_record_id: string
+          trigger_table: string
+        }
+        Insert: {
+          actions_executed?: Json | null
+          created_at?: string | null
+          error_message?: string | null
+          execution_time_ms?: number | null
+          flow_id?: string | null
+          id?: string
+          status?: string | null
+          trigger_record_id: string
+          trigger_table: string
+        }
+        Update: {
+          actions_executed?: Json | null
+          created_at?: string | null
+          error_message?: string | null
+          execution_time_ms?: number | null
+          flow_id?: string | null
+          id?: string
+          status?: string | null
+          trigger_record_id?: string
+          trigger_table?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_logs_flow_id_fkey"
+            columns: ["flow_id"]
+            isOneToOne: false
+            referencedRelation: "automation_flows"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cache_entries: {
         Row: {
           cache_key: string
@@ -1629,6 +1709,51 @@ export type Database = {
         }
         Relationships: []
       }
+      scheduled_followups: {
+        Row: {
+          created_at: string | null
+          error_message: string | null
+          followup_type: string
+          id: string
+          max_retries: number | null
+          record_id: string
+          record_table: string
+          retry_count: number | null
+          scheduled_for: string
+          sent_at: string | null
+          status: string | null
+          template_data: Json | null
+        }
+        Insert: {
+          created_at?: string | null
+          error_message?: string | null
+          followup_type: string
+          id?: string
+          max_retries?: number | null
+          record_id: string
+          record_table: string
+          retry_count?: number | null
+          scheduled_for: string
+          sent_at?: string | null
+          status?: string | null
+          template_data?: Json | null
+        }
+        Update: {
+          created_at?: string | null
+          error_message?: string | null
+          followup_type?: string
+          id?: string
+          max_retries?: number | null
+          record_id?: string
+          record_table?: string
+          retry_count?: number | null
+          scheduled_for?: string
+          sent_at?: string | null
+          status?: string | null
+          template_data?: Json | null
+        }
+        Relationships: []
+      }
       security_audit_log: {
         Row: {
           action_type: string
@@ -1949,6 +2074,16 @@ export type Database = {
     Functions: {
       clean_expired_cache: {
         Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      execute_automation_flow: {
+        Args: {
+          p_trigger_table: string
+          p_trigger_event: string
+          p_record_id: string
+          p_old_record?: Json
+          p_new_record?: Json
+        }
         Returns: undefined
       }
       get_section_template: {
