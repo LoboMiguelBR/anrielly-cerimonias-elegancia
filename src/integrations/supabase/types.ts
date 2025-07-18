@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      analytics_metrics: {
+        Row: {
+          created_at: string
+          id: string
+          metadata: Json | null
+          metric_date: string
+          metric_name: string
+          metric_type: string
+          metric_value: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          metric_date?: string
+          metric_name: string
+          metric_type: string
+          metric_value: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          metric_date?: string
+          metric_name?: string
+          metric_type?: string
+          metric_value?: number
+        }
+        Relationships: []
+      }
       app_settings: {
         Row: {
           category: string
@@ -88,6 +118,7 @@ export type Database = {
           execution_time_ms: number | null
           flow_id: string | null
           id: string
+          notification_sent: boolean | null
           status: string | null
           trigger_record_id: string
           trigger_table: string
@@ -99,6 +130,7 @@ export type Database = {
           execution_time_ms?: number | null
           flow_id?: string | null
           id?: string
+          notification_sent?: boolean | null
           status?: string | null
           trigger_record_id: string
           trigger_table: string
@@ -110,6 +142,7 @@ export type Database = {
           execution_time_ms?: number | null
           flow_id?: string | null
           id?: string
+          notification_sent?: boolean | null
           status?: string | null
           trigger_record_id?: string
           trigger_table?: string
@@ -566,6 +599,69 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      custom_reports: {
+        Row: {
+          chart_config: Json
+          created_at: string
+          created_by: string | null
+          description: string | null
+          filters: Json
+          id: string
+          is_public: boolean
+          name: string
+          report_type: string
+          updated_at: string
+        }
+        Insert: {
+          chart_config?: Json
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          filters?: Json
+          id?: string
+          is_public?: boolean
+          name: string
+          report_type: string
+          updated_at?: string
+        }
+        Update: {
+          chart_config?: Json
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          filters?: Json
+          id?: string
+          is_public?: boolean
+          name?: string
+          report_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      dashboard_cache: {
+        Row: {
+          cache_data: Json
+          cache_key: string
+          created_at: string
+          expires_at: string
+          id: string
+        }
+        Insert: {
+          cache_data: Json
+          cache_key: string
+          created_at?: string
+          expires_at: string
+          id?: string
+        }
+        Update: {
+          cache_data?: Json
+          cache_key?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+        }
+        Relationships: []
       }
       event_participants: {
         Row: {
@@ -1178,36 +1274,51 @@ export type Database = {
       }
       proposal_template_html: {
         Row: {
+          category: string | null
           created_at: string
           css_content: string | null
           description: string | null
           html_content: string
           id: string
           is_default: boolean | null
+          last_used_at: string | null
           name: string
+          preview_image_url: string | null
+          tags: string[] | null
           updated_at: string
+          usage_count: number | null
           variables: Json | null
         }
         Insert: {
+          category?: string | null
           created_at?: string
           css_content?: string | null
           description?: string | null
           html_content?: string
           id?: string
           is_default?: boolean | null
+          last_used_at?: string | null
           name: string
+          preview_image_url?: string | null
+          tags?: string[] | null
           updated_at?: string
+          usage_count?: number | null
           variables?: Json | null
         }
         Update: {
+          category?: string | null
           created_at?: string
           css_content?: string | null
           description?: string | null
           html_content?: string
           id?: string
           is_default?: boolean | null
+          last_used_at?: string | null
           name?: string
+          preview_image_url?: string | null
+          tags?: string[] | null
           updated_at?: string
+          usage_count?: number | null
           variables?: Json | null
         }
         Relationships: []
@@ -1998,6 +2109,92 @@ export type Database = {
         }
         Relationships: []
       }
+      template_approvals: {
+        Row: {
+          approval_notes: string | null
+          approval_status: string
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string
+          id: string
+          template_id: string
+          version_id: string | null
+        }
+        Insert: {
+          approval_notes?: string | null
+          approval_status?: string
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          id?: string
+          template_id: string
+          version_id?: string | null
+        }
+        Update: {
+          approval_notes?: string | null
+          approval_status?: string
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          id?: string
+          template_id?: string
+          version_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "template_approvals_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "proposal_template_html"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "template_approvals_version_id_fkey"
+            columns: ["version_id"]
+            isOneToOne: false
+            referencedRelation: "template_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      template_feedback: {
+        Row: {
+          created_at: string
+          feedback_text: string | null
+          id: string
+          rating: number | null
+          template_id: string
+          usage_context: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          feedback_text?: string | null
+          id?: string
+          rating?: number | null
+          template_id: string
+          usage_context?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          feedback_text?: string | null
+          id?: string
+          rating?: number | null
+          template_id?: string
+          usage_context?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "template_feedback_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "proposal_template_html"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       template_sections: {
         Row: {
           created_at: string
@@ -2027,6 +2224,47 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      template_versions: {
+        Row: {
+          change_summary: string | null
+          created_at: string
+          css_content: string | null
+          html_content: string
+          id: string
+          template_id: string
+          variables: Json | null
+          version_number: number
+        }
+        Insert: {
+          change_summary?: string | null
+          created_at?: string
+          css_content?: string | null
+          html_content: string
+          id?: string
+          template_id: string
+          variables?: Json | null
+          version_number: number
+        }
+        Update: {
+          change_summary?: string | null
+          created_at?: string
+          css_content?: string | null
+          html_content?: string
+          id?: string
+          template_id?: string
+          variables?: Json | null
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "template_versions_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "proposal_template_html"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       testimonials: {
         Row: {
@@ -2072,7 +2310,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculate_daily_metrics: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       clean_expired_cache: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      cleanup_old_automation_logs: {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
@@ -2085,6 +2331,15 @@ export type Database = {
           p_new_record?: Json
         }
         Returns: undefined
+      }
+      generate_custom_report: {
+        Args: {
+          p_report_type: string
+          p_filters?: Json
+          p_date_from?: string
+          p_date_to?: string
+        }
+        Returns: Json
       }
       get_section_template: {
         Args: { section_type_param: string }
@@ -2105,6 +2360,15 @@ export type Database = {
           is_active: boolean
           order_index: number
         }[]
+      }
+      link_questionnaire_to_flow: {
+        Args: {
+          p_client_email: string
+          p_client_name: string
+          p_event_type: string
+          p_template_id?: string
+        }
+        Returns: string
       }
       update_section_html: {
         Args: {

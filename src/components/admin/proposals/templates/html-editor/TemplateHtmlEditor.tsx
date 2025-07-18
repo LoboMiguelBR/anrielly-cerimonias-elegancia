@@ -2,6 +2,7 @@
 import React, { useCallback } from 'react';
 import { TemplateAsset, TemplateEditorProps } from './types';
 import { useTemplateEditor } from './hooks/useTemplateEditor';
+import { supabase } from '@/integrations/supabase/client';
 import TemplatePreview from './TemplatePreview';
 import EditorHeader from './components/EditorHeader';
 import TemplateMetaFields from './components/TemplateMetaFields';
@@ -37,6 +38,25 @@ export const TemplateHtmlEditor: React.FC<TemplateEditorProps> = ({
     handleInsertVariable,
     handleCursorPositionChange
   } = useTemplateEditor(initialTemplate, onSave);
+
+  // Enhanced template handling with categories and versioning
+  const handleEnhancedSave = async () => {
+    try {
+      await handleSave();
+      // Update usage stats when template is saved/used
+      if (template?.id) {
+        await supabase
+          .from('proposal_template_html')
+          .update({ 
+            usage_count: 1,
+            last_used_at: new Date().toISOString()
+          })
+          .eq('id', template.id);
+      }
+    } catch (error) {
+      console.error('Error saving template:', error);
+    }
+  };
 
   // Use useCallback to prevent creating new functions on every render
   const onSelectAsset = useCallback((asset: TemplateAsset) => {
@@ -83,7 +103,7 @@ export const TemplateHtmlEditor: React.FC<TemplateEditorProps> = ({
         previewMode={previewMode}
         onCancel={onCancel || (() => {})}
         onTogglePreview={togglePreviewMode}
-        onSave={handleSave}
+        onSave={handleEnhancedSave}
       />
 
       <ErrorMessages 
