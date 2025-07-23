@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      advanced_automations: {
+        Row: {
+          actions: Json
+          created_at: string
+          description: string | null
+          execution_count: number | null
+          id: string
+          is_active: boolean
+          last_executed: string | null
+          name: string
+          trigger_conditions: Json
+          updated_at: string
+        }
+        Insert: {
+          actions: Json
+          created_at?: string
+          description?: string | null
+          execution_count?: number | null
+          id?: string
+          is_active?: boolean
+          last_executed?: string | null
+          name: string
+          trigger_conditions: Json
+          updated_at?: string
+        }
+        Update: {
+          actions?: Json
+          created_at?: string
+          description?: string | null
+          execution_count?: number | null
+          id?: string
+          is_active?: boolean
+          last_executed?: string | null
+          name?: string
+          trigger_conditions?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       analytics_metrics: {
         Row: {
           created_at: string
@@ -153,6 +192,92 @@ export type Database = {
             columns: ["flow_id"]
             isOneToOne: false
             referencedRelation: "automation_flows"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      backup_configs: {
+        Row: {
+          backup_status: string | null
+          backup_type: string
+          created_at: string
+          id: string
+          is_active: boolean
+          last_backup: string | null
+          name: string
+          retention_days: number | null
+          schedule_cron: string
+          storage_location: string
+          updated_at: string
+        }
+        Insert: {
+          backup_status?: string | null
+          backup_type: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          last_backup?: string | null
+          name: string
+          retention_days?: number | null
+          schedule_cron: string
+          storage_location: string
+          updated_at?: string
+        }
+        Update: {
+          backup_status?: string | null
+          backup_type?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          last_backup?: string | null
+          name?: string
+          retention_days?: number | null
+          schedule_cron?: string
+          storage_location?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      backup_logs: {
+        Row: {
+          backup_config_id: string
+          backup_size: number | null
+          completed_at: string | null
+          created_at: string
+          error_message: string | null
+          file_path: string | null
+          id: string
+          started_at: string
+          status: string
+        }
+        Insert: {
+          backup_config_id: string
+          backup_size?: number | null
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          file_path?: string | null
+          id?: string
+          started_at?: string
+          status: string
+        }
+        Update: {
+          backup_config_id?: string
+          backup_size?: number | null
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          file_path?: string | null
+          id?: string
+          started_at?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "backup_logs_backup_config_id_fkey"
+            columns: ["backup_config_id"]
+            isOneToOne: false
+            referencedRelation: "backup_configs"
             referencedColumns: ["id"]
           },
         ]
@@ -872,6 +997,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      external_integrations: {
+        Row: {
+          config: Json
+          created_at: string
+          id: string
+          is_active: boolean
+          last_sync: string | null
+          name: string
+          sync_error: string | null
+          sync_status: string | null
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          config?: Json
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          last_sync?: string | null
+          name: string
+          sync_error?: string | null
+          sync_status?: string | null
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          config?: Json
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          last_sync?: string | null
+          name?: string
+          sync_error?: string | null
+          sync_status?: string | null
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       financial_categories: {
         Row: {
@@ -2305,6 +2469,98 @@ export type Database = {
         }
         Relationships: []
       }
+      webhook_configs: {
+        Row: {
+          created_at: string
+          events: string[]
+          headers: Json | null
+          id: string
+          is_active: boolean
+          name: string
+          retry_attempts: number | null
+          secret_key: string | null
+          timeout_seconds: number | null
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          events: string[]
+          headers?: Json | null
+          id?: string
+          is_active?: boolean
+          name: string
+          retry_attempts?: number | null
+          secret_key?: string | null
+          timeout_seconds?: number | null
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          events?: string[]
+          headers?: Json | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          retry_attempts?: number | null
+          secret_key?: string | null
+          timeout_seconds?: number | null
+          updated_at?: string
+          url?: string
+        }
+        Relationships: []
+      }
+      webhook_logs: {
+        Row: {
+          attempt_number: number | null
+          created_at: string
+          error_message: string | null
+          event_type: string
+          id: string
+          payload: Json
+          response_body: string | null
+          response_status: number | null
+          sent_at: string | null
+          success: boolean | null
+          webhook_config_id: string
+        }
+        Insert: {
+          attempt_number?: number | null
+          created_at?: string
+          error_message?: string | null
+          event_type: string
+          id?: string
+          payload: Json
+          response_body?: string | null
+          response_status?: number | null
+          sent_at?: string | null
+          success?: boolean | null
+          webhook_config_id: string
+        }
+        Update: {
+          attempt_number?: number | null
+          created_at?: string
+          error_message?: string | null
+          event_type?: string
+          id?: string
+          payload?: Json
+          response_body?: string | null
+          response_status?: number | null
+          sent_at?: string | null
+          success?: boolean | null
+          webhook_config_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webhook_logs_webhook_config_id_fkey"
+            columns: ["webhook_config_id"]
+            isOneToOne: false
+            referencedRelation: "webhook_configs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -2315,6 +2571,10 @@ export type Database = {
         Returns: undefined
       }
       clean_expired_cache: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      cleanup_integration_logs: {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
@@ -2369,6 +2629,10 @@ export type Database = {
           p_template_id?: string
         }
         Returns: string
+      }
+      trigger_webhooks: {
+        Args: { p_event_type: string; p_payload: Json }
+        Returns: undefined
       }
       update_section_html: {
         Args: {
