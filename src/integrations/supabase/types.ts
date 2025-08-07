@@ -306,6 +306,121 @@ export type Database = {
         }
         Relationships: []
       }
+      client_approvals: {
+        Row: {
+          approval_date: string | null
+          approved_by_email: string | null
+          approved_by_name: string | null
+          client_id: string | null
+          created_at: string
+          id: string
+          item_id: string
+          item_type: string
+          metadata: Json | null
+          rejection_reason: string | null
+          revision_notes: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          approval_date?: string | null
+          approved_by_email?: string | null
+          approved_by_name?: string | null
+          client_id?: string | null
+          created_at?: string
+          id?: string
+          item_id: string
+          item_type: string
+          metadata?: Json | null
+          rejection_reason?: string | null
+          revision_notes?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          approval_date?: string | null
+          approved_by_email?: string | null
+          approved_by_name?: string | null
+          client_id?: string | null
+          created_at?: string
+          id?: string
+          item_id?: string
+          item_type?: string
+          metadata?: Json | null
+          rejection_reason?: string | null
+          revision_notes?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_approvals_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_documents: {
+        Row: {
+          category: string
+          client_id: string | null
+          created_at: string
+          description: string | null
+          download_count: number | null
+          expires_at: string | null
+          file_size: number | null
+          file_type: string
+          file_url: string
+          id: string
+          is_downloadable: boolean
+          metadata: Json | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          client_id?: string | null
+          created_at?: string
+          description?: string | null
+          download_count?: number | null
+          expires_at?: string | null
+          file_size?: number | null
+          file_type: string
+          file_url: string
+          id?: string
+          is_downloadable?: boolean
+          metadata?: Json | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          client_id?: string | null
+          created_at?: string
+          description?: string | null
+          download_count?: number | null
+          expires_at?: string | null
+          file_size?: number | null
+          file_type?: string
+          file_url?: string
+          id?: string
+          is_downloadable?: boolean
+          metadata?: Json | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_documents_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_interactions: {
         Row: {
           client_id: string | null
@@ -352,6 +467,201 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_messages: {
+        Row: {
+          attachments: Json | null
+          client_id: string | null
+          created_at: string
+          id: string
+          is_read: boolean
+          message: string
+          metadata: Json | null
+          read_at: string | null
+          reply_to_id: string | null
+          sender_name: string
+          sender_type: string
+          updated_at: string
+        }
+        Insert: {
+          attachments?: Json | null
+          client_id?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message: string
+          metadata?: Json | null
+          read_at?: string | null
+          reply_to_id?: string | null
+          sender_name: string
+          sender_type: string
+          updated_at?: string
+        }
+        Update: {
+          attachments?: Json | null
+          client_id?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message?: string
+          metadata?: Json | null
+          read_at?: string | null
+          reply_to_id?: string | null
+          sender_name?: string
+          sender_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_messages_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_messages_reply_to_id_fkey"
+            columns: ["reply_to_id"]
+            isOneToOne: false
+            referencedRelation: "client_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_notifications: {
+        Row: {
+          action_url: string | null
+          client_id: string | null
+          created_at: string
+          expires_at: string | null
+          id: string
+          is_read: boolean
+          message: string
+          metadata: Json | null
+          title: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          action_url?: string | null
+          client_id?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_read?: boolean
+          message: string
+          metadata?: Json | null
+          title: string
+          type?: string
+          updated_at?: string
+        }
+        Update: {
+          action_url?: string | null
+          client_id?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_read?: boolean
+          message?: string
+          metadata?: Json | null
+          title?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_notifications_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_portal_access: {
+        Row: {
+          access_count: number | null
+          access_token: string
+          client_id: string | null
+          created_at: string
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          last_accessed: string | null
+          updated_at: string
+        }
+        Insert: {
+          access_count?: number | null
+          access_token?: string
+          client_id?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          last_accessed?: string | null
+          updated_at?: string
+        }
+        Update: {
+          access_count?: number | null
+          access_token?: string
+          client_id?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          last_accessed?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_portal_access_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_portal_sessions: {
+        Row: {
+          access_token_id: string | null
+          created_at: string
+          expires_at: string
+          id: string
+          ip_address: string | null
+          last_activity: string | null
+          session_token: string
+          user_agent: string | null
+        }
+        Insert: {
+          access_token_id?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          ip_address?: string | null
+          last_activity?: string | null
+          session_token?: string
+          user_agent?: string | null
+        }
+        Update: {
+          access_token_id?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          ip_address?: string | null
+          last_activity?: string | null
+          session_token?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_portal_sessions_access_token_id_fkey"
+            columns: ["access_token_id"]
+            isOneToOne: false
+            referencedRelation: "client_portal_access"
             referencedColumns: ["id"]
           },
         ]
@@ -1405,6 +1715,72 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      project_timeline: {
+        Row: {
+          client_id: string | null
+          completed_at: string | null
+          created_at: string
+          description: string | null
+          due_date: string | null
+          event_id: string | null
+          id: string
+          is_visible_to_client: boolean
+          metadata: Json | null
+          order_index: number | null
+          priority: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          client_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          event_id?: string | null
+          id?: string
+          is_visible_to_client?: boolean
+          metadata?: Json | null
+          order_index?: number | null
+          priority?: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          event_id?: string | null
+          id?: string
+          is_visible_to_client?: boolean
+          metadata?: Json | null
+          order_index?: number | null
+          priority?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_timeline_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_timeline_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       proposal_assets: {
         Row: {
@@ -2591,6 +2967,10 @@ export type Database = {
           p_new_record?: Json
         }
         Returns: undefined
+      }
+      generate_client_portal_access: {
+        Args: { p_client_id: string }
+        Returns: string
       }
       generate_custom_report: {
         Args: {

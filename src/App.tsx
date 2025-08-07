@@ -14,6 +14,7 @@ import WebChat from './components/WebChat';
 import ErrorBoundary from './components/ErrorBoundary';
 import { Toaster } from 'sonner';
 import { GalleryProvider } from './components/gallery/GalleryContext';
+import { ClientPortal } from './pages/ClientPortal';
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
           <Route path="/questionario/:linkPublico" element={<QuestionarioLogin />} />
           <Route path="/questionario/:linkPublico/formulario" element={<QuestionarioFormulario />} />
           <Route path="/contrato/:slug" element={<ContractSigning />} />
+          <Route path="/cliente/:token" element={<ClientPortal />} />
           {/* Rota dinâmica para landing pages - deve vir por último */}
           <Route path="/:slug" element={<DynamicLandingPage />} />
           <Route path="*" element={<NotFound />} />
